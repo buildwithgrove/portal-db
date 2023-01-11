@@ -2,8 +2,8 @@ package postgresdriver
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -51,8 +51,8 @@ func (a *SelectApplicationsRow) toApplication() *types.Application {
 			SecretKey:            a.SecretKey.String,
 			SecretKeyRequired:    a.SecretKeyRequired.Bool,
 			WhitelistBlockchains: a.WhitelistBlockchains,
-			WhitelistContracts:   nullStringToWhitelistContracts(a.WhitelistContracts),
-			WhitelistMethods:     nullStringToWhitelistMethods(a.WhitelistMethods),
+			WhitelistContracts:   stringToWhitelistContracts(fmt.Sprintf("%v", a.WhitelistContracts)),
+			WhitelistMethods:     stringToWhitelistMethods(fmt.Sprintf("%v", a.WhitelistMethods)),
 			WhitelistOrigins:     a.WhitelistOrigins,
 			WhitelistUserAgents:  a.WhitelistUserAgents,
 		},
@@ -70,21 +70,17 @@ func (a *SelectApplicationsRow) toApplication() *types.Application {
 			ThreeQuarters: a.OnThreeQuarters.Bool,
 			Full:          a.OnFull.Bool,
 		},
-
 		CreatedAt: a.CreatedAt.Time,
 		UpdatedAt: a.UpdatedAt.Time,
 	}
 }
 
-func nullStringToWhitelistContracts(rawContracts sql.NullString) []types.WhitelistContract {
-	if !rawContracts.Valid {
-		return nil
-	}
-
-	return stringToWhitelistContracts(rawContracts.String)
-}
 func stringToWhitelistContracts(rawContracts string) []types.WhitelistContract {
-	contracts := []types.WhitelistContract{}
+	var contracts []types.WhitelistContract
+
+	if rawContracts == "" {
+		return contracts
+	}
 
 	_ = json.Unmarshal([]byte(rawContracts), &contracts)
 
@@ -97,15 +93,12 @@ func stringToWhitelistContracts(rawContracts string) []types.WhitelistContract {
 	return contracts
 }
 
-func nullStringToWhitelistMethods(rawMethods sql.NullString) []types.WhitelistMethod {
-	if !rawMethods.Valid {
-		return nil
-	}
-
-	return stringToWhitelistMethods(rawMethods.String)
-}
 func stringToWhitelistMethods(rawMethods string) []types.WhitelistMethod {
-	methods := []types.WhitelistMethod{}
+	var methods []types.WhitelistMethod
+
+	if rawMethods == "" {
+		return methods
+	}
 
 	_ = json.Unmarshal([]byte(rawMethods), &methods)
 
@@ -257,36 +250,14 @@ func (i *InsertGatewayAATParams) isNotNull() bool {
 }
 
 func extractInsertDBGatewaySettings(app *types.Application) InsertGatewaySettingsParams {
-	marshaledWhitelistContracts, marshaledWhitelistMethods :=
-		marshalWhitelistContractsAndMethods(app.GatewaySettings.WhitelistContracts, app.GatewaySettings.WhitelistMethods)
-
 	return InsertGatewaySettingsParams{
-		ApplicationID:        app.ID,
-		SecretKey:            newSQLNullString(app.GatewaySettings.SecretKey),
-		SecretKeyRequired:    newSQLNullBool(&app.GatewaySettings.SecretKeyRequired),
-		WhitelistContracts:   newSQLNullString(marshaledWhitelistContracts),
-		WhitelistMethods:     newSQLNullString(marshaledWhitelistMethods),
-		WhitelistOrigins:     app.GatewaySettings.WhitelistOrigins,
-		WhitelistUserAgents:  app.GatewaySettings.WhitelistUserAgents,
-		WhitelistBlockchains: app.GatewaySettings.WhitelistBlockchains,
+		ApplicationID:     app.ID,
+		SecretKey:         newSQLNullString(app.GatewaySettings.SecretKey),
+		SecretKeyRequired: newSQLNullBool(&app.GatewaySettings.SecretKeyRequired),
 	}
-}
-func marshalWhitelistContractsAndMethods(contracts []types.WhitelistContract, methods []types.WhitelistMethod) (string, string) {
-	var marshaledWhitelistContracts []byte
-	if len(contracts) > 0 {
-		marshaledWhitelistContracts, _ = json.Marshal(contracts)
-	}
-
-	var marshaledWhitelistMethods []byte
-	if len(methods) > 0 {
-		marshaledWhitelistMethods, _ = json.Marshal(methods)
-	}
-
-	return string(marshaledWhitelistContracts), string(marshaledWhitelistMethods)
 }
 func (i *InsertGatewaySettingsParams) isNotNull() bool {
-	return i.SecretKey.Valid || i.WhitelistContracts.Valid || i.WhitelistMethods.Valid ||
-		len(i.WhitelistOrigins) != 0 || len(i.WhitelistUserAgents) != 0 || len(i.WhitelistBlockchains) != 0
+	return i.SecretKey.Valid
 }
 
 func extractInsertDBNotificationSettings(app *types.Application) InsertNotificationSettingsParams {
@@ -334,6 +305,7 @@ func (p *PostgresDriver) UpdateApplication(ctx context.Context, id string, updat
 			return err
 		}
 	}
+
 	gatewaySettingsParams := extractUpsertGatewaySettings(id, update)
 	if gatewaySettingsParams.isNotNull() {
 		err = qtx.UpsertGatewaySettings(ctx, *gatewaySettingsParams)
@@ -341,6 +313,25 @@ func (p *PostgresDriver) UpdateApplication(ctx context.Context, id string, updat
 			return err
 		}
 	}
+	for _, contract := range update.GatewaySettings.WhitelistContracts {
+		whitelistContractParams := extractUpsertWhitelistContracts(id, &contract)
+		if whitelistContractParams != nil {
+			err = qtx.UpsertWhitelistContracts(ctx, *whitelistContractParams)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	for _, method := range update.GatewaySettings.WhitelistMethods {
+		whitelistMethodParams := extractUpsertWhitelistMethods(id, &method)
+		if whitelistMethodParams != nil {
+			err = qtx.UpsertWhitelistMethods(ctx, *whitelistMethodParams)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	notificationSettingsParams := extractUpsertNotificationSettings(id, update)
 	if notificationSettingsParams.isNotNull() {
 		err = qtx.UpsertNotificationSettings(ctx, *notificationSettingsParams)
@@ -391,23 +382,42 @@ func extractUpsertGatewaySettings(id string, update *types.UpdateApplication) *U
 		return nil
 	}
 
-	marshaledWhitelistContracts, marshaledWhitelistMethods :=
-		marshalWhitelistContractsAndMethods(update.GatewaySettings.WhitelistContracts, update.GatewaySettings.WhitelistMethods)
-
 	return &UpsertGatewaySettingsParams{
 		ApplicationID:        id,
 		SecretKey:            newSQLNullString(update.GatewaySettings.SecretKey),
 		SecretKeyRequired:    newSQLNullBool(update.GatewaySettings.SecretKeyRequired),
-		WhitelistContracts:   newSQLNullString(marshaledWhitelistContracts),
-		WhitelistMethods:     newSQLNullString(marshaledWhitelistMethods),
 		WhitelistOrigins:     update.GatewaySettings.WhitelistOrigins,
 		WhitelistUserAgents:  update.GatewaySettings.WhitelistUserAgents,
 		WhitelistBlockchains: update.GatewaySettings.WhitelistBlockchains,
 	}
 }
 func (u *UpsertGatewaySettingsParams) isNotNull() bool {
-	return u != nil && (u.SecretKey.Valid || u.SecretKeyRequired.Valid || u.WhitelistContracts.Valid || u.WhitelistMethods.Valid ||
+	return u != nil && (u.SecretKey.Valid || u.SecretKeyRequired.Valid ||
 		len(u.WhitelistOrigins) != 0 || len(u.WhitelistUserAgents) != 0 || len(u.WhitelistBlockchains) != 0)
+}
+
+func extractUpsertWhitelistContracts(id string, updateContract *types.WhitelistContract) *UpsertWhitelistContractsParams {
+	if len(updateContract.Contracts) == 0 {
+		return nil
+	}
+
+	return &UpsertWhitelistContractsParams{
+		ApplicationID: id,
+		BlockchainID:  updateContract.BlockchainID,
+		Contracts:     updateContract.Contracts,
+	}
+}
+
+func extractUpsertWhitelistMethods(id string, updateContract *types.WhitelistMethod) *UpsertWhitelistMethodsParams {
+	if len(updateContract.Methods) == 0 {
+		return nil
+	}
+
+	return &UpsertWhitelistMethodsParams{
+		ApplicationID: id,
+		BlockchainID:  updateContract.BlockchainID,
+		Methods:       updateContract.Methods,
+	}
 }
 
 func extractUpsertNotificationSettings(id string, update *types.UpdateApplication) *UpsertNotificationSettingsParams {
@@ -493,14 +503,14 @@ type (
 		Version         string `json:"version"`
 	}
 	dbGatewaySettingsJSON struct {
-		ApplicationID        string   `json:"application_id"`
-		SecretKey            string   `json:"secret_key"`
-		SecretKeyRequired    bool     `json:"secret_key_required"`
-		WhitelistContracts   string   `json:"whitelist_contracts"`
-		WhitelistMethods     string   `json:"whitelist_methods"`
-		WhitelistOrigins     []string `json:"whitelist_origins"`
-		WhitelistUserAgents  []string `json:"whitelist_user_agents"`
-		WhitelistBlockchains []string `json:"whitelist_blockchains"`
+		ApplicationID        string                    `json:"application_id"`
+		SecretKey            string                    `json:"secret_key"`
+		SecretKeyRequired    bool                      `json:"secret_key_required"`
+		WhitelistContracts   []types.WhitelistContract `json:"whitelist_contracts"`
+		WhitelistMethods     []types.WhitelistMethod   `json:"whitelist_methods"`
+		WhitelistOrigins     []string                  `json:"whitelist_origins"`
+		WhitelistUserAgents  []string                  `json:"whitelist_user_agents"`
+		WhitelistBlockchains []string                  `json:"whitelist_blockchains"`
 	}
 	dbNotificationSettingsJSON struct {
 		ApplicationID string `json:"application_id"`
@@ -553,8 +563,8 @@ func (j dbGatewaySettingsJSON) toOutput() *types.GatewaySettings {
 		ID:                   j.ApplicationID,
 		SecretKey:            j.SecretKey,
 		SecretKeyRequired:    j.SecretKeyRequired,
-		WhitelistContracts:   stringToWhitelistContracts(j.WhitelistContracts),
-		WhitelistMethods:     stringToWhitelistMethods(j.WhitelistMethods),
+		WhitelistContracts:   j.WhitelistContracts,
+		WhitelistMethods:     j.WhitelistMethods,
 		WhitelistOrigins:     j.WhitelistOrigins,
 		WhitelistUserAgents:  j.WhitelistUserAgents,
 		WhitelistBlockchains: j.WhitelistBlockchains,

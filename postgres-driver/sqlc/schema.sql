@@ -142,12 +142,26 @@ CREATE TABLE IF NOT EXISTS gateway_settings (
 	secret_key VARCHAR,
 	secret_key_required BOOLEAN,
 	whitelist_blockchains VARCHAR [],
-	whitelist_contracts VARCHAR,
-	whitelist_methods VARCHAR,
 	whitelist_origins VARCHAR [],
 	whitelist_user_agents VARCHAR [],
 	PRIMARY KEY (id),
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id)
+);
+CREATE TABLE whitelist_contracts (
+	id SERIAL PRIMARY KEY,
+	application_id VARCHAR NOT NULL,
+	blockchain_id VARCHAR,
+	contracts VARCHAR[],
+	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
+	UNIQUE(application_id, blockchain_id)
+);
+CREATE TABLE whitelist_methods (
+	id SERIAL PRIMARY KEY,
+	application_id VARCHAR NOT NULL,
+	blockchain_id VARCHAR,
+	methods VARCHAR[],
+	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
+	UNIQUE(application_id, blockchain_id)
 );
 CREATE TABLE IF NOT EXISTS notification_settings (
 	id INT GENERATED ALWAYS AS IDENTITY,
