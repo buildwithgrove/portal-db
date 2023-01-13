@@ -15,3 +15,9 @@ repos:
       - id: golangci-lint
       - id: go-critic
       - id: go-mod-tidy
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args:
+          ["--exclude-secrets", "test_", "--disable-plugin", "KeywordDetector"]
