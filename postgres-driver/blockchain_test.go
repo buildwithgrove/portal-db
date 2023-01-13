@@ -15,7 +15,7 @@ func (ts *PGDriverTestSuite) Test_ReadBlockchains() {
 			blockchains: []*types.Blockchain{
 				{
 					ID:                "0001",
-					Altruist:          "https://test:329y293uhfniu23f8@shared-test2.nodes.pokt.network:12345",
+					Altruist:          "https://test:test_93uhfniu23f8@shared-test2.nodes.pokt.network:12345",
 					Blockchain:        "pokt-mainnet",
 					Description:       "POKT Network Mainnet",
 					EnforceResult:     "JSON",
@@ -45,7 +45,7 @@ func (ts *PGDriverTestSuite) Test_ReadBlockchains() {
 				},
 				{
 					ID:                "0021",
-					Altruist:          "https://test:2r980u32fh239hf@shared-test2.nodes.eth.network:12345",
+					Altruist:          "https://test:test_u32fh239hf@shared-test2.nodes.eth.network:12345",
 					Blockchain:        "eth-mainnet",
 					ChainID:           "1",
 					ChainIDCheck:      `{\"method\":\"eth_chainId\",\"id\":1,\"jsonrpc\":\"2.0\"}`,
@@ -114,7 +114,7 @@ func (ts *PGDriverTestSuite) Test_WriteBlockchain() {
 			name: "Should create a single load balancer successfully with correct input",
 			chainInput: &types.Blockchain{
 				ID:                "003",
-				Altruist:          "https://test:24r42fg332f@shared-test3.nodes.pol.network:12345",
+				Altruist:          "https://test:test_fg332f@shared-test3.nodes.pol.network:12345",
 				Blockchain:        "pol-mainnet",
 				Description:       "Polygon Mainnet",
 				EnforceResult:     "JSON",

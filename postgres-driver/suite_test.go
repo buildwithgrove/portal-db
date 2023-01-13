@@ -14,7 +14,7 @@ import (
 
 const (
 	populateQueryPath = "../testdata/seed_test_db.sql"
-	connectionString  = "postgres://postgres:pgpassword@localhost:5432/postgres?sslmode=disable"
+	connectionString  = "postgres://postgres:pgpassword@localhost:5432/postgres?sslmode=disable" // pragma: allowlist secret
 )
 
 var testCtx = context.Background()

@@ -271,7 +271,7 @@ INSERT INTO blockchains (
 VALUES (
         '0001',
         true,
-        'https://test:329y293uhfniu23f8@shared-test2.nodes.pokt.network:12345',
+        'https://test:test_93uhfniu23f8@shared-test2.nodes.pokt.network:12345',
         'pokt-mainnet',
         '{ "pokt-mainnet" }',
         null,
@@ -289,7 +289,7 @@ VALUES (
     (
         '0021',
         true,
-        'https://test:2r980u32fh239hf@shared-test2.nodes.eth.network:12345',
+        'https://test:test_u32fh239hf@shared-test2.nodes.eth.network:12345',
         'eth-mainnet',
         '{ "eth-mainnet" }',
         '1',
