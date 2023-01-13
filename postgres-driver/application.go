@@ -503,14 +503,12 @@ type (
 		Version         string `json:"version"`
 	}
 	dbGatewaySettingsJSON struct {
-		ApplicationID        string                    `json:"application_id"`
-		SecretKey            string                    `json:"secret_key"`
-		SecretKeyRequired    bool                      `json:"secret_key_required"`
-		WhitelistContracts   []types.WhitelistContract `json:"whitelist_contracts"`
-		WhitelistMethods     []types.WhitelistMethod   `json:"whitelist_methods"`
-		WhitelistOrigins     []string                  `json:"whitelist_origins"`
-		WhitelistUserAgents  []string                  `json:"whitelist_user_agents"`
-		WhitelistBlockchains []string                  `json:"whitelist_blockchains"`
+		ApplicationID        string   `json:"application_id"`
+		SecretKey            string   `json:"secret_key"`
+		SecretKeyRequired    bool     `json:"secret_key_required"`
+		WhitelistOrigins     []string `json:"whitelist_origins"`
+		WhitelistUserAgents  []string `json:"whitelist_user_agents"`
+		WhitelistBlockchains []string `json:"whitelist_blockchains"`
 	}
 	dbWhitelistContractJSON struct {
 		ApplicationID string   `json:"application_id"`
@@ -573,8 +571,6 @@ func (j dbGatewaySettingsJSON) toOutput() *types.GatewaySettings {
 		ID:                   j.ApplicationID,
 		SecretKey:            j.SecretKey,
 		SecretKeyRequired:    j.SecretKeyRequired,
-		WhitelistContracts:   j.WhitelistContracts,
-		WhitelistMethods:     j.WhitelistMethods,
 		WhitelistOrigins:     j.WhitelistOrigins,
 		WhitelistUserAgents:  j.WhitelistUserAgents,
 		WhitelistBlockchains: j.WhitelistBlockchains,
