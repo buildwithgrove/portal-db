@@ -23,7 +23,8 @@ func TestListen(t *testing.T) {
 					Address: "123",
 				},
 				GatewaySettings: types.GatewaySettings{
-					SecretKey: "123",
+					SecretKey:            "123",
+					WhitelistBlockchains: []string{"test-chain-1", "test-chain-2"},
 					WhitelistContracts: []types.WhitelistContract{
 						{BlockchainID: "001", Contracts: []string{"test123", "test456"}},
 					},
@@ -68,10 +69,9 @@ func TestListen(t *testing.T) {
 					Table:  types.TableGatewaySettings,
 					Action: types.ActionUpdate,
 					Data: &types.GatewaySettings{
-						ID:                 "321",
-						SecretKey:          "123",
-						WhitelistContracts: []types.WhitelistContract{},
-						WhitelistMethods:   []types.WhitelistMethod{},
+						ID:                   "321",
+						SecretKey:            "123",
+						WhitelistBlockchains: []string{"test-chain-1", "test-chain-2"},
 					},
 				},
 				types.TableWhitelistContracts: {
