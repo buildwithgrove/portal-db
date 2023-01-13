@@ -114,6 +114,30 @@ func (n notification) parseGatewaySettingsNotification() *types.Notification {
 	}
 }
 
+func (n notification) parseWhitelistContractNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbWhitelistContract dbWhitelistContractJSON
+	_ = json.Unmarshal(rawData, &dbWhitelistContract)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbWhitelistContract.toOutput(),
+	}
+}
+
+func (n notification) parseWhitelistMethodNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbWhitelistMethod dbWhitelistMethodJSON
+	_ = json.Unmarshal(rawData, &dbWhitelistMethod)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbWhitelistMethod.toOutput(),
+	}
+}
+
 func (n notification) parseNotificationSettingsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbNotificationSettings dbNotificationSettingsJSON
@@ -182,6 +206,10 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseGatewayAATNotification()
 	case types.TableGatewaySettings:
 		return n.parseGatewaySettingsNotification()
+	case types.TableWhitelistContracts:
+		return n.parseWhitelistContractNotification()
+	case types.TableWhitelistMethods:
+		return n.parseWhitelistMethodNotification()
 	case types.TableNotificationSettings:
 		return n.parseNotificationSettingsNotification()
 

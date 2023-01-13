@@ -512,6 +512,16 @@ type (
 		WhitelistUserAgents  []string                  `json:"whitelist_user_agents"`
 		WhitelistBlockchains []string                  `json:"whitelist_blockchains"`
 	}
+	dbWhitelistContractJSON struct {
+		ApplicationID string   `json:"application_id"`
+		BlockchainID  string   `json:"blockchain_id"`
+		Contracts     []string `json:"contracts"`
+	}
+	dbWhitelistMethodJSON struct {
+		ApplicationID string   `json:"application_id"`
+		BlockchainID  string   `json:"blockchain_id"`
+		Methods       []string `json:"methods"`
+	}
 	dbNotificationSettingsJSON struct {
 		ApplicationID string `json:"application_id"`
 		SignedUp      bool   `json:"signed_up"`
@@ -568,6 +578,20 @@ func (j dbGatewaySettingsJSON) toOutput() *types.GatewaySettings {
 		WhitelistOrigins:     j.WhitelistOrigins,
 		WhitelistUserAgents:  j.WhitelistUserAgents,
 		WhitelistBlockchains: j.WhitelistBlockchains,
+	}
+}
+func (j dbWhitelistContractJSON) toOutput() *types.WhitelistContract {
+	return &types.WhitelistContract{
+		ID:           j.ApplicationID,
+		BlockchainID: j.BlockchainID,
+		Contracts:    j.Contracts,
+	}
+}
+func (j dbWhitelistMethodJSON) toOutput() *types.WhitelistMethod {
+	return &types.WhitelistMethod{
+		ID:           j.ApplicationID,
+		BlockchainID: j.BlockchainID,
+		Methods:      j.Methods,
 	}
 }
 func (j dbNotificationSettingsJSON) toOutput() *types.NotificationSettings {
