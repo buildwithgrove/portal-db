@@ -250,6 +250,16 @@ AFTER
 INSERT
 	OR
 UPDATE ON gateway_settings FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER whitelist_contracts_notify_event
+AFTER
+INSERT
+	OR
+UPDATE ON whitelist_contracts FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER whitelist_methods_notify_event
+AFTER
+INSERT
+	OR
+UPDATE ON whitelist_methods FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER notification_settings_notify_event
 AFTER
 INSERT
