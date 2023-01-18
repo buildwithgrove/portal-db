@@ -313,8 +313,8 @@ func (ts *PGDriverTestSuite) Test_UpdateApplication() {
 			expectedAfterUpdate: SelectOneApplicationRow{
 				Name:                 sql.NullString{Valid: true, String: "pokt_app_updated_lb"},
 				WhitelistBlockchains: []string{"test-chain1"},
-				WhitelistContracts:   sql.NullString{Valid: true, String: "[{\"blockchainID\":\"01\",\"contracts\":[\"test-contract1\"]}]"},
-				WhitelistMethods:     sql.NullString{Valid: true, String: "[{\"blockchainID\":\"01\",\"methods\":[\"test-method1\"]}]"},
+				WhitelistContracts:   "[{\"blockchain_id\" : \"01\", \"contracts\" : [\"test-contract1\"]}]",
+				WhitelistMethods:     "[{\"blockchain_id\" : \"01\", \"methods\" : [\"test-method1\"]}]",
 				WhitelistOrigins:     []string{"test-origin1", "test-origin2"},
 				WhitelistUserAgents:  []string{"test-agent1"},
 				SignedUp:             sql.NullBool{Valid: true, Bool: false},
@@ -345,8 +345,6 @@ func (ts *PGDriverTestSuite) Test_UpdateApplication() {
 			expectedAfterUpdate: SelectOneApplicationRow{
 				Name:                 sql.NullString{Valid: true, String: "pokt_app_456"},
 				WhitelistBlockchains: []string(nil),
-				WhitelistContracts:   sql.NullString{Valid: false, String: ""},
-				WhitelistMethods:     sql.NullString{Valid: false, String: ""},
 				WhitelistOrigins:     []string{"test-origin1", "test-origin2"},
 				WhitelistUserAgents:  []string{"test-agent1"},
 				SignedUp:             sql.NullBool{Valid: true, Bool: true},

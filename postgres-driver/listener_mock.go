@@ -85,9 +85,6 @@ func applicationInputs(mainTableAction, sideTablesAction types.Action, content t
 	}
 
 	if !gatewaySettingsIsNull(app.GatewaySettings) {
-		contracts, methods := marshalWhitelistContractsAndMethods(app.GatewaySettings.WhitelistContracts,
-			app.GatewaySettings.WhitelistMethods)
-
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
 			table:  types.TableGatewaySettings,
@@ -95,13 +92,33 @@ func applicationInputs(mainTableAction, sideTablesAction types.Action, content t
 				ApplicationID:        app.ID,
 				SecretKey:            app.GatewaySettings.SecretKey,
 				SecretKeyRequired:    app.GatewaySettings.SecretKeyRequired,
-				WhitelistContracts:   contracts,
-				WhitelistMethods:     methods,
 				WhitelistOrigins:     app.GatewaySettings.WhitelistOrigins,
 				WhitelistUserAgents:  app.GatewaySettings.WhitelistUserAgents,
 				WhitelistBlockchains: app.GatewaySettings.WhitelistBlockchains,
 			},
 		})
+		for _, contract := range app.GatewaySettings.WhitelistContracts {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableWhitelistContracts,
+				input: dbWhitelistContractJSON{
+					ApplicationID: app.ID,
+					BlockchainID:  contract.BlockchainID,
+					Contracts:     contract.Contracts,
+				},
+			})
+		}
+		for _, method := range app.GatewaySettings.WhitelistMethods {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableWhitelistMethods,
+				input: dbWhitelistMethodJSON{
+					ApplicationID: app.ID,
+					BlockchainID:  method.BlockchainID,
+					Methods:       method.Methods,
+				},
+			})
+		}
 	}
 
 	if app.NotificationSettings != (types.NotificationSettings{}) {
