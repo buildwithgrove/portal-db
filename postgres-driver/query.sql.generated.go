@@ -252,47 +252,23 @@ const insertGatewaySettings = `-- name: InsertGatewaySettings :exec
 INSERT into gateway_settings (
         application_id,
         secret_key,
-        secret_key_required,
-        whitelist_contracts,
-        whitelist_methods,
-        whitelist_origins,
-        whitelist_user_agents,
-        whitelist_blockchains
+        secret_key_required
     )
 VALUES (
         $1,
         $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8
+        $3
     )
 `
 
 type InsertGatewaySettingsParams struct {
-	ApplicationID        string         `json:"applicationID"`
-	SecretKey            sql.NullString `json:"secretKey"`
-	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
-	WhitelistContracts   sql.NullString `json:"whitelistContracts"`
-	WhitelistMethods     sql.NullString `json:"whitelistMethods"`
-	WhitelistOrigins     []string       `json:"whitelistOrigins"`
-	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
-	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
+	ApplicationID     string         `json:"applicationID"`
+	SecretKey         sql.NullString `json:"secretKey"`
+	SecretKeyRequired sql.NullBool   `json:"secretKeyRequired"`
 }
 
 func (q *Queries) InsertGatewaySettings(ctx context.Context, arg InsertGatewaySettingsParams) error {
-	_, err := q.db.ExecContext(ctx, insertGatewaySettings,
-		arg.ApplicationID,
-		arg.SecretKey,
-		arg.SecretKeyRequired,
-		arg.WhitelistContracts,
-		arg.WhitelistMethods,
-		pq.Array(arg.WhitelistOrigins),
-		pq.Array(arg.WhitelistUserAgents),
-		pq.Array(arg.WhitelistBlockchains),
-	)
+	_, err := q.db.ExecContext(ctx, insertGatewaySettings, arg.ApplicationID, arg.SecretKey, arg.SecretKeyRequired)
 	return err
 }
 
@@ -601,13 +577,22 @@ func (q *Queries) SelectAppLimit(ctx context.Context, applicationID string) (Sel
 }
 
 const selectApplications = `-- name: SelectApplications :many
+WITH app_whitelists AS (
+    SELECT application_id
+    FROM whitelist_contracts
+    UNION
+    SELECT application_id
+    FROM whitelist_methods
+)
 SELECT a.application_id,
     a.contact_email,
+    a.created_at,
     a.description,
     a.dummy,
     a.name,
     a.owner,
     a.status,
+    a.updated_at,
     a.url,
     a.user_id,
     a.first_date_surpassed,
@@ -620,8 +605,6 @@ SELECT a.application_id,
     gs.secret_key,
     gs.secret_key_required,
     gs.whitelist_blockchains,
-    gs.whitelist_contracts,
-    gs.whitelist_methods,
     gs.whitelist_origins,
     gs.whitelist_user_agents,
     ns.signed_up,
@@ -631,26 +614,82 @@ SELECT a.application_id,
     ns.on_full,
     al.custom_limit,
     al.pay_plan,
-    pp.daily_limit AS plan_limit,
-    a.created_at,
-    a.updated_at
+    pp.daily_limit as plan_limit,
+    CASE
+        WHEN wc.application_id IS NOT NULL THEN json_agg(
+            json_build_object(
+                'blockchain_id',
+                wc.blockchain_id,
+                'contracts',
+                wc.contracts
+            )
+        )::VARCHAR
+        ELSE null
+    END as whitelist_contracts,
+    CASE
+        WHEN wm.application_id IS NOT NULL THEN json_agg(
+            json_build_object(
+                'blockchain_id',
+                wm.blockchain_id,
+                'methods',
+                wm.methods
+            )
+        )::VARCHAR
+        ELSE null
+    END as whitelist_methods
 FROM applications AS a
     LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
     LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
     LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
     LEFT JOIN app_limits AS al ON a.application_id = al.application_id
     LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
-ORDER BY a.application_id ASC
+    LEFT JOIN whitelist_contracts wc ON a.application_id = wc.application_id
+    LEFT JOIN whitelist_methods wm ON a.application_id = wm.application_id
+GROUP BY a.application_id,
+    a.contact_email,
+    a.created_at,
+    a.description,
+    a.dummy,
+    a.name,
+    a.owner,
+    a.status,
+    a.updated_at,
+    a.url,
+    a.user_id,
+    a.first_date_surpassed,
+    ga.address,
+    ga.client_public_key,
+    ga.private_key,
+    ga.public_key,
+    ga.signature,
+    ga.version,
+    gs.secret_key,
+    gs.secret_key_required,
+    gs.whitelist_blockchains,
+    gs.whitelist_origins,
+    gs.whitelist_user_agents,
+    ns.signed_up,
+    ns.on_quarter,
+    ns.on_half,
+    ns.on_three_quarters,
+    ns.on_full,
+    al.custom_limit,
+    al.pay_plan,
+    pp.daily_limit,
+    wc.application_id,
+    wm.application_id
 `
 
 type SelectApplicationsRow struct {
 	ApplicationID        string         `json:"applicationID"`
 	ContactEmail         sql.NullString `json:"contactEmail"`
+	CreatedAt            sql.NullTime   `json:"createdAt"`
 	Description          sql.NullString `json:"description"`
 	Dummy                sql.NullBool   `json:"dummy"`
 	Name                 sql.NullString `json:"name"`
 	Owner                sql.NullString `json:"owner"`
 	Status               sql.NullString `json:"status"`
+	UpdatedAt            sql.NullTime   `json:"updatedAt"`
 	Url                  sql.NullString `json:"url"`
 	UserID               sql.NullString `json:"userID"`
 	FirstDateSurpassed   sql.NullTime   `json:"firstDateSurpassed"`
@@ -663,8 +702,6 @@ type SelectApplicationsRow struct {
 	SecretKey            sql.NullString `json:"secretKey"`
 	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
 	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
-	WhitelistContracts   sql.NullString `json:"whitelistContracts"`
-	WhitelistMethods     sql.NullString `json:"whitelistMethods"`
 	WhitelistOrigins     []string       `json:"whitelistOrigins"`
 	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
 	SignedUp             sql.NullBool   `json:"signedUp"`
@@ -675,8 +712,8 @@ type SelectApplicationsRow struct {
 	CustomLimit          sql.NullInt32  `json:"customLimit"`
 	PayPlan              sql.NullString `json:"payPlan"`
 	PlanLimit            sql.NullInt32  `json:"planLimit"`
-	CreatedAt            sql.NullTime   `json:"createdAt"`
-	UpdatedAt            sql.NullTime   `json:"updatedAt"`
+	WhitelistContracts   interface{}    `json:"whitelistContracts"`
+	WhitelistMethods     interface{}    `json:"whitelistMethods"`
 }
 
 func (q *Queries) SelectApplications(ctx context.Context) ([]SelectApplicationsRow, error) {
@@ -691,11 +728,13 @@ func (q *Queries) SelectApplications(ctx context.Context) ([]SelectApplicationsR
 		if err := rows.Scan(
 			&i.ApplicationID,
 			&i.ContactEmail,
+			&i.CreatedAt,
 			&i.Description,
 			&i.Dummy,
 			&i.Name,
 			&i.Owner,
 			&i.Status,
+			&i.UpdatedAt,
 			&i.Url,
 			&i.UserID,
 			&i.FirstDateSurpassed,
@@ -708,8 +747,6 @@ func (q *Queries) SelectApplications(ctx context.Context) ([]SelectApplicationsR
 			&i.SecretKey,
 			&i.SecretKeyRequired,
 			pq.Array(&i.WhitelistBlockchains),
-			&i.WhitelistContracts,
-			&i.WhitelistMethods,
 			pq.Array(&i.WhitelistOrigins),
 			pq.Array(&i.WhitelistUserAgents),
 			&i.SignedUp,
@@ -720,8 +757,8 @@ func (q *Queries) SelectApplications(ctx context.Context) ([]SelectApplicationsR
 			&i.CustomLimit,
 			&i.PayPlan,
 			&i.PlanLimit,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.WhitelistContracts,
+			&i.WhitelistMethods,
 		); err != nil {
 			return nil, err
 		}
@@ -850,16 +887,32 @@ func (q *Queries) SelectBlockchains(ctx context.Context) ([]SelectBlockchainsRow
 }
 
 const selectGatewaySettings = `-- name: SelectGatewaySettings :one
-SELECT application_id,
-    secret_key,
-    secret_key_required,
-    whitelist_blockchains,
-    whitelist_contracts,
-    whitelist_methods,
-    whitelist_origins,
-    whitelist_user_agents
-FROM gateway_settings
-WHERE application_id = $1
+SELECT gs.application_id AS application_id,
+    gs.secret_key AS secret_key,
+    gs.secret_key_required AS secret_key_required,
+    gs.whitelist_blockchains AS whitelist_blockchains,
+    json_agg(
+        json_build_object(
+            'blockchain_id',
+            wc.blockchain_id,
+            'contracts',
+            wc.contracts
+        )
+    )::VARCHAR as whitelist_contracts,
+    json_agg(
+        json_build_object(
+            'blockchain_id',
+            wm.blockchain_id,
+            'methods',
+            wm.methods
+        )
+    )::VARCHAR as whitelist_methods,
+    gs.whitelist_origins AS whitelist_origins,
+    gs.whitelist_user_agents AS whitelist_user_agents
+FROM gateway_settings AS gs
+    LEFT JOIN whitelist_contracts AS wc ON gs.application_id = wc.application_id
+    LEFT JOIN whitelist_methods AS wm ON gs.application_id = wm.application_id
+WHERE gs.application_id = $1
 `
 
 type SelectGatewaySettingsRow struct {
@@ -867,8 +920,8 @@ type SelectGatewaySettingsRow struct {
 	SecretKey            sql.NullString `json:"secretKey"`
 	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
 	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
-	WhitelistContracts   sql.NullString `json:"whitelistContracts"`
-	WhitelistMethods     sql.NullString `json:"whitelistMethods"`
+	WhitelistContracts   string         `json:"whitelistContracts"`
+	WhitelistMethods     string         `json:"whitelistMethods"`
 	WhitelistOrigins     []string       `json:"whitelistOrigins"`
 	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
 }
@@ -1030,13 +1083,22 @@ func (q *Queries) SelectNotificationSettings(ctx context.Context, applicationID 
 }
 
 const selectOneApplication = `-- name: SelectOneApplication :one
+WITH app_whitelists AS (
+    SELECT application_id
+    FROM whitelist_contracts
+    UNION
+    SELECT application_id
+    FROM whitelist_methods
+)
 SELECT a.application_id,
     a.contact_email,
+    a.created_at,
     a.description,
     a.dummy,
     a.name,
     a.owner,
     a.status,
+    a.updated_at,
     a.url,
     a.user_id,
     a.first_date_surpassed,
@@ -1049,8 +1111,6 @@ SELECT a.application_id,
     gs.secret_key,
     gs.secret_key_required,
     gs.whitelist_blockchains,
-    gs.whitelist_contracts,
-    gs.whitelist_methods,
     gs.whitelist_origins,
     gs.whitelist_user_agents,
     ns.signed_up,
@@ -1060,27 +1120,83 @@ SELECT a.application_id,
     ns.on_full,
     al.custom_limit,
     al.pay_plan,
-    pp.daily_limit AS plan_limit,
-    a.created_at,
-    a.updated_at
+    pp.daily_limit as plan_limit,
+    CASE
+        WHEN wc.application_id IS NOT NULL THEN json_agg(
+            json_build_object(
+                'blockchain_id',
+                wc.blockchain_id,
+                'contracts',
+                wc.contracts
+            )
+        )::VARCHAR
+        ELSE null
+    END as whitelist_contracts,
+    CASE
+        WHEN wm.application_id IS NOT NULL THEN json_agg(
+            json_build_object(
+                'blockchain_id',
+                wm.blockchain_id,
+                'methods',
+                wm.methods
+            )
+        )::VARCHAR
+        ELSE null
+    END as whitelist_methods
 FROM applications AS a
     LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
     LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
     LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
     LEFT JOIN app_limits AS al ON a.application_id = al.application_id
     LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
+    LEFT JOIN whitelist_contracts wc ON a.application_id = wc.application_id
+    LEFT JOIN whitelist_methods wm ON a.application_id = wm.application_id
 WHERE a.application_id = $1
-ORDER BY a.application_id ASC
+GROUP BY a.application_id,
+    a.contact_email,
+    a.created_at,
+    a.description,
+    a.dummy,
+    a.name,
+    a.owner,
+    a.status,
+    a.updated_at,
+    a.url,
+    a.user_id,
+    a.first_date_surpassed,
+    ga.address,
+    ga.client_public_key,
+    ga.private_key,
+    ga.public_key,
+    ga.signature,
+    ga.version,
+    gs.secret_key,
+    gs.secret_key_required,
+    gs.whitelist_blockchains,
+    gs.whitelist_origins,
+    gs.whitelist_user_agents,
+    ns.signed_up,
+    ns.on_quarter,
+    ns.on_half,
+    ns.on_three_quarters,
+    ns.on_full,
+    al.custom_limit,
+    al.pay_plan,
+    pp.daily_limit,
+    wc.application_id,
+    wm.application_id
 `
 
 type SelectOneApplicationRow struct {
 	ApplicationID        string         `json:"applicationID"`
 	ContactEmail         sql.NullString `json:"contactEmail"`
+	CreatedAt            sql.NullTime   `json:"createdAt"`
 	Description          sql.NullString `json:"description"`
 	Dummy                sql.NullBool   `json:"dummy"`
 	Name                 sql.NullString `json:"name"`
 	Owner                sql.NullString `json:"owner"`
 	Status               sql.NullString `json:"status"`
+	UpdatedAt            sql.NullTime   `json:"updatedAt"`
 	Url                  sql.NullString `json:"url"`
 	UserID               sql.NullString `json:"userID"`
 	FirstDateSurpassed   sql.NullTime   `json:"firstDateSurpassed"`
@@ -1093,8 +1209,6 @@ type SelectOneApplicationRow struct {
 	SecretKey            sql.NullString `json:"secretKey"`
 	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
 	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
-	WhitelistContracts   sql.NullString `json:"whitelistContracts"`
-	WhitelistMethods     sql.NullString `json:"whitelistMethods"`
 	WhitelistOrigins     []string       `json:"whitelistOrigins"`
 	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
 	SignedUp             sql.NullBool   `json:"signedUp"`
@@ -1105,8 +1219,8 @@ type SelectOneApplicationRow struct {
 	CustomLimit          sql.NullInt32  `json:"customLimit"`
 	PayPlan              sql.NullString `json:"payPlan"`
 	PlanLimit            sql.NullInt32  `json:"planLimit"`
-	CreatedAt            sql.NullTime   `json:"createdAt"`
-	UpdatedAt            sql.NullTime   `json:"updatedAt"`
+	WhitelistContracts   interface{}    `json:"whitelistContracts"`
+	WhitelistMethods     interface{}    `json:"whitelistMethods"`
 }
 
 func (q *Queries) SelectOneApplication(ctx context.Context, applicationID string) (SelectOneApplicationRow, error) {
@@ -1115,11 +1229,13 @@ func (q *Queries) SelectOneApplication(ctx context.Context, applicationID string
 	err := row.Scan(
 		&i.ApplicationID,
 		&i.ContactEmail,
+		&i.CreatedAt,
 		&i.Description,
 		&i.Dummy,
 		&i.Name,
 		&i.Owner,
 		&i.Status,
+		&i.UpdatedAt,
 		&i.Url,
 		&i.UserID,
 		&i.FirstDateSurpassed,
@@ -1132,8 +1248,6 @@ func (q *Queries) SelectOneApplication(ctx context.Context, applicationID string
 		&i.SecretKey,
 		&i.SecretKeyRequired,
 		pq.Array(&i.WhitelistBlockchains),
-		&i.WhitelistContracts,
-		&i.WhitelistMethods,
 		pq.Array(&i.WhitelistOrigins),
 		pq.Array(&i.WhitelistUserAgents),
 		&i.SignedUp,
@@ -1144,8 +1258,8 @@ func (q *Queries) SelectOneApplication(ctx context.Context, applicationID string
 		&i.CustomLimit,
 		&i.PayPlan,
 		&i.PlanLimit,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.WhitelistContracts,
+		&i.WhitelistMethods,
 	)
 	return i, err
 }
@@ -1436,24 +1550,17 @@ INSERT INTO gateway_settings AS gs (
         application_id,
         secret_key,
         secret_key_required,
-        whitelist_contracts,
-        whitelist_methods,
         whitelist_origins,
         whitelist_user_agents,
         whitelist_blockchains
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (application_id) DO
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (application_id) DO
 UPDATE
 SET secret_key = COALESCE(EXCLUDED.secret_key, gs.secret_key),
     secret_key_required = COALESCE(
         EXCLUDED.secret_key_required,
         gs.secret_key_required
     ),
-    whitelist_contracts = COALESCE(
-        EXCLUDED.whitelist_contracts,
-        gs.whitelist_contracts
-    ),
-    whitelist_methods = COALESCE(EXCLUDED.whitelist_methods, gs.whitelist_methods),
     whitelist_origins = COALESCE(EXCLUDED.whitelist_origins, gs.whitelist_origins),
     whitelist_user_agents = COALESCE(
         EXCLUDED.whitelist_user_agents,
@@ -1469,8 +1576,6 @@ type UpsertGatewaySettingsParams struct {
 	ApplicationID        string         `json:"applicationID"`
 	SecretKey            sql.NullString `json:"secretKey"`
 	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
-	WhitelistContracts   sql.NullString `json:"whitelistContracts"`
-	WhitelistMethods     sql.NullString `json:"whitelistMethods"`
 	WhitelistOrigins     []string       `json:"whitelistOrigins"`
 	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
 	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
@@ -1481,8 +1586,6 @@ func (q *Queries) UpsertGatewaySettings(ctx context.Context, arg UpsertGatewaySe
 		arg.ApplicationID,
 		arg.SecretKey,
 		arg.SecretKeyRequired,
-		arg.WhitelistContracts,
-		arg.WhitelistMethods,
 		pq.Array(arg.WhitelistOrigins),
 		pq.Array(arg.WhitelistUserAgents),
 		pq.Array(arg.WhitelistBlockchains),
@@ -1561,5 +1664,61 @@ func (q *Queries) UpsertStickinessOptions(ctx context.Context, arg UpsertStickin
 		arg.Stickiness,
 		pq.Array(arg.Origins),
 	)
+	return err
+}
+
+const upsertWhitelistContracts = `-- name: UpsertWhitelistContracts :exec
+WITH data (application_id, blockchain_id, contracts) AS (
+    VALUES (
+            $1::VARCHAR,
+            $2::VARCHAR,
+            $3::VARCHAR []
+        )
+)
+INSERT INTO whitelist_contracts (application_id, blockchain_id, contracts)
+SELECT application_id,
+    blockchain_id,
+    contracts
+FROM data ON CONFLICT (application_id, blockchain_id) DO
+UPDATE
+SET contracts = excluded.contracts
+`
+
+type UpsertWhitelistContractsParams struct {
+	ApplicationID string   `json:"applicationID"`
+	BlockchainID  string   `json:"blockchainID"`
+	Contracts     []string `json:"contracts"`
+}
+
+func (q *Queries) UpsertWhitelistContracts(ctx context.Context, arg UpsertWhitelistContractsParams) error {
+	_, err := q.db.ExecContext(ctx, upsertWhitelistContracts, arg.ApplicationID, arg.BlockchainID, pq.Array(arg.Contracts))
+	return err
+}
+
+const upsertWhitelistMethods = `-- name: UpsertWhitelistMethods :exec
+WITH data (application_id, blockchain_id, methods) AS (
+    VALUES (
+            $1::VARCHAR,
+            $2::VARCHAR,
+            $3::VARCHAR []
+        )
+)
+INSERT INTO whitelist_methods (application_id, blockchain_id, methods)
+SELECT application_id,
+    blockchain_id,
+    methods::VARCHAR []
+FROM data ON CONFLICT (application_id, blockchain_id) DO
+UPDATE
+SET methods = EXCLUDED.methods
+`
+
+type UpsertWhitelistMethodsParams struct {
+	ApplicationID string   `json:"applicationID"`
+	BlockchainID  string   `json:"blockchainID"`
+	Methods       []string `json:"methods"`
+}
+
+func (q *Queries) UpsertWhitelistMethods(ctx context.Context, arg UpsertWhitelistMethodsParams) error {
+	_, err := q.db.ExecContext(ctx, upsertWhitelistMethods, arg.ApplicationID, arg.BlockchainID, pq.Array(arg.Methods))
 	return err
 }

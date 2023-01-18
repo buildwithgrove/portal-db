@@ -22,6 +22,8 @@ const (
 	TableAppLimits            Table = "app_limits"
 	TableGatewayAAT           Table = "gateway_aat"
 	TableGatewaySettings      Table = "gateway_settings"
+	TableWhitelistContracts   Table = "whitelist_contracts"
+	TableWhitelistMethods     Table = "whitelist_methods"
 	TableNotificationSettings Table = "notification_settings"
 
 	TableBlockchains      Table = "blockchains"
@@ -59,6 +61,12 @@ func (a *GatewayAAT) Table() Table {
 }
 func (s *GatewaySettings) Table() Table {
 	return TableGatewaySettings
+}
+func (s *WhitelistContract) Table() Table {
+	return TableWhitelistContracts
+}
+func (s *WhitelistMethod) Table() Table {
+	return TableWhitelistMethods
 }
 func (a *AppLimit) Table() Table {
 	return TableAppLimits

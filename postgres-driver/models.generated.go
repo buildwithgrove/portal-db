@@ -114,8 +114,6 @@ type GatewaySetting struct {
 	SecretKey            sql.NullString `json:"secretKey"`
 	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
 	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
-	WhitelistContracts   sql.NullString `json:"whitelistContracts"`
-	WhitelistMethods     sql.NullString `json:"whitelistMethods"`
 	WhitelistOrigins     []string       `json:"whitelistOrigins"`
 	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
 }
@@ -202,4 +200,18 @@ type UserRole struct {
 	Permissions []types.PermissionsEnum `json:"permissions"`
 	CreatedAt   sql.NullTime            `json:"createdAt"`
 	UpdatedAt   sql.NullTime            `json:"updatedAt"`
+}
+
+type WhitelistContract struct {
+	ID            int32          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	BlockchainID  sql.NullString `json:"blockchainID"`
+	Contracts     []string       `json:"contracts"`
+}
+
+type WhitelistMethod struct {
+	ID            int32          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	BlockchainID  sql.NullString `json:"blockchainID"`
+	Methods       []string       `json:"methods"`
 }
