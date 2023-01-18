@@ -70,7 +70,7 @@ Will detect any potential secrets or sensitive information before allowing a com
 ## Packages in Use
 
 - [SQLC](https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html) - Generates idiomatic type-safe Go code from SQL schema & queries.
-- [Mockery](https://github.com/vektra/mockery) - Generates mock code for all interfaces in the code for testing purposes.
+- [Mockery](https://github.com/vektra/mockery) - Generates a mock from the Driver interface for testing purposes.
 
 ## Generating code
 
