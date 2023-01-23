@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      version: ${{ steps.semantic.outputs.release-version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -42,3 +44,34 @@ jobs:
       - name: Go List
         if: steps.semantic.outputs.new-release-published == 'true'
         run: GOPROXY=proxy.golang.org go list -m github.com/pokt-foundation/portal-db@v${{ steps.semantic.outputs.release-version }}
+
+  docker:
+    if: needs.release.outputs.version
+    name: Docker Build & Push
+    needs: [release]
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment: CI
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: .
+          file: ./Dockerfile
+          tags: |
+            pocketfoundation/test-portal-postgres:latest
+            pocketfoundation/test-portal-postgres:${{ needs.release.outputs.version }}

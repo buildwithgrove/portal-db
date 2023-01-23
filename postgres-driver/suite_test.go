@@ -2,9 +2,7 @@ package postgresdriver
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"testing"
 	"time"
 
@@ -13,11 +11,12 @@ import (
 )
 
 const (
-	populateQueryPath = "../testdata/seed_test_db.sql"
-	connectionString  = "postgres://postgres:pgpassword@localhost:5432/postgres?sslmode=disable" // pragma: allowlist secret
+	connectionString = "postgres://postgres:pgpassword@localhost:5432/postgres?sslmode=disable" // pragma: allowlist secret
 )
 
-var testCtx = context.Background()
+var (
+	testCtx = context.Background()
+)
 
 type (
 	PGDriverTestSuite struct {
@@ -36,13 +35,7 @@ func Test_RunPGDriverSuite(t *testing.T) {
 
 // SetupSuite runs before each test suite run
 func (ts *PGDriverTestSuite) SetupSuite() {
-	err := InitializeTestPostgresDB(ts.connectionString)
-	ts.NoError(err)
-
-	err = ts.initPostgresDriver()
-	ts.NoError(err)
-
-	err = ts.seedTestDB(populateQueryPath)
+	err := ts.initPostgresDriver()
 	ts.NoError(err)
 }
 
@@ -60,32 +53,6 @@ func (ts *PGDriverTestSuite) initPostgresDriver() error {
 		return err
 	}
 	ts.driver = driver
-
-	return nil
-}
-
-// Seeds the test Postgres Docker container with test data
-func (ts *PGDriverTestSuite) seedTestDB(path string) error {
-	queryString, err := ioutil.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("%w: %s", errReadingSchemaFile, err)
-	}
-	query := string(queryString)
-
-	db, err := sql.Open("postgres", ts.connectionString)
-	if err != nil {
-		return fmt.Errorf("%w: %s", errConnectingToDB, err)
-	}
-
-	_, err = db.Exec(query)
-	if err != nil {
-		return fmt.Errorf("%w: %s", errSeedingDB, err)
-	}
-
-	err = db.Close()
-	if err != nil {
-		return fmt.Errorf("%w: %s", errClosingDB, err)
-	}
 
 	return nil
 }
