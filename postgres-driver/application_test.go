@@ -358,7 +358,7 @@ func (ts *PGDriverTestSuite) Test_UpdateApplication() {
 			err: nil,
 		},
 		{
-			name:  "Should failt if passing an invalid status",
+			name:  "Should fail if passing an invalid status",
 			appID: "test_app_5hdf7sh23jd828",
 			appUpdate: &types.UpdateApplication{
 				Status: types.AppStatus("INVALID_STATUS"),
