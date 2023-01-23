@@ -111,7 +111,7 @@ func stringToWhitelistMethods(rawMethods string) []types.WhitelistMethod {
 	return methods
 }
 
-/* ReadPayPlans returns all pay plans in the database and marshals to types struct */
+/* ReadPayPlans returns all pay plans in the database and marshals them to types struct */
 func (p *PostgresDriver) ReadPayPlans(ctx context.Context) ([]*types.PayPlan, error) {
 	dbPayPlans, err := p.SelectPayPlans(ctx)
 	if err != nil {
