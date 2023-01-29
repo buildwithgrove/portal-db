@@ -138,3 +138,11 @@ func psqlDateToTime(rawDate string) time.Time {
 func boolPointer(value bool) *bool {
 	return &value
 }
+
+// Typeguard for a derived field from Postgres that must be either nil or a string
+func toString(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+	return v.(string)
+}

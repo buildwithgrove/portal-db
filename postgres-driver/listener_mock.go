@@ -97,27 +97,31 @@ func applicationInputs(mainTableAction, sideTablesAction types.Action, content t
 				WhitelistBlockchains: app.GatewaySettings.WhitelistBlockchains,
 			},
 		})
-		for _, contract := range app.GatewaySettings.WhitelistContracts {
-			inputs = append(inputs, inputStruct{
-				action: sideTablesAction,
-				table:  types.TableWhitelistContracts,
-				input: dbWhitelistContractJSON{
-					ApplicationID: app.ID,
-					BlockchainID:  contract.BlockchainID,
-					Contracts:     contract.Contracts,
-				},
-			})
+		for _, contracts := range app.GatewaySettings.WhitelistContracts {
+			for _, contract := range contracts.Contracts {
+				inputs = append(inputs, inputStruct{
+					action: sideTablesAction,
+					table:  types.TableWhitelistContracts,
+					input: dbWhitelistContractJSON{
+						ApplicationID: app.ID,
+						BlockchainID:  contracts.BlockchainID,
+						Contract:      contract,
+					},
+				})
+			}
 		}
-		for _, method := range app.GatewaySettings.WhitelistMethods {
-			inputs = append(inputs, inputStruct{
-				action: sideTablesAction,
-				table:  types.TableWhitelistMethods,
-				input: dbWhitelistMethodJSON{
-					ApplicationID: app.ID,
-					BlockchainID:  method.BlockchainID,
-					Methods:       method.Methods,
-				},
-			})
+		for _, methods := range app.GatewaySettings.WhitelistMethods {
+			for _, method := range methods.Methods {
+				inputs = append(inputs, inputStruct{
+					action: sideTablesAction,
+					table:  types.TableWhitelistMethods,
+					input: dbWhitelistMethodJSON{
+						ApplicationID: app.ID,
+						BlockchainID:  methods.BlockchainID,
+						Method:        method,
+					},
+				})
+			}
 		}
 	}
 

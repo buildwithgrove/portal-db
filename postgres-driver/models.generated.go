@@ -206,12 +206,12 @@ type WhitelistContract struct {
 	ID            int32          `json:"id"`
 	ApplicationID string         `json:"applicationID"`
 	BlockchainID  sql.NullString `json:"blockchainID"`
-	Contracts     []string       `json:"contracts"`
+	Contract      sql.NullString `json:"contract"`
 }
 
 type WhitelistMethod struct {
 	ID            int32          `json:"id"`
 	ApplicationID string         `json:"applicationID"`
 	BlockchainID  sql.NullString `json:"blockchainID"`
-	Methods       []string       `json:"methods"`
+	Method        sql.NullString `json:"method"`
 }

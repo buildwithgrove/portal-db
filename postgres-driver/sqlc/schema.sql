@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS user_access (
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
 	PRIMARY KEY (id),
-    UNIQUE (lb_id, user_id),
+	UNIQUE (lb_id, user_id),
 	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES loadbalancers(lb_id),
 	CONSTRAINT fk_role FOREIGN KEY(role_name) REFERENCES user_roles(name)
 );
@@ -151,17 +151,17 @@ CREATE TABLE whitelist_contracts (
 	id SERIAL PRIMARY KEY,
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
-	contracts VARCHAR[],
+	contract VARCHAR,
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
-	UNIQUE(application_id, blockchain_id)
+	UNIQUE(application_id, blockchain_id, contract)
 );
 CREATE TABLE whitelist_methods (
 	id SERIAL PRIMARY KEY,
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
-	methods VARCHAR[],
+	method VARCHAR,
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
-	UNIQUE(application_id, blockchain_id)
+	UNIQUE(application_id, blockchain_id, method)
 );
 CREATE TABLE IF NOT EXISTS notification_settings (
 	id INT GENERATED ALWAYS AS IDENTITY,
