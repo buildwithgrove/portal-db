@@ -313,21 +313,28 @@ func (p *PostgresDriver) UpdateApplication(ctx context.Context, id string, updat
 			return err
 		}
 	}
-	for _, contract := range update.GatewaySettings.WhitelistContracts {
-		whitelistContractParams := extractUpsertWhitelistContracts(id, &contract)
-		if whitelistContractParams != nil {
-			err = qtx.UpsertWhitelistContracts(ctx, *whitelistContractParams)
-			if err != nil {
-				return err
+	if update.GatewaySettings != nil {
+		if len(update.GatewaySettings.WhitelistContracts) > 0 {
+			for _, contract := range update.GatewaySettings.WhitelistContracts {
+				whitelistContractParams := extractUpsertWhitelistContracts(id, &contract)
+				if whitelistContractParams != nil {
+					err = qtx.UpsertWhitelistContracts(ctx, *whitelistContractParams)
+					if err != nil {
+						return err
+					}
+				}
 			}
 		}
-	}
-	for _, method := range update.GatewaySettings.WhitelistMethods {
-		whitelistMethodParams := extractUpsertWhitelistMethods(id, &method)
-		if whitelistMethodParams != nil {
-			err = qtx.UpsertWhitelistMethods(ctx, *whitelistMethodParams)
-			if err != nil {
-				return err
+
+		if len(update.GatewaySettings.WhitelistMethods) > 0 {
+			for _, method := range update.GatewaySettings.WhitelistMethods {
+				whitelistMethodParams := extractUpsertWhitelistMethods(id, &method)
+				if whitelistMethodParams != nil {
+					err = qtx.UpsertWhitelistMethods(ctx, *whitelistMethodParams)
+					if err != nil {
+						return err
+					}
+				}
 			}
 		}
 	}
