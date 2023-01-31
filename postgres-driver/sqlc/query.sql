@@ -693,6 +693,18 @@ INSERT INTO user_access (
         updated_at
     )
 VALUES ($1, $2, $3, $4, $5, $6, $7);
+-- name: InsertUserAccessNoConflict :exec
+INSERT INTO user_access (
+        lb_id,
+        role_name,
+        user_id,
+        email,
+        accepted,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (lb_id, user_id) DO NOTHING;
 -- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),

@@ -522,6 +522,43 @@ func (q *Queries) InsertUserAccess(ctx context.Context, arg InsertUserAccessPara
 	return err
 }
 
+const insertUserAccessNoConflict = `-- name: InsertUserAccessNoConflict :exec
+INSERT INTO user_access (
+        lb_id,
+        role_name,
+        user_id,
+        email,
+        accepted,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (lb_id, user_id) DO NOTHING
+`
+
+type InsertUserAccessNoConflictParams struct {
+	LbID      sql.NullString `json:"lbID"`
+	RoleName  sql.NullString `json:"roleName"`
+	UserID    sql.NullString `json:"userID"`
+	Email     sql.NullString `json:"email"`
+	Accepted  sql.NullBool   `json:"accepted"`
+	CreatedAt sql.NullTime   `json:"createdAt"`
+	UpdatedAt sql.NullTime   `json:"updatedAt"`
+}
+
+func (q *Queries) InsertUserAccessNoConflict(ctx context.Context, arg InsertUserAccessNoConflictParams) error {
+	_, err := q.db.ExecContext(ctx, insertUserAccessNoConflict,
+		arg.LbID,
+		arg.RoleName,
+		arg.UserID,
+		arg.Email,
+		arg.Accepted,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
 const removeApp = `-- name: RemoveApp :exec
 UPDATE applications
 SET status = COALESCE($2, status)
