@@ -1,8 +1,13 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"time"
+)
+
+var (
+	ErrNoOwner = errors.New("load balancer does not have an owner")
 )
 
 /* LB Apps Table represents DB relationship of LBs and apps */
@@ -86,6 +91,16 @@ var (
 		WriteEndpoint: true,
 	}
 )
+
+func (lb *LoadBalancer) GetOwnerEmail() (string, error) {
+	for _, user := range lb.Users {
+		if user.RoleName == RoleOwner {
+			return user.Email, nil
+		}
+	}
+
+	return "", ErrNoOwner
+}
 
 func (e *PermissionsEnum) Scan(src interface{}) error {
 	switch s := src.(type) {
