@@ -101,52 +101,77 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 		}
 	})
 
-	ts.Run("Test_ReadUserRoles", func() {
+	ts.Run("Test_ReadUserPermissions", func() {
 		tests := []struct {
 			name         string
-			userRolesMap map[string]map[string][]types.PermissionsEnum
+			userRolesMap map[types.UserID]types.UserPermissions
 			err          error
 		}{
 			{
 				name: "Should return all Load Balancers from the database ordered by lb_id",
-				userRolesMap: map[string]map[string][]types.PermissionsEnum{
+				userRolesMap: map[types.UserID]types.UserPermissions{
 					"test_user_1dbffbdfeeb225": {
-						"test_lb_34987u329rfn23f": []types.PermissionsEnum{
-							types.ReadEndpoint,
-							types.WriteEndpoint,
+						UserID: "test_user_1dbffbdfeeb225",
+						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
+							"test_lb_34987u329rfn23f": {
+								RoleName:    types.RoleOwner,
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+							},
 						},
 					},
 					"test_user_admin1234": {
-						"test_lb_34987u329rfn23f": []types.PermissionsEnum{
-							types.ReadEndpoint,
-							types.WriteEndpoint,
+						UserID: "test_user_admin1234",
+						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
+							"test_lb_34987u329rfn23f": {
+								RoleName:    types.RoleAdmin,
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+							},
 						},
 					},
 					"test_user_member1234": {
-						"test_lb_34987u329rfn23f": []types.PermissionsEnum{
-							types.ReadEndpoint},
+						UserID: "test_user_member1234",
+						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
+							"test_lb_34987u329rfn23f": {
+								RoleName:    types.RoleMember,
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint},
+							},
+						},
 					},
 					"test_user_04228205bd261a": {
-						"test_lb_3890ru23jfi32fj": []types.PermissionsEnum{
-							types.ReadEndpoint,
-							types.WriteEndpoint,
+						UserID: "test_user_04228205bd261a",
+						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
+							"test_lb_3890ru23jfi32fj": {
+								RoleName:    types.RoleOwner,
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+							},
 						},
 					},
 					"test_user_admin5678": {
-						"test_lb_3890ru23jfi32fj": []types.PermissionsEnum{
-							types.ReadEndpoint,
-							types.WriteEndpoint,
+						UserID: "test_user_admin5678",
+						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
+							"test_lb_3890ru23jfi32fj": {
+								RoleName:    types.RoleAdmin,
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+							},
 						},
 					},
 					"test_user_redirect233344": {
-						"test_lb_34gg4g43g34g5hh": []types.PermissionsEnum{
-							types.ReadEndpoint,
-							types.WriteEndpoint,
+						UserID: "test_user_redirect233344",
+						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
+							"test_lb_34gg4g43g34g5hh": {
+								RoleName:    types.RoleOwner,
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+							},
 						},
 					},
 					"test_user_member5678": {
-						"test_lb_34gg4g43g34g5hh": []types.PermissionsEnum{
-							types.ReadEndpoint},
+						UserID: "test_user_member5678",
+						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
+							"test_lb_34gg4g43g34g5hh": {
+								RoleName:    types.RoleMember,
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint},
+							},
+						},
 					},
 				},
 				err: nil,
@@ -154,7 +179,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 		}
 
 		for _, test := range tests {
-			userRoles, err := ts.driver.ReadUserRoles(testCtx)
+			userRoles, err := ts.driver.ReadUserPermissions(testCtx)
 			ts.Equal(test.err, err)
 			ts.Equal(test.userRolesMap, userRoles)
 		}

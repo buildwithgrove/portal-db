@@ -187,7 +187,7 @@ type UserAccess struct {
 	ID        int32          `json:"id"`
 	LbID      sql.NullString `json:"lbID"`
 	UserID    sql.NullString `json:"userID"`
-	RoleName  sql.NullString `json:"roleName"`
+	RoleName  types.RoleName `json:"roleName"`
 	Email     sql.NullString `json:"email"`
 	Accepted  sql.NullBool   `json:"accepted"`
 	CreatedAt sql.NullTime   `json:"createdAt"`

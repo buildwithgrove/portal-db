@@ -497,7 +497,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 
 type InsertUserAccessParams struct {
 	LbID      sql.NullString `json:"lbID"`
-	RoleName  sql.NullString `json:"roleName"`
+	RoleName  types.RoleName `json:"roleName"`
 	UserID    sql.NullString `json:"userID"`
 	Email     sql.NullString `json:"email"`
 	Accepted  sql.NullBool   `json:"accepted"`
@@ -533,7 +533,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING
 
 type InsertUserAccessNoConflictParams struct {
 	LbID      sql.NullString `json:"lbID"`
-	RoleName  sql.NullString `json:"roleName"`
+	RoleName  types.RoleName `json:"roleName"`
 	UserID    sql.NullString `json:"userID"`
 	Email     sql.NullString `json:"email"`
 	Accepted  sql.NullBool   `json:"accepted"`
@@ -1424,6 +1424,7 @@ func (q *Queries) SelectPayPlans(ctx context.Context) ([]SelectPayPlansRow, erro
 const selectUserRoles = `-- name: SelectUserRoles :many
 SELECT ua.lb_id,
     ua.user_id,
+    ua.role_name,
     ur.permissions as permissions
 FROM user_access as ua
     LEFT JOIN user_roles AS ur ON ua.role_name = ur.name
@@ -1432,6 +1433,7 @@ FROM user_access as ua
 type SelectUserRolesRow struct {
 	LbID        sql.NullString          `json:"lbID"`
 	UserID      sql.NullString          `json:"userID"`
+	RoleName    types.RoleName          `json:"roleName"`
 	Permissions []types.PermissionsEnum `json:"permissions"`
 }
 
@@ -1444,7 +1446,12 @@ func (q *Queries) SelectUserRoles(ctx context.Context) ([]SelectUserRolesRow, er
 	var items []SelectUserRolesRow
 	for rows.Next() {
 		var i SelectUserRolesRow
-		if err := rows.Scan(&i.LbID, &i.UserID, pq.Array(&i.Permissions)); err != nil {
+		if err := rows.Scan(
+			&i.LbID,
+			&i.UserID,
+			&i.RoleName,
+			pq.Array(&i.Permissions),
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -1521,7 +1528,7 @@ WHERE ua.user_id = $1
 type UpdateUserAccessParams struct {
 	UserID    sql.NullString `json:"userID"`
 	LbID      sql.NullString `json:"lbID"`
-	RoleName  sql.NullString `json:"roleName"`
+	RoleName  types.RoleName `json:"roleName"`
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
 

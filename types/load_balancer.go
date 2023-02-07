@@ -120,3 +120,58 @@ func (s *StickyOptions) IsEmpty() bool {
 	}
 	return len(s.StickyOrigins) == 0
 }
+
+// UserPermissions stores all load balancer read/write permissions for a given user
+type (
+	UserID         string
+	LoadBalancerID string
+
+	UserPermissions struct {
+		UserID        UserID
+		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions
+	}
+
+	LoadBalancerPermissions struct {
+		RoleName    RoleName
+		Permissions []PermissionsEnum
+	}
+)
+
+func (u *UserPermissions) GetRole(loadBalancerID LoadBalancerID) RoleName {
+	lb, ok := u.LoadBalancers[loadBalancerID]
+	if !ok {
+		return RoleName("")
+	}
+
+	return lb.RoleName
+}
+
+func (u *UserPermissions) HasReadPermission(loadBalancerID LoadBalancerID) bool {
+	lb, ok := u.LoadBalancers[loadBalancerID]
+	if !ok {
+		return false
+	}
+
+	for _, perm := range lb.Permissions {
+		if perm == ReadEndpoint {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (u *UserPermissions) HasWritePermission(loadBalancerID LoadBalancerID) bool {
+	lb, ok := u.LoadBalancers[loadBalancerID]
+	if !ok {
+		return false
+	}
+
+	for _, perm := range lb.Permissions {
+		if perm == WriteEndpoint {
+			return true
+		}
+	}
+
+	return false
+}

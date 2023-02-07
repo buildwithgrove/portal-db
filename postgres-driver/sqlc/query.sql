@@ -645,6 +645,7 @@ GROUP BY lb.lb_id,
 -- name: SelectUserRoles :many
 SELECT ua.lb_id,
     ua.user_id,
+    ua.role_name,
     ur.permissions as permissions
 FROM user_access as ua
     LEFT JOIN user_roles AS ur ON ua.role_name = ur.name;
