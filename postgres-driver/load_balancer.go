@@ -323,6 +323,27 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, userID, lbID 
 	return nil
 }
 
+/* AcceptUserAccess updates the RoleName for a UserAccess row */
+func (p *PostgresDriver) AcceptUserAccess(ctx context.Context, userID, lbID string) error {
+	if userID == "" || lbID == "" {
+		return ErrMissingID
+	}
+
+	trueBool := true
+	params := SetUserAccessAcceptedParams{
+		UserID:   newSQLNullString(userID),
+		LbID:     newSQLNullString(lbID),
+		Accepted: newSQLNullBool(&trueBool),
+	}
+
+	err := p.SetUserAccessAccepted(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 /* RemoveLoadBalancer sets the user ID to an empty string (will not appear in Portal API or UI) */
 func (p *PostgresDriver) RemoveLoadBalancer(ctx context.Context, id string) error {
 	if id == "" {

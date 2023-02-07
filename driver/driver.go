@@ -28,6 +28,7 @@ type (
 		WriteLoadBalancerUser(ctx context.Context, lbID string, userAccess types.UserAccess) error
 		UpdateLoadBalancer(ctx context.Context, id string, options *types.UpdateLoadBalancer) error
 		UpdateUserAccessRole(ctx context.Context, userID, lbID string, roleName types.RoleName) error
+		AcceptUserAccess(ctx context.Context, userID, lbID string) error
 		RemoveLoadBalancer(ctx context.Context, id string) error
 		RemoveUserAccess(ctx context.Context, userID, lbID string) error
 

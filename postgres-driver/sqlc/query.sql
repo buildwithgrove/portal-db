@@ -421,11 +421,7 @@ INSERT into gateway_settings (
         secret_key,
         secret_key_required
     )
-VALUES (
-        $1,
-        $2,
-        $3
-    );
+VALUES ($1, $2, $3);
 -- name: InsertNotificationSettings :exec
 INSERT into notification_settings (
         application_id,
@@ -704,12 +700,16 @@ INSERT INTO user_access (
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-ON CONFLICT (lb_id, user_id) DO NOTHING;
+VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING;
 -- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),
     updated_at = $4
+WHERE ua.user_id = $1
+    AND ua.lb_id = $2;
+-- name: SetUserAccessAccepted :exec
+UPDATE user_access as ua
+SET accepted = $3
 WHERE ua.user_id = $1
     AND ua.lb_id = $2;
 -- name: DeleteUserAccess :exec
