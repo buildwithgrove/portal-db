@@ -136,16 +136,16 @@ func (_m *MockDriver) ReadPayPlans(ctx context.Context) ([]*types.PayPlan, error
 	return r0, r1
 }
 
-// ReadUserRoles provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadUserRoles(ctx context.Context) (map[string]map[string][]types.PermissionsEnum, error) {
+// ReadUserPermissions provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]types.UserPermissions, error) {
 	ret := _m.Called(ctx)
 
-	var r0 map[string]map[string][]types.PermissionsEnum
-	if rf, ok := ret.Get(0).(func(context.Context) map[string]map[string][]types.PermissionsEnum); ok {
+	var r0 map[types.UserID]types.UserPermissions
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.UserID]types.UserPermissions); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]map[string][]types.PermissionsEnum)
+			r0 = ret.Get(0).(map[types.UserID]types.UserPermissions)
 		}
 	}
 
