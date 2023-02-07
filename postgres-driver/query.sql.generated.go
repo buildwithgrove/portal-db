@@ -254,11 +254,7 @@ INSERT into gateway_settings (
         secret_key,
         secret_key_required
     )
-VALUES (
-        $1,
-        $2,
-        $3
-    )
+VALUES ($1, $2, $3)
 `
 
 type InsertGatewaySettingsParams struct {
@@ -532,8 +528,7 @@ INSERT INTO user_access (
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-ON CONFLICT (lb_id, user_id) DO NOTHING
+VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING
 `
 
 type InsertUserAccessNoConflictParams struct {
@@ -1461,6 +1456,24 @@ func (q *Queries) SelectUserRoles(ctx context.Context) ([]SelectUserRolesRow, er
 		return nil, err
 	}
 	return items, nil
+}
+
+const setUserAccessAccepted = `-- name: SetUserAccessAccepted :exec
+UPDATE user_access as ua
+SET accepted = $3
+WHERE ua.user_id = $1
+    AND ua.lb_id = $2
+`
+
+type SetUserAccessAcceptedParams struct {
+	UserID   sql.NullString `json:"userID"`
+	LbID     sql.NullString `json:"lbID"`
+	Accepted sql.NullBool   `json:"accepted"`
+}
+
+func (q *Queries) SetUserAccessAccepted(ctx context.Context, arg SetUserAccessAcceptedParams) error {
+	_, err := q.db.ExecContext(ctx, setUserAccessAccepted, arg.UserID, arg.LbID, arg.Accepted)
+	return err
 }
 
 const updateFirstDateSurpassed = `-- name: UpdateFirstDateSurpassed :exec

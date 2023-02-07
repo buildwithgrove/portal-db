@@ -14,6 +14,20 @@ type MockDriver struct {
 	mock.Mock
 }
 
+// AcceptUserAccess provides a mock function with given fields: ctx, userID, lbID
+func (_m *MockDriver) AcceptUserAccess(ctx context.Context, userID string, lbID string) error {
+	ret := _m.Called(ctx, userID, lbID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, userID, lbID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ActivateChain provides a mock function with given fields: ctx, id, active
 func (_m *MockDriver) ActivateChain(ctx context.Context, id string, active bool) error {
 	ret := _m.Called(ctx, id, active)

@@ -239,7 +239,7 @@ VALUES (
         'MEMBER',
         'test_user_member5678',
         'member2@test.com',
-        true
+        false
     );
 INSERT INTO lb_apps (lb_id, app_id)
 VALUES (
