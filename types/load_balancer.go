@@ -127,32 +127,32 @@ type (
 	LoadBalancerID string
 
 	UserPermissions struct {
-		UserID        string
-		loadBalancers map[LoadBalancerID]LoadBalancerPermissions
+		UserID        UserID
+		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions
 	}
 
 	LoadBalancerPermissions struct {
-		roleName    RoleName
-		permissions []PermissionsEnum
+		RoleName    RoleName
+		Permissions []PermissionsEnum
 	}
 )
 
 func (u *UserPermissions) GetRole(loadBalancerID LoadBalancerID) RoleName {
-	lb, ok := u.loadBalancers[loadBalancerID]
+	lb, ok := u.LoadBalancers[loadBalancerID]
 	if !ok {
 		return RoleName("")
 	}
 
-	return lb.roleName
+	return lb.RoleName
 }
 
 func (u *UserPermissions) HasReadPermission(loadBalancerID LoadBalancerID) bool {
-	lb, ok := u.loadBalancers[loadBalancerID]
+	lb, ok := u.LoadBalancers[loadBalancerID]
 	if !ok {
 		return false
 	}
 
-	for _, perm := range lb.permissions {
+	for _, perm := range lb.Permissions {
 		if perm == ReadEndpoint {
 			return true
 		}
@@ -162,12 +162,12 @@ func (u *UserPermissions) HasReadPermission(loadBalancerID LoadBalancerID) bool 
 }
 
 func (u *UserPermissions) HasWritePermission(loadBalancerID LoadBalancerID) bool {
-	lb, ok := u.loadBalancers[loadBalancerID]
+	lb, ok := u.LoadBalancers[loadBalancerID]
 	if !ok {
 		return false
 	}
 
-	for _, perm := range lb.permissions {
+	for _, perm := range lb.Permissions {
 		if perm == WriteEndpoint {
 			return true
 		}

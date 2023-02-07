@@ -17,7 +17,7 @@ type (
 		ReadPayPlans(ctx context.Context) ([]*types.PayPlan, error)
 		ReadApplications(ctx context.Context) ([]*types.Application, error)
 		ReadLoadBalancers(ctx context.Context) ([]*types.LoadBalancer, error)
-		ReadUserRoles(ctx context.Context) (map[string]map[string][]types.PermissionsEnum, error)
+		ReadUserPermissions(ctx context.Context) (map[types.UserID]types.UserPermissions, error)
 		ReadBlockchains(ctx context.Context) ([]*types.Blockchain, error)
 
 		NotificationChannel() <-chan *types.Notification
