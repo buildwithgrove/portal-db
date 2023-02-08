@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS user_access (
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
 	PRIMARY KEY (id),
-    UNIQUE (lb_id, user_id),
+	UNIQUE (lb_id, user_id),
 	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES loadbalancers(lb_id),
 	CONSTRAINT fk_role FOREIGN KEY(role_name) REFERENCES user_roles(name)
 );
@@ -151,7 +151,7 @@ CREATE TABLE whitelist_contracts (
 	id SERIAL PRIMARY KEY,
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
-	contracts VARCHAR[],
+	contracts VARCHAR [],
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
 	UNIQUE(application_id, blockchain_id)
 );
@@ -159,7 +159,7 @@ CREATE TABLE whitelist_methods (
 	id SERIAL PRIMARY KEY,
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
-	methods VARCHAR[],
+	methods VARCHAR [],
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
 	UNIQUE(application_id, blockchain_id)
 );
@@ -228,7 +228,8 @@ CREATE TRIGGER user_access_notify_event
 AFTER
 INSERT
 	OR
-UPDATE ON user_access FOR EACH ROW EXECUTE PROCEDURE notify_event();
+UPDATE
+	OR DELETE ON user_access FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER lb_apps_notify_event
 AFTER
 INSERT ON lb_apps FOR EACH ROW EXECUTE PROCEDURE notify_event();
