@@ -169,7 +169,7 @@ func extractInsertDBRedirect(redirect *types.Redirect) InsertRedirectParams {
 	}
 }
 
-/* Activate chain toggles chain.active field on or off */
+/* ActivateChain toggles chain.active field on or off */
 func (p *PostgresDriver) ActivateChain(ctx context.Context, id string, active bool) error {
 	params := ActivateBlockchainParams{
 		BlockchainID: id,

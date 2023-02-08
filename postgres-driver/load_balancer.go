@@ -68,38 +68,40 @@ func (lb *SelectLoadBalancersRow) toLoadBalancer() (*types.LoadBalancer, error) 
 	return &loadBalancer, nil
 }
 
-/* ReadUserRoles returns all User Roles in the database as a map that takes the form map[User ID]map[LB ID][]types.PermissionsEnum */
+/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]types.UserPermissions */
 func (p *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]types.UserPermissions, error) {
 	userRoles, err := p.SelectUserRoles(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userPermsMap := make(map[types.UserID]types.UserPermissions)
+	userPermissionsMap := make(map[types.UserID]types.UserPermissions)
+
 	for _, userRoleRow := range userRoles {
 		userID := types.UserID(userRoleRow.UserID.String)
 		lbID := types.LoadBalancerID(userRoleRow.LbID.String)
 
-		loadBalancerPerms := types.LoadBalancerPermissions{
-			RoleName:    userRoleRow.RoleName,
-			Permissions: userRoleRow.Permissions,
-		}
-
-		if userPerms, ok := userPermsMap[userID]; ok {
-			userPerms.LoadBalancers[lbID] = loadBalancerPerms
-		} else {
-			loadBalancerPermsMap := make(map[types.LoadBalancerID]types.LoadBalancerPermissions)
-
-			loadBalancerPermsMap[lbID] = loadBalancerPerms
-
-			userPermsMap[userID] = types.UserPermissions{
-				UserID:        userID,
-				LoadBalancers: loadBalancerPermsMap,
+		if userPermissions, ok := userPermissionsMap[userID]; ok {
+			_, err := userPermissions.UpsertPermissions(lbID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
 			}
+		} else {
+			emptyPermissions := types.UserPermissions{
+				UserID:        userID,
+				LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{},
+			}
+
+			permissions, err := emptyPermissions.UpsertPermissions(lbID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
+			}
+
+			userPermissionsMap[userID] = *permissions
 		}
 	}
 
-	return userPermsMap, nil
+	return userPermissionsMap, nil
 }
 
 /* WriteLoadBalancer saves input LoadBalancer to the database */
@@ -323,7 +325,7 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, userID, lbID 
 	return nil
 }
 
-/* AcceptUserAccess updates the RoleName for a UserAccess row */
+/* AcceptUserAccess sets the Accepted field to true for a UserAccess row */
 func (p *PostgresDriver) AcceptUserAccess(ctx context.Context, userID, lbID string) error {
 	if userID == "" || lbID == "" {
 		return ErrMissingID

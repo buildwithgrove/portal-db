@@ -7,7 +7,9 @@ import (
 )
 
 var (
-	ErrNoOwner = errors.New("load balancer does not have an owner")
+	ErrLBIDIsEmpty error = errors.New("load balancer ID is empty")
+	ErrNoOwner     error = errors.New("load balancer does not have an owner")
+	ErrInvalidRole error = errors.New("invalid role provided")
 )
 
 /* LB Apps Table represents DB relationship of LBs and apps */
@@ -90,6 +92,12 @@ var (
 		ReadEndpoint:  true,
 		WriteEndpoint: true,
 	}
+
+	permissionsList = map[RoleName][]PermissionsEnum{
+		RoleOwner:  {ReadEndpoint, WriteEndpoint},
+		RoleAdmin:  {ReadEndpoint, WriteEndpoint},
+		RoleMember: {ReadEndpoint},
+	}
 )
 
 func (lb *LoadBalancer) GetOwnerEmail() (string, error) {
@@ -144,6 +152,28 @@ func (u *UserPermissions) GetRole(loadBalancerID LoadBalancerID) RoleName {
 	}
 
 	return lb.RoleName
+}
+
+func (u *UserPermissions) UpsertPermissions(loadBalancerID LoadBalancerID, role RoleName) (*UserPermissions, error) {
+	if loadBalancerID == "" {
+		return nil, ErrLBIDIsEmpty
+	}
+	if !ValidRoleNames[role] {
+		return nil, ErrInvalidRole
+	}
+
+	u.LoadBalancers[loadBalancerID] = LoadBalancerPermissions{
+		RoleName:    role,
+		Permissions: permissionsList[role],
+	}
+
+	return u, nil
+}
+
+func (u *UserPermissions) DeletePermissions(loadBalancerID LoadBalancerID) *UserPermissions {
+	delete(u.LoadBalancers, loadBalancerID)
+
+	return u
 }
 
 func (u *UserPermissions) HasReadPermission(loadBalancerID LoadBalancerID) bool {
