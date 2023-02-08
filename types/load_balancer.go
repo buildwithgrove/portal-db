@@ -145,6 +145,13 @@ type (
 	}
 )
 
+func (u *UserPermissions) IsEmpty() bool {
+	if u.UserID == UserID("") || len(u.LoadBalancers) == 0 {
+		return true
+	}
+	return false
+}
+
 func (u *UserPermissions) GetRole(loadBalancerID LoadBalancerID) RoleName {
 	lb, ok := u.LoadBalancers[loadBalancerID]
 	if !ok {
