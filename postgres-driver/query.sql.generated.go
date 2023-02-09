@@ -40,7 +40,7 @@ WHERE user_id = $1
 
 type DeleteUserAccessParams struct {
 	UserID sql.NullString `json:"userID"`
-	LbID   sql.NullString `json:"lbID"`
+	LbID   string         `json:"lbID"`
 }
 
 func (q *Queries) DeleteUserAccess(ctx context.Context, arg DeleteUserAccessParams) error {
@@ -496,11 +496,11 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type InsertUserAccessParams struct {
-	LbID      sql.NullString `json:"lbID"`
+	LbID      string         `json:"lbID"`
 	RoleName  types.RoleName `json:"roleName"`
 	UserID    sql.NullString `json:"userID"`
-	Email     sql.NullString `json:"email"`
-	Accepted  sql.NullBool   `json:"accepted"`
+	Email     string         `json:"email"`
+	Accepted  bool           `json:"accepted"`
 	CreatedAt sql.NullTime   `json:"createdAt"`
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
@@ -532,11 +532,11 @@ VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING
 `
 
 type InsertUserAccessNoConflictParams struct {
-	LbID      sql.NullString `json:"lbID"`
+	LbID      string         `json:"lbID"`
 	RoleName  types.RoleName `json:"roleName"`
 	UserID    sql.NullString `json:"userID"`
-	Email     sql.NullString `json:"email"`
-	Accepted  sql.NullBool   `json:"accepted"`
+	Email     string         `json:"email"`
+	Accepted  bool           `json:"accepted"`
 	CreatedAt sql.NullTime   `json:"createdAt"`
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
@@ -1428,10 +1428,12 @@ SELECT ua.lb_id,
     ur.permissions as permissions
 FROM user_access as ua
     LEFT JOIN user_roles AS ur ON ua.role_name = ur.name
+WHERE ua.accepted = true
+    AND ua.user_id IS NOT NULL
 `
 
 type SelectUserRolesRow struct {
-	LbID        sql.NullString          `json:"lbID"`
+	LbID        string                  `json:"lbID"`
 	UserID      sql.NullString          `json:"userID"`
 	RoleName    types.RoleName          `json:"roleName"`
 	Permissions []types.PermissionsEnum `json:"permissions"`
@@ -1467,19 +1469,29 @@ func (q *Queries) SelectUserRoles(ctx context.Context) ([]SelectUserRolesRow, er
 
 const setUserAccessAccepted = `-- name: SetUserAccessAccepted :exec
 UPDATE user_access as ua
-SET accepted = $3
-WHERE ua.user_id = $1
+SET user_id = $3,
+    accepted = $4,
+    updated_at = $5
+WHERE ua.email = $1
     AND ua.lb_id = $2
 `
 
 type SetUserAccessAcceptedParams struct {
-	UserID   sql.NullString `json:"userID"`
-	LbID     sql.NullString `json:"lbID"`
-	Accepted sql.NullBool   `json:"accepted"`
+	Email     string         `json:"email"`
+	LbID      string         `json:"lbID"`
+	UserID    sql.NullString `json:"userID"`
+	Accepted  bool           `json:"accepted"`
+	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
 
 func (q *Queries) SetUserAccessAccepted(ctx context.Context, arg SetUserAccessAcceptedParams) error {
-	_, err := q.db.ExecContext(ctx, setUserAccessAccepted, arg.UserID, arg.LbID, arg.Accepted)
+	_, err := q.db.ExecContext(ctx, setUserAccessAccepted,
+		arg.Email,
+		arg.LbID,
+		arg.UserID,
+		arg.Accepted,
+		arg.UpdatedAt,
+	)
 	return err
 }
 
@@ -1527,7 +1539,7 @@ WHERE ua.user_id = $1
 
 type UpdateUserAccessParams struct {
 	UserID    sql.NullString `json:"userID"`
-	LbID      sql.NullString `json:"lbID"`
+	LbID      string         `json:"lbID"`
 	RoleName  types.RoleName `json:"roleName"`
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }

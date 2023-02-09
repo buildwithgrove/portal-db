@@ -14,13 +14,13 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// AcceptUserAccess provides a mock function with given fields: ctx, userID, lbID
-func (_m *MockDriver) AcceptUserAccess(ctx context.Context, userID string, lbID string) error {
-	ret := _m.Called(ctx, userID, lbID)
+// AcceptUserAccess provides a mock function with given fields: ctx, email, userID, lbID
+func (_m *MockDriver) AcceptUserAccess(ctx context.Context, email string, userID string, lbID string) error {
+	ret := _m.Called(ctx, email, userID, lbID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, userID, lbID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, email, userID, lbID)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -648,7 +648,9 @@ SELECT ua.lb_id,
     ua.role_name,
     ur.permissions as permissions
 FROM user_access as ua
-    LEFT JOIN user_roles AS ur ON ua.role_name = ur.name;
+    LEFT JOIN user_roles AS ur ON ua.role_name = ur.name
+WHERE ua.accepted = true
+    AND ua.user_id IS NOT NULL;
 -- name: InsertLoadBalancer :exec
 INSERT into loadbalancers (
         lb_id,
@@ -709,8 +711,10 @@ WHERE ua.user_id = $1
     AND ua.lb_id = $2;
 -- name: SetUserAccessAccepted :exec
 UPDATE user_access as ua
-SET accepted = $3
-WHERE ua.user_id = $1
+SET user_id = $3,
+    accepted = $4,
+    updated_at = $5
+WHERE ua.email = $1
     AND ua.lb_id = $2;
 -- name: DeleteUserAccess :exec
 DELETE FROM user_access

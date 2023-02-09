@@ -37,8 +37,8 @@ type (
 		UpdateLoadBalancer(ctx context.Context, id string, options *types.UpdateLoadBalancer) error
 		/* UpdateUserAccessRole updates the RoleName for a UserAccess row */
 		UpdateUserAccessRole(ctx context.Context, userID, lbID string, roleName types.RoleName) error
-		/* AcceptUserAccess sets the Accepted field to true for a UserAccess row */
-		AcceptUserAccess(ctx context.Context, userID, lbID string) error
+		/* AcceptUserAccess sets the User ID and the Accepted field to true for a UserAccess row */
+		AcceptUserAccess(ctx context.Context, email, userID, lbID string) error
 		/* RemoveLoadBalancer sets the user ID to an empty string (will not appear in Portal API or UI) */
 		RemoveLoadBalancer(ctx context.Context, id string) error
 		/* RemoveUserAccess deletes a UserAccess row */
