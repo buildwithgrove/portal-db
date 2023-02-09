@@ -18,7 +18,11 @@ const (
 )
 
 var (
-	ErrMissingID = errors.New("missing id")
+	ErrMissingID     = errors.New("missing id")
+	ErrMissingLBID   = errors.New("missing load balancer id")
+	ErrMissingUserID = errors.New("missing user id")
+	ErrMissingEmail  = errors.New("missing user email")
+	ErrMissingRole   = errors.New("missing user role")
 )
 
 // The PostgresDriver struct satisfies the Driver interface which defines all database driver methods

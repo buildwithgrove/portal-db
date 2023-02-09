@@ -68,27 +68,40 @@ func (lb *SelectLoadBalancersRow) toLoadBalancer() (*types.LoadBalancer, error) 
 	return &loadBalancer, nil
 }
 
-/* ReadUserRoles returns all User Roles in the database as a map that takes the form map[User ID]map[LB ID][]types.PermissionsEnum */
-func (p *PostgresDriver) ReadUserRoles(ctx context.Context) (map[string]map[string][]types.PermissionsEnum, error) {
+/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
+func (p *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error) {
 	userRoles, err := p.SelectUserRoles(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userRolesMap := make(map[string]map[string][]types.PermissionsEnum)
-	for _, userRoleRow := range userRoles {
-		userID, lbID := userRoleRow.UserID.String, userRoleRow.LbID.String
+	userPermissionsMap := make(map[types.UserID]*types.UserPermissions)
 
-		if userRoles, ok := userRolesMap[userID]; ok {
-			userRoles[lbID] = userRoleRow.Permissions
+	for _, userRoleRow := range userRoles {
+		userID := types.UserID(userRoleRow.UserID.String)
+		lbID := types.LoadBalancerID(userRoleRow.LbID)
+
+		if userPermissions, ok := userPermissionsMap[userID]; ok {
+			_, err := userPermissions.UpsertPermissions(lbID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
+			}
 		} else {
-			userRoles = make(map[string][]types.PermissionsEnum)
-			userRolesMap[userID] = userRoles
-			userRolesMap[userID][lbID] = userRoleRow.Permissions
+			emptyPermissions := types.UserPermissions{
+				UserID:        userID,
+				LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{},
+			}
+
+			permissions, err := emptyPermissions.UpsertPermissions(lbID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
+			}
+
+			userPermissionsMap[userID] = permissions
 		}
 	}
 
-	return userRolesMap, nil
+	return userPermissionsMap, nil
 }
 
 /* WriteLoadBalancer saves input LoadBalancer to the database */
@@ -127,14 +140,10 @@ func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *ty
 		}
 	}
 
-	loadBalancer.Users[0].RoleName = types.RoleOwner // The first User will be the initial creater (owner) of the LoadBalancer
-	accepted := true                                 // New LB owners always start with accepted = true
-	userAccessParams := extractInsertUserAccess(id, loadBalancer.Users[0], &accepted, time)
-	if userAccessParams.isNotNull() {
-		err = qtx.InsertUserAccess(ctx, userAccessParams)
-		if err != nil {
-			return nil, err
-		}
+	loadBalancer.Users[0].RoleName = types.RoleOwner                                                // The first User will be the OWNER of the LoadBalancer
+	err = qtx.InsertUserAccess(ctx, extractInsertUserAccess(id, loadBalancer.Users[0], true, time)) // New LB owners always start with accepted = true
+	if err != nil {
+		return nil, err
 	}
 
 	lbAppParams := InsertLbAppsParams{LbID: loadBalancer.ID}
@@ -179,49 +188,35 @@ func (i *InsertStickinessOptionsParams) isNotNull() bool {
 	return i.Duration.Valid || len(i.Origins) > 0 || i.StickyMax.Valid
 }
 
-func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted *bool, createdAt time.Time) InsertUserAccessParams {
+func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted bool, createdAt time.Time) InsertUserAccessParams {
 	return InsertUserAccessParams{
-		LbID:      newSQLNullString(lbID),
+		LbID:      lbID,
 		UserID:    newSQLNullString(userAccess.UserID),
-		RoleName:  newSQLNullString(string(userAccess.RoleName)),
-		Email:     newSQLNullString(userAccess.Email),
-		Accepted:  newSQLNullBool(accepted),
+		RoleName:  userAccess.RoleName,
+		Email:     userAccess.Email,
+		Accepted:  accepted,
 		CreatedAt: newSQLNullTime(createdAt),
 		UpdatedAt: newSQLNullTime(createdAt),
 	}
-}
-func (i *InsertUserAccessParams) isNotNull() bool {
-	return i.LbID.Valid || i.UserID.Valid || i.RoleName.Valid || i.Email.Valid
-}
-func (i *InsertUserAccessParams) checkForMissingField() string {
-	if !i.UserID.Valid {
-		return "UserID"
-	}
-	if !i.RoleName.Valid {
-		return "RoleName"
-	}
-	if !i.Email.Valid {
-		return "Email"
-	}
-	return ""
 }
 
 /* WriteLoadBalancerUser saves input LoadBalancer to the database */
 func (p *PostgresDriver) WriteLoadBalancerUser(ctx context.Context, lbID string, userAccess types.UserAccess) error {
 	if lbID == "" {
-		return ErrMissingID
+		return ErrMissingLBID
+	}
+	if userAccess.Email == "" {
+		return ErrMissingEmail
+	}
+	if userAccess.RoleName == types.RoleName("") {
+		return ErrMissingRole
 	}
 	if userAccess.RoleName == types.RoleOwner {
 		return ErrCannotSetToOwner
 	}
 
-	accepted := false // New LB users always start with accepted = false
-	userAccessParams := extractInsertUserAccess(lbID, userAccess, &accepted, time.Now())
-
-	missingField := userAccessParams.checkForMissingField()
-	if missingField != "" {
-		return fmt.Errorf("%w: %s", ErrUserInputIsMissingField, missingField)
-	}
+	userAccess.UserID = ""                                                           // New LB users do not start with their user ID set
+	userAccessParams := extractInsertUserAccess(lbID, userAccess, false, time.Now()) // New LB users always start with accepted = false
 
 	err := p.InsertUserAccess(ctx, userAccessParams)
 	if err != nil {
@@ -293,8 +288,11 @@ func (u *UpsertStickinessOptionsParams) isNotNull() bool {
 
 /* UpdateUserAccessRole updates the RoleName for a UserAccess row */
 func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, userID, lbID string, roleName types.RoleName) error {
-	if userID == "" || lbID == "" {
-		return ErrMissingID
+	if userID == "" {
+		return ErrMissingUserID
+	}
+	if lbID == "" {
+		return ErrMissingLBID
 	}
 	if roleName == types.RoleOwner {
 		return ErrCannotSetToOwner
@@ -302,12 +300,40 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, userID, lbID 
 
 	params := UpdateUserAccessParams{
 		UserID:    newSQLNullString(userID),
-		LbID:      newSQLNullString(lbID),
-		RoleName:  newSQLNullString(string(roleName)),
+		LbID:      lbID,
+		RoleName:  roleName,
 		UpdatedAt: newSQLNullTime(time.Now()),
 	}
 
 	err := p.UpdateUserAccess(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/* AcceptUserAccess sets the User ID and the Accepted field to true for a UserAccess row */
+func (p *PostgresDriver) AcceptUserAccess(ctx context.Context, email, userID, lbID string) error {
+	if email == "" {
+		return ErrMissingEmail
+	}
+	if userID == "" {
+		return ErrMissingUserID
+	}
+	if lbID == "" {
+		return ErrMissingLBID
+	}
+
+	params := SetUserAccessAcceptedParams{
+		Email:     email,
+		UserID:    newSQLNullString(userID),
+		LbID:      lbID,
+		Accepted:  true,
+		UpdatedAt: newSQLNullTime(time.Now()),
+	}
+
+	err := p.SetUserAccessAccepted(ctx, params)
 	if err != nil {
 		return err
 	}
@@ -337,7 +363,7 @@ func (p *PostgresDriver) RemoveUserAccess(ctx context.Context, userID, lbID stri
 
 	params := DeleteUserAccessParams{
 		UserID: newSQLNullString(userID),
-		LbID:   newSQLNullString(lbID),
+		LbID:   lbID,
 	}
 
 	err := p.DeleteUserAccess(ctx, params)

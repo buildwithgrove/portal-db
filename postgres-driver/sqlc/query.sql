@@ -660,9 +660,12 @@ GROUP BY lb.lb_id,
 -- name: SelectUserRoles :many
 SELECT ua.lb_id,
     ua.user_id,
+    ua.role_name,
     ur.permissions as permissions
 FROM user_access as ua
-    LEFT JOIN user_roles AS ur ON ua.role_name = ur.name;
+    LEFT JOIN user_roles AS ur ON ua.role_name = ur.name
+WHERE ua.accepted = true
+    AND ua.user_id IS NOT NULL;
 -- name: InsertLoadBalancer :exec
 INSERT into loadbalancers (
         lb_id,
@@ -704,11 +707,29 @@ INSERT INTO user_access (
         updated_at
     )
 VALUES ($1, $2, $3, $4, $5, $6, $7);
+-- name: InsertUserAccessNoConflict :exec
+INSERT INTO user_access (
+        lb_id,
+        role_name,
+        user_id,
+        email,
+        accepted,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING;
 -- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),
     updated_at = $4
 WHERE ua.user_id = $1
+    AND ua.lb_id = $2;
+-- name: SetUserAccessAccepted :exec
+UPDATE user_access as ua
+SET user_id = $3,
+    accepted = $4,
+    updated_at = $5
+WHERE ua.email = $1
     AND ua.lb_id = $2;
 -- name: DeleteUserAccess :exec
 DELETE FROM user_access

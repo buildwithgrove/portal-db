@@ -86,15 +86,16 @@ CREATE TABLE IF NOT EXISTS stickiness_options (
 );
 CREATE TABLE IF NOT EXISTS user_access (
 	id INT GENERATED ALWAYS AS IDENTITY,
-	lb_id VARCHAR,
-	user_id VARCHAR,
-	role_name VARCHAR,
-	email VARCHAR,
-	accepted BOOLEAN,
+	lb_id VARCHAR NOT NULL,
+	user_id VARCHAR NULL,
+	role_name VARCHAR NOT NULL,
+	email VARCHAR NOT NULL,
+	accepted BOOLEAN NOT NULL,
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
 	PRIMARY KEY (id),
 	UNIQUE (lb_id, user_id),
+	UNIQUE (lb_id, email),
 	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES loadbalancers(lb_id),
 	CONSTRAINT fk_role FOREIGN KEY(role_name) REFERENCES user_roles(name)
 );
@@ -228,7 +229,8 @@ CREATE TRIGGER user_access_notify_event
 AFTER
 INSERT
 	OR
-UPDATE ON user_access FOR EACH ROW EXECUTE PROCEDURE notify_event();
+UPDATE
+	OR DELETE ON user_access FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER lb_apps_notify_event
 AFTER
 INSERT ON lb_apps FOR EACH ROW EXECUTE PROCEDURE notify_event();
@@ -254,12 +256,14 @@ CREATE TRIGGER whitelist_contracts_notify_event
 AFTER
 INSERT
 	OR
-UPDATE ON whitelist_contracts FOR EACH ROW EXECUTE PROCEDURE notify_event();
+UPDATE
+	OR DELETE ON whitelist_contracts FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER whitelist_methods_notify_event
 AFTER
 INSERT
 	OR
-UPDATE ON whitelist_methods FOR EACH ROW EXECUTE PROCEDURE notify_event();
+UPDATE
+	OR DELETE ON whitelist_methods FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER notification_settings_notify_event
 AFTER
 INSERT
