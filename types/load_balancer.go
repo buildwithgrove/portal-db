@@ -65,6 +65,7 @@ type (
 	UpdateUserAccess struct {
 		ID       string   `json:"id,omitempty"`
 		UserID   string   `json:"userID"`
+		Email    string   `json:"email"`
 		RoleName RoleName `json:"roleName"`
 	}
 
