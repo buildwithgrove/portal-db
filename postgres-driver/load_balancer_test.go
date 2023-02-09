@@ -104,12 +104,12 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 	ts.Run("Test_ReadUserPermissions", func() {
 		tests := []struct {
 			name         string
-			userRolesMap map[types.UserID]types.UserPermissions
+			userRolesMap map[types.UserID]*types.UserPermissions
 			err          error
 		}{
 			{
 				name: "Should return all Load Balancers from the database ordered by lb_id",
-				userRolesMap: map[types.UserID]types.UserPermissions{
+				userRolesMap: map[types.UserID]*types.UserPermissions{
 					"test_user_1dbffbdfeeb225": {
 						UserID: "test_user_1dbffbdfeeb225",
 						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{

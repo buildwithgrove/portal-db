@@ -68,14 +68,14 @@ func (lb *SelectLoadBalancersRow) toLoadBalancer() (*types.LoadBalancer, error) 
 	return &loadBalancer, nil
 }
 
-/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]types.UserPermissions */
-func (p *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]types.UserPermissions, error) {
+/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
+func (p *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error) {
 	userRoles, err := p.SelectUserRoles(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userPermissionsMap := make(map[types.UserID]types.UserPermissions)
+	userPermissionsMap := make(map[types.UserID]*types.UserPermissions)
 
 	for _, userRoleRow := range userRoles {
 		userID := types.UserID(userRoleRow.UserID.String)
@@ -97,7 +97,7 @@ func (p *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.Use
 				return nil, err
 			}
 
-			userPermissionsMap[userID] = *permissions
+			userPermissionsMap[userID] = permissions
 		}
 	}
 

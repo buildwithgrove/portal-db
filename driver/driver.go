@@ -20,8 +20,8 @@ type (
 		ReadApplications(ctx context.Context) ([]*types.Application, error)
 		/* ReadLoadBalancers returns all LoadBalancers in the database */
 		ReadLoadBalancers(ctx context.Context) ([]*types.LoadBalancer, error)
-		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]types.UserPermissions */
-		ReadUserPermissions(ctx context.Context) (map[types.UserID]types.UserPermissions, error)
+		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
+		ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error)
 		/* ReadBlockchains returns all blockchains in the database and marshals to types struct */
 		ReadBlockchains(ctx context.Context) ([]*types.Blockchain, error)
 
