@@ -86,15 +86,16 @@ CREATE TABLE IF NOT EXISTS stickiness_options (
 );
 CREATE TABLE IF NOT EXISTS user_access (
 	id INT GENERATED ALWAYS AS IDENTITY,
-	lb_id VARCHAR,
-	user_id VARCHAR,
-	role_name VARCHAR,
-	email VARCHAR,
-	accepted BOOLEAN,
+	lb_id VARCHAR NOT NULL,
+	user_id VARCHAR NULL,
+	role_name VARCHAR NOT NULL,
+	email VARCHAR NOT NULL,
+	accepted BOOLEAN NOT NULL,
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
 	PRIMARY KEY (id),
 	UNIQUE (lb_id, user_id),
+	UNIQUE (lb_id, email),
 	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES loadbalancers(lb_id),
 	CONSTRAINT fk_role FOREIGN KEY(role_name) REFERENCES user_roles(name)
 );

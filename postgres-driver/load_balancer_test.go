@@ -3,7 +3,6 @@ package postgresdriver
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 
 	"github.com/pokt-foundation/portal-db/types"
 )
@@ -54,7 +53,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 						},
 						Users: []types.UserAccess{
 							{RoleName: "OWNER", UserID: "test_user_redirect233344", Email: "owner3@test.com", Accepted: true},
-							{RoleName: "MEMBER", UserID: "test_user_member5678", Email: "member2@test.com", Accepted: false},
+							{RoleName: "MEMBER", UserID: "", Email: "member2@test.com", Accepted: false},
 						},
 					},
 					{
@@ -161,15 +160,6 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							"test_lb_34gg4g43g34g5hh": {
 								RoleName:    types.RoleOwner,
 								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
-							},
-						},
-					},
-					"test_user_member5678": {
-						UserID: "test_user_member5678",
-						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
-							"test_lb_34gg4g43g34g5hh": {
-								RoleName:    types.RoleMember,
-								Permissions: []types.PermissionsEnum{types.ReadEndpoint},
 							},
 						},
 					},
@@ -297,11 +287,11 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				name:      "Should create a new UserAccess row for a LoadBalancer with correct input",
 				lbIDInput: "test_lb_34987u329rfn23f",
 				userInput: types.UserAccess{
-					UserID:   "test_user_47fhsd75jd756sh",
+					UserID:   "",
 					RoleName: types.RoleMember,
 					Email:    "member5@test.com",
 				},
-				expectedUsersJSON: json.RawMessage(`[{"email": "owner1@test.com", "userID": "test_user_1dbffbdfeeb225", "accepted": true, "roleName": "OWNER"}, {"email": "admin1@test.com", "userID": "test_user_admin1234", "accepted": true, "roleName": "ADMIN"}, {"email": "member1@test.com", "userID": "test_user_member1234", "accepted": true, "roleName": "MEMBER"}, {"email": "member5@test.com", "userID": "test_user_47fhsd75jd756sh", "accepted": false, "roleName": "MEMBER"}]`),
+				expectedUsersJSON: json.RawMessage(`[{"email": "owner1@test.com", "userID": "test_user_1dbffbdfeeb225", "accepted": true, "roleName": "OWNER"}, {"email": "admin1@test.com", "userID": "test_user_admin1234", "accepted": true, "roleName": "ADMIN"}, {"email": "member1@test.com", "userID": "test_user_member1234", "accepted": true, "roleName": "MEMBER"}, {"email": "member5@test.com", "userID": null, "accepted": false, "roleName": "MEMBER"}]`),
 				expectedUsers: []types.UserAccess{
 					{
 						UserID:   "test_user_1dbffbdfeeb225",
@@ -322,7 +312,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 						Accepted: true,
 					},
 					{
-						UserID:   "test_user_47fhsd75jd756sh",
+						UserID:   "",
 						RoleName: types.RoleMember,
 						Email:    "member5@test.com",
 						Accepted: false,
@@ -331,18 +321,27 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				err: nil,
 			},
 			{
-				name:      "Should fail if any input fields are null",
+				name:      "Should fail if missing user email",
 				lbIDInput: "test_lb_34987u329rfn23f",
 				userInput: types.UserAccess{
 					UserID:   "test_user_47fhsd75jd756sh",
 					RoleName: types.RoleMember,
 				},
-				err: fmt.Errorf("%w: Email", ErrUserInputIsMissingField),
+				err: ErrMissingEmail,
 			},
 			{
 				name:      "Should fail if lb ID not provided",
 				lbIDInput: "",
-				err:       ErrMissingID,
+				err:       ErrMissingLBID,
+			},
+			{
+				name:      "Should fail if missing user role",
+				lbIDInput: "test_lb_34987u329rfn23f",
+				userInput: types.UserAccess{
+					UserID: "test_user_47fhsd75jd756sh",
+					Email:  "test@test.com",
+				},
+				err: ErrMissingRole,
 			},
 			{
 				name:      "Should fail if attempting to create a User with owner role",
@@ -362,6 +361,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 
 			if err == nil {
 				loadBalancer, err := ts.driver.SelectOneLoadBalancer(testCtx, test.lbIDInput)
+
 				ts.Equal(test.err, err)
 				ts.Equal(test.lbIDInput, loadBalancer.LbID)
 				ts.Equal(test.expectedUsersJSON, loadBalancer.Users)
@@ -538,13 +538,13 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				name:        "Should fail if user ID not provided",
 				lbIDInput:   "test_lb_34gg4g43g34g5hh",
 				userIDInput: "",
-				err:         ErrMissingID,
+				err:         ErrMissingUserID,
 			},
 			{
 				name:        "Should fail if lb ID not provided",
 				lbIDInput:   "",
 				userIDInput: "test_user_member5678",
-				err:         ErrMissingID,
+				err:         ErrMissingLBID,
 			},
 		}
 
@@ -570,16 +570,17 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 
 	ts.Run("Test_AcceptUserAccess", func() {
 		tests := []struct {
-			name                   string
-			lbIDInput, userIDInput string
-			expectedUsersJSON      json.RawMessage
-			expectedUsers          []types.UserAccess
-			err                    error
+			name                                   string
+			userEmailInput, userIDInput, lbIDInput string
+			expectedUsersJSON                      json.RawMessage
+			expectedUsers                          []types.UserAccess
+			err                                    error
 		}{
 			{
-				name:              "Should update the Accepted of a UserAccess row for a LoadBalancer to true",
-				lbIDInput:         "test_lb_34gg4g43g34g5hh",
+				name:              "Should update the User ID and Accepted fields of a UserAccess row for a LoadBalancer once an invitation is accepted by a user",
+				userEmailInput:    "member2@test.com",
 				userIDInput:       "test_user_member5678",
+				lbIDInput:         "test_lb_34gg4g43g34g5hh",
 				expectedUsersJSON: json.RawMessage(`[{"email": "owner3@test.com", "userID": "test_user_redirect233344", "accepted": true, "roleName": "OWNER"}, {"email": "member2@test.com", "userID": "test_user_member5678", "accepted": true, "roleName": "MEMBER"}]`),
 				expectedUsers: []types.UserAccess{
 					{
@@ -598,21 +599,30 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				err: nil,
 			},
 			{
-				name:        "Should fail if user ID not provided",
-				lbIDInput:   "test_lb_34gg4g43g34g5hh",
-				userIDInput: "",
-				err:         ErrMissingID,
+				name:           "Should fail if user email not provided",
+				userEmailInput: "",
+				lbIDInput:      "test_lb_34gg4g43g34g5hh",
+				userIDInput:    "test_user_member5678",
+				err:            ErrMissingEmail,
 			},
 			{
-				name:        "Should fail if lb ID not provided",
-				lbIDInput:   "",
-				userIDInput: "test_user_member5678",
-				err:         ErrMissingID,
+				name:           "Should fail if user ID not provided",
+				userEmailInput: "test@test.com",
+				lbIDInput:      "test_lb_34gg4g43g34g5hh",
+				userIDInput:    "",
+				err:            ErrMissingUserID,
+			},
+			{
+				name:           "Should fail if lb ID not provided",
+				userEmailInput: "test@test.com",
+				lbIDInput:      "",
+				userIDInput:    "test_user_member5678",
+				err:            ErrMissingLBID,
 			},
 		}
 
 		for _, test := range tests {
-			err := ts.driver.AcceptUserAccess(testCtx, test.userIDInput, test.lbIDInput)
+			err := ts.driver.AcceptUserAccess(testCtx, test.userEmailInput, test.userIDInput, test.lbIDInput)
 			ts.Equal(test.err, err)
 
 			if err == nil {
