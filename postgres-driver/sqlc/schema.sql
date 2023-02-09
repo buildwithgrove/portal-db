@@ -152,17 +152,17 @@ CREATE TABLE whitelist_contracts (
 	id SERIAL PRIMARY KEY,
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
-	contracts VARCHAR [],
+	contract VARCHAR,
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
-	UNIQUE(application_id, blockchain_id)
+	UNIQUE(application_id, blockchain_id, contract)
 );
 CREATE TABLE whitelist_methods (
 	id SERIAL PRIMARY KEY,
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
-	methods VARCHAR [],
+	method VARCHAR,
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
-	UNIQUE(application_id, blockchain_id)
+	UNIQUE(application_id, blockchain_id, method)
 );
 CREATE TABLE IF NOT EXISTS notification_settings (
 	id INT GENERATED ALWAYS AS IDENTITY,
@@ -256,12 +256,14 @@ CREATE TRIGGER whitelist_contracts_notify_event
 AFTER
 INSERT
 	OR
-UPDATE ON whitelist_contracts FOR EACH ROW EXECUTE PROCEDURE notify_event();
+UPDATE
+	OR DELETE ON whitelist_contracts FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER whitelist_methods_notify_event
 AFTER
 INSERT
 	OR
-UPDATE ON whitelist_methods FOR EACH ROW EXECUTE PROCEDURE notify_event();
+UPDATE
+	OR DELETE ON whitelist_methods FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER notification_settings_notify_event
 AFTER
 INSERT

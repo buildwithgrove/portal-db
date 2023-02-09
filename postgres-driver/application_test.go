@@ -31,8 +31,19 @@ func (ts *PGDriverTestSuite) Test_ReadApplications() {
 						PrivateKey:           "test_d2ce53f115f4ecb2208e9188800a85cf",
 					},
 					GatewaySettings: types.GatewaySettings{
-						SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
-						SecretKeyRequired: true,
+						SecretKey:            "test_40f482d91a5ef2300ebb4e2308c",
+						SecretKeyRequired:    true,
+						WhitelistBlockchains: []string{"chain_1"},
+						WhitelistOrigins:     []string{"origin_1", "origin_2"},
+						WhitelistUserAgents:  []string{"user_agent_1", "user_agent_2", "user_agent_3"},
+						WhitelistContracts: []types.WhitelistContracts{
+							{BlockchainID: "TST2", Contracts: []string{"test_address_67890"}},
+							{BlockchainID: "TST1", Contracts: []string{"test_address_12345", "test_address_44444"}},
+						},
+						WhitelistMethods: []types.WhitelistMethods{
+							{BlockchainID: "TST1", Methods: []string{"GET"}},
+							{BlockchainID: "TST2", Methods: []string{"PUT", "POST"}},
+						},
 					},
 					Limit: types.AppLimit{
 						PayPlan: types.PayPlan{Type: types.FreetierV0, Limit: 250_000},
@@ -282,13 +293,13 @@ func (ts *PGDriverTestSuite) Test_UpdateApplication() {
 				GatewaySettings: &types.UpdateGatewaySettings{
 					WhitelistOrigins:    []string{"test-origin1", "test-origin2"},
 					WhitelistUserAgents: []string{"test-agent1"},
-					WhitelistContracts: []types.WhitelistContract{
+					WhitelistContracts: []types.WhitelistContracts{
 						{
 							BlockchainID: "01",
 							Contracts:    []string{"test-contract1"},
 						},
 					},
-					WhitelistMethods: []types.WhitelistMethod{
+					WhitelistMethods: []types.WhitelistMethods{
 						{
 							BlockchainID: "01",
 							Methods:      []string{"test-method1"},
@@ -313,8 +324,8 @@ func (ts *PGDriverTestSuite) Test_UpdateApplication() {
 			expectedAfterUpdate: SelectOneApplicationRow{
 				Name:                 sql.NullString{Valid: true, String: "pokt_app_updated_lb"},
 				WhitelistBlockchains: []string{"test-chain1"},
-				WhitelistContracts:   "[{\"blockchain_id\" : \"01\", \"contracts\" : [\"test-contract1\"]}]",
-				WhitelistMethods:     "[{\"blockchain_id\" : \"01\", \"methods\" : [\"test-method1\"]}]",
+				WhitelistContracts:   "[{\"contracts\": [\"test-contract1\"], \"blockchainID\": \"01\"}]",
+				WhitelistMethods:     "[{\"methods\": [\"test-method1\"], \"blockchainID\": \"01\"}]",
 				WhitelistOrigins:     []string{"test-origin1", "test-origin2"},
 				WhitelistUserAgents:  []string{"test-agent1"},
 				SignedUp:             sql.NullBool{Valid: true, Bool: false},
@@ -347,6 +358,94 @@ func (ts *PGDriverTestSuite) Test_UpdateApplication() {
 				WhitelistBlockchains: []string(nil),
 				WhitelistOrigins:     []string{"test-origin1", "test-origin2"},
 				WhitelistUserAgents:  []string{"test-agent1"},
+				SignedUp:             sql.NullBool{Valid: true, Bool: true},
+				OnQuarter:            sql.NullBool{Valid: true, Bool: false},
+				OnHalf:               sql.NullBool{Valid: true, Bool: false},
+				OnThreeQuarters:      sql.NullBool{Valid: true, Bool: true},
+				OnFull:               sql.NullBool{Valid: true, Bool: false},
+				CustomLimit:          sql.NullInt32{Valid: true, Int32: 0},
+				PayPlan:              sql.NullString{Valid: true, String: "PAY_AS_YOU_GO_V0"},
+			},
+			err: nil,
+		},
+		{
+			name:  "Should add whitelist contracts & methods",
+			appID: "test_app_5hdf7sh23jd828",
+			appUpdate: &types.UpdateApplication{
+				GatewaySettings: &types.UpdateGatewaySettings{
+					WhitelistContracts: []types.WhitelistContracts{
+						{
+							BlockchainID: "01",
+							Contracts:    []string{"test-contract1", "test-contract2"},
+						},
+						{
+							BlockchainID: "02",
+							Contracts:    []string{"test-contract3", "test-contract4"},
+						},
+					},
+					WhitelistMethods: []types.WhitelistMethods{
+						{
+							BlockchainID: "01",
+							Methods:      []string{"test-method1", "test-method2", "test-method3"},
+						},
+						{
+							BlockchainID: "03",
+							Methods:      []string{"test-method4", "test-method5", "test-method6"},
+						},
+					},
+				},
+			},
+			expectedAfterUpdate: SelectOneApplicationRow{
+				Name:                 sql.NullString{Valid: true, String: "pokt_app_456"},
+				WhitelistBlockchains: []string(nil),
+				WhitelistOrigins:     []string{"test-origin1", "test-origin2"},
+				WhitelistUserAgents:  []string{"test-agent1"},
+				WhitelistContracts:   "[{\"contracts\": [\"test-contract1\", \"test-contract2\"], \"blockchainID\": \"01\"}, {\"contracts\": [\"test-contract3\", \"test-contract4\"], \"blockchainID\": \"02\"}]",
+				WhitelistMethods:     "[{\"methods\": [\"test-method1\", \"test-method2\", \"test-method3\"], \"blockchainID\": \"01\"}, {\"methods\": [\"test-method4\", \"test-method5\", \"test-method6\"], \"blockchainID\": \"03\"}]",
+				SignedUp:             sql.NullBool{Valid: true, Bool: true},
+				OnQuarter:            sql.NullBool{Valid: true, Bool: false},
+				OnHalf:               sql.NullBool{Valid: true, Bool: false},
+				OnThreeQuarters:      sql.NullBool{Valid: true, Bool: true},
+				OnFull:               sql.NullBool{Valid: true, Bool: false},
+				CustomLimit:          sql.NullInt32{Valid: true, Int32: 0},
+				PayPlan:              sql.NullString{Valid: true, String: "PAY_AS_YOU_GO_V0"},
+			},
+			err: nil,
+		},
+		{
+			name:  "Should remove whitelist contracts & methods",
+			appID: "test_app_5hdf7sh23jd828",
+			appUpdate: &types.UpdateApplication{
+				GatewaySettings: &types.UpdateGatewaySettings{
+					WhitelistContracts: []types.WhitelistContracts{
+						{
+							BlockchainID: "01",
+							Contracts:    []string{"test-contract2"},
+						},
+						{
+							BlockchainID: "02",
+							Contracts:    []string{},
+						},
+					},
+					WhitelistMethods: []types.WhitelistMethods{
+						{
+							BlockchainID: "01",
+							Methods:      []string{"test-method1"},
+						},
+						{
+							BlockchainID: "03",
+							Methods:      []string{"test-method5", "test-method6"},
+						},
+					},
+				},
+			},
+			expectedAfterUpdate: SelectOneApplicationRow{
+				Name:                 sql.NullString{Valid: true, String: "pokt_app_456"},
+				WhitelistBlockchains: []string(nil),
+				WhitelistOrigins:     []string{"test-origin1", "test-origin2"},
+				WhitelistUserAgents:  []string{"test-agent1"},
+				WhitelistContracts:   "[{\"contracts\": [\"test-contract2\"], \"blockchainID\": \"01\"}]",
+				WhitelistMethods:     "[{\"methods\": [\"test-method1\"], \"blockchainID\": \"01\"}, {\"methods\": [\"test-method5\", \"test-method6\"], \"blockchainID\": \"03\"}]",
 				SignedUp:             sql.NullBool{Valid: true, Bool: true},
 				OnQuarter:            sql.NullBool{Valid: true, Bool: false},
 				OnHalf:               sql.NullBool{Valid: true, Bool: false},
