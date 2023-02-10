@@ -153,6 +153,8 @@ CREATE TABLE whitelist_contracts (
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
 	contract VARCHAR,
+	-- TODO contracts DEPRECATED - remove when DB change made
+	contracts VARCHAR [],
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
 	UNIQUE(application_id, blockchain_id, contract)
 );
@@ -161,6 +163,8 @@ CREATE TABLE whitelist_methods (
 	application_id VARCHAR NOT NULL,
 	blockchain_id VARCHAR,
 	method VARCHAR,
+	-- TODO methods DEPRECATED - remove when DB change made
+	methods VARCHAR [],
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
 	UNIQUE(application_id, blockchain_id, method)
 );
