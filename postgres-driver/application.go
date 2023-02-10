@@ -333,26 +333,28 @@ func (p *PostgresDriver) UpdateApplication(ctx context.Context, id string, updat
 		}
 	}
 
-	for _, contract := range update.GatewaySettings.WhitelistContracts {
-		err = qtx.UpdateWhitelistContracts(ctx, extractUpdateWhitelistContracts(id, &contract))
+	if update.GatewaySettings != nil {
+		for _, contract := range update.GatewaySettings.WhitelistContracts {
+			err = qtx.UpdateWhitelistContracts(ctx, extractUpdateWhitelistContracts(id, &contract))
+			if err != nil {
+				return err
+			}
+		}
+		err = qtx.DeleteNotPresentWhitelistContracts(ctx, extractDeleteWhitelistContracts(id, update.GatewaySettings.WhitelistContracts))
 		if err != nil {
 			return err
 		}
-	}
-	err = qtx.DeleteNotPresentWhitelistContracts(ctx, extractDeleteWhitelistContracts(id, update.GatewaySettings.WhitelistContracts))
-	if err != nil {
-		return err
-	}
 
-	for _, method := range update.GatewaySettings.WhitelistMethods {
-		err = qtx.UpdateWhitelistMethods(ctx, extractUpdateWhitelistMethods(id, &method))
+		for _, method := range update.GatewaySettings.WhitelistMethods {
+			err = qtx.UpdateWhitelistMethods(ctx, extractUpdateWhitelistMethods(id, &method))
+			if err != nil {
+				return err
+			}
+		}
+		err = qtx.DeleteNotPresentWhitelistMethods(ctx, extractDeleteWhitelistMethods(id, update.GatewaySettings.WhitelistMethods))
 		if err != nil {
 			return err
 		}
-	}
-	err = qtx.DeleteNotPresentWhitelistMethods(ctx, extractDeleteWhitelistMethods(id, update.GatewaySettings.WhitelistMethods))
-	if err != nil {
-		return err
 	}
 
 	notificationSettingsParams := extractUpsertNotificationSettings(id, update)
