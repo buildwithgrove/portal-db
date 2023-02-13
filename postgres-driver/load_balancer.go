@@ -287,9 +287,9 @@ func (u *UpsertStickinessOptionsParams) isNotNull() bool {
 }
 
 /* UpdateUserAccessRole updates the RoleName for a UserAccess row */
-func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, userID, lbID string, roleName types.RoleName) error {
-	if userID == "" {
-		return ErrMissingUserID
+func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, email, lbID string, roleName types.RoleName) error {
+	if email == "" {
+		return ErrMissingEmail
 	}
 	if lbID == "" {
 		return ErrMissingLBID
@@ -299,7 +299,7 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, userID, lbID 
 	}
 
 	params := UpdateUserAccessParams{
-		UserID:    newSQLNullString(userID),
+		Email:     email,
 		LbID:      lbID,
 		RoleName:  roleName,
 		UpdatedAt: newSQLNullTime(time.Now()),
