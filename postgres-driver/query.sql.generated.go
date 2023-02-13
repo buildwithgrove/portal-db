@@ -1562,12 +1562,12 @@ const updateUserAccess = `-- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),
     updated_at = $4
-WHERE ua.user_id = $1
+WHERE ua.email = $1
     AND ua.lb_id = $2
 `
 
 type UpdateUserAccessParams struct {
-	UserID    sql.NullString `json:"userID"`
+	Email     string         `json:"email"`
 	LbID      string         `json:"lbID"`
 	RoleName  types.RoleName `json:"roleName"`
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
@@ -1575,7 +1575,7 @@ type UpdateUserAccessParams struct {
 
 func (q *Queries) UpdateUserAccess(ctx context.Context, arg UpdateUserAccessParams) error {
 	_, err := q.db.ExecContext(ctx, updateUserAccess,
-		arg.UserID,
+		arg.Email,
 		arg.LbID,
 		arg.RoleName,
 		arg.UpdatedAt,
@@ -1597,7 +1597,7 @@ deleted_data AS (
             SELECT contract
             FROM new_data
         )
-    RETURNING id, application_id, blockchain_id, contract
+    RETURNING id, application_id, blockchain_id, contract, contracts
 )
 INSERT INTO whitelist_contracts (application_id, blockchain_id, contract)
 SELECT application_id,
@@ -1631,7 +1631,7 @@ deleted_data AS (
             SELECT method
             FROM new_data
         )
-    RETURNING id, application_id, blockchain_id, method
+    RETURNING id, application_id, blockchain_id, method, methods
 )
 INSERT INTO whitelist_methods (application_id, blockchain_id, method)
 SELECT application_id,

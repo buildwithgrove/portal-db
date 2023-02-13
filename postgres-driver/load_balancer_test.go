@@ -476,17 +476,17 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 
 	ts.Run("Test_UpdateUserAccessRole", func() {
 		tests := []struct {
-			name                   string
-			lbIDInput, userIDInput string
-			userRoleInput          types.RoleName
-			expectedUsersJSON      json.RawMessage
-			expectedUsers          []types.UserAccess
-			err                    error
+			name                  string
+			lbIDInput, emailInput string
+			userRoleInput         types.RoleName
+			expectedUsersJSON     json.RawMessage
+			expectedUsers         []types.UserAccess
+			err                   error
 		}{
 			{
 				name:              "Should update the RoleName of a UserAccess row for a LoadBalancer with correct input",
 				lbIDInput:         "test_lb_3890ru23jfi32fj",
-				userIDInput:       "test_user_admin5678",
+				emailInput:        "admin2@test.com",
 				userRoleInput:     types.RoleMember,
 				expectedUsersJSON: json.RawMessage(`[{"email": "owner2@test.com", "userID": "test_user_04228205bd261a", "accepted": true, "roleName": "OWNER"}, {"email": "admin2@test.com", "userID": "test_user_admin5678", "accepted": true, "roleName": "MEMBER"}]`),
 				expectedUsers: []types.UserAccess{
@@ -508,7 +508,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 			{
 				name:              "Should update the RoleName of a UserAccess row back to the original value for a LoadBalancer with correct input",
 				lbIDInput:         "test_lb_3890ru23jfi32fj",
-				userIDInput:       "test_user_admin5678",
+				emailInput:        "admin2@test.com",
 				userRoleInput:     types.RoleAdmin,
 				expectedUsersJSON: json.RawMessage(`[{"email": "owner2@test.com", "userID": "test_user_04228205bd261a", "accepted": true, "roleName": "OWNER"}, {"email": "admin2@test.com", "userID": "test_user_admin5678", "accepted": true, "roleName": "ADMIN"}]`),
 				expectedUsers: []types.UserAccess{
@@ -530,26 +530,26 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 			{
 				name:          "Should fail if attempting to update User to owner role",
 				lbIDInput:     "test_lb_3890ru23jfi32fj",
-				userIDInput:   "test_user_admin5678",
+				emailInput:    "test_user_admin5678",
 				userRoleInput: types.RoleOwner,
 				err:           ErrCannotSetToOwner,
 			},
 			{
-				name:        "Should fail if user ID not provided",
-				lbIDInput:   "test_lb_34gg4g43g34g5hh",
-				userIDInput: "",
-				err:         ErrMissingUserID,
+				name:       "Should fail if user email not provided",
+				lbIDInput:  "test_lb_34gg4g43g34g5hh",
+				emailInput: "",
+				err:        ErrMissingEmail,
 			},
 			{
-				name:        "Should fail if lb ID not provided",
-				lbIDInput:   "",
-				userIDInput: "test_user_member5678",
-				err:         ErrMissingLBID,
+				name:       "Should fail if lb ID not provided",
+				lbIDInput:  "",
+				emailInput: "test_user_member5678",
+				err:        ErrMissingLBID,
 			},
 		}
 
 		for _, test := range tests {
-			err := ts.driver.UpdateUserAccessRole(testCtx, test.userIDInput, test.lbIDInput, test.userRoleInput)
+			err := ts.driver.UpdateUserAccessRole(testCtx, test.emailInput, test.lbIDInput, test.userRoleInput)
 			ts.Equal(test.err, err)
 
 			if err == nil {

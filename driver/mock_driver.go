@@ -257,13 +257,13 @@ func (_m *MockDriver) UpdateLoadBalancer(ctx context.Context, id string, options
 	return r0
 }
 
-// UpdateUserAccessRole provides a mock function with given fields: ctx, userID, lbID, roleName
-func (_m *MockDriver) UpdateUserAccessRole(ctx context.Context, userID string, lbID string, roleName types.RoleName) error {
-	ret := _m.Called(ctx, userID, lbID, roleName)
+// UpdateUserAccessRole provides a mock function with given fields: ctx, email, lbID, roleName
+func (_m *MockDriver) UpdateUserAccessRole(ctx context.Context, email string, lbID string, roleName types.RoleName) error {
+	ret := _m.Called(ctx, email, lbID, roleName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, types.RoleName) error); ok {
-		r0 = rf(ctx, userID, lbID, roleName)
+		r0 = rf(ctx, email, lbID, roleName)
 	} else {
 		r0 = ret.Error(0)
 	}
