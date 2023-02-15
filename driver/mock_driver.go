@@ -201,13 +201,13 @@ func (_m *MockDriver) RemoveLoadBalancer(ctx context.Context, id string) error {
 	return r0
 }
 
-// RemoveUserAccess provides a mock function with given fields: ctx, userID, lbID
-func (_m *MockDriver) RemoveUserAccess(ctx context.Context, userID string, lbID string) error {
-	ret := _m.Called(ctx, userID, lbID)
+// RemoveUserAccess provides a mock function with given fields: ctx, email, lbID
+func (_m *MockDriver) RemoveUserAccess(ctx context.Context, email string, lbID string) error {
+	ret := _m.Called(ctx, email, lbID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, userID, lbID)
+		r0 = rf(ctx, email, lbID)
 	} else {
 		r0 = ret.Error(0)
 	}
