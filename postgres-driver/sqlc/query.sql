@@ -732,9 +732,9 @@ SET user_id = $3,
 WHERE ua.email = $1
     AND ua.lb_id = $2;
 -- name: DeleteUserAccess :exec
-DELETE FROM user_access
-WHERE user_id = $1
-    AND lb_id = $2;
+DELETE FROM user_access  as ua
+WHERE ua.email = $1
+    AND ua.lb_id = $2;
 -- name: UpsertStickinessOptions :exec
 INSERT INTO stickiness_options AS so (
         lb_id,

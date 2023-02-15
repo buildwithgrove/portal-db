@@ -667,7 +667,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 	ts.Run("Test_RemoveUserAccess", func() {
 		tests := []struct {
 			name                                     string
-			lbIDInput, userIDInput                   string
+			lbIDInput, emailInput                    string
 			usersBeforeDeleteJSON, expectedUsersJSON json.RawMessage
 			expectedUsers                            []types.UserAccess
 			err                                      error
@@ -675,7 +675,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 			{
 				name:                  "Should delete a UserAccess row for a LoadBalancer with correct input",
 				lbIDInput:             "test_lb_34gg4g43g34g5hh",
-				userIDInput:           "test_user_member5678",
+				emailInput:            "member2@test.com",
 				usersBeforeDeleteJSON: json.RawMessage(`[{"email": "owner3@test.com", "userID": "test_user_redirect233344", "accepted": true, "roleName": "OWNER"}, {"email": "member2@test.com", "userID": "test_user_member5678", "accepted": true, "roleName": "MEMBER"}]`),
 				expectedUsersJSON:     json.RawMessage(`[{"email": "owner3@test.com", "userID": "test_user_redirect233344", "accepted": true, "roleName": "OWNER"}]`),
 				expectedUsers: []types.UserAccess{
@@ -689,16 +689,16 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				err: nil,
 			},
 			{
-				name:        "Should fail if user ID not provided",
-				lbIDInput:   "test_lb_34gg4g43g34g5hh",
-				userIDInput: "",
-				err:         ErrMissingID,
+				name:       "Should fail if user email not provided",
+				lbIDInput:  "test_lb_34gg4g43g34g5hh",
+				emailInput: "",
+				err:        ErrMissingEmail,
 			},
 			{
-				name:        "Should fail if lb ID not provided",
-				lbIDInput:   "",
-				userIDInput: "test_user_member5678",
-				err:         ErrMissingID,
+				name:       "Should fail if lb ID not provided",
+				lbIDInput:  "",
+				emailInput: "member2@test.com",
+				err:        ErrMissingLBID,
 			},
 		}
 
@@ -709,7 +709,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				ts.Equal(test.usersBeforeDeleteJSON, loadBalancerBefore.Users)
 			}
 
-			err := ts.driver.RemoveUserAccess(testCtx, test.userIDInput, test.lbIDInput)
+			err := ts.driver.RemoveUserAccess(testCtx, test.emailInput, test.lbIDInput)
 			ts.Equal(test.err, err)
 
 			if test.err == nil {

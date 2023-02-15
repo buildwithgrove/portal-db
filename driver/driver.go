@@ -42,7 +42,7 @@ type (
 		/* RemoveLoadBalancer sets the user ID to an empty string (will not appear in Portal API or UI) */
 		RemoveLoadBalancer(ctx context.Context, id string) error
 		/* RemoveUserAccess deletes a UserAccess row */
-		RemoveUserAccess(ctx context.Context, userID, lbID string) error
+		RemoveUserAccess(ctx context.Context, email, lbID string) error
 
 		/* WriteApplication saves input Application to the database */
 		WriteApplication(ctx context.Context, app *types.Application) (*types.Application, error)
