@@ -356,15 +356,15 @@ func (p *PostgresDriver) RemoveLoadBalancer(ctx context.Context, id string) erro
 }
 
 /* RemoveUserAccess deletes a UserAccess row */
-func (p *PostgresDriver) RemoveUserAccess(ctx context.Context, userID, lbID string) error {
-	if userID == "" || lbID == "" {
-		return ErrMissingID
+func (p *PostgresDriver) RemoveUserAccess(ctx context.Context, email, lbID string) error {
+	if email == "" {
+		return ErrMissingEmail
+	}
+	if lbID == "" {
+		return ErrMissingLBID
 	}
 
-	params := DeleteUserAccessParams{
-		UserID: newSQLNullString(userID),
-		LbID:   lbID,
-	}
+	params := DeleteUserAccessParams{Email: email, LbID: lbID}
 
 	err := p.DeleteUserAccess(ctx, params)
 	if err != nil {

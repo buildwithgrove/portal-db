@@ -67,18 +67,18 @@ func (q *Queries) DeleteNotPresentWhitelistMethods(ctx context.Context, arg Dele
 }
 
 const deleteUserAccess = `-- name: DeleteUserAccess :exec
-DELETE FROM user_access
-WHERE user_id = $1
-    AND lb_id = $2
+DELETE FROM user_access  as ua
+WHERE ua.email = $1
+    AND ua.lb_id = $2
 `
 
 type DeleteUserAccessParams struct {
-	UserID sql.NullString `json:"userID"`
-	LbID   string         `json:"lbID"`
+	Email string `json:"email"`
+	LbID  string `json:"lbID"`
 }
 
 func (q *Queries) DeleteUserAccess(ctx context.Context, arg DeleteUserAccessParams) error {
-	_, err := q.db.ExecContext(ctx, deleteUserAccess, arg.UserID, arg.LbID)
+	_, err := q.db.ExecContext(ctx, deleteUserAccess, arg.Email, arg.LbID)
 	return err
 }
 
