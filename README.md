@@ -35,6 +35,14 @@ Contains all database structs and their associated methods which are used across
 
 # Development
 
+## Modifying Functionality
+
+- Start by updating the `postgresdrver/sqlc/schema.yml` and/or `postgresdrver/sqlc/query.yml` files
+- Generate the SQLC Go code from these SQL files using `make`
+- Add new functionality to the postgres driver methods and the Driver interface
+- Update the driver integration tests in the `Portal DB` repository to cover all code changes
+- Once merged to `main` a new version of the DB driver will be published, following semantic versioning standards based on the commit message(s)
+
 ## Pre-Commit Installation
 
 Before starting development work on this repo, `pre-commit` must be installed.
