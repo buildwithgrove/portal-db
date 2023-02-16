@@ -4,9 +4,9 @@
     <big>Database driver and struct definitions for use with the Portal API</big>
     <div>
     <br/>
-        <a href="https://github.com/pokt-foundation/node-nanny/pulse"><img src="https://img.shields.io/github/last-commit/pokt-foundation/node-nanny.svg"/></a>
-        <a href="https://github.com/pokt-foundation/node-nanny/pulls"><img src="https://img.shields.io/github/issues-pr/pokt-foundation/node-nanny.svg"/></a>
-        <a href="https://github.com/pokt-foundation/node-nanny/issues"><img src="https://img.shields.io/github/issues-closed/pokt-foundation/node-nanny.svg"/></a>
+        <a href="https://github.com/pokt-foundation/portal-db/pulse"><img src="https://img.shields.io/github/last-commit/pokt-foundation/portal-db.svg"/></a>
+        <a href="https://github.com/pokt-foundation/portal-db/pulls"><img src="https://img.shields.io/github/issues-pr/pokt-foundation/portal-db.svg"/></a>
+        <a href="https://github.com/pokt-foundation/portal-db/issues"><img src="https://img.shields.io/github/issues-closed/pokt-foundation/portal-db.svg"/></a>
     </div>
 </div>
 <br/>
