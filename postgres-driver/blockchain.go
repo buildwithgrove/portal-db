@@ -144,8 +144,8 @@ func (i *InsertSyncCheckOptionsParams) isNotNull() bool {
 }
 
 /* UpdateChain updates Application and related table rows */
-func (p *PostgresDriver) UpdateChain(ctx context.Context, update *types.UpdateBlockchain) error {
-	if update.BlockchainID == "" {
+func (p *PostgresDriver) UpdateChain(ctx context.Context, blockchainID string, update *types.UpdateBlockchain) error {
+	if blockchainID == "" {
 		return ErrMissingID
 	}
 
@@ -160,12 +160,12 @@ func (p *PostgresDriver) UpdateChain(ctx context.Context, update *types.UpdateBl
 
 	qtx := p.WithTx(tx)
 
-	err = qtx.UpdateBlockchain(ctx, extractUpdateBlockchain(update))
+	err = qtx.UpdateBlockchain(ctx, extractUpdateBlockchain(blockchainID, update))
 	if err != nil {
 		return err
 	}
 
-	syncCheckOptionsParams := extractUpdateSyncCheckOptions(update)
+	syncCheckOptionsParams := extractUpdateSyncCheckOptions(blockchainID, update)
 	if syncCheckOptionsParams.isNotNull() {
 		err = qtx.UpdateSyncCheckOptions(ctx, syncCheckOptionsParams)
 		if err != nil {
@@ -175,40 +175,41 @@ func (p *PostgresDriver) UpdateChain(ctx context.Context, update *types.UpdateBl
 
 	err = tx.Commit()
 	if err != nil {
+
 		return err
 	}
 
 	return nil
 }
 
-func extractUpdateBlockchain(update *types.UpdateBlockchain) UpdateBlockchainParams {
+func extractUpdateBlockchain(blockchainID string, update *types.UpdateBlockchain) UpdateBlockchainParams {
 	return UpdateBlockchainParams{
-		BlockchainID:      update.BlockchainID,
+		BlockchainID:      blockchainID,
 		Altruist:          newSQLNullString(update.Altruist),
 		Blockchain:        newSQLNullString(update.Blockchain),
 		BlockchainAliases: update.BlockchainAliases,
 		ChainIDCheck:      newSQLNullString(update.ChainIDCheck),
 		Description:       newSQLNullString(update.Description),
 		EnforceResult:     newSQLNullString(update.EnforceResult),
-		LogLimitBlocks:    newSQLNullInt32(update.LogLimitBlocks, false),
+		LogLimitBlocks:    newSQLNullInt32(int32(update.LogLimitBlocks), false),
 		Network:           newSQLNullString(update.Network),
 		Path:              newSQLNullString(update.Path),
-		RequestTimeout:    newSQLNullInt32(update.RequestTimeout, false),
+		RequestTimeout:    newSQLNullInt32(int32(update.RequestTimeout), false),
 		Ticker:            newSQLNullString(update.Ticker),
 		UpdatedAt:         newSQLNullTime(update.UpdatedAt),
 	}
 }
 
-func extractUpdateSyncCheckOptions(update *types.UpdateBlockchain) UpdateSyncCheckOptionsParams {
+func extractUpdateSyncCheckOptions(blockchainID string, update *types.UpdateBlockchain) UpdateSyncCheckOptionsParams {
 	params := UpdateSyncCheckOptionsParams{
-		BlockchainID: update.BlockchainID,
+		BlockchainID: blockchainID,
 		Synccheck:    newSQLNullString(update.Synccheck),
 		Body:         newSQLNullString(update.Body),
 		Path:         newSQLNullString(update.SyncCheckPath),
 		ResultKey:    newSQLNullString(update.ResultKey),
 	}
 	if update.Allowance != nil {
-		params.Allowance = newSQLNullInt32(*update.Allowance, true)
+		params.Allowance = newSQLNullInt32(int32(*update.Allowance), true)
 	}
 
 	return params
