@@ -150,11 +150,13 @@ WHERE s.blockchain_id = $1;
 -- name: SelectApplications :many
 SELECT a.application_id,
     a.contact_email,
+    a.created_at,
     a.description,
     a.dummy,
     a.name,
     a.owner,
     a.status,
+    a.updated_at,
     a.url,
     a.user_id,
     a.first_date_surpassed,
@@ -167,8 +169,71 @@ SELECT a.application_id,
     gs.secret_key,
     gs.secret_key_required,
     gs.whitelist_blockchains,
-    gs.whitelist_contracts,
-    gs.whitelist_methods,
+    gs.whitelist_origins,
+    gs.whitelist_user_agents,
+    CASE
+        WHEN wc.application_id IS NOT NULL THEN json_agg(
+            DISTINCT jsonb_build_object(
+                'blockchainID',
+                wc.blockchain_id,
+                'contracts',
+                wc.contracts
+            )
+        )::VARCHAR
+        ELSE NULL
+    END as whitelist_contracts,
+    CASE
+        WHEN wm.application_id IS NOT NULL THEN json_agg(
+            DISTINCT jsonb_build_object(
+                'blockchainID',
+                wm.blockchain_id,
+                'methods',
+                wm.methods
+            )
+        )::VARCHAR
+        ELSE NULL
+    END as whitelist_methods,
+    ns.signed_up,
+    ns.signed_up,
+    ns.on_quarter,
+    ns.on_half,
+    ns.on_three_quarters,
+    ns.on_full,
+    al.custom_limit,
+    al.pay_plan,
+    pp.daily_limit as plan_limit
+FROM applications AS a
+    LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
+    LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
+    LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
+    LEFT JOIN app_limits AS al ON a.application_id = al.application_id
+    LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
+    LEFT JOIN (
+        SELECT application_id,
+            blockchain_id,
+            json_agg(contract) AS contracts
+        FROM whitelist_contracts
+        GROUP BY application_id,
+            blockchain_id
+    ) wc ON a.application_id = wc.application_id
+    LEFT JOIN (
+        SELECT application_id,
+            blockchain_id,
+            json_agg(method) AS methods
+        FROM whitelist_methods
+        GROUP BY application_id,
+            blockchain_id
+    ) wm ON a.application_id = wm.application_id
+GROUP BY a.application_id,
+    ga.address,
+    ga.client_public_key,
+    ga.private_key,
+    ga.public_key,
+    ga.signature,
+    ga.version,
+    gs.secret_key,
+    gs.secret_key_required,
+    gs.whitelist_blockchains,
     gs.whitelist_origins,
     gs.whitelist_user_agents,
     ns.signed_up,
@@ -178,24 +243,19 @@ SELECT a.application_id,
     ns.on_full,
     al.custom_limit,
     al.pay_plan,
-    pp.daily_limit AS plan_limit,
-    a.created_at,
-    a.updated_at
-FROM applications AS a
-    LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
-    LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
-    LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
-    LEFT JOIN app_limits AS al ON a.application_id = al.application_id
-    LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
-ORDER BY a.application_id ASC;
+    pp.daily_limit,
+    wc.application_id,
+    wm.application_id;
 -- name: SelectOneApplication :one
 SELECT a.application_id,
     a.contact_email,
+    a.created_at,
     a.description,
     a.dummy,
     a.name,
     a.owner,
     a.status,
+    a.updated_at,
     a.url,
     a.user_id,
     a.first_date_surpassed,
@@ -208,8 +268,71 @@ SELECT a.application_id,
     gs.secret_key,
     gs.secret_key_required,
     gs.whitelist_blockchains,
-    gs.whitelist_contracts,
-    gs.whitelist_methods,
+    gs.whitelist_origins,
+    gs.whitelist_user_agents,
+    CASE
+        WHEN wc.application_id IS NOT NULL THEN json_agg(
+            DISTINCT jsonb_build_object(
+                'blockchainID',
+                wc.blockchain_id,
+                'contracts',
+                wc.contracts
+            )
+        )::VARCHAR
+        ELSE NULL
+    END as whitelist_contracts,
+    CASE
+        WHEN wm.application_id IS NOT NULL THEN json_agg(
+            DISTINCT jsonb_build_object(
+                'blockchainID',
+                wm.blockchain_id,
+                'methods',
+                wm.methods
+            )
+        )::VARCHAR
+        ELSE NULL
+    END as whitelist_methods,
+    ns.signed_up,
+    ns.on_quarter,
+    ns.on_half,
+    ns.on_three_quarters,
+    ns.on_full,
+    al.custom_limit,
+    al.pay_plan,
+    pp.daily_limit as plan_limit
+FROM applications AS a
+    LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
+    LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
+    LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
+    LEFT JOIN app_limits AS al ON a.application_id = al.application_id
+    LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
+    LEFT JOIN (
+        SELECT application_id,
+            blockchain_id,
+            json_agg(contract) AS contracts
+        FROM whitelist_contracts
+        GROUP BY application_id,
+            blockchain_id
+    ) wc ON a.application_id = wc.application_id
+    LEFT JOIN (
+        SELECT application_id,
+            blockchain_id,
+            json_agg(method) AS methods
+        FROM whitelist_methods
+        GROUP BY application_id,
+            blockchain_id
+    ) wm ON a.application_id = wm.application_id
+WHERE a.application_id = $1
+GROUP BY a.application_id,
+    ga.address,
+    ga.client_public_key,
+    ga.private_key,
+    ga.public_key,
+    ga.signature,
+    ga.version,
+    gs.secret_key,
+    gs.secret_key_required,
+    gs.whitelist_blockchains,
     gs.whitelist_origins,
     gs.whitelist_user_agents,
     ns.signed_up,
@@ -219,17 +342,9 @@ SELECT a.application_id,
     ns.on_full,
     al.custom_limit,
     al.pay_plan,
-    pp.daily_limit AS plan_limit,
-    a.created_at,
-    a.updated_at
-FROM applications AS a
-    LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
-    LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
-    LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
-    LEFT JOIN app_limits AS al ON a.application_id = al.application_id
-    LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
-WHERE a.application_id = $1
-ORDER BY a.application_id ASC;
+    pp.daily_limit,
+    wc.application_id,
+    wm.application_id;
 -- name: SelectAppLimit :one
 SELECT application_id,
     pay_plan,
@@ -237,16 +352,32 @@ SELECT application_id,
 FROM app_limits
 WHERE application_id = $1;
 -- name: SelectGatewaySettings :one
-SELECT application_id,
-    secret_key,
-    secret_key_required,
-    whitelist_blockchains,
-    whitelist_contracts,
-    whitelist_methods,
-    whitelist_origins,
-    whitelist_user_agents
-FROM gateway_settings
-WHERE application_id = $1;
+SELECT gs.application_id AS application_id,
+    gs.secret_key AS secret_key,
+    gs.secret_key_required AS secret_key_required,
+    gs.whitelist_blockchains AS whitelist_blockchains,
+    json_agg(
+        json_build_object(
+            'blockchain_id',
+            wc.blockchain_id,
+            'contracts',
+            wc.contracts
+        )
+    )::VARCHAR as whitelist_contracts,
+    json_agg(
+        json_build_object(
+            'blockchain_id',
+            wm.blockchain_id,
+            'methods',
+            wm.methods
+        )
+    )::VARCHAR as whitelist_methods,
+    gs.whitelist_origins AS whitelist_origins,
+    gs.whitelist_user_agents AS whitelist_user_agents
+FROM gateway_settings AS gs
+    LEFT JOIN whitelist_contracts AS wc ON gs.application_id = wc.application_id
+    LEFT JOIN whitelist_methods AS wm ON gs.application_id = wm.application_id
+WHERE gs.application_id = $1;
 -- name: SelectNotificationSettings :one
 SELECT application_id,
     signed_up,
@@ -309,23 +440,9 @@ VALUES (
 INSERT into gateway_settings (
         application_id,
         secret_key,
-        secret_key_required,
-        whitelist_contracts,
-        whitelist_methods,
-        whitelist_origins,
-        whitelist_user_agents,
-        whitelist_blockchains
+        secret_key_required
     )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8
-    );
+VALUES ($1, $2, $3);
 -- name: InsertNotificationSettings :exec
 INSERT into notification_settings (
         application_id,
@@ -374,24 +491,17 @@ INSERT INTO gateway_settings AS gs (
         application_id,
         secret_key,
         secret_key_required,
-        whitelist_contracts,
-        whitelist_methods,
         whitelist_origins,
         whitelist_user_agents,
         whitelist_blockchains
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (application_id) DO
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (application_id) DO
 UPDATE
 SET secret_key = COALESCE(EXCLUDED.secret_key, gs.secret_key),
     secret_key_required = COALESCE(
         EXCLUDED.secret_key_required,
         gs.secret_key_required
     ),
-    whitelist_contracts = COALESCE(
-        EXCLUDED.whitelist_contracts,
-        gs.whitelist_contracts
-    ),
-    whitelist_methods = COALESCE(EXCLUDED.whitelist_methods, gs.whitelist_methods),
     whitelist_origins = COALESCE(EXCLUDED.whitelist_origins, gs.whitelist_origins),
     whitelist_user_agents = COALESCE(
         EXCLUDED.whitelist_user_agents,
@@ -401,6 +511,58 @@ SET secret_key = COALESCE(EXCLUDED.secret_key, gs.secret_key),
         EXCLUDED.whitelist_blockchains,
         gs.whitelist_blockchains
     );
+-- name: UpdateWhitelistContracts :exec
+WITH new_data (application_id, blockchain_id, contract) AS (
+    SELECT $1 as application_id,
+        $2 as blockchain_id,
+        unnest(@contracts::VARCHAR []) as contract
+),
+deleted_data AS (
+    DELETE FROM whitelist_contracts
+    WHERE application_id = $1
+        AND blockchain_id = $2
+        AND contract NOT IN (
+            SELECT contract
+            FROM new_data
+        )
+    RETURNING *
+)
+INSERT INTO whitelist_contracts (application_id, blockchain_id, contract)
+SELECT application_id,
+    blockchain_id,
+    contract
+FROM new_data ON CONFLICT (application_id, blockchain_id, contract) DO NOTHING;
+-- name: DeleteNotPresentWhitelistContracts :exec
+DELETE FROM whitelist_contracts
+WHERE application_id = $1 AND blockchain_id NOT IN (
+   SELECT unnest(@blockchain_ids::VARCHAR[])
+);
+-- name: UpdateWhitelistMethods :exec
+WITH new_data (application_id, blockchain_id, method) AS (
+    SELECT $1 as application_id,
+        $2 as blockchain_id,
+        unnest(@methods::VARCHAR []) as method
+),
+deleted_data AS (
+    DELETE FROM whitelist_methods
+    WHERE application_id = $1
+        AND blockchain_id = $2
+        AND method NOT IN (
+            SELECT method
+            FROM new_data
+        )
+    RETURNING *
+)
+INSERT INTO whitelist_methods (application_id, blockchain_id, method)
+SELECT application_id,
+    blockchain_id,
+    method
+FROM new_data ON CONFLICT (application_id, blockchain_id, method) DO NOTHING;
+-- name: DeleteNotPresentWhitelistMethods :exec
+DELETE FROM whitelist_methods
+WHERE application_id = $1 AND blockchain_id NOT IN (
+   SELECT unnest(@blockchain_ids::VARCHAR[])
+);
 -- name: UpsertNotificationSettings :exec
 INSERT INTO notification_settings AS ns (
         application_id,
@@ -523,6 +685,15 @@ GROUP BY lb.lb_id,
     so.stickiness,
     so.origins,
     user_access.ua;
+-- name: SelectUserRoles :many
+SELECT ua.lb_id,
+    ua.user_id,
+    ua.role_name,
+    ur.permissions as permissions
+FROM user_access as ua
+    LEFT JOIN user_roles AS ur ON ua.role_name = ur.name
+WHERE ua.accepted = true
+    AND ua.user_id IS NOT NULL;
 -- name: InsertLoadBalancer :exec
 INSERT into loadbalancers (
         lb_id,
@@ -559,20 +730,39 @@ INSERT INTO user_access (
         role_name,
         user_id,
         email,
+        accepted,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6);
+VALUES ($1, $2, $3, $4, $5, $6, $7);
+-- name: InsertUserAccessNoConflict :exec
+INSERT INTO user_access (
+        lb_id,
+        role_name,
+        user_id,
+        email,
+        accepted,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING;
 -- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),
     updated_at = $4
-WHERE ua.user_id = $1
+WHERE ua.email = $1
+    AND ua.lb_id = $2;
+-- name: SetUserAccessAccepted :exec
+UPDATE user_access as ua
+SET user_id = $3,
+    accepted = $4,
+    updated_at = $5
+WHERE ua.email = $1
     AND ua.lb_id = $2;
 -- name: DeleteUserAccess :exec
-DELETE FROM user_access
-WHERE user_id = $1
-    AND lb_id = $2;
+DELETE FROM user_access  as ua
+WHERE ua.email = $1
+    AND ua.lb_id = $2;
 -- name: UpsertStickinessOptions :exec
 INSERT INTO stickiness_options AS so (
         lb_id,

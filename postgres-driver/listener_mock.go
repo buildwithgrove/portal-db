@@ -85,9 +85,6 @@ func applicationInputs(mainTableAction, sideTablesAction types.Action, content t
 	}
 
 	if !gatewaySettingsIsNull(app.GatewaySettings) {
-		contracts, methods := marshalWhitelistContractsAndMethods(app.GatewaySettings.WhitelistContracts,
-			app.GatewaySettings.WhitelistMethods)
-
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
 			table:  types.TableGatewaySettings,
@@ -95,13 +92,37 @@ func applicationInputs(mainTableAction, sideTablesAction types.Action, content t
 				ApplicationID:        app.ID,
 				SecretKey:            app.GatewaySettings.SecretKey,
 				SecretKeyRequired:    app.GatewaySettings.SecretKeyRequired,
-				WhitelistContracts:   contracts,
-				WhitelistMethods:     methods,
 				WhitelistOrigins:     app.GatewaySettings.WhitelistOrigins,
 				WhitelistUserAgents:  app.GatewaySettings.WhitelistUserAgents,
 				WhitelistBlockchains: app.GatewaySettings.WhitelistBlockchains,
 			},
 		})
+		for _, contracts := range app.GatewaySettings.WhitelistContracts {
+			for _, contract := range contracts.Contracts {
+				inputs = append(inputs, inputStruct{
+					action: sideTablesAction,
+					table:  types.TableWhitelistContracts,
+					input: dbWhitelistContractJSON{
+						ApplicationID: app.ID,
+						BlockchainID:  contracts.BlockchainID,
+						Contract:      contract,
+					},
+				})
+			}
+		}
+		for _, methods := range app.GatewaySettings.WhitelistMethods {
+			for _, method := range methods.Methods {
+				inputs = append(inputs, inputStruct{
+					action: sideTablesAction,
+					table:  types.TableWhitelistMethods,
+					input: dbWhitelistMethodJSON{
+						ApplicationID: app.ID,
+						BlockchainID:  methods.BlockchainID,
+						Method:        method,
+					},
+				})
+			}
+		}
 	}
 
 	if app.NotificationSettings != (types.NotificationSettings{}) {
@@ -217,6 +238,22 @@ func loadBalancerInputs(mainTableAction, sideTablesAction types.Action, content 
 				Stickiness: lb.StickyOptions.Stickiness,
 			},
 		})
+	}
+
+	if len(lb.Users) != 0 {
+		for _, user := range lb.Users {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableUserAccess,
+				input: dbUserAccessJSON{
+					LbID:     lb.ID,
+					UserID:   user.UserID,
+					RoleName: string(user.RoleName),
+					Email:    user.Email,
+					Accepted: user.Accepted,
+				},
+			})
+		}
 	}
 
 	for _, appID := range lb.ApplicationIDs {

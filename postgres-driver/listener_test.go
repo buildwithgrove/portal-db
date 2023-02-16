@@ -23,7 +23,14 @@ func TestListen(t *testing.T) {
 					Address: "123",
 				},
 				GatewaySettings: types.GatewaySettings{
-					SecretKey: "123",
+					SecretKey:            "123",
+					WhitelistBlockchains: []string{"test-chain-1", "test-chain-2"},
+					WhitelistContracts: []types.WhitelistContracts{
+						{BlockchainID: "001", Contracts: []string{"test123"}},
+					},
+					WhitelistMethods: []types.WhitelistMethods{
+						{BlockchainID: "001", Methods: []string{"POST"}},
+					},
 				},
 				Limit: types.AppLimit{
 					PayPlan:     types.PayPlan{Type: types.Enterprise},
@@ -62,10 +69,23 @@ func TestListen(t *testing.T) {
 					Table:  types.TableGatewaySettings,
 					Action: types.ActionUpdate,
 					Data: &types.GatewaySettings{
-						ID:                 "321",
-						SecretKey:          "123",
-						WhitelistContracts: []types.WhitelistContract{},
-						WhitelistMethods:   []types.WhitelistMethod{},
+						ID:                   "321",
+						SecretKey:            "123",
+						WhitelistBlockchains: []string{"test-chain-1", "test-chain-2"},
+					},
+				},
+				types.TableWhitelistContracts: {
+					Table:  types.TableWhitelistContracts,
+					Action: types.ActionUpdate,
+					Data: &types.WhitelistContract{
+						ID: "321", BlockchainID: "001", Contract: "test123",
+					},
+				},
+				types.TableWhitelistMethods: {
+					Table:  types.TableWhitelistMethods,
+					Action: types.ActionUpdate,
+					Data: &types.WhitelistMethod{
+						ID: "321", BlockchainID: "001", Method: "POST",
 					},
 				},
 				types.TableNotificationSettings: {
@@ -114,6 +134,9 @@ func TestListen(t *testing.T) {
 					Stickiness:    true,
 				},
 				ApplicationIDs: []string{"a123"},
+				Users: []types.UserAccess{
+					{RoleName: "ADMIN", UserID: "test_user_admin1234", Email: "admin1@test.com", Accepted: true},
+				},
 			},
 			expectedNotifications: map[types.Table]*types.Notification{
 				types.TableLoadBalancers: {
@@ -130,6 +153,17 @@ func TestListen(t *testing.T) {
 						ID:            "123",
 						StickyOrigins: []string{"oahu"},
 						Stickiness:    true,
+					},
+				},
+				types.TableUserAccess: {
+					Table:  types.TableUserAccess,
+					Action: types.ActionUpdate,
+					Data: &types.UserAccess{
+						ID:       "123",
+						RoleName: "ADMIN",
+						UserID:   "test_user_admin1234",
+						Email:    "admin1@test.com",
+						Accepted: true,
 					},
 				},
 				types.TableLbApps: {

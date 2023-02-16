@@ -68,6 +68,42 @@ func (lb *SelectLoadBalancersRow) toLoadBalancer() (*types.LoadBalancer, error) 
 	return &loadBalancer, nil
 }
 
+/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
+func (p *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error) {
+	userRoles, err := p.SelectUserRoles(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userPermissionsMap := make(map[types.UserID]*types.UserPermissions)
+
+	for _, userRoleRow := range userRoles {
+		userID := types.UserID(userRoleRow.UserID.String)
+		lbID := types.LoadBalancerID(userRoleRow.LbID)
+
+		if userPermissions, ok := userPermissionsMap[userID]; ok {
+			_, err := userPermissions.UpsertPermissions(lbID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			emptyPermissions := types.UserPermissions{
+				UserID:        userID,
+				LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{},
+			}
+
+			permissions, err := emptyPermissions.UpsertPermissions(lbID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
+			}
+
+			userPermissionsMap[userID] = permissions
+		}
+	}
+
+	return userPermissionsMap, nil
+}
+
 /* WriteLoadBalancer saves input LoadBalancer to the database */
 func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *types.LoadBalancer) (*types.LoadBalancer, error) {
 	if len(loadBalancer.Users) < 1 {
@@ -104,14 +140,10 @@ func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *ty
 		}
 	}
 
-	// The first User will be the initial creater (owner) of the LoadBalancer
-	loadBalancer.Users[0].RoleName = types.RoleOwner
-	userAccessParams := extractInsertUserAccess(id, loadBalancer.Users[0], time)
-	if userAccessParams.isNotNull() {
-		err = qtx.InsertUserAccess(ctx, userAccessParams)
-		if err != nil {
-			return nil, err
-		}
+	loadBalancer.Users[0].RoleName = types.RoleOwner                                                // The first User will be the OWNER of the LoadBalancer
+	err = qtx.InsertUserAccess(ctx, extractInsertUserAccess(id, loadBalancer.Users[0], true, time)) // New LB owners always start with accepted = true
+	if err != nil {
+		return nil, err
 	}
 
 	lbAppParams := InsertLbAppsParams{LbID: loadBalancer.ID}
@@ -156,47 +188,35 @@ func (i *InsertStickinessOptionsParams) isNotNull() bool {
 	return i.Duration.Valid || len(i.Origins) > 0 || i.StickyMax.Valid
 }
 
-func extractInsertUserAccess(lbID string, userAccess types.UserAccess, createdAt time.Time) InsertUserAccessParams {
+func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted bool, createdAt time.Time) InsertUserAccessParams {
 	return InsertUserAccessParams{
-		LbID:      newSQLNullString(lbID),
+		LbID:      lbID,
 		UserID:    newSQLNullString(userAccess.UserID),
-		RoleName:  newSQLNullString(string(userAccess.RoleName)),
-		Email:     newSQLNullString(userAccess.Email),
+		RoleName:  userAccess.RoleName,
+		Email:     userAccess.Email,
+		Accepted:  accepted,
 		CreatedAt: newSQLNullTime(createdAt),
 		UpdatedAt: newSQLNullTime(createdAt),
 	}
-}
-func (i *InsertUserAccessParams) isNotNull() bool {
-	return i.LbID.Valid || i.UserID.Valid || i.RoleName.Valid || i.Email.Valid
-}
-func (i *InsertUserAccessParams) checkForMissingField() string {
-	if !i.UserID.Valid {
-		return "UserID"
-	}
-	if !i.RoleName.Valid {
-		return "RoleName"
-	}
-	if !i.Email.Valid {
-		return "Email"
-	}
-	return ""
 }
 
 /* WriteLoadBalancerUser saves input LoadBalancer to the database */
 func (p *PostgresDriver) WriteLoadBalancerUser(ctx context.Context, lbID string, userAccess types.UserAccess) error {
 	if lbID == "" {
-		return ErrMissingID
+		return ErrMissingLBID
+	}
+	if userAccess.Email == "" {
+		return ErrMissingEmail
+	}
+	if userAccess.RoleName == types.RoleName("") {
+		return ErrMissingRole
 	}
 	if userAccess.RoleName == types.RoleOwner {
 		return ErrCannotSetToOwner
 	}
 
-	userAccessParams := extractInsertUserAccess(lbID, userAccess, time.Now())
-
-	missingField := userAccessParams.checkForMissingField()
-	if missingField != "" {
-		return fmt.Errorf("%w: %s", ErrUserInputIsMissingField, missingField)
-	}
+	userAccess.UserID = ""                                                           // New LB users do not start with their user ID set
+	userAccessParams := extractInsertUserAccess(lbID, userAccess, false, time.Now()) // New LB users always start with accepted = false
 
 	err := p.InsertUserAccess(ctx, userAccessParams)
 	if err != nil {
@@ -267,22 +287,53 @@ func (u *UpsertStickinessOptionsParams) isNotNull() bool {
 }
 
 /* UpdateUserAccessRole updates the RoleName for a UserAccess row */
-func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, userID, lbID string, roleName types.RoleName) error {
-	if userID == "" || lbID == "" {
-		return ErrMissingID
+func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, email, lbID string, roleName types.RoleName) error {
+	if email == "" {
+		return ErrMissingEmail
+	}
+	if lbID == "" {
+		return ErrMissingLBID
 	}
 	if roleName == types.RoleOwner {
 		return ErrCannotSetToOwner
 	}
 
 	params := UpdateUserAccessParams{
-		UserID:    newSQLNullString(userID),
-		LbID:      newSQLNullString(lbID),
-		RoleName:  newSQLNullString(string(roleName)),
+		Email:     email,
+		LbID:      lbID,
+		RoleName:  roleName,
 		UpdatedAt: newSQLNullTime(time.Now()),
 	}
 
 	err := p.UpdateUserAccess(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/* AcceptUserAccess sets the User ID and the Accepted field to true for a UserAccess row */
+func (p *PostgresDriver) AcceptUserAccess(ctx context.Context, email, userID, lbID string) error {
+	if email == "" {
+		return ErrMissingEmail
+	}
+	if userID == "" {
+		return ErrMissingUserID
+	}
+	if lbID == "" {
+		return ErrMissingLBID
+	}
+
+	params := SetUserAccessAcceptedParams{
+		Email:     email,
+		UserID:    newSQLNullString(userID),
+		LbID:      lbID,
+		Accepted:  true,
+		UpdatedAt: newSQLNullTime(time.Now()),
+	}
+
+	err := p.SetUserAccessAccepted(ctx, params)
 	if err != nil {
 		return err
 	}
@@ -305,15 +356,15 @@ func (p *PostgresDriver) RemoveLoadBalancer(ctx context.Context, id string) erro
 }
 
 /* RemoveUserAccess deletes a UserAccess row */
-func (p *PostgresDriver) RemoveUserAccess(ctx context.Context, userID, lbID string) error {
-	if userID == "" || lbID == "" {
-		return ErrMissingID
+func (p *PostgresDriver) RemoveUserAccess(ctx context.Context, email, lbID string) error {
+	if email == "" {
+		return ErrMissingEmail
+	}
+	if lbID == "" {
+		return ErrMissingLBID
 	}
 
-	params := DeleteUserAccessParams{
-		UserID: newSQLNullString(userID),
-		LbID:   newSQLNullString(lbID),
-	}
+	params := DeleteUserAccessParams{Email: email, LbID: lbID}
 
 	err := p.DeleteUserAccess(ctx, params)
 	if err != nil {
@@ -335,13 +386,19 @@ type (
 		CreatedAt         string `json:"created_at"`
 		UpdatedAt         string `json:"updated_at"`
 	}
-
 	dbStickinessOptionsJSON struct {
 		LbID       string   `json:"lb_id"`
 		Duration   string   `json:"duration"`
 		Origins    []string `json:"origins"`
 		StickyMax  int      `json:"sticky_max"`
 		Stickiness bool     `json:"stickiness"`
+	}
+	dbUserAccessJSON struct {
+		LbID     string `json:"lb_id"`
+		UserID   string `json:"user_id"`
+		RoleName string `json:"role_name"`
+		Email    string `json:"email"`
+		Accepted bool   `json:"accepted"`
 	}
 )
 
@@ -357,7 +414,6 @@ func (j dbLoadBalancerJSON) toOutput() *types.LoadBalancer {
 		UpdatedAt:         psqlDateToTime(j.UpdatedAt),
 	}
 }
-
 func (j dbStickinessOptionsJSON) toOutput() *types.StickyOptions {
 	return &types.StickyOptions{
 		ID:            j.LbID,
@@ -365,5 +421,14 @@ func (j dbStickinessOptionsJSON) toOutput() *types.StickyOptions {
 		StickyOrigins: j.Origins,
 		StickyMax:     j.StickyMax,
 		Stickiness:    j.Stickiness,
+	}
+}
+func (j dbUserAccessJSON) toOutput() *types.UserAccess {
+	return &types.UserAccess{
+		ID:       j.LbID,
+		UserID:   j.UserID,
+		RoleName: types.RoleName(j.RoleName),
+		Email:    j.Email,
+		Accepted: j.Accepted,
 	}
 }

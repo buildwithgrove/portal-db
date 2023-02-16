@@ -42,22 +42,34 @@ type (
 		Version              string `json:"version"`
 	}
 	GatewaySettings struct {
-		ID                   string              `json:"id,omitempty"`
-		SecretKey            string              `json:"secretKey"`
-		SecretKeyRequired    bool                `json:"secretKeyRequired"`
-		WhitelistOrigins     []string            `json:"whitelistOrigins,omitempty"`
-		WhitelistUserAgents  []string            `json:"whitelistUserAgents,omitempty"`
-		WhitelistContracts   []WhitelistContract `json:"whitelistContracts,omitempty"`
-		WhitelistMethods     []WhitelistMethod   `json:"whitelistMethods,omitempty"`
-		WhitelistBlockchains []string            `json:"whitelistBlockchains,omitempty"`
+		ID                   string               `json:"id,omitempty"`
+		SecretKey            string               `json:"secretKey"`
+		SecretKeyRequired    bool                 `json:"secretKeyRequired"`
+		WhitelistOrigins     []string             `json:"whitelistOrigins,omitempty"`
+		WhitelistUserAgents  []string             `json:"whitelistUserAgents,omitempty"`
+		WhitelistContracts   []WhitelistContracts `json:"whitelistContracts,omitempty"`
+		WhitelistMethods     []WhitelistMethods   `json:"whitelistMethods,omitempty"`
+		WhitelistBlockchains []string             `json:"whitelistBlockchains,omitempty"`
 	}
-	WhitelistContract struct {
+	WhitelistContracts struct {
+		ID           string   `json:"id,omitempty"`
 		BlockchainID string   `json:"blockchainID"`
 		Contracts    []string `json:"contracts"`
 	}
-	WhitelistMethod struct {
+	WhitelistContract struct {
+		ID           string `json:"id,omitempty"`
+		BlockchainID string `json:"blockchainID"`
+		Contract     string `json:"contract"`
+	}
+	WhitelistMethods struct {
+		ID           string   `json:"id,omitempty"`
 		BlockchainID string   `json:"blockchainID"`
 		Methods      []string `json:"methods"`
+	}
+	WhitelistMethod struct {
+		ID           string `json:"id,omitempty"`
+		BlockchainID string `json:"blockchainID"`
+		Method       string `json:"method"`
 	}
 	AppLimit struct {
 		ID          string  `json:"id,omitempty"`
@@ -87,14 +99,14 @@ type (
 		Remove               bool                        `json:"remove,omitempty"`
 	}
 	UpdateGatewaySettings struct {
-		ID                   string              `json:"id,omitempty"`
-		SecretKey            string              `json:"secretKey"`
-		SecretKeyRequired    *bool               `json:"secretKeyRequired"`
-		WhitelistOrigins     []string            `json:"whitelistOrigins,omitempty"`
-		WhitelistUserAgents  []string            `json:"whitelistUserAgents,omitempty"`
-		WhitelistContracts   []WhitelistContract `json:"whitelistContracts,omitempty"`
-		WhitelistMethods     []WhitelistMethod   `json:"whitelistMethods,omitempty"`
-		WhitelistBlockchains []string            `json:"whitelistBlockchains,omitempty"`
+		ID                   string               `json:"id,omitempty"`
+		SecretKey            string               `json:"secretKey"`
+		SecretKeyRequired    *bool                `json:"secretKeyRequired"`
+		WhitelistOrigins     []string             `json:"whitelistOrigins,omitempty"`
+		WhitelistUserAgents  []string             `json:"whitelistUserAgents,omitempty"`
+		WhitelistContracts   []WhitelistContracts `json:"whitelistContracts,omitempty"`
+		WhitelistMethods     []WhitelistMethods   `json:"whitelistMethods,omitempty"`
+		WhitelistBlockchains []string             `json:"whitelistBlockchains,omitempty"`
 	}
 	UpdateFirstDateSurpassed struct {
 		ApplicationIDs     []string  `json:"applicationIDs"`

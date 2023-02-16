@@ -14,6 +14,20 @@ type MockDriver struct {
 	mock.Mock
 }
 
+// AcceptUserAccess provides a mock function with given fields: ctx, email, userID, lbID
+func (_m *MockDriver) AcceptUserAccess(ctx context.Context, email string, userID string, lbID string) error {
+	ret := _m.Called(ctx, email, userID, lbID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, email, userID, lbID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ActivateChain provides a mock function with given fields: ctx, id, active
 func (_m *MockDriver) ActivateChain(ctx context.Context, id string, active bool) error {
 	ret := _m.Called(ctx, id, active)
@@ -136,6 +150,29 @@ func (_m *MockDriver) ReadPayPlans(ctx context.Context) ([]*types.PayPlan, error
 	return r0, r1
 }
 
+// ReadUserPermissions provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error) {
+	ret := _m.Called(ctx)
+
+	var r0 map[types.UserID]*types.UserPermissions
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.UserID]*types.UserPermissions); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[types.UserID]*types.UserPermissions)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RemoveApplication provides a mock function with given fields: ctx, id
 func (_m *MockDriver) RemoveApplication(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)
@@ -178,13 +215,13 @@ func (_m *MockDriver) RemoveRedirect(ctx context.Context, blockchainID string, d
 	return r0
 }
 
-// RemoveUserAccess provides a mock function with given fields: ctx, userID, lbID
-func (_m *MockDriver) RemoveUserAccess(ctx context.Context, userID string, lbID string) error {
-	ret := _m.Called(ctx, userID, lbID)
+// RemoveUserAccess provides a mock function with given fields: ctx, email, lbID
+func (_m *MockDriver) RemoveUserAccess(ctx context.Context, email string, lbID string) error {
+	ret := _m.Called(ctx, email, lbID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, userID, lbID)
+		r0 = rf(ctx, email, lbID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -248,13 +285,13 @@ func (_m *MockDriver) UpdateLoadBalancer(ctx context.Context, id string, options
 	return r0
 }
 
-// UpdateUserAccessRole provides a mock function with given fields: ctx, userID, lbID, roleName
-func (_m *MockDriver) UpdateUserAccessRole(ctx context.Context, userID string, lbID string, roleName types.RoleName) error {
-	ret := _m.Called(ctx, userID, lbID, roleName)
+// UpdateUserAccessRole provides a mock function with given fields: ctx, email, lbID, roleName
+func (_m *MockDriver) UpdateUserAccessRole(ctx context.Context, email string, lbID string, roleName types.RoleName) error {
+	ret := _m.Called(ctx, email, lbID, roleName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, types.RoleName) error); ok {
-		r0 = rf(ctx, userID, lbID, roleName)
+		r0 = rf(ctx, email, lbID, roleName)
 	} else {
 		r0 = ret.Error(0)
 	}

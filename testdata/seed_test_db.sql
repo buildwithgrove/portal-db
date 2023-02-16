@@ -81,17 +81,66 @@ VALUES (
 INSERT INTO gateway_settings (
         application_id,
         secret_key,
-        secret_key_required
+        secret_key_required,
+        whitelist_blockchains,
+        whitelist_origins,
+        whitelist_user_agents
     )
 VALUES (
         'test_app_47hfnths73j2se',
         'test_40f482d91a5ef2300ebb4e2308c',
-        true
+        true,
+        '{ "chain_1" }',
+        '{ "origin_1", "origin_2" }',
+        '{ "user_agent_1", "user_agent_2", "user_agent_3" }'
     ),
     (
         'test_app_5hdf7sh23jd828',
         'test_90210ac4bdd3423e24877d1ff92',
-        false
+        false,
+        null,
+        null,
+        null
+    );
+INSERT INTO whitelist_contracts (
+        application_id,
+        blockchain_id,
+        contract
+    )
+VALUES (
+        'test_app_47hfnths73j2se',
+        'TST1',
+        'test_address_12345'
+    ),
+    (
+        'test_app_47hfnths73j2se',
+        'TST2',
+        'test_address_67890'
+    ),
+    (
+        'test_app_47hfnths73j2se',
+        'TST1',
+        'test_address_44444'
+    );
+INSERT INTO whitelist_methods (
+        application_id,
+        blockchain_id,
+        method
+    )
+VALUES (
+        'test_app_47hfnths73j2se',
+        'TST1',
+        'GET'
+    ),
+    (
+        'test_app_47hfnths73j2se',
+        'TST2',
+        'PUT'
+    ),
+    (
+        'test_app_47hfnths73j2se',
+        'TST2',
+        'POST'
     );
 INSERT INTO notification_settings (
         application_id,
@@ -237,9 +286,9 @@ VALUES (
     (
         'test_lb_34gg4g43g34g5hh',
         'MEMBER',
-        'test_user_member5678',
+        '',
         'member2@test.com',
-        true
+        false
     );
 INSERT INTO lb_apps (lb_id, app_id)
 VALUES (
@@ -271,7 +320,7 @@ INSERT INTO blockchains (
 VALUES (
         '0001',
         true,
-        'https://test:329y293uhfniu23f8@shared-test2.nodes.pokt.network:12345',
+        'https://test:test_93uhfniu23f8@shared-test2.nodes.pokt.network:12345',
         'pokt-mainnet',
         '{ "pokt-mainnet" }',
         null,
@@ -289,7 +338,7 @@ VALUES (
     (
         '0021',
         true,
-        'https://test:2r980u32fh239hf@shared-test2.nodes.eth.network:12345',
+        'https://test:test_u32fh239hf@shared-test2.nodes.eth.network:12345',
         'eth-mainnet',
         '{ "eth-mainnet" }',
         '1',

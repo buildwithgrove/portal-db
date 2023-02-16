@@ -264,7 +264,7 @@ func (p *PostgresDriver) RemoveRedirect(ctx context.Context, blockchainID, domai
 	return nil
 }
 
-/* Activate chain toggles chain.active field on or off */
+/* ActivateChain toggles chain.active field on or off */
 func (p *PostgresDriver) ActivateChain(ctx context.Context, id string, active bool) error {
 	params := ActivateBlockchainParams{
 		BlockchainID: id,

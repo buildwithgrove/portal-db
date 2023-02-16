@@ -86,15 +86,16 @@ CREATE TABLE IF NOT EXISTS stickiness_options (
 );
 CREATE TABLE IF NOT EXISTS user_access (
 	id INT GENERATED ALWAYS AS IDENTITY,
-	lb_id VARCHAR,
-	user_id VARCHAR,
-	role_name VARCHAR,
-	email VARCHAR,
-	accepted BOOLEAN DEFAULT false,
+	lb_id VARCHAR NOT NULL,
+	user_id VARCHAR NULL,
+	role_name VARCHAR NOT NULL,
+	email VARCHAR NOT NULL,
+	accepted BOOLEAN NOT NULL,
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
 	PRIMARY KEY (id),
-    UNIQUE (lb_id, user_id),
+	UNIQUE (lb_id, user_id),
+	UNIQUE (lb_id, email),
 	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES loadbalancers(lb_id),
 	CONSTRAINT fk_role FOREIGN KEY(role_name) REFERENCES user_roles(name)
 );
@@ -142,12 +143,30 @@ CREATE TABLE IF NOT EXISTS gateway_settings (
 	secret_key VARCHAR,
 	secret_key_required BOOLEAN,
 	whitelist_blockchains VARCHAR [],
-	whitelist_contracts VARCHAR,
-	whitelist_methods VARCHAR,
 	whitelist_origins VARCHAR [],
 	whitelist_user_agents VARCHAR [],
 	PRIMARY KEY (id),
 	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id)
+);
+CREATE TABLE whitelist_contracts (
+	id SERIAL PRIMARY KEY,
+	application_id VARCHAR NOT NULL,
+	blockchain_id VARCHAR,
+	contract VARCHAR,
+	-- TODO contracts DEPRECATED - remove when DB change made
+	contracts VARCHAR [],
+	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
+	UNIQUE(application_id, blockchain_id, contract)
+);
+CREATE TABLE whitelist_methods (
+	id SERIAL PRIMARY KEY,
+	application_id VARCHAR NOT NULL,
+	blockchain_id VARCHAR,
+	method VARCHAR,
+	-- TODO methods DEPRECATED - remove when DB change made
+	methods VARCHAR [],
+	CONSTRAINT fk_application FOREIGN KEY(application_id) REFERENCES applications(application_id),
+	UNIQUE(application_id, blockchain_id, method)
 );
 CREATE TABLE IF NOT EXISTS notification_settings (
 	id INT GENERATED ALWAYS AS IDENTITY,
@@ -214,7 +233,8 @@ CREATE TRIGGER user_access_notify_event
 AFTER
 INSERT
 	OR
-UPDATE ON user_access FOR EACH ROW EXECUTE PROCEDURE notify_event();
+UPDATE
+	OR DELETE ON user_access FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER lb_apps_notify_event
 AFTER
 INSERT ON lb_apps FOR EACH ROW EXECUTE PROCEDURE notify_event();
@@ -236,6 +256,18 @@ AFTER
 INSERT
 	OR
 UPDATE ON gateway_settings FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER whitelist_contracts_notify_event
+AFTER
+INSERT
+	OR
+UPDATE
+	OR DELETE ON whitelist_contracts FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER whitelist_methods_notify_event
+AFTER
+INSERT
+	OR
+UPDATE
+	OR DELETE ON whitelist_methods FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER notification_settings_notify_event
 AFTER
 INSERT

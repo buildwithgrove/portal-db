@@ -18,7 +18,11 @@ const (
 )
 
 var (
-	ErrMissingID = errors.New("missing id")
+	ErrMissingID     = errors.New("missing id")
+	ErrMissingLBID   = errors.New("missing load balancer id")
+	ErrMissingUserID = errors.New("missing user id")
+	ErrMissingEmail  = errors.New("missing user email")
+	ErrMissingRole   = errors.New("missing user role")
 )
 
 // The PostgresDriver struct satisfies the Driver interface which defines all database driver methods
@@ -137,4 +141,12 @@ func psqlDateToTime(rawDate string) time.Time {
 
 func boolPointer(value bool) *bool {
 	return &value
+}
+
+// Typeguard for a derived field from Postgres that must be either nil or a string
+func toString(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+	return v.(string)
 }

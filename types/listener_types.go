@@ -12,24 +12,45 @@ type (
 )
 
 const (
+	TableLoadBalancers     Table = "loadbalancers"
+	TableStickinessOptions Table = "stickiness_options"
+	TableUserAccess        Table = "user_access"
+
+	TableLbApps Table = "lb_apps"
+
 	TableApplications         Table = "applications"
 	TableAppLimits            Table = "app_limits"
 	TableGatewayAAT           Table = "gateway_aat"
 	TableGatewaySettings      Table = "gateway_settings"
+	TableWhitelistContracts   Table = "whitelist_contracts"
+	TableWhitelistMethods     Table = "whitelist_methods"
 	TableNotificationSettings Table = "notification_settings"
-	TableLbApps               Table = "lb_apps"
-	TableLoadBalancers        Table = "loadbalancers"
-	TableStickinessOptions    Table = "stickiness_options"
-	TableBlockchains          Table = "blockchains"
-	TableRedirects            Table = "redirects"
-	TableSyncCheckOptions     Table = "sync_check_options"
+
+	TableBlockchains      Table = "blockchains"
+	TableRedirects        Table = "redirects"
+	TableSyncCheckOptions Table = "sync_check_options"
 
 	ActionInsert Action = "INSERT"
 	ActionUpdate Action = "UPDATE"
+	ActionDelete Action = "DELETE"
 )
 
 type SavedOnDB interface {
 	Table() Table
+}
+
+func (l *LoadBalancer) Table() Table {
+	return TableLoadBalancers
+}
+func (s *StickyOptions) Table() Table {
+	return TableStickinessOptions
+}
+func (s *UserAccess) Table() Table {
+	return TableUserAccess
+}
+
+func (l *LbApp) Table() Table {
+	return TableLbApps
 }
 
 func (a *Application) Table() Table {
@@ -41,21 +62,19 @@ func (a *GatewayAAT) Table() Table {
 func (s *GatewaySettings) Table() Table {
 	return TableGatewaySettings
 }
+func (s *WhitelistContract) Table() Table {
+	return TableWhitelistContracts
+}
+func (s *WhitelistMethod) Table() Table {
+	return TableWhitelistMethods
+}
 func (a *AppLimit) Table() Table {
 	return TableAppLimits
 }
 func (s *NotificationSettings) Table() Table {
 	return TableNotificationSettings
 }
-func (l *LbApp) Table() Table {
-	return TableLbApps
-}
-func (l *LoadBalancer) Table() Table {
-	return TableLoadBalancers
-}
-func (s *StickyOptions) Table() Table {
-	return TableStickinessOptions
-}
+
 func (b *Blockchain) Table() Table {
 	return TableBlockchains
 }

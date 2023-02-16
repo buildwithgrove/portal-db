@@ -45,24 +45,24 @@ type (
 	/* Update structs */
 	UpdateBlockchain struct {
 		BlockchainID      string   `json:"blockchainID"`
-		Altruist          string   `json:"altruist"`
-		Blockchain        string   `json:"blockchain"`
-		BlockchainAliases []string `json:"blockchainAliases"`
-		ChainID           string   `json:"chainID"`
-		ChainIDCheck      string   `json:"chainIDCheck"`
-		Description       string   `json:"description"`
-		EnforceResult     string   `json:"enforceResult"`
-		LogLimitBlocks    int32    `json:"logLimitBlocks"`
-		Network           string   `json:"network"`
-		Path              string   `json:"path"`
-		RequestTimeout    int32    `json:"requestTimeout"`
-		Ticker            string   `json:"ticker"`
+		Altruist          string   `json:"altruist,omitempty"`
+		Blockchain        string   `json:"blockchain,omitempty"`
+		BlockchainAliases []string `json:"blockchainAliases,omitempty"`
+		ChainID           string   `json:"chainID,omitempty"`
+		ChainIDCheck      string   `json:"chainIDCheck,omitempty"`
+		Description       string   `json:"description,omitempty"`
+		EnforceResult     string   `json:"enforceResult,omitempty"`
+		LogLimitBlocks    int32    `json:"logLimitBlocks,omitempty"`
+		Network           string   `json:"network,omitempty"`
+		Path              string   `json:"path,omitempty"`
+		RequestTimeout    int32    `json:"requestTimeout,omitempty"`
+		Ticker            string   `json:"ticker,omitempty"`
 
-		Synccheck     string `json:"synccheck"`
-		Allowance     *int32 `json:"allowance"`
-		Body          string `json:"body"`
-		SyncCheckPath string `json:"sync_check_path"`
-		ResultKey     string `json:"resultKey"`
+		Synccheck     string `json:"synccheck,omitempty"`
+		Allowance     *int32 `json:"allowance,omitempty"`
+		Body          string `json:"body,omitempty"`
+		SyncCheckPath string `json:"sync_check_path,omitempty"`
+		ResultKey     string `json:"resultKey,omitempty"`
 
 		UpdatedAt time.Time `json:"updatedAt"`
 	}

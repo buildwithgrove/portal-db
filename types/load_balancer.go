@@ -1,7 +1,15 @@
 package types
 
 import (
+	"errors"
+	"fmt"
 	"time"
+)
+
+var (
+	ErrLBIDIsEmpty error = errors.New("load balancer ID is empty")
+	ErrNoOwner     error = errors.New("load balancer does not have an owner")
+	ErrInvalidRole error = errors.New("invalid role provided")
 )
 
 /* LB Apps Table represents DB relationship of LBs and apps */
@@ -54,19 +62,154 @@ type (
 		StickyMax     int      `json:"stickyMax"`
 		Stickiness    *bool    `json:"stickiness"`
 	}
+	UpdateUserAccess struct {
+		ID       string   `json:"id,omitempty"`
+		UserID   string   `json:"userID"`
+		Email    string   `json:"email"`
+		RoleName RoleName `json:"roleName"`
+	}
 
-	RoleName string
+	RoleName        string
+	PermissionsEnum string
 )
 
 const (
 	RoleOwner  RoleName = "OWNER"
 	RoleAdmin  RoleName = "ADMIN"
 	RoleMember RoleName = "MEMBER"
+
+	ReadEndpoint  PermissionsEnum = "read:endpoint"
+	WriteEndpoint PermissionsEnum = "write:endpoint"
 )
+
+var (
+	ValidRoleNames = map[RoleName]bool{
+		RoleOwner:  true,
+		RoleAdmin:  true,
+		RoleMember: true,
+	}
+
+	ValidPermissions = map[PermissionsEnum]bool{
+		ReadEndpoint:  true,
+		WriteEndpoint: true,
+	}
+
+	permissionsList = map[RoleName][]PermissionsEnum{
+		RoleOwner:  {ReadEndpoint, WriteEndpoint},
+		RoleAdmin:  {ReadEndpoint, WriteEndpoint},
+		RoleMember: {ReadEndpoint},
+	}
+)
+
+func (lb *LoadBalancer) GetOwnerEmail() (string, error) {
+	for _, user := range lb.Users {
+		if user.RoleName == RoleOwner {
+			return user.Email, nil
+		}
+	}
+
+	return "", ErrNoOwner
+}
+
+func (e *PermissionsEnum) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PermissionsEnum(s)
+	case string:
+		*e = PermissionsEnum(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PermissionsEnum: %T", src)
+	}
+	return nil
+}
 
 func (s *StickyOptions) IsEmpty() bool {
 	if !s.Stickiness {
 		return true
 	}
 	return len(s.StickyOrigins) == 0
+}
+
+// UserPermissions stores all load balancer read/write permissions for a given user
+type (
+	UserID         string
+	LoadBalancerID string
+
+	UserPermissions struct {
+		UserID        UserID                                     `json:"userID"`
+		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions `json:"loadBalancers"`
+	}
+
+	LoadBalancerPermissions struct {
+		RoleName    RoleName          `json:"roleName"`
+		Permissions []PermissionsEnum `json:"permissions"`
+	}
+)
+
+func (u *UserPermissions) IsEmpty() bool {
+	if u.UserID == UserID("") || len(u.LoadBalancers) == 0 {
+		return true
+	}
+	return false
+}
+
+func (u *UserPermissions) GetRole(loadBalancerID LoadBalancerID) RoleName {
+	lb, ok := u.LoadBalancers[loadBalancerID]
+	if !ok {
+		return RoleName("")
+	}
+
+	return lb.RoleName
+}
+
+func (u *UserPermissions) UpsertPermissions(loadBalancerID LoadBalancerID, role RoleName) (*UserPermissions, error) {
+	if loadBalancerID == "" {
+		return nil, ErrLBIDIsEmpty
+	}
+	if !ValidRoleNames[role] {
+		return nil, ErrInvalidRole
+	}
+
+	u.LoadBalancers[loadBalancerID] = LoadBalancerPermissions{
+		RoleName:    role,
+		Permissions: permissionsList[role],
+	}
+
+	return u, nil
+}
+
+func (u *UserPermissions) DeletePermissions(loadBalancerID LoadBalancerID) *UserPermissions {
+	delete(u.LoadBalancers, loadBalancerID)
+
+	return u
+}
+
+func (u *UserPermissions) HasReadPermission(loadBalancerID LoadBalancerID) bool {
+	lb, ok := u.LoadBalancers[loadBalancerID]
+	if !ok {
+		return false
+	}
+
+	for _, perm := range lb.Permissions {
+		if perm == ReadEndpoint {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (u *UserPermissions) HasWritePermission(loadBalancerID LoadBalancerID) bool {
+	lb, ok := u.LoadBalancers[loadBalancerID]
+	if !ok {
+		return false
+	}
+
+	for _, perm := range lb.Permissions {
+		if perm == WriteEndpoint {
+			return true
+		}
+	}
+
+	return false
 }

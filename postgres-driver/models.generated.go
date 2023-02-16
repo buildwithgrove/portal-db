@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+
+	"github.com/pokt-foundation/portal-db/types"
 )
 
 type PermissionsEnum string
@@ -50,22 +52,6 @@ func (ns NullPermissionsEnum) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return ns.PermissionsEnum, nil
-}
-
-func (e PermissionsEnum) Valid() bool {
-	switch e {
-	case PermissionsEnumReadEndpoint,
-		PermissionsEnumWriteEndpoint:
-		return true
-	}
-	return false
-}
-
-func AllPermissionsEnumValues() []PermissionsEnum {
-	return []PermissionsEnum{
-		PermissionsEnumReadEndpoint,
-		PermissionsEnumWriteEndpoint,
-	}
 }
 
 type AppLimit struct {
@@ -128,8 +114,6 @@ type GatewaySetting struct {
 	SecretKey            sql.NullString `json:"secretKey"`
 	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
 	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
-	WhitelistContracts   sql.NullString `json:"whitelistContracts"`
-	WhitelistMethods     sql.NullString `json:"whitelistMethods"`
 	WhitelistOrigins     []string       `json:"whitelistOrigins"`
 	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
 }
@@ -201,19 +185,35 @@ type SyncCheckOption struct {
 
 type UserAccess struct {
 	ID        int32          `json:"id"`
-	LbID      sql.NullString `json:"lbID"`
+	LbID      string         `json:"lbID"`
 	UserID    sql.NullString `json:"userID"`
-	RoleName  sql.NullString `json:"roleName"`
-	Email     sql.NullString `json:"email"`
-	Accepted  sql.NullBool   `json:"accepted"`
+	RoleName  types.RoleName `json:"roleName"`
+	Email     string         `json:"email"`
+	Accepted  bool           `json:"accepted"`
 	CreatedAt sql.NullTime   `json:"createdAt"`
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
 
 type UserRole struct {
-	ID          sql.NullInt32     `json:"id"`
-	Name        string            `json:"name"`
-	Permissions []PermissionsEnum `json:"permissions"`
-	CreatedAt   sql.NullTime      `json:"createdAt"`
-	UpdatedAt   sql.NullTime      `json:"updatedAt"`
+	ID          sql.NullInt32           `json:"id"`
+	Name        string                  `json:"name"`
+	Permissions []types.PermissionsEnum `json:"permissions"`
+	CreatedAt   sql.NullTime            `json:"createdAt"`
+	UpdatedAt   sql.NullTime            `json:"updatedAt"`
+}
+
+type WhitelistContract struct {
+	ID            int32          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	BlockchainID  sql.NullString `json:"blockchainID"`
+	Contract      sql.NullString `json:"contract"`
+	Contracts     []string       `json:"contracts"`
+}
+
+type WhitelistMethod struct {
+	ID            int32          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	BlockchainID  sql.NullString `json:"blockchainID"`
+	Method        sql.NullString `json:"method"`
+	Methods       []string       `json:"methods"`
 }
