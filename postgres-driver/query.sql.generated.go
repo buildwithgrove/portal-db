@@ -1545,16 +1545,15 @@ UPDATE blockchains as b
 SET altruist = COALESCE($2, b.altruist),
     blockchain = COALESCE($3, b.blockchain),
     blockchain_aliases = COALESCE($4, b.blockchain_aliases),
-    chain_id = COALESCE($5, b.chain_id),
-    chain_id_check = COALESCE($6, b.chain_id_check),
-    description = COALESCE($7, b.description),
-    enforce_result = COALESCE($8, b.enforce_result),
-    log_limit_blocks = COALESCE($9, b.log_limit_blocks),
-    network = COALESCE($10, b.network),
-    path = COALESCE($11, b.path),
-    request_timeout = COALESCE($12, b.request_timeout),
-    ticker = COALESCE($13, b.ticker),
-    updated_at = $14
+    chain_id_check = COALESCE($5, b.chain_id_check),
+    description = COALESCE($6, b.description),
+    enforce_result = COALESCE($7, b.enforce_result),
+    log_limit_blocks = COALESCE($8, b.log_limit_blocks),
+    network = COALESCE($9, b.network),
+    path = COALESCE($10, b.path),
+    request_timeout = COALESCE($11, b.request_timeout),
+    ticker = COALESCE($12, b.ticker),
+    updated_at = $13
 WHERE b.blockchain_id = $1
 `
 
@@ -1563,7 +1562,6 @@ type UpdateBlockchainParams struct {
 	Altruist          sql.NullString `json:"altruist"`
 	Blockchain        sql.NullString `json:"blockchain"`
 	BlockchainAliases []string       `json:"blockchainAliases"`
-	ChainID           sql.NullString `json:"chainID"`
 	ChainIDCheck      sql.NullString `json:"chainIDCheck"`
 	Description       sql.NullString `json:"description"`
 	EnforceResult     sql.NullString `json:"enforceResult"`
@@ -1581,7 +1579,6 @@ func (q *Queries) UpdateBlockchain(ctx context.Context, arg UpdateBlockchainPara
 		arg.Altruist,
 		arg.Blockchain,
 		pq.Array(arg.BlockchainAliases),
-		arg.ChainID,
 		arg.ChainIDCheck,
 		arg.Description,
 		arg.EnforceResult,

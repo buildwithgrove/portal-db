@@ -187,7 +187,6 @@ func extractUpdateBlockchain(update *types.UpdateBlockchain) UpdateBlockchainPar
 		Altruist:          newSQLNullString(update.Altruist),
 		Blockchain:        newSQLNullString(update.Blockchain),
 		BlockchainAliases: update.BlockchainAliases,
-		ChainID:           newSQLNullString(update.ChainID),
 		ChainIDCheck:      newSQLNullString(update.ChainIDCheck),
 		Description:       newSQLNullString(update.Description),
 		EnforceResult:     newSQLNullString(update.EnforceResult),
@@ -205,7 +204,7 @@ func extractUpdateSyncCheckOptions(update *types.UpdateBlockchain) UpdateSyncChe
 		BlockchainID: update.BlockchainID,
 		Synccheck:    newSQLNullString(update.Synccheck),
 		Body:         newSQLNullString(update.Body),
-		Path:         newSQLNullString(update.Path),
+		Path:         newSQLNullString(update.SyncCheckPath),
 		ResultKey:    newSQLNullString(update.ResultKey),
 	}
 	if update.Allowance != nil {

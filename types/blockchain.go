@@ -48,7 +48,6 @@ type (
 		Altruist          string   `json:"altruist,omitempty"`
 		Blockchain        string   `json:"blockchain,omitempty"`
 		BlockchainAliases []string `json:"blockchainAliases,omitempty"`
-		ChainID           string   `json:"chainID,omitempty"`
 		ChainIDCheck      string   `json:"chainIDCheck,omitempty"`
 		Description       string   `json:"description,omitempty"`
 		EnforceResult     string   `json:"enforceResult,omitempty"`
