@@ -283,4 +283,6 @@ AFTER
 INSERT ON redirects FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER sync_check_options_notify_event
 AFTER
-INSERT ON sync_check_options FOR EACH ROW EXECUTE PROCEDURE notify_event();
+INSERT
+	OR
+UPDATE ON sync_check_options FOR EACH ROW EXECUTE PROCEDURE notify_event();
