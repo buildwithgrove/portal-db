@@ -136,13 +136,13 @@ type (
 	LoadBalancerID string
 
 	UserPermissions struct {
-		UserID        UserID
-		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions
+		UserID        UserID                                     `json:"userID"`
+		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions `json:"loadBalancers"`
 	}
 
 	LoadBalancerPermissions struct {
-		RoleName    RoleName
-		Permissions []PermissionsEnum
+		RoleName    RoleName          `json:"roleName"`
+		Permissions []PermissionsEnum `json:"permissions"`
 	}
 )
 
