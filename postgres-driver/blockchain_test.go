@@ -174,14 +174,15 @@ func (ts *PGDriverTestSuite) Test_WriteBlockchain() {
 func (ts *PGDriverTestSuite) Test_UpdateChain() {
 	tests := []struct {
 		name               string
+		blockchainID       string
 		chainUpdate        *types.UpdateBlockchain
 		expectedBlockchain *types.Blockchain
 		err                error
 	}{
 		{
-			name: "Should update values of an existing blockchain and leave other values the same",
+			name:         "Should update values of an existing blockchain and leave other values the same",
+			blockchainID: "0001",
 			chainUpdate: &types.UpdateBlockchain{
-				BlockchainID:   "0001",
 				Altruist:       "https://test-update:test-password123@shared-test2.nodes.pokt.network:12345", // pragma: allowlist secret
 				Blockchain:     "pokt-mainnet-updated",
 				Description:    "POKT Network Mainnet Updated",
@@ -223,9 +224,9 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			err: nil,
 		},
 		{
-			name: "Should update values of an existing blockchain and leave other values the same again",
+			name:         "Should update values of an existing blockchain and leave other values the same again",
+			blockchainID: "0001",
 			chainUpdate: &types.UpdateBlockchain{
-				BlockchainID:      "0001",
 				Description:       "POKT Network Mainnet Updated Again",
 				RequestTimeout:    123_456,
 				Network:           "new-network",
@@ -269,9 +270,9 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			err: nil,
 		},
 		{
-			name: "Should update values of an existing blockchain and leave other values the same one last time",
+			name:         "Should update values of an existing blockchain and leave other values the same one last time",
+			blockchainID: "0001",
 			chainUpdate: &types.UpdateBlockchain{
-				BlockchainID:   "0001",
 				Path:           "new-path",
 				Synccheck:      "new-sync-check",
 				Body:           `{"new-body": "alliance"}`,
@@ -314,23 +315,22 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			err: nil,
 		},
 		{
-			name: "Should fail if blockchain ID not provided",
-			chainUpdate: &types.UpdateBlockchain{
-				BlockchainID: "",
-			},
-			err: ErrMissingID,
+			name:         "Should fail if blockchain ID not provided",
+			blockchainID: "",
+			chainUpdate:  &types.UpdateBlockchain{},
+			err:          ErrMissingID,
 		},
 	}
 
 	for _, test := range tests {
-		err := ts.driver.UpdateChain(testCtx, test.chainUpdate)
+		err := ts.driver.UpdateChain(testCtx, test.blockchainID, test.chainUpdate)
 		ts.Equal(test.err, err)
 
 		if err == nil {
 			chains, err := ts.driver.ReadBlockchains(testCtx)
 			ts.Equal(test.err, err)
 			for _, blockchain := range chains {
-				if blockchain.ID == test.chainUpdate.BlockchainID {
+				if blockchain.ID == test.blockchainID {
 					ts.Equal(test.expectedBlockchain.ID, blockchain.ID)
 					ts.Equal(test.expectedBlockchain.Altruist, blockchain.Altruist)
 					ts.Equal(test.expectedBlockchain.Blockchain, blockchain.Blockchain)
