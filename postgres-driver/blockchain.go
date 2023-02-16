@@ -143,8 +143,83 @@ func (i *InsertSyncCheckOptionsParams) isNotNull() bool {
 	return i.Synccheck.Valid || i.Body.Valid || i.Path.Valid || i.ResultKey.Valid || i.Allowance.Valid
 }
 
+/* UpdateChain updates Application and related table rows */
+func (p *PostgresDriver) UpdateChain(ctx context.Context, update *types.UpdateBlockchain) error {
+	if update.BlockchainID == "" {
+		return ErrMissingID
+	}
+
+	time := time.Now()
+	update.UpdatedAt = time
+
+	tx, err := p.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	qtx := p.WithTx(tx)
+
+	err = qtx.UpdateBlockchain(ctx, extractUpdateBlockchain(update))
+	if err != nil {
+		return err
+	}
+
+	syncCheckOptionsParams := extractUpdateSyncCheckOptions(update)
+	if syncCheckOptionsParams.isNotNull() {
+		err = qtx.UpdateSyncCheckOptions(ctx, syncCheckOptionsParams)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func extractUpdateBlockchain(update *types.UpdateBlockchain) UpdateBlockchainParams {
+	return UpdateBlockchainParams{
+		BlockchainID:      update.BlockchainID,
+		Altruist:          newSQLNullString(update.Altruist),
+		Blockchain:        newSQLNullString(update.Blockchain),
+		BlockchainAliases: update.BlockchainAliases,
+		ChainIDCheck:      newSQLNullString(update.ChainIDCheck),
+		Description:       newSQLNullString(update.Description),
+		EnforceResult:     newSQLNullString(update.EnforceResult),
+		LogLimitBlocks:    newSQLNullInt32(update.LogLimitBlocks, false),
+		Network:           newSQLNullString(update.Network),
+		Path:              newSQLNullString(update.Path),
+		RequestTimeout:    newSQLNullInt32(update.RequestTimeout, false),
+		Ticker:            newSQLNullString(update.Ticker),
+		UpdatedAt:         newSQLNullTime(update.UpdatedAt),
+	}
+}
+
+func extractUpdateSyncCheckOptions(update *types.UpdateBlockchain) UpdateSyncCheckOptionsParams {
+	params := UpdateSyncCheckOptionsParams{
+		BlockchainID: update.BlockchainID,
+		Synccheck:    newSQLNullString(update.Synccheck),
+		Body:         newSQLNullString(update.Body),
+		Path:         newSQLNullString(update.SyncCheckPath),
+		ResultKey:    newSQLNullString(update.ResultKey),
+	}
+	if update.Allowance != nil {
+		params.Allowance = newSQLNullInt32(*update.Allowance, true)
+	}
+
+	return params
+
+}
+func (s UpdateSyncCheckOptionsParams) isNotNull() bool {
+	return s.Synccheck.Valid || s.Allowance.Valid || s.Body.Valid || s.Path.Valid || s.ResultKey.Valid
+}
+
 /* WriteRedirect saves input Redirect struct to the database.
-It must be called separately from WriteBlockchain due to how new chains are added to the dB */
+It must be called separately from WriteBlockchain due to how new chains are added to the DB */
 func (p *PostgresDriver) WriteRedirect(ctx context.Context, redirect *types.Redirect) (*types.Redirect, error) {
 	time := time.Now()
 	redirect.CreatedAt = time
@@ -167,6 +242,25 @@ func extractInsertDBRedirect(redirect *types.Redirect) InsertRedirectParams {
 		CreatedAt:    newSQLNullTime(redirect.CreatedAt),
 		UpdatedAt:    newSQLNullTime(redirect.UpdatedAt),
 	}
+}
+
+/* RemoveRedirect deletes a Redirect row */
+func (p *PostgresDriver) RemoveRedirect(ctx context.Context, blockchainID, domain string) error {
+	if blockchainID == "" || domain == "" {
+		return ErrMissingID
+	}
+
+	params := DeleteRedirectParams{
+		BlockchainID: blockchainID,
+		Domain:       domain,
+	}
+
+	err := p.DeleteRedirect(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 /* ActivateChain toggles chain.active field on or off */

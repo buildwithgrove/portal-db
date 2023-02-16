@@ -171,6 +171,193 @@ func (ts *PGDriverTestSuite) Test_WriteBlockchain() {
 	}
 }
 
+func (ts *PGDriverTestSuite) Test_UpdateChain() {
+	tests := []struct {
+		name               string
+		chainUpdate        *types.UpdateBlockchain
+		expectedBlockchain *types.Blockchain
+		err                error
+	}{
+		{
+			name: "Should update values of an existing blockchain and leave other values the same",
+			chainUpdate: &types.UpdateBlockchain{
+				BlockchainID:   "0001",
+				Altruist:       "https://test-update:test-password123@shared-test2.nodes.pokt.network:12345", // pragma: allowlist secret
+				Blockchain:     "pokt-mainnet-updated",
+				Description:    "POKT Network Mainnet Updated",
+				RequestTimeout: 66_654,
+				ResultKey:      "updated-key",
+				LogLimitBlocks: 100_010,
+			},
+			expectedBlockchain: &types.Blockchain{
+				ID:                "0001",
+				Altruist:          "https://test-update:test-password123@shared-test2.nodes.pokt.network:12345", // pragma: allowlist secret
+				Blockchain:        "pokt-mainnet-updated",
+				Description:       "POKT Network Mainnet Updated",
+				EnforceResult:     "JSON",
+				Network:           "POKT-mainnet",
+				Ticker:            "POKT",
+				BlockchainAliases: []string{"pokt-mainnet"},
+				LogLimitBlocks:    100_010,
+				Active:            true,
+				RequestTimeout:    66_654,
+				Redirects: []types.Redirect{
+					{
+						Alias:          "test-mainnet",
+						Domain:         "test-rpc1.testnet.pokt.network",
+						LoadBalancerID: "test_lb_34gg4g43g34g5hh",
+					},
+					{
+						Alias:          "test-mainnet",
+						Domain:         "test-rpc2.testnet.pokt.network",
+						LoadBalancerID: "test_lb_34gg4g43g34g5hh",
+					},
+				},
+				SyncCheckOptions: types.SyncCheckOptions{
+					Body:      `{}`,
+					Path:      "/v1/query/height",
+					ResultKey: "updated-key",
+					Allowance: 1,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Should update values of an existing blockchain and leave other values the same again",
+			chainUpdate: &types.UpdateBlockchain{
+				BlockchainID:      "0001",
+				Description:       "POKT Network Mainnet Updated Again",
+				RequestTimeout:    123_456,
+				Network:           "new-network",
+				Ticker:            "SUCH-WOW",
+				SyncCheckPath:     "/v1/query/wow-new",
+				ResultKey:         "new-key",
+				BlockchainAliases: []string{"pokt-mainnet", "another-one"},
+				EnforceResult:     "JSON-2",
+			},
+			expectedBlockchain: &types.Blockchain{
+				ID:                "0001",
+				Altruist:          "https://test-update:test-password123@shared-test2.nodes.pokt.network:12345", // pragma: allowlist secret
+				Blockchain:        "pokt-mainnet-updated",
+				Description:       "POKT Network Mainnet Updated Again",
+				EnforceResult:     "JSON-2",
+				Network:           "new-network",
+				Ticker:            "SUCH-WOW",
+				BlockchainAliases: []string{"pokt-mainnet", "another-one"},
+				LogLimitBlocks:    100_010,
+				Active:            true,
+				RequestTimeout:    123_456,
+				Redirects: []types.Redirect{
+					{
+						Alias:          "test-mainnet",
+						Domain:         "test-rpc1.testnet.pokt.network",
+						LoadBalancerID: "test_lb_34gg4g43g34g5hh",
+					},
+					{
+						Alias:          "test-mainnet",
+						Domain:         "test-rpc2.testnet.pokt.network",
+						LoadBalancerID: "test_lb_34gg4g43g34g5hh",
+					},
+				},
+				SyncCheckOptions: types.SyncCheckOptions{
+					Body:      `{}`,
+					Path:      "/v1/query/wow-new",
+					ResultKey: "new-key",
+					Allowance: 1,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Should update values of an existing blockchain and leave other values the same one last time",
+			chainUpdate: &types.UpdateBlockchain{
+				BlockchainID:   "0001",
+				Path:           "new-path",
+				Synccheck:      "new-sync-check",
+				Body:           `{"new-body": "alliance"}`,
+				ResultKey:      "key123",
+				LogLimitBlocks: 42,
+			},
+			expectedBlockchain: &types.Blockchain{
+				ID:                "0001",
+				Altruist:          "https://test-update:test-password123@shared-test2.nodes.pokt.network:12345", // pragma: allowlist secret
+				Blockchain:        "pokt-mainnet-updated",
+				Description:       "POKT Network Mainnet Updated Again",
+				EnforceResult:     "JSON-2",
+				Network:           "new-network",
+				Ticker:            "SUCH-WOW",
+				Path:              "new-path",
+				BlockchainAliases: []string{"pokt-mainnet", "another-one"},
+				LogLimitBlocks:    42,
+				Active:            true,
+				RequestTimeout:    123_456,
+				SyncCheck:         "new-sync-check",
+				Redirects: []types.Redirect{
+					{
+						Alias:          "test-mainnet",
+						Domain:         "test-rpc1.testnet.pokt.network",
+						LoadBalancerID: "test_lb_34gg4g43g34g5hh",
+					},
+					{
+						Alias:          "test-mainnet",
+						Domain:         "test-rpc2.testnet.pokt.network",
+						LoadBalancerID: "test_lb_34gg4g43g34g5hh",
+					},
+				},
+				SyncCheckOptions: types.SyncCheckOptions{
+					Body:      `{"new-body": "alliance"}`,
+					Path:      "/v1/query/wow-new",
+					ResultKey: "key123",
+					Allowance: 1,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Should fail if blockchain ID not provided",
+			chainUpdate: &types.UpdateBlockchain{
+				BlockchainID: "",
+			},
+			err: ErrMissingID,
+		},
+	}
+
+	for _, test := range tests {
+		err := ts.driver.UpdateChain(testCtx, test.chainUpdate)
+		ts.Equal(test.err, err)
+
+		if err == nil {
+			chains, err := ts.driver.ReadBlockchains(testCtx)
+			ts.Equal(test.err, err)
+			for _, blockchain := range chains {
+				if blockchain.ID == test.chainUpdate.BlockchainID {
+					ts.Equal(test.expectedBlockchain.ID, blockchain.ID)
+					ts.Equal(test.expectedBlockchain.Altruist, blockchain.Altruist)
+					ts.Equal(test.expectedBlockchain.Blockchain, blockchain.Blockchain)
+					ts.Equal(test.expectedBlockchain.BlockchainAliases, blockchain.BlockchainAliases)
+					ts.Equal(test.expectedBlockchain.ChainID, blockchain.ChainID)
+					ts.Equal(test.expectedBlockchain.ChainIDCheck, blockchain.ChainIDCheck)
+					ts.Equal(test.expectedBlockchain.Description, blockchain.Description)
+					ts.Equal(test.expectedBlockchain.EnforceResult, blockchain.EnforceResult)
+					ts.Equal(test.expectedBlockchain.LogLimitBlocks, blockchain.LogLimitBlocks)
+					ts.Equal(test.expectedBlockchain.Network, blockchain.Network)
+					ts.Equal(test.expectedBlockchain.Path, blockchain.Path)
+					ts.Equal(test.expectedBlockchain.RequestTimeout, blockchain.RequestTimeout)
+					ts.Equal(test.expectedBlockchain.Ticker, blockchain.Ticker)
+					ts.Equal(test.expectedBlockchain.SyncCheck, blockchain.SyncCheck)
+					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Allowance, blockchain.SyncCheckOptions.Allowance)
+					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Body, blockchain.SyncCheckOptions.Body)
+					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Path, blockchain.SyncCheckOptions.Path)
+					ts.Equal(test.expectedBlockchain.SyncCheckOptions.ResultKey, blockchain.SyncCheckOptions.ResultKey)
+					ts.NotEmpty(blockchain.CreatedAt)
+					ts.NotEmpty(blockchain.UpdatedAt)
+				}
+				break
+			}
+		}
+	}
+}
+
 func (ts *PGDriverTestSuite) Test_WriteRedirect() {
 	tests := []struct {
 		name                   string
@@ -209,6 +396,48 @@ func (ts *PGDriverTestSuite) Test_WriteRedirect() {
 						ts.Equal(test.redirectInput.Domain, redirect.Domain)
 					}
 				}
+			}
+			break
+		}
+	}
+}
+
+func (ts *PGDriverTestSuite) Test_RemoveRedirect() {
+	tests := []struct {
+		name                 string
+		blockchainID, domain string
+		redirectsBefore,
+		expectedNumOfRedirects int
+		err error
+	}{
+		{
+			name:                   "Should add a single redirect to an existing blockchain",
+			blockchainID:           "0001",
+			domain:                 "test-rpc1.testnet.pokt.network",
+			redirectsBefore:        2,
+			expectedNumOfRedirects: 1,
+			err:                    nil,
+		},
+	}
+
+	for _, test := range tests {
+		chains, err := ts.driver.ReadBlockchains(testCtx)
+		ts.Equal(test.err, err)
+		for _, blockchain := range chains {
+			if blockchain.ID == test.blockchainID {
+				ts.Len(blockchain.Redirects, test.redirectsBefore)
+			}
+			break
+		}
+
+		err = ts.driver.RemoveRedirect(testCtx, test.blockchainID, test.domain)
+		ts.Equal(test.err, err)
+
+		chains, err = ts.driver.ReadBlockchains(testCtx)
+		ts.Equal(test.err, err)
+		for _, blockchain := range chains {
+			if blockchain.ID == test.blockchainID {
+				ts.Len(blockchain.Redirects, test.expectedNumOfRedirects)
 			}
 			break
 		}

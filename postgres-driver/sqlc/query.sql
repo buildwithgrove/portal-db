@@ -119,6 +119,33 @@ UPDATE blockchains
 SET active = $2,
     updated_at = $3
 WHERE blockchain_id = $1;
+-- name: UpdateBlockchain :exec
+UPDATE blockchains as b
+SET altruist = COALESCE($2, b.altruist),
+    blockchain = COALESCE($3, b.blockchain),
+    blockchain_aliases = COALESCE($4, b.blockchain_aliases),
+    chain_id_check = COALESCE($5, b.chain_id_check),
+    description = COALESCE($6, b.description),
+    enforce_result = COALESCE($7, b.enforce_result),
+    log_limit_blocks = COALESCE($8, b.log_limit_blocks),
+    network = COALESCE($9, b.network),
+    path = COALESCE($10, b.path),
+    request_timeout = COALESCE($11, b.request_timeout),
+    ticker = COALESCE($12, b.ticker),
+    updated_at = $13
+WHERE b.blockchain_id = $1;
+-- name: DeleteRedirect :exec
+DELETE FROM redirects
+WHERE blockchain_id = $1
+    AND domain = $2;
+-- name: UpdateSyncCheckOptions :exec
+UPDATE sync_check_options as s
+SET synccheck = COALESCE($2, s.synccheck),
+    allowance = COALESCE($3, s.allowance),
+    body = COALESCE($4, s.body),
+    path = COALESCE($5, s.path),
+    result_key = COALESCE($6, s.result_key)
+WHERE s.blockchain_id = $1;
 -- name: SelectApplications :many
 SELECT a.application_id,
     a.contact_email,

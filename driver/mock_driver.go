@@ -201,6 +201,20 @@ func (_m *MockDriver) RemoveLoadBalancer(ctx context.Context, id string) error {
 	return r0
 }
 
+// RemoveRedirect provides a mock function with given fields: ctx, blockchainID, domain
+func (_m *MockDriver) RemoveRedirect(ctx context.Context, blockchainID string, domain string) error {
+	ret := _m.Called(ctx, blockchainID, domain)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, blockchainID, domain)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RemoveUserAccess provides a mock function with given fields: ctx, email, lbID
 func (_m *MockDriver) RemoveUserAccess(ctx context.Context, email string, lbID string) error {
 	ret := _m.Called(ctx, email, lbID)
@@ -236,6 +250,20 @@ func (_m *MockDriver) UpdateApplication(ctx context.Context, id string, update *
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, *types.UpdateApplication) error); ok {
 		r0 = rf(ctx, id, update)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateChain provides a mock function with given fields: ctx, update
+func (_m *MockDriver) UpdateChain(ctx context.Context, update *types.UpdateBlockchain) error {
+	ret := _m.Called(ctx, update)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *types.UpdateBlockchain) error); ok {
+		r0 = rf(ctx, update)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -59,7 +59,10 @@ type (
 		/* WriteRedirect saves input Redirect struct to the database.
 		   It must be called separately from WriteBlockchain due to how new chains are added to the dB */
 		WriteRedirect(ctx context.Context, redirect *types.Redirect) (*types.Redirect, error)
+		/* UpdateChain updates blockchain fields */
+		UpdateChain(ctx context.Context, update *types.UpdateBlockchain) error
 		/* ActivateChain toggles chain.active field on or off */
 		ActivateChain(ctx context.Context, id string, active bool) error
+		RemoveRedirect(ctx context.Context, blockchainID, domain string) error
 	}
 )
