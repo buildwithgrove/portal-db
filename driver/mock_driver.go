@@ -257,13 +257,13 @@ func (_m *MockDriver) UpdateApplication(ctx context.Context, id string, update *
 	return r0
 }
 
-// UpdateChain provides a mock function with given fields: ctx, update
-func (_m *MockDriver) UpdateChain(ctx context.Context, update *types.UpdateBlockchain) error {
-	ret := _m.Called(ctx, update)
+// UpdateChain provides a mock function with given fields: ctx, blockchainID, update
+func (_m *MockDriver) UpdateChain(ctx context.Context, blockchainID string, update *types.UpdateBlockchain) error {
+	ret := _m.Called(ctx, blockchainID, update)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *types.UpdateBlockchain) error); ok {
-		r0 = rf(ctx, update)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *types.UpdateBlockchain) error); ok {
+		r0 = rf(ctx, blockchainID, update)
 	} else {
 		r0 = ret.Error(0)
 	}
