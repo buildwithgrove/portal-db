@@ -143,7 +143,7 @@ func (i *InsertSyncCheckOptionsParams) isNotNull() bool {
 	return i.Synccheck.Valid || i.Body.Valid || i.Path.Valid || i.ResultKey.Valid || i.Allowance.Valid
 }
 
-/* UpdateChain updates Application and related table rows */
+/* UpdateChain updates Blockchain and Sync Check Options */
 func (p *PostgresDriver) UpdateChain(ctx context.Context, blockchainID string, update *types.UpdateBlockchain) error {
 	if blockchainID == "" {
 		return ErrMissingID
