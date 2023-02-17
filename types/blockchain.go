@@ -91,6 +91,9 @@ func (b *Blockchain) UpdateBlockchain(update *UpdateBlockchain) *Blockchain {
 	if update.Ticker != "" {
 		b.Ticker = update.Ticker
 	}
+	if update.Synccheck != "" {
+		b.SyncCheck = update.Synccheck
+	}
 	if update.BlockchainAliases != nil {
 		b.BlockchainAliases = update.BlockchainAliases
 	}
