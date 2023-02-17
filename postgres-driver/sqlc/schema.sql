@@ -53,7 +53,6 @@ CREATE TABLE IF NOT EXISTS redirects (
 CREATE TABLE IF NOT EXISTS sync_check_options (
 	id INT GENERATED ALWAYS AS IDENTITY,
 	blockchain_id VARCHAR NOT NULL UNIQUE,
-	synccheck VARCHAR,
 	allowance INT,
 	body VARCHAR,
 	path VARCHAR,

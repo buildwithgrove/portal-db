@@ -13,7 +13,6 @@ SELECT b.blockchain_id,
     b.request_timeout,
     b.ticker,
     b.active,
-    s.synccheck AS s_sync_check,
     s.allowance AS s_allowance,
     s.body AS s_body,
     s.path AS s_path,
@@ -100,7 +99,6 @@ VALUES (
 -- name: InsertSyncCheckOptions :exec
 INSERT into sync_check_options (
         blockchain_id,
-        synccheck,
         allowance,
         body,
         path,
@@ -111,8 +109,7 @@ VALUES (
         $2,
         $3,
         $4,
-        $5,
-        $6
+        $5
     );
 -- name: ActivateBlockchain :exec
 UPDATE blockchains
@@ -140,11 +137,10 @@ WHERE blockchain_id = $1
     AND domain = $2;
 -- name: UpdateSyncCheckOptions :exec
 UPDATE sync_check_options as s
-SET synccheck = COALESCE($2, s.synccheck),
-    allowance = COALESCE($3, s.allowance),
-    body = COALESCE($4, s.body),
-    path = COALESCE($5, s.path),
-    result_key = COALESCE($6, s.result_key)
+SET allowance = COALESCE($2, s.allowance),
+    body = COALESCE($3, s.body),
+    path = COALESCE($4, s.path),
+    result_key = COALESCE($5, s.result_key)
 WHERE s.blockchain_id = $1;
 -- name: SelectApplications :many
 SELECT a.application_id,

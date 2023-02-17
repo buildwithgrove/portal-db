@@ -88,7 +88,6 @@ func (ts *PGDriverTestSuite) Test_ReadBlockchains() {
 			ts.Equal(test.blockchains[i].EnforceResult, blockchain.EnforceResult)
 			ts.Equal(test.blockchains[i].Network, blockchain.Network)
 			ts.Equal(test.blockchains[i].Path, blockchain.Path)
-			ts.Equal(test.blockchains[i].SyncCheck, blockchain.SyncCheck)
 			ts.Equal(test.blockchains[i].Ticker, blockchain.Ticker)
 			ts.Equal(test.blockchains[i].BlockchainAliases, blockchain.BlockchainAliases)
 			ts.Equal(test.blockchains[i].LogLimitBlocks, blockchain.LogLimitBlocks)
@@ -155,7 +154,6 @@ func (ts *PGDriverTestSuite) Test_WriteBlockchain() {
 				ts.Equal(test.chainInput.EnforceResult, blockchain.EnforceResult)
 				ts.Equal(test.chainInput.Network, blockchain.Network)
 				ts.Equal(test.chainInput.Path, blockchain.Path)
-				ts.Equal(test.chainInput.SyncCheck, blockchain.SyncCheck)
 				ts.Equal(test.chainInput.Ticker, blockchain.Ticker)
 				ts.Equal(test.chainInput.BlockchainAliases, blockchain.BlockchainAliases)
 				ts.Equal(test.chainInput.LogLimitBlocks, blockchain.LogLimitBlocks)
@@ -274,7 +272,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			blockchainID: "0001",
 			chainUpdate: &types.UpdateBlockchain{
 				Path:           "new-path",
-				Synccheck:      "new-sync-check",
 				Body:           `{"new-body": "alliance"}`,
 				ResultKey:      "key123",
 				LogLimitBlocks: 42,
@@ -292,7 +289,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 				LogLimitBlocks:    42,
 				Active:            true,
 				RequestTimeout:    123_456,
-				SyncCheck:         "new-sync-check",
 				Redirects: []types.Redirect{
 					{
 						Alias:          "test-mainnet",
@@ -344,7 +340,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 					ts.Equal(test.expectedBlockchain.Path, blockchain.Path)
 					ts.Equal(test.expectedBlockchain.RequestTimeout, blockchain.RequestTimeout)
 					ts.Equal(test.expectedBlockchain.Ticker, blockchain.Ticker)
-					ts.Equal(test.expectedBlockchain.SyncCheck, blockchain.SyncCheck)
 					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Allowance, blockchain.SyncCheckOptions.Allowance)
 					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Body, blockchain.SyncCheckOptions.Body)
 					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Path, blockchain.SyncCheckOptions.Path)

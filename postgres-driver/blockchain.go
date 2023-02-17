@@ -45,7 +45,6 @@ func (b *SelectBlockchainsRow) toBlockchain() (*types.Blockchain, error) {
 		EnforceResult:     b.EnforceResult.String,
 		Network:           b.Network.String,
 		Path:              b.Path.String,
-		SyncCheck:         b.SSyncCheck.String,
 		Ticker:            b.Ticker.String,
 		BlockchainAliases: b.BlockchainAliases,
 		LogLimitBlocks:    int(b.LogLimitBlocks.Int32),
@@ -131,7 +130,6 @@ func extractInsertDBBlockchain(blockchain *types.Blockchain) InsertBlockchainPar
 func extractInsertSyncCheckOptions(blockchain *types.Blockchain) InsertSyncCheckOptionsParams {
 	return InsertSyncCheckOptionsParams{
 		BlockchainID: blockchain.ID,
-		Synccheck:    newSQLNullString(blockchain.SyncCheck),
 		Body:         newSQLNullString(blockchain.SyncCheckOptions.Body),
 		Path:         newSQLNullString(blockchain.SyncCheckOptions.Path),
 		ResultKey:    newSQLNullString(blockchain.SyncCheckOptions.ResultKey),
@@ -140,7 +138,7 @@ func extractInsertSyncCheckOptions(blockchain *types.Blockchain) InsertSyncCheck
 }
 
 func (i *InsertSyncCheckOptionsParams) isNotNull() bool {
-	return i.Synccheck.Valid || i.Body.Valid || i.Path.Valid || i.ResultKey.Valid || i.Allowance.Valid
+	return i.Body.Valid || i.Path.Valid || i.ResultKey.Valid || i.Allowance.Valid
 }
 
 /* UpdateChain updates Blockchain and Sync Check Options */
@@ -203,7 +201,6 @@ func extractUpdateBlockchain(blockchainID string, update *types.UpdateBlockchain
 func extractUpdateSyncCheckOptions(blockchainID string, update *types.UpdateBlockchain) UpdateSyncCheckOptionsParams {
 	params := UpdateSyncCheckOptionsParams{
 		BlockchainID: blockchainID,
-		Synccheck:    newSQLNullString(update.Synccheck),
 		Body:         newSQLNullString(update.Body),
 		Path:         newSQLNullString(update.SyncCheckPath),
 		ResultKey:    newSQLNullString(update.ResultKey),
@@ -216,7 +213,7 @@ func extractUpdateSyncCheckOptions(blockchainID string, update *types.UpdateBloc
 
 }
 func (s UpdateSyncCheckOptionsParams) isNotNull() bool {
-	return s.Synccheck.Valid || s.Allowance.Valid || s.Body.Valid || s.Path.Valid || s.ResultKey.Valid
+	return s.Allowance.Valid || s.Body.Valid || s.Path.Valid || s.ResultKey.Valid
 }
 
 /* WriteRedirect saves input Redirect struct to the database.

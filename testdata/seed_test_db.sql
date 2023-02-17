@@ -387,7 +387,6 @@ VALUES (
     );
 INSERT INTO sync_check_options (
         blockchain_id,
-        synccheck,
         allowance,
         body,
         path,
@@ -395,7 +394,6 @@ INSERT INTO sync_check_options (
     )
 VALUES (
         '0001',
-        null,
         1,
         '{}',
         '/v1/query/height',
@@ -403,7 +401,6 @@ VALUES (
     ),
     (
         '0021',
-        null,
         5,
         '{\"method\":\"eth_blockNumber\",\"id\":1,\"jsonrpc\":\"2.0\"}',
         null,

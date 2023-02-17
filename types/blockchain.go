@@ -15,7 +15,6 @@ type (
 		EnforceResult     string           `json:"enforceResult"`
 		Network           string           `json:"network"`
 		Path              string           `json:"path"`
-		SyncCheck         string           `json:"syncCheck"`
 		Ticker            string           `json:"ticker"`
 		BlockchainAliases []string         `json:"blockchainAliases"`
 		LogLimitBlocks    int              `json:"logLimitBlocks"`
@@ -56,7 +55,6 @@ type (
 		LogLimitBlocks    int      `json:"logLimitBlocks,omitempty"`
 		RequestTimeout    int      `json:"requestTimeout,omitempty"`
 
-		Synccheck     string `json:"synccheck,omitempty"`
 		Body          string `json:"body,omitempty"`
 		SyncCheckPath string `json:"sync_check_path,omitempty"`
 		ResultKey     string `json:"resultKey,omitempty"`
@@ -90,9 +88,6 @@ func (b *Blockchain) UpdateBlockchain(update *UpdateBlockchain) *Blockchain {
 	}
 	if update.Ticker != "" {
 		b.Ticker = update.Ticker
-	}
-	if update.Synccheck != "" {
-		b.SyncCheck = update.Synccheck
 	}
 	if update.BlockchainAliases != nil {
 		b.BlockchainAliases = update.BlockchainAliases
@@ -128,5 +123,5 @@ func (b *Blockchain) updateSyncCheckOptions(update *UpdateBlockchain) {
 }
 
 func (u *UpdateBlockchain) syncCheckUpdateNotNil() bool {
-	return u.Synccheck != "" || u.Body != "" || u.SyncCheckPath != "" || u.ResultKey != ""
+	return u.Body != "" || u.SyncCheckPath != "" || u.ResultKey != ""
 }

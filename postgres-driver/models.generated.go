@@ -176,7 +176,6 @@ type StickinessOption struct {
 type SyncCheckOption struct {
 	ID           int32          `json:"id"`
 	BlockchainID string         `json:"blockchainID"`
-	Synccheck    sql.NullString `json:"synccheck"`
 	Allowance    sql.NullInt32  `json:"allowance"`
 	Body         sql.NullString `json:"body"`
 	Path         sql.NullString `json:"path"`
