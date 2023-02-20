@@ -78,8 +78,9 @@ const (
 	RoleAdmin  RoleName = "ADMIN"
 	RoleMember RoleName = "MEMBER"
 
-	ReadEndpoint  PermissionsEnum = "read:endpoint"
-	WriteEndpoint PermissionsEnum = "write:endpoint"
+	ReadEndpoint   PermissionsEnum = "read:endpoint"
+	WriteEndpoint  PermissionsEnum = "write:endpoint"
+	DeleteEndpoint PermissionsEnum = "delete:endpoint"
 )
 
 var (
@@ -95,7 +96,7 @@ var (
 	}
 
 	permissionsList = map[RoleName][]PermissionsEnum{
-		RoleOwner:  {ReadEndpoint, WriteEndpoint},
+		RoleOwner:  {ReadEndpoint, WriteEndpoint, DeleteEndpoint},
 		RoleAdmin:  {ReadEndpoint, WriteEndpoint},
 		RoleMember: {ReadEndpoint},
 	}
