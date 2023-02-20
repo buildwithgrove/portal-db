@@ -214,3 +214,18 @@ func (u *UserPermissions) HasWritePermission(loadBalancerID LoadBalancerID) bool
 
 	return false
 }
+
+func (u *UserPermissions) HasDeletePermission(loadBalancerID LoadBalancerID) bool {
+	lb, ok := u.LoadBalancers[loadBalancerID]
+	if !ok {
+		return false
+	}
+
+	for _, perm := range lb.Permissions {
+		if perm == DeleteEndpoint {
+			return true
+		}
+	}
+
+	return false
+}

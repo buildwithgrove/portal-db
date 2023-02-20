@@ -12,7 +12,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		LoadBalancers: map[LoadBalancerID]LoadBalancerPermissions{
 			"test_lb_67774900350d9c42": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint},
+				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint},
 			},
 		},
 	},
@@ -34,7 +34,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		LoadBalancers: map[LoadBalancerID]LoadBalancerPermissions{
 			"test_lb_34987u329rfn23f": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint},
+				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint},
 			},
 		},
 	},
@@ -261,5 +261,42 @@ func Test_UserPermissions_HasWritePermission(t *testing.T) {
 
 		hasReadPermission := userPermissions.HasWritePermission(test.loadBalancerID)
 		c.Equal(test.hasReadPermission, hasReadPermission)
+	}
+}
+
+func Test_UserPermissions_HasDeletePermission(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name                string
+		userID              UserID
+		loadBalancerID      LoadBalancerID
+		hasDeletePermission bool
+	}{
+		{
+			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
+			userID:              "test_user_687463gh2h72gs",
+			loadBalancerID:      "test_lb_67774900350d9c42",
+			hasDeletePermission: true,
+		},
+		{
+			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
+			userID:              "test_user_687463gh2h72gs",
+			loadBalancerID:      "test_lb_34987u329rfn23f",
+			hasDeletePermission: false,
+		},
+		{
+			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
+			userID:              "test_user_774900350d9c43",
+			loadBalancerID:      "test_lb_34987u329rfn23f",
+			hasDeletePermission: true,
+		},
+	}
+
+	for _, test := range tests {
+		userPermissions := testUserPermissions[test.userID]
+
+		hasReadPermission := userPermissions.HasDeletePermission(test.loadBalancerID)
+		c.Equal(test.hasDeletePermission, hasReadPermission)
 	}
 }
