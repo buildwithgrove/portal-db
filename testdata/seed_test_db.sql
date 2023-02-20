@@ -7,7 +7,7 @@ VALUES ('FREETIER_V0', 250000),
     ('TEST_PLAN_90K', 90000);
 INSERT INTO user_roles (name, permissions)
 VALUES ('ADMIN', '{ "read:endpoint", "write:endpoint" }'),
-    ('OWNER', '{ "read:endpoint", "write:endpoint" }'),
+    ('OWNER', '{ "read:endpoint", "write:endpoint", "delete:endpoint" }'),
     ('MEMBER', '{ "read:endpoint" }');
 INSERT INTO applications (
         application_id,
