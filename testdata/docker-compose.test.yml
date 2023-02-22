@@ -4,7 +4,7 @@ version: "3"
 services:
   test-database:
     build:
-      context: .
+      context: ..
     container_name: test-database
     restart: always
     ports:
