@@ -41,6 +41,16 @@ VALUES (
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_97djd63jd78r7f',
+        'pokt_app_789',
+        'IN_SERVICE',
+        'https://test.app789.io',
+        'test_user_redirect233344',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO app_limits (
         application_id,
@@ -56,6 +66,11 @@ VALUES (
         'test_app_5hdf7sh23jd828',
         'ENTERPRISE',
         2000000
+    ),
+    (
+        'test_app_97djd63jd78r7f',
+        'PAY_AS_YOU_GO_V0',
+        null
     );
 INSERT INTO gateway_aat (
         application_id,
@@ -80,6 +95,14 @@ VALUES (
         'test_1272a8ab4cbbf636f09bf4fa5395b885',
         'test_d709871777b89ed3051190f229ea3f01',
         'test_53e50765d8bc1fb41b3b0065dd8094de'
+    ),
+    (
+        'test_app_97djd63jd78r7f',
+        'test_58a37510a103f3de57296af882b2603c',
+        'test_cc49729227c22f3934a966d99a6be72b',
+        'test_8d5f4a3006b5603bcecfb44a819c272a',
+        'test_28a54385e49b65a860f61db62449703b',
+        'test_8d5f4a3006b5603bcecfb44a819c272a'
     );
 INSERT INTO gateway_settings (
         application_id,
@@ -100,6 +123,14 @@ VALUES (
     (
         'test_app_5hdf7sh23jd828',
         'test_90210ac4bdd3423e24877d1ff92',
+        false,
+        null,
+        null,
+        null
+    ),
+    (
+        'test_app_97djd63jd78r7f',
+        'test_8fd84jf74jf83kd83kd92okg355',
         false,
         null,
         null,
@@ -163,6 +194,14 @@ VALUES (
     ),
     (
         'test_app_5hdf7sh23jd828',
+        true,
+        false,
+        false,
+        true,
+        true
+    ),
+    (
+        'test_app_97djd63jd78r7f',
         true,
         false,
         false,
@@ -301,6 +340,10 @@ VALUES (
     (
         'test_lb_3890ru23jfi32fj',
         'test_app_5hdf7sh23jd828'
+    ),
+    (
+        'test_lb_34gg4g43g34g5hh',
+        'test_app_97djd63jd78r7f'
     );
 INSERT INTO blockchains (
         blockchain_id,
