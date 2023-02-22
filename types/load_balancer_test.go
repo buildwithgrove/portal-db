@@ -12,7 +12,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		LoadBalancers: map[LoadBalancerID]LoadBalancerPermissions{
 			"test_lb_67774900350d9c42": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint},
+				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint, TransferEndpoint},
 			},
 		},
 	},
@@ -34,7 +34,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		LoadBalancers: map[LoadBalancerID]LoadBalancerPermissions{
 			"test_lb_34987u329rfn23f": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint},
+				Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint, TransferEndpoint},
 			},
 		},
 	},
@@ -98,7 +98,7 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 				LoadBalancers: map[LoadBalancerID]LoadBalancerPermissions{
 					"test_lb_67774900350d9c42": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint},
+						Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint, TransferEndpoint},
 					},
 					"test_new_load_balancer": {
 						RoleName:    RoleAdmin,
@@ -117,7 +117,7 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 				LoadBalancers: map[LoadBalancerID]LoadBalancerPermissions{
 					"test_lb_67774900350d9c42": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint},
+						Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint, TransferEndpoint},
 					},
 					"test_new_load_balancer": {
 						RoleName:    RoleMember,
@@ -171,7 +171,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 				LoadBalancers: map[LoadBalancerID]LoadBalancerPermissions{
 					"test_lb_34987u329rfn23f": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint},
+						Permissions: []PermissionsEnum{ReadEndpoint, WriteEndpoint, DeleteEndpoint, TransferEndpoint},
 					},
 				},
 			},
@@ -190,7 +190,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 	}
 }
 
-func Test_UserPermissions_HasReadPermission(t *testing.T) {
+func Test_UserPermissions_HasPermission_Read(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
@@ -222,12 +222,12 @@ func Test_UserPermissions_HasReadPermission(t *testing.T) {
 	for _, test := range tests {
 		userPermissions := testUserPermissions[test.userID]
 
-		hasReadPermission := userPermissions.HasReadPermission(test.loadBalancerID)
+		hasReadPermission := userPermissions.HasPermission(test.loadBalancerID, ReadEndpoint)
 		c.Equal(test.hasReadPermission, hasReadPermission)
 	}
 }
 
-func Test_UserPermissions_HasWritePermission(t *testing.T) {
+func Test_UserPermissions_HasPermission_Write(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
@@ -259,12 +259,12 @@ func Test_UserPermissions_HasWritePermission(t *testing.T) {
 	for _, test := range tests {
 		userPermissions := testUserPermissions[test.userID]
 
-		hasReadPermission := userPermissions.HasWritePermission(test.loadBalancerID)
+		hasReadPermission := userPermissions.HasPermission(test.loadBalancerID, WriteEndpoint)
 		c.Equal(test.hasReadPermission, hasReadPermission)
 	}
 }
 
-func Test_UserPermissions_HasDeletePermission(t *testing.T) {
+func Test_UserPermissions_HasPermission_Delete(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
@@ -296,7 +296,43 @@ func Test_UserPermissions_HasDeletePermission(t *testing.T) {
 	for _, test := range tests {
 		userPermissions := testUserPermissions[test.userID]
 
-		hasReadPermission := userPermissions.HasDeletePermission(test.loadBalancerID)
+		hasReadPermission := userPermissions.HasPermission(test.loadBalancerID, DeleteEndpoint)
+		c.Equal(test.hasDeletePermission, hasReadPermission)
+	}
+}
+func Test_UserPermissions_HasPermission_Transfer(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name                string
+		userID              UserID
+		loadBalancerID      LoadBalancerID
+		hasDeletePermission bool
+	}{
+		{
+			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
+			userID:              "test_user_687463gh2h72gs",
+			loadBalancerID:      "test_lb_67774900350d9c42",
+			hasDeletePermission: true,
+		},
+		{
+			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
+			userID:              "test_user_687463gh2h72gs",
+			loadBalancerID:      "test_lb_34987u329rfn23f",
+			hasDeletePermission: false,
+		},
+		{
+			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
+			userID:              "test_user_774900350d9c43",
+			loadBalancerID:      "test_lb_34987u329rfn23f",
+			hasDeletePermission: true,
+		},
+	}
+
+	for _, test := range tests {
+		userPermissions := testUserPermissions[test.userID]
+
+		hasReadPermission := userPermissions.HasPermission(test.loadBalancerID, TransferEndpoint)
 		c.Equal(test.hasDeletePermission, hasReadPermission)
 	}
 }

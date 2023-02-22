@@ -114,7 +114,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
 							"test_lb_34987u329rfn23f": {
 								RoleName:    types.RoleOwner,
-								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint, types.DeleteEndpoint, types.TransferEndpoint},
 							},
 						},
 					},
@@ -141,7 +141,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
 							"test_lb_3890ru23jfi32fj": {
 								RoleName:    types.RoleOwner,
-								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint, types.DeleteEndpoint, types.TransferEndpoint},
 							},
 						},
 					},
@@ -159,7 +159,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 						LoadBalancers: map[types.LoadBalancerID]types.LoadBalancerPermissions{
 							"test_lb_34gg4g43g34g5hh": {
 								RoleName:    types.RoleOwner,
-								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint},
+								Permissions: []types.PermissionsEnum{types.ReadEndpoint, types.WriteEndpoint, types.DeleteEndpoint, types.TransferEndpoint},
 							},
 						},
 					},
