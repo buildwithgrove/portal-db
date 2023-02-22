@@ -78,9 +78,10 @@ const (
 	RoleAdmin  RoleName = "ADMIN"
 	RoleMember RoleName = "MEMBER"
 
-	ReadEndpoint   PermissionsEnum = "read:endpoint"
-	WriteEndpoint  PermissionsEnum = "write:endpoint"
-	DeleteEndpoint PermissionsEnum = "delete:endpoint"
+	ReadEndpoint     PermissionsEnum = "read:endpoint"
+	WriteEndpoint    PermissionsEnum = "write:endpoint"
+	DeleteEndpoint   PermissionsEnum = "delete:endpoint"
+	TransferEndpoint PermissionsEnum = "transfer:endpoint"
 )
 
 var (
@@ -96,7 +97,7 @@ var (
 	}
 
 	permissionsList = map[RoleName][]PermissionsEnum{
-		RoleOwner:  {ReadEndpoint, WriteEndpoint, DeleteEndpoint},
+		RoleOwner:  {ReadEndpoint, WriteEndpoint, DeleteEndpoint, TransferEndpoint},
 		RoleAdmin:  {ReadEndpoint, WriteEndpoint},
 		RoleMember: {ReadEndpoint},
 	}
@@ -185,44 +186,14 @@ func (u *UserPermissions) DeletePermissions(loadBalancerID LoadBalancerID) *User
 	return u
 }
 
-func (u *UserPermissions) HasReadPermission(loadBalancerID LoadBalancerID) bool {
+func (u *UserPermissions) HasPermission(loadBalancerID LoadBalancerID, permission PermissionsEnum) bool {
 	lb, ok := u.LoadBalancers[loadBalancerID]
 	if !ok {
 		return false
 	}
 
-	for _, perm := range lb.Permissions {
-		if perm == ReadEndpoint {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (u *UserPermissions) HasWritePermission(loadBalancerID LoadBalancerID) bool {
-	lb, ok := u.LoadBalancers[loadBalancerID]
-	if !ok {
-		return false
-	}
-
-	for _, perm := range lb.Permissions {
-		if perm == WriteEndpoint {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (u *UserPermissions) HasDeletePermission(loadBalancerID LoadBalancerID) bool {
-	lb, ok := u.LoadBalancers[loadBalancerID]
-	if !ok {
-		return false
-	}
-
-	for _, perm := range lb.Permissions {
-		if perm == DeleteEndpoint {
+	for _, loadBalancerPermission := range lb.Permissions {
+		if loadBalancerPermission == permission {
 			return true
 		}
 	}
