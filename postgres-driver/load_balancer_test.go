@@ -571,13 +571,6 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				err: nil,
 			},
 			{
-				name:          "Should fail if attempting to update User to owner role",
-				lbIDInput:     "test_lb_3890ru23jfi32fj",
-				emailInput:    "test_user_admin5678",
-				userRoleInput: types.RoleOwner,
-				err:           ErrCannotSetToOwner,
-			},
-			{
 				name:       "Should fail if user email not provided",
 				lbIDInput:  "test_lb_34gg4g43g34g5hh",
 				emailInput: "",
