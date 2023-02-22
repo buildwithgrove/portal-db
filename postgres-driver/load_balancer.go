@@ -294,9 +294,6 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, email, lbID s
 	if lbID == "" {
 		return ErrMissingLBID
 	}
-	if roleName == types.RoleOwner {
-		return ErrCannotSetToOwner
-	}
 
 	params := UpdateUserAccessParams{
 		Email:     email,
