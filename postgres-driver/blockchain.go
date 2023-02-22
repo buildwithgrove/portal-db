@@ -43,7 +43,6 @@ func (b *SelectBlockchainsRow) toBlockchain() (*types.Blockchain, error) {
 		ChainIDCheck:      b.ChainIDCheck.String,
 		Description:       b.Description.String,
 		EnforceResult:     b.EnforceResult.String,
-		Network:           b.Network.String,
 		Path:              b.Path.String,
 		Ticker:            b.Ticker.String,
 		BlockchainAliases: b.BlockchainAliases,
@@ -54,7 +53,6 @@ func (b *SelectBlockchainsRow) toBlockchain() (*types.Blockchain, error) {
 		SyncCheckOptions: types.SyncCheckOptions{
 			Body:      b.SBody.String,
 			ResultKey: b.SResultKey.String,
-			Path:      b.SPath.String,
 			Allowance: int(b.SAllowance.Int32),
 		},
 
@@ -116,7 +114,6 @@ func extractInsertDBBlockchain(blockchain *types.Blockchain) InsertBlockchainPar
 		Path:              newSQLNullString(blockchain.Path),
 		Description:       newSQLNullString(blockchain.Description),
 		EnforceResult:     newSQLNullString(blockchain.EnforceResult),
-		Network:           newSQLNullString(blockchain.Network),
 		Ticker:            newSQLNullString(blockchain.Ticker),
 		BlockchainAliases: blockchain.BlockchainAliases,
 		LogLimitBlocks:    newSQLNullInt32(int32(blockchain.LogLimitBlocks), false),
@@ -131,7 +128,6 @@ func extractInsertSyncCheckOptions(blockchain *types.Blockchain) InsertSyncCheck
 	return InsertSyncCheckOptionsParams{
 		BlockchainID: blockchain.ID,
 		Body:         newSQLNullString(blockchain.SyncCheckOptions.Body),
-		Path:         newSQLNullString(blockchain.SyncCheckOptions.Path),
 		ResultKey:    newSQLNullString(blockchain.SyncCheckOptions.ResultKey),
 		Allowance:    newSQLNullInt32(int32(blockchain.SyncCheckOptions.Allowance), false),
 	}
@@ -190,7 +186,6 @@ func extractUpdateBlockchain(blockchainID string, update *types.UpdateBlockchain
 		Description:       newSQLNullString(update.Description),
 		EnforceResult:     newSQLNullString(update.EnforceResult),
 		LogLimitBlocks:    newSQLNullInt32(int32(update.LogLimitBlocks), false),
-		Network:           newSQLNullString(update.Network),
 		Path:              newSQLNullString(update.Path),
 		RequestTimeout:    newSQLNullInt32(int32(update.RequestTimeout), false),
 		Ticker:            newSQLNullString(update.Ticker),
@@ -202,7 +197,6 @@ func extractUpdateSyncCheckOptions(blockchainID string, update *types.UpdateBloc
 	params := UpdateSyncCheckOptionsParams{
 		BlockchainID: blockchainID,
 		Body:         newSQLNullString(update.Body),
-		Path:         newSQLNullString(update.SyncCheckPath),
 		ResultKey:    newSQLNullString(update.ResultKey),
 	}
 	if update.Allowance != nil {
@@ -325,7 +319,6 @@ func (j dbBlockchainJSON) toOutput() *types.Blockchain {
 		Path:              j.ChainPath,
 		Description:       j.Description,
 		EnforceResult:     j.EnforceResult,
-		Network:           j.Network,
 		Ticker:            j.Ticker,
 		BlockchainAliases: j.BlockchainAliases,
 		LogLimitBlocks:    j.LogLimitBlocks,
@@ -339,7 +332,6 @@ func (j dbSyncCheckOptionsJSON) toOutput() *types.SyncCheckOptions {
 	return &types.SyncCheckOptions{
 		BlockchainID: j.BlockchainID,
 		Body:         j.Body,
-		Path:         j.Path,
 		ResultKey:    j.ResultKey,
 		Allowance:    j.Allowance,
 	}
