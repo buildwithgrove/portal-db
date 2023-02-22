@@ -7,10 +7,10 @@ gen_mocks:
 
 test: test_env_up run_driver_tests test_env_down
 test_env_up:
-	docker-compose -f ./docker-compose.test.yml up -d --remove-orphans --build;
+	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build;
 	sleep 2;
 test_env_down:
-	docker-compose -f ./docker-compose.test.yml down --remove-orphans -v
+	docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans -v
 run_driver_tests:
 	-go test ./... -run Test_RunPGDriverSuite -count=1 -v;
 
