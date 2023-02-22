@@ -178,7 +178,6 @@ func blockchainInputs(mainTableAction, sideTablesAction types.Action, content ty
 			ChainPath:         blockchain.Path,
 			Description:       blockchain.Description,
 			EnforceResult:     blockchain.EnforceResult,
-			Network:           blockchain.Network,
 			Ticker:            blockchain.Ticker,
 			BlockchainAliases: blockchain.BlockchainAliases,
 			LogLimitBlocks:    blockchain.LogLimitBlocks,
@@ -196,7 +195,6 @@ func blockchainInputs(mainTableAction, sideTablesAction types.Action, content ty
 			input: dbSyncCheckOptionsJSON{
 				BlockchainID: blockchain.SyncCheckOptions.BlockchainID,
 				Body:         blockchain.SyncCheckOptions.Body,
-				Path:         blockchain.SyncCheckOptions.Path,
 				ResultKey:    blockchain.SyncCheckOptions.ResultKey,
 				Allowance:    blockchain.SyncCheckOptions.Allowance,
 			},

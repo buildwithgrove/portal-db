@@ -19,7 +19,6 @@ func (ts *PGDriverTestSuite) Test_ReadBlockchains() {
 					Blockchain:        "pokt-mainnet",
 					Description:       "POKT Network Mainnet",
 					EnforceResult:     "JSON",
-					Network:           "POKT-mainnet",
 					Ticker:            "POKT",
 					BlockchainAliases: []string{"pokt-mainnet"},
 					LogLimitBlocks:    100_000,
@@ -38,7 +37,6 @@ func (ts *PGDriverTestSuite) Test_ReadBlockchains() {
 					},
 					SyncCheckOptions: types.SyncCheckOptions{
 						Body:      `{}`,
-						Path:      "/v1/query/height",
 						ResultKey: "height",
 						Allowance: 1,
 					},
@@ -51,7 +49,6 @@ func (ts *PGDriverTestSuite) Test_ReadBlockchains() {
 					ChainIDCheck:      `{\"method\":\"eth_chainId\",\"id\":1,\"jsonrpc\":\"2.0\"}`,
 					Description:       "Ethereum Mainnet",
 					EnforceResult:     "JSON",
-					Network:           "ETH-1",
 					Ticker:            "ETH",
 					BlockchainAliases: []string{"eth-mainnet"},
 					LogLimitBlocks:    100_000,
@@ -86,13 +83,11 @@ func (ts *PGDriverTestSuite) Test_ReadBlockchains() {
 			ts.Equal(test.blockchains[i].ChainIDCheck, blockchain.ChainIDCheck)
 			ts.Equal(test.blockchains[i].Description, blockchain.Description)
 			ts.Equal(test.blockchains[i].EnforceResult, blockchain.EnforceResult)
-			ts.Equal(test.blockchains[i].Network, blockchain.Network)
 			ts.Equal(test.blockchains[i].Path, blockchain.Path)
 			ts.Equal(test.blockchains[i].Ticker, blockchain.Ticker)
 			ts.Equal(test.blockchains[i].BlockchainAliases, blockchain.BlockchainAliases)
 			ts.Equal(test.blockchains[i].LogLimitBlocks, blockchain.LogLimitBlocks)
 			ts.Equal(test.blockchains[i].RequestTimeout, blockchain.RequestTimeout)
-			ts.Equal(test.blockchains[i].SyncAllowance, blockchain.SyncAllowance)
 			ts.Equal(test.blockchains[i].Active, blockchain.Active)
 			ts.Equal(test.blockchains[i].Redirects, blockchain.Redirects)
 			ts.Equal(test.blockchains[i].SyncCheckOptions, blockchain.SyncCheckOptions)
@@ -117,7 +112,6 @@ func (ts *PGDriverTestSuite) Test_WriteBlockchain() {
 				Blockchain:        "pol-mainnet",
 				Description:       "Polygon Mainnet",
 				EnforceResult:     "JSON",
-				Network:           "POL-mainnet",
 				Ticker:            "POL",
 				BlockchainAliases: []string{"pol-mainnet"},
 				LogLimitBlocks:    100000,
@@ -152,13 +146,11 @@ func (ts *PGDriverTestSuite) Test_WriteBlockchain() {
 				ts.Equal(test.chainInput.ChainIDCheck, blockchain.ChainIDCheck)
 				ts.Equal(test.chainInput.Description, blockchain.Description)
 				ts.Equal(test.chainInput.EnforceResult, blockchain.EnforceResult)
-				ts.Equal(test.chainInput.Network, blockchain.Network)
 				ts.Equal(test.chainInput.Path, blockchain.Path)
 				ts.Equal(test.chainInput.Ticker, blockchain.Ticker)
 				ts.Equal(test.chainInput.BlockchainAliases, blockchain.BlockchainAliases)
 				ts.Equal(test.chainInput.LogLimitBlocks, blockchain.LogLimitBlocks)
 				ts.Equal(test.chainInput.RequestTimeout, blockchain.RequestTimeout)
-				ts.Equal(test.chainInput.SyncAllowance, blockchain.SyncAllowance)
 				ts.Equal(test.chainInput.Active, blockchain.Active)
 				ts.Equal(test.chainInput.SyncCheckOptions, blockchain.SyncCheckOptions)
 				ts.NotEmpty(blockchain.CreatedAt)
@@ -194,7 +186,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 				Blockchain:        "pokt-mainnet-updated",
 				Description:       "POKT Network Mainnet Updated",
 				EnforceResult:     "JSON",
-				Network:           "POKT-mainnet",
 				Ticker:            "POKT",
 				BlockchainAliases: []string{"pokt-mainnet"},
 				LogLimitBlocks:    100_010,
@@ -214,7 +205,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 				},
 				SyncCheckOptions: types.SyncCheckOptions{
 					Body:      `{}`,
-					Path:      "/v1/query/height",
 					ResultKey: "updated-key",
 					Allowance: 1,
 				},
@@ -227,9 +217,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			chainUpdate: &types.UpdateBlockchain{
 				Description:       "POKT Network Mainnet Updated Again",
 				RequestTimeout:    123_456,
-				Network:           "new-network",
 				Ticker:            "SUCH-WOW",
-				SyncCheckPath:     "/v1/query/wow-new",
 				ResultKey:         "new-key",
 				BlockchainAliases: []string{"pokt-mainnet", "another-one"},
 				EnforceResult:     "JSON-2",
@@ -240,7 +228,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 				Blockchain:        "pokt-mainnet-updated",
 				Description:       "POKT Network Mainnet Updated Again",
 				EnforceResult:     "JSON-2",
-				Network:           "new-network",
 				Ticker:            "SUCH-WOW",
 				BlockchainAliases: []string{"pokt-mainnet", "another-one"},
 				LogLimitBlocks:    100_010,
@@ -260,7 +247,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 				},
 				SyncCheckOptions: types.SyncCheckOptions{
 					Body:      `{}`,
-					Path:      "/v1/query/wow-new",
 					ResultKey: "new-key",
 					Allowance: 1,
 				},
@@ -282,7 +268,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 				Blockchain:        "pokt-mainnet-updated",
 				Description:       "POKT Network Mainnet Updated Again",
 				EnforceResult:     "JSON-2",
-				Network:           "new-network",
 				Ticker:            "SUCH-WOW",
 				Path:              "new-path",
 				BlockchainAliases: []string{"pokt-mainnet", "another-one"},
@@ -303,7 +288,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 				},
 				SyncCheckOptions: types.SyncCheckOptions{
 					Body:      `{"new-body": "alliance"}`,
-					Path:      "/v1/query/wow-new",
 					ResultKey: "key123",
 					Allowance: 1,
 				},
@@ -336,13 +320,11 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 					ts.Equal(test.expectedBlockchain.Description, blockchain.Description)
 					ts.Equal(test.expectedBlockchain.EnforceResult, blockchain.EnforceResult)
 					ts.Equal(test.expectedBlockchain.LogLimitBlocks, blockchain.LogLimitBlocks)
-					ts.Equal(test.expectedBlockchain.Network, blockchain.Network)
 					ts.Equal(test.expectedBlockchain.Path, blockchain.Path)
 					ts.Equal(test.expectedBlockchain.RequestTimeout, blockchain.RequestTimeout)
 					ts.Equal(test.expectedBlockchain.Ticker, blockchain.Ticker)
 					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Allowance, blockchain.SyncCheckOptions.Allowance)
 					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Body, blockchain.SyncCheckOptions.Body)
-					ts.Equal(test.expectedBlockchain.SyncCheckOptions.Path, blockchain.SyncCheckOptions.Path)
 					ts.Equal(test.expectedBlockchain.SyncCheckOptions.ResultKey, blockchain.SyncCheckOptions.ResultKey)
 					ts.NotEmpty(blockchain.CreatedAt)
 					ts.NotEmpty(blockchain.UpdatedAt)

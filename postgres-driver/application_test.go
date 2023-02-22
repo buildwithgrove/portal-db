@@ -86,6 +86,35 @@ func (ts *PGDriverTestSuite) Test_ReadApplications() {
 						Full:          true,
 					},
 				},
+				{
+					ID:     "test_app_97djd63jd78r7f",
+					UserID: "test_user_redirect233344",
+					Name:   "pokt_app_789",
+					URL:    "https://test.app789.io",
+					Dummy:  true,
+					Status: types.InService,
+					GatewayAAT: types.GatewayAAT{
+						Address:              "test_58a37510a103f3de57296af882b2603c",
+						ApplicationPublicKey: "test_cc49729227c22f3934a966d99a6be72b",
+						ApplicationSignature: "test_8d5f4a3006b5603bcecfb44a819c272a",
+						ClientPublicKey:      "test_28a54385e49b65a860f61db62449703b",
+						PrivateKey:           "test_8d5f4a3006b5603bcecfb44a819c272a",
+					},
+					GatewaySettings: types.GatewaySettings{
+						SecretKey:         "test_8fd84jf74jf83kd83kd92okg355",
+						SecretKeyRequired: false,
+					},
+					Limit: types.AppLimit{
+						PayPlan: types.PayPlan{Type: types.PayAsYouGoV0, Limit: 0},
+					},
+					NotificationSettings: types.NotificationSettings{
+						SignedUp:      true,
+						Quarter:       false,
+						Half:          false,
+						ThreeQuarters: true,
+						Full:          true,
+					},
+				},
 			},
 			err: nil,
 		},
@@ -150,7 +179,7 @@ func (ts *PGDriverTestSuite) Test_WriteApplication() {
 			name: "Should create a single load balancer successfully with correct input",
 			appInputs: []*types.Application{
 				{
-					Name:   "pokt_app_789",
+					Name:   "pokt_app_101",
 					UserID: "test_user_47fhsd75jd756sh",
 					Dummy:  true,
 					Status: types.InService,
@@ -177,9 +206,9 @@ func (ts *PGDriverTestSuite) Test_WriteApplication() {
 					},
 				},
 			},
-			expectedNumOfApps: 3,
+			expectedNumOfApps: 4,
 			expectedApp: SelectOneApplicationRow{
-				Name:              sql.NullString{Valid: true, String: "pokt_app_789"},
+				Name:              sql.NullString{Valid: true, String: "pokt_app_101"},
 				UserID:            sql.NullString{Valid: true, String: "test_user_47fhsd75jd756sh"},
 				Dummy:             sql.NullBool{Valid: true, Bool: true},
 				Status:            sql.NullString{Valid: true, String: "IN_SERVICE"},
