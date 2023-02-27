@@ -12,10 +12,11 @@ import (
 )
 
 var (
-	ErrInvalidUsersJSON        = errors.New("error: users JSON is invalid")
-	ErrUserInputIsMissingField = errors.New("error: user access input is missing a required field")
-	ErrLBMustHaveUser          = errors.New("error: a new load balancer must have at least one user")
-	ErrCannotSetToOwner        = errors.New("error: load balancers may only have one owner and the owner role is already set")
+	ErrInvalidUsersJSON            = errors.New("error: users JSON is invalid")
+	ErrUserInputIsMissingField     = errors.New("error: user access input is missing a required field")
+	ErrLBMustHaveUser              = errors.New("error: a new load balancer must have at least one user")
+	ErrCannotSetToOwner            = errors.New("error: load balancers may only have one owner and the owner role is already set")
+	ErrCannotSetToOwnerNotAccepted = errors.New("error: cannot set a user to owner if they have not yet accepted their invitation")
 )
 
 /* ReadLoadBalancers returns all LoadBalancers in the database */
@@ -293,6 +294,16 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, email, lbID s
 	}
 	if lbID == "" {
 		return ErrMissingLBID
+	}
+	// Block setting a user's role to owner if they have not yet accepted their invitation
+	if roleName == types.RoleOwner {
+		accepted, err := p.GetUserAccessAccepted(ctx, GetUserAccessAcceptedParams{Email: email, LbID: lbID})
+		if err != nil {
+			return err
+		}
+		if !accepted {
+			return ErrCannotSetToOwnerNotAccepted
+		}
 	}
 
 	params := UpdateUserAccessParams{
