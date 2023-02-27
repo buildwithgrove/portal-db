@@ -34,9 +34,10 @@ func (q *Queries) ActivateBlockchain(ctx context.Context, arg ActivateBlockchain
 
 const deleteNotPresentWhitelistContracts = `-- name: DeleteNotPresentWhitelistContracts :exec
 DELETE FROM whitelist_contracts
-WHERE application_id = $1 AND blockchain_id NOT IN (
-   SELECT unnest($2::VARCHAR[])
-)
+WHERE application_id = $1
+    AND blockchain_id NOT IN (
+        SELECT unnest($2::VARCHAR [])
+    )
 `
 
 type DeleteNotPresentWhitelistContractsParams struct {
@@ -51,9 +52,10 @@ func (q *Queries) DeleteNotPresentWhitelistContracts(ctx context.Context, arg De
 
 const deleteNotPresentWhitelistMethods = `-- name: DeleteNotPresentWhitelistMethods :exec
 DELETE FROM whitelist_methods
-WHERE application_id = $1 AND blockchain_id NOT IN (
-   SELECT unnest($2::VARCHAR[])
-)
+WHERE application_id = $1
+    AND blockchain_id NOT IN (
+        SELECT unnest($2::VARCHAR [])
+    )
 `
 
 type DeleteNotPresentWhitelistMethodsParams struct {
@@ -83,7 +85,7 @@ func (q *Queries) DeleteRedirect(ctx context.Context, arg DeleteRedirectParams) 
 }
 
 const deleteUserAccess = `-- name: DeleteUserAccess :exec
-DELETE FROM user_access  as ua
+DELETE FROM user_access as ua
 WHERE ua.email = $1
     AND ua.lb_id = $2
 `
@@ -96,6 +98,25 @@ type DeleteUserAccessParams struct {
 func (q *Queries) DeleteUserAccess(ctx context.Context, arg DeleteUserAccessParams) error {
 	_, err := q.db.ExecContext(ctx, deleteUserAccess, arg.Email, arg.LbID)
 	return err
+}
+
+const getUserAccessAccepted = `-- name: GetUserAccessAccepted :one
+SELECT accepted
+FROM user_access
+WHERE email = $1
+    AND lb_id = $2
+`
+
+type GetUserAccessAcceptedParams struct {
+	Email string `json:"email"`
+	LbID  string `json:"lbID"`
+}
+
+func (q *Queries) GetUserAccessAccepted(ctx context.Context, arg GetUserAccessAcceptedParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getUserAccessAccepted, arg.Email, arg.LbID)
+	var accepted bool
+	err := row.Scan(&accepted)
+	return accepted, err
 }
 
 const insertAppLimit = `-- name: InsertAppLimit :exec

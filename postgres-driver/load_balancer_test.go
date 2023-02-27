@@ -582,6 +582,13 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				emailInput: "test_user_member5678",
 				err:        ErrMissingLBID,
 			},
+			{
+				name:          "Should fail if attempting to set user to OWNER and user has not yet accepted their invitation",
+				lbIDInput:     "test_lb_34gg4g43g34g5hh",
+				emailInput:    "member2@test.com",
+				userRoleInput: types.RoleOwner,
+				err:           ErrCannotSetToOwnerNotAccepted,
+			},
 		}
 
 		for _, test := range tests {

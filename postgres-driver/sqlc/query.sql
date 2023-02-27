@@ -529,9 +529,10 @@ SELECT application_id,
 FROM new_data ON CONFLICT (application_id, blockchain_id, contract) DO NOTHING;
 -- name: DeleteNotPresentWhitelistContracts :exec
 DELETE FROM whitelist_contracts
-WHERE application_id = $1 AND blockchain_id NOT IN (
-   SELECT unnest(@blockchain_ids::VARCHAR[])
-);
+WHERE application_id = $1
+    AND blockchain_id NOT IN (
+        SELECT unnest(@blockchain_ids::VARCHAR [])
+    );
 -- name: UpdateWhitelistMethods :exec
 WITH new_data (application_id, blockchain_id, method) AS (
     SELECT $1 as application_id,
@@ -555,9 +556,10 @@ SELECT application_id,
 FROM new_data ON CONFLICT (application_id, blockchain_id, method) DO NOTHING;
 -- name: DeleteNotPresentWhitelistMethods :exec
 DELETE FROM whitelist_methods
-WHERE application_id = $1 AND blockchain_id NOT IN (
-   SELECT unnest(@blockchain_ids::VARCHAR[])
-);
+WHERE application_id = $1
+    AND blockchain_id NOT IN (
+        SELECT unnest(@blockchain_ids::VARCHAR [])
+    );
 -- name: UpsertNotificationSettings :exec
 INSERT INTO notification_settings AS ns (
         application_id,
@@ -741,6 +743,11 @@ INSERT INTO user_access (
         updated_at
     )
 VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING;
+-- name: GetUserAccessAccepted :one
+SELECT accepted
+FROM user_access
+WHERE email = $1
+    AND lb_id = $2;
 -- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),
@@ -755,7 +762,7 @@ SET user_id = $3,
 WHERE ua.email = $1
     AND ua.lb_id = $2;
 -- name: DeleteUserAccess :exec
-DELETE FROM user_access  as ua
+DELETE FROM user_access as ua
 WHERE ua.email = $1
     AND ua.lb_id = $2;
 -- name: UpsertStickinessOptions :exec
