@@ -497,14 +497,14 @@ SET secret_key = COALESCE(EXCLUDED.secret_key, gs.secret_key),
         EXCLUDED.secret_key_required,
         gs.secret_key_required
     ),
-    whitelist_origins = COALESCE(EXCLUDED.whitelist_origins, gs.whitelist_origins),
+    whitelist_origins = COALESCE(EXCLUDED.whitelist_origins, '{}'::text []),
     whitelist_user_agents = COALESCE(
         EXCLUDED.whitelist_user_agents,
-        gs.whitelist_user_agents
+        '{}'::text []
     ),
     whitelist_blockchains = COALESCE(
         EXCLUDED.whitelist_blockchains,
-        gs.whitelist_blockchains
+        '{}'::text []
     );
 -- name: UpdateWhitelistContracts :exec
 WITH new_data (application_id, blockchain_id, contract) AS (

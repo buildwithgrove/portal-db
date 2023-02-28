@@ -326,7 +326,7 @@ func (p *PostgresDriver) UpdateApplication(ctx context.Context, id string, updat
 	}
 
 	gatewaySettingsParams := extractUpsertGatewaySettings(id, update)
-	if gatewaySettingsParams.isNotNull() {
+	if gatewaySettingsParams != nil {
 		err = qtx.UpsertGatewaySettings(ctx, *gatewaySettingsParams)
 		if err != nil {
 			return err
@@ -415,10 +415,6 @@ func extractUpsertGatewaySettings(id string, update *types.UpdateApplication) *U
 		WhitelistUserAgents:  update.GatewaySettings.WhitelistUserAgents,
 		WhitelistBlockchains: update.GatewaySettings.WhitelistBlockchains,
 	}
-}
-func (u *UpsertGatewaySettingsParams) isNotNull() bool {
-	return u != nil && (u.SecretKey.Valid || u.SecretKeyRequired.Valid ||
-		len(u.WhitelistOrigins) != 0 || len(u.WhitelistUserAgents) != 0 || len(u.WhitelistBlockchains) != 0)
 }
 
 func extractUpdateWhitelistContracts(id string, updateContract *types.WhitelistContracts) UpdateWhitelistContractsParams {
