@@ -75,12 +75,12 @@ func (s *NotificationSettings) Table() Table {
 	return TableNotificationSettings
 }
 
-func (b *Blockchain) Table() Table {
+func (b *Chain) Table() Table {
 	return TableBlockchains
 }
-func (r *Redirect) Table() Table {
+func (r *ChainGigastakesRedirect) Table() Table {
 	return TableRedirects
 }
-func (o *SyncCheckOptions) Table() Table {
+func (o *ChainSyncCheckOptions) Table() Table {
 	return TableSyncCheckOptions
 }
