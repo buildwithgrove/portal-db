@@ -134,7 +134,6 @@ func (s *StickyOptions) IsEmpty() bool {
 
 // UserPermissions stores all load balancer read/write permissions for a given user
 type (
-	UserID         string
 	LoadBalancerID string
 
 	UserPermissions struct {
