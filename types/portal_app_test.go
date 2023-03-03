@@ -300,7 +300,7 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 			name:      "Should return an applications whitelists in the form of a WhitelistContracts struct",
 			portalApp: testPortalApplication,
 			expectedResult: &WhitelistsObject{
-				Whitelists: [3]ApplicationWhitelists{
+				AppWhitelists: [3]ApplicationWhitelists{
 					{Type: "origins", Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
 					{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Internet Explorer (lol)", "Mozilla Firefox", "Safari"}},
 					{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},

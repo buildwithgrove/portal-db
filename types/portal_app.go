@@ -99,7 +99,7 @@ type (
 
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
 	WhitelistsObject struct {
-		Whitelists      [3]ApplicationWhitelists `json:"appWhitelists"`
+		AppWhitelists   [3]ApplicationWhitelists `json:"appWhitelists"`
 		ChainWhitelists [2]ChainWhitelists       `json:"chainWhitelists"`
 	}
 	ApplicationWhitelists struct {
@@ -242,7 +242,7 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	})
 
 	return &WhitelistsObject{
-		Whitelists: [3]ApplicationWhitelists{
+		AppWhitelists: [3]ApplicationWhitelists{
 			{Type: WLOrigins, Values: origins},
 			{Type: WLUserAgents, Values: userAgents},
 			{Type: WLBlockchains, Values: blockchains},
