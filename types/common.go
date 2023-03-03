@@ -33,11 +33,11 @@ const (
 
 	TablePayPlans Table = "pay_plans"
 
-	TableBlockchains               Table = "blockchains"
-	TableChainAltruists            Table = "blockchain_altruists"
-	TableChainGigastakesRedirect   Table = "blockchain_gigastakes_redirects"
-	TableChainSyncCheckOptions     Table = "blockchain_sync_check_options"
-	TableChainGlobalAllowedMethods Table = "blockchain_global_allowed_methods"
+	TableBlockchains             Table = "blockchains"
+	TableChainAltruists          Table = "blockchain_altruists"
+	TableChainGigastakesRedirect Table = "blockchain_gigastakes_redirects"
+	TableChainSyncCheckOptions   Table = "blockchain_sync_check_options"
+	TableChainAllowedMethods     Table = "blockchain_allowed_methods"
 
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 
@@ -103,7 +103,7 @@ func (t *ChainSyncCheckOptions) Table() Table {
 }
 
 func (t *ChainGlobalAllowedMethods) Table() Table {
-	return TableChainGlobalAllowedMethods
+	return TableChainAllowedMethods
 }
 
 func (t *GlobalBlockedContracts) Table() Table {

@@ -13,9 +13,7 @@ type (
 		// PartnerThroughputLimit is the number of relays per second for an accounts partners
 		PartnerThroughputLimit int `json:"partnerThroughputLimit"`
 		// PartnerAppLimit is the number of apps for an accounts partners
-		PartnerAppLimit int       `json:"partnerAppLimit"`
-		CreatedAt       time.Time `json:"createdAt"`
-		UpdatedAt       time.Time `json:"updatedAt"`
+		PartnerAppLimit int `json:"partnerAppLimit"`
 	}
 
 	// AccountUserAccess represents a single Portal user's role for a single Portal application

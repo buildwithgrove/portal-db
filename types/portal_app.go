@@ -132,29 +132,29 @@ type (
 
 	//UpdatePortalApp Struct Definition and Methods
 	UpdatePortalApp struct {
-		ApplicationID        ApplicationID
-		Name                 *string                              `json:"name,omitempty"`
-		GatewaySettings      *UpdateApplicationSettings           `json:"gatewaySettings,omitempty"`
-		NotificationSettings *UpdatePortalAppNotificationSettings `json:"notificationSettings,omitempty"`
-		Whitelists           *WhitelistsObject                    `json:"whitelists,omitempty"`
+		AppID         ApplicationID           `json:"appID,omitempty"`
+		Name          string                  `json:"name,omitempty"`
+		Settings      *UpdateAppSettings      `json:"appSettings,omitempty"`
+		Notifications *UpdateAppNotifications `json:"notificationSettings,omitempty"`
+		Whitelists    *WhitelistsObject       `json:"whitelists,omitempty"`
 	}
 
-	UpdateApplicationSettings struct {
-		ID                string      `json:"id,omitempty"`
-		Environment       Environment `json:"environment"`
-		SecretKey         string      `json:"secretKey"`
-		SecretKeyRequired *bool       `json:"secretKeyRequired"`
-		MonthlyRelayLimit int         `json:"monthlyRelayLimit"`
-		FavoritedChainIDs []string    `json:"favoritedChainIDs"`
+	UpdateAppSettings struct {
+		AppID             ApplicationID `json:"appID,omitempty"`
+		Environment       Environment   `json:"environment"`
+		SecretKey         string        `json:"secretKey"`
+		SecretKeyRequired bool          `json:"secretKeyRequired"`
+		MonthlyRelayLimit int           `json:"monthlyRelayLimit"`
+		FavoritedChainIDs []string      `json:"favoritedChainIDs"`
 	}
 
-	UpdatePortalAppNotificationSettings struct {
-		ID               string           `json:"id,omitempty"`
-		NotificationType NotificationType `json:"notificationType"`
-		Active           *bool            `json:"active"`
-		Destination      string           `json:"destination"`
-		Trigger          string           `json:"trigger"`
-		Events           []string         `json:"events"`
+	UpdateAppNotifications struct {
+		AppID            ApplicationID              `json:"appID,omitempty"`
+		NotificationType NotificationType           `json:"notificationType"`
+		Active           *bool                      `json:"active"`
+		Destination      string                     `json:"destination"`
+		Trigger          string                     `json:"trigger"`
+		Events           map[NotificationEvent]bool `json:"events"`
 	}
 
 	UpdateFirstDateSurpassed struct {
@@ -243,24 +243,24 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	var contractWhitelists, methodWhitelists []BlockchainIDWhitelists // Chain whitelists
 
 	for blockchainID, chainContracts := range a.Whitelists.Contracts {
-		values := []string{}
+		contracts := []string{}
 		for contract := range chainContracts {
-			values = append(values, string(contract))
+			contracts = append(contracts, string(contract))
 		}
-		sort.Strings(values)
-		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: values})
+		sort.Strings(contracts)
+		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: contracts})
 	}
 	sort.Slice(contractWhitelists, func(i, j int) bool {
 		return contractWhitelists[i].BlockchainID < contractWhitelists[j].BlockchainID
 	})
 
 	for blockchainID, chainMethods := range a.Whitelists.Methods {
-		values := []string{}
+		methods := []string{}
 		for method := range chainMethods {
-			values = append(values, string(method))
+			methods = append(methods, string(method))
 		}
-		sort.Strings(values)
-		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: values})
+		sort.Strings(methods)
+		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: methods})
 	}
 	sort.Slice(methodWhitelists, func(i, j int) bool {
 		return methodWhitelists[i].BlockchainID < methodWhitelists[j].BlockchainID

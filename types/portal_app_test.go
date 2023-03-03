@@ -97,7 +97,7 @@ var testPortalApplication = PortalApp{
 		GigastakeRedirect:  true,
 		FirstDateSurpassed: time.Date(2023, time.February, 28, 15, 15, 15, 0, time.UTC),
 		StickyOptions: StickyOptions{
-			Duration:      "4_000",
+			Duration:      "4000",
 			StickyOrigins: []string{"origin123"},
 			StickyMax:     4_000,
 			Stickiness:    true,
