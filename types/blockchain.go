@@ -113,3 +113,23 @@ func (b *Blockchain) updateSyncCheckOptions(update *UpdateBlockchain) {
 func (u *UpdateBlockchain) syncCheckUpdateNotNil() bool {
 	return u.Body != "" || u.ResultKey != "" || u.Allowance != nil
 }
+
+func (b *Chain) Table() Table {
+	return TableBlockchains
+}
+
+func (r *Altruist) Table() Table {
+	return TableChainAltruists
+}
+
+func (r *GigastakeRedirect) Table() Table {
+	return TableChainGigastakesRedirects
+}
+
+func (t *Check) Table() Table {
+	return TableChainChecks
+}
+
+func (t *GlobalBlockedContracts) Table() Table {
+	return TableGlobalBlockedContracts
+}
