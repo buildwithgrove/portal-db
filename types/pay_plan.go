@@ -37,3 +37,7 @@ var (
 		Enterprise:   true,
 	}
 )
+
+func (t *Plan) Table() Table {
+	return TablePayPlans
+}
