@@ -27,7 +27,7 @@ var (
 
 /* Pay Plan Type and Methods */
 type (
-	PayPlan struct {
+	Plan struct {
 		ID            string                    `json:"id"`
 		Type          PayPlanType               `json:"planType"`
 		BlockchainIDs map[BlockchainID]struct{} `json:"blockchainIDs"`
@@ -37,6 +37,7 @@ type (
 		ThroughputLimit int `json:"throughputLimit"`
 		// AppLimit is the number of apps permitted for a pay plan
 		AppLimit int `json:"appLimit"`
+
 		// TODO - remove when v2 migration finished
 		// LegacyDailyLimit is the daily limit (required for legacy apps to function)
 		LegacyDailyLimit int `json:"legacyDailyLimit"`

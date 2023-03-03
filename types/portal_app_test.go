@@ -14,7 +14,7 @@ var testPortalApplication = PortalApp{
 	Name:      "test_portal_app_123",
 	Gigastake: true,
 	Account: Account{
-		PayPlan: PayPlan{
+		Plan: Plan{
 			Type:              FreetierV0,
 			MonthlyRelayLimit: 2_500_000,
 			ThroughputLimit:   2_000,
@@ -97,7 +97,7 @@ var testPortalApplication = PortalApp{
 		GigastakeRedirect:  true,
 		FirstDateSurpassed: time.Date(2023, time.February, 28, 15, 15, 15, 0, time.UTC),
 		StickyOptions: StickyOptions{
-			Duration:      "4_000",
+			Duration:      "4000",
 			StickyOrigins: []string{"origin123"},
 			StickyMax:     4_000,
 			Stickiness:    true,

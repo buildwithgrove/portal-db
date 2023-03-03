@@ -51,8 +51,8 @@ func (a *PortalApp) ConvertToLegacyApplication() Application {
 		},
 		GatewaySettings: a.ConvertToLegacyGatewaySettings(),
 		Limit: AppLimit{
-			PayPlan: LegacyPayPlan{
-				Type:  a.Account.PayPlan.Type,
+			Plan: PayPlan{
+				Type:  a.Account.Plan.Type,
 				Limit: a.LegacyDailyLimit(),
 			},
 			CustomLimit: a.LegacyFields.CustomLimit,
@@ -133,7 +133,7 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 	}
 
 	return Blockchain{
-		ID:                c.ID,
+		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
 		ChainID:           c.ChainID,
 		ChainIDCheck:      c.ChainIDCheck,
@@ -157,48 +157,152 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 	}
 }
 
+func (c *Plan) ConvertToLegacyPayPlan() PayPlan {
+	return PayPlan{
+		Type:  c.Type,
+		Limit: c.LegacyDailyLimit,
+	}
+}
+
 /* Legacy Struct to V2 Struct Adaptors */
 
-// TODO finish adaptor methods for:
+// Creates the struct with all fields needed to create a new PortalApp
+// LoadBalancer must be sent to PHD containing its Application already defined inside PUB
+// This way the PortalApp can be created in only one operation (no PHD client changes needed)
+func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
+	app := lb.Applications[0]
+	owner := lb.Users[0]
 
-// TODO figure out how to handle creation of a new Portal App
-// Currently it is two separate operations using two separate PHD endpoints.
-// Maybe Load Balancer does a create then Application does an update?
-// Application
-func (b *Application) ConvertToV2PortalApp() PortalApp {
-	return PortalApp{}
+	return PortalApp{
+		ID:        "", // generate ID inside postgresdriver (same ID as LoadBalancer)
+		Name:      lb.Name,
+		Gigastake: lb.Gigastake,
+		Account: Account{
+			Plan: Plan{Type: app.Limit.Plan.Type},
+			Users: map[UserID]AccountUserAccess{
+				UserID(owner.UserID): {
+					User:     User{ID: owner.UserID, Email: owner.Email, AuthProvider: ProviderAuth0},
+					RoleName: RoleOwner,
+					Accepted: true,
+				},
+			},
+		},
+		AAT: AppAAT{
+			Address:         app.GatewayAAT.Address,
+			PublicKey:       app.GatewayAAT.ApplicationPublicKey,
+			ClientPublicKey: app.GatewayAAT.ClientPublicKey,
+			PrivateKey:      app.GatewayAAT.PrivateKey,
+			Signature:       app.GatewayAAT.ApplicationSignature,
+			Version:         app.GatewayAAT.Version,
+		},
+		Settings: AppSettings{
+			Environment: EnvProduction,
+			SecretKey:   app.GatewaySettings.SecretKey,
+		},
+		Notifications: map[NotificationType]AppNotification{
+			NotificationEmail: {
+				Active:      true,
+				Destination: owner.Email,
+				Events: map[NotificationEvent]bool{
+					EventSignedUp:      app.NotificationSettings.SignedUp,
+					EventQuarter:       app.NotificationSettings.Quarter,
+					EventHalf:          app.NotificationSettings.Half,
+					EventThreeQuarters: app.NotificationSettings.ThreeQuarters,
+					EventFull:          app.NotificationSettings.Full,
+				},
+			},
+		},
+
+		LegacyFields: LegacyFields{
+			ApplicationID:     "", // generate ID inside postgres driver (same ID as Application)
+			RequestTimeout:    lb.RequestTimeout,
+			GigastakeRedirect: lb.GigastakeRedirect,
+			StickyOptions:     lb.StickyOptions,
+		},
+	}
 }
 
-// LoadBalancer
-func (b *LoadBalancer) ConvertToV2PortalApp() PortalApp {
-	return PortalApp{}
+// Converts the existing UpdateApplication struct to a new one that updates all relevant fields
+// UpdateLoadBalancer struct is redundant since it previously only updated the Name field
+// Must use /load_balancer update endpoint as the ID for PortalApps is the former LB ID
+func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) UpdatePortalApp {
+	var (
+		settings                             *UpdateAppSettings
+		notifications                        *UpdateAppNotifications
+		whitelists                           *WhitelistsObject
+		contractWhitelists, methodWhitelists []BlockchainIDWhitelists
+	)
+
+	if u.NotificationSettings != nil {
+		notifications = &UpdateAppNotifications{
+			NotificationType: NotificationEmail,
+			Events: map[NotificationEvent]bool{
+				EventSignedUp:      *u.NotificationSettings.SignedUp,
+				EventQuarter:       *u.NotificationSettings.Quarter,
+				EventHalf:          *u.NotificationSettings.Half,
+				EventThreeQuarters: *u.NotificationSettings.ThreeQuarters,
+				EventFull:          *u.NotificationSettings.Full,
+			},
+		}
+	}
+
+	if u.GatewaySettings != nil {
+		settings = &UpdateAppSettings{SecretKey: u.GatewaySettings.SecretKey}
+		if u.GatewaySettings.SecretKeyRequired != nil {
+			settings.SecretKeyRequired = *u.GatewaySettings.SecretKeyRequired
+		}
+
+		for _, chainContracts := range u.GatewaySettings.WhitelistContracts {
+			contracts := []string{}
+			contracts = append(contracts, chainContracts.Contracts...)
+			contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{
+				BlockchainID: chainContracts.BlockchainID, Values: contracts,
+			})
+		}
+		for _, chainMethods := range u.GatewaySettings.WhitelistMethods {
+			methods := []string{}
+			methods = append(methods, chainMethods.Methods...)
+			methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{
+				BlockchainID: chainMethods.BlockchainID, Values: methods,
+			})
+		}
+
+		whitelists = &WhitelistsObject{
+			AppWhitelists: [3]ApplicationWhitelists{
+				{Type: WLOrigins, Values: u.GatewaySettings.WhitelistOrigins},
+				{Type: WLUserAgents, Values: u.GatewaySettings.WhitelistUserAgents},
+				{Type: WLBlockchains, Values: u.GatewaySettings.WhitelistBlockchains},
+			},
+			ChainWhitelists: [2]ChainWhitelists{
+				{Type: WLContracts, Values: contractWhitelists},
+				{Type: WLMethods, Values: methodWhitelists},
+			},
+		}
+	}
+
+	return UpdatePortalApp{
+		AppID: ApplicationID(loadBalancerID), Name: u.Name,
+		Settings: settings, Notifications: notifications, Whitelists: whitelists,
+	}
 }
 
-// TODO figure out how to handle update of a Portal App
-// same issue as above
-// UpdateApplication
-func (b *UpdateApplication) ConvertToV2UpdatePortalApp() UpdatePortalApp {
-	return UpdatePortalApp{}
+func (u *UserAccess) ConvertToV2AccountUserAccess() AccountUserAccess {
+	return AccountUserAccess{
+		User:     User{ID: u.UserID, Email: u.Email, AuthProvider: ProviderAuth0},
+		RoleName: u.RoleName, Accepted: u.Accepted,
+	}
 }
 
-// UpdateLoadBalancer
-func (b *UpdateLoadBalancer) ConvertToV2UpdatePortalApp() UpdatePortalApp {
-	return UpdatePortalApp{}
-}
-
-// UserAccess
-func (b *UserAccess) ConvertToV2AccountUserAccess() AccountUserAccess {
-	return AccountUserAccess{}
-}
-
-// UpdateUserAccess
-func (b *UpdateUserAccess) ConvertToV2AccountUserAccess() AccountUserAccess {
-	return AccountUserAccess{}
+func (u *UpdateUserAccess) ConvertToV2UpdateAccountUserAccess(accepted bool) AccountUserAccess {
+	return AccountUserAccess{
+		User:     User{ID: u.UserID, Email: u.Email, AuthProvider: ProviderAuth0},
+		RoleName: u.RoleName, Accepted: accepted,
+	}
 }
 
 func (b *Blockchain) ConvertToV2Chain() Chain {
 	return Chain{
-		ID:                b.ID,
+		ID:                BlockchainID(b.ID),
 		Blockchain:        b.Blockchain,
 		ChainID:           b.ChainID,
 		ChainIDCheck:      b.ChainIDCheck,
@@ -210,9 +314,7 @@ func (b *Blockchain) ConvertToV2Chain() Chain {
 		LogLimitBlocks:    b.LogLimitBlocks,
 		RequestTimeout:    b.RequestTimeout,
 		Active:            b.Active,
-		Altruists: []ChainAltruist{
-			{URL: b.Altruist},
-		},
+		Altruists:         []ChainAltruist{{URL: b.Altruist}},
 		SyncCheckOptions: ChainSyncCheckOptions{
 			Body:      b.SyncCheckOptions.Body,
 			ResultKey: b.SyncCheckOptions.ResultKey,
@@ -235,9 +337,7 @@ func (u *UpdateBlockchain) ConvertToV2UpdateChain() UpdateChain {
 		Body:              u.Body,
 		ResultKey:         u.ResultKey,
 		Allowance:         u.Allowance,
-		Altruists: []ChainAltruist{
-			{URL: u.Altruist},
-		},
+		Altruists:         []ChainAltruist{{URL: u.Altruist}},
 	}
 }
 
@@ -371,11 +471,11 @@ type (
 		Methods      []string `json:"methods"`
 	}
 	AppLimit struct {
-		ID          string        `json:"id,omitempty"`
-		PayPlan     LegacyPayPlan `json:"payPlan"`
-		CustomLimit int           `json:"customLimit"`
+		ID          string  `json:"id,omitempty"`
+		Plan        PayPlan `json:"payPlan"`
+		CustomLimit int     `json:"customLimit"`
 	}
-	LegacyPayPlan struct {
+	PayPlan struct {
 		Type  PayPlanType `json:"planType"`
 		Limit int         `json:"dailyLimit"`
 	}
@@ -492,11 +592,11 @@ type (
 
 /* Legacy Methods */
 func (a *Application) DailyLimit() int {
-	if a.Limit.PayPlan.Type == Enterprise {
+	if a.Limit.Plan.Type == Enterprise {
 		return a.Limit.CustomLimit
 	}
 
-	return a.Limit.PayPlan.Limit
+	return a.Limit.Plan.Limit
 }
 
 /* Utils */

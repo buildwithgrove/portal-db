@@ -82,7 +82,7 @@ func (t *User) Table() Table {
 	return TableUsers
 }
 
-func (t *PayPlan) Table() Table {
+func (t *Plan) Table() Table {
 	return TablePayPlans
 }
 

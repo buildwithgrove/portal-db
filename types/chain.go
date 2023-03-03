@@ -14,7 +14,7 @@ const (
 
 type (
 	Chain struct {
-		ID                   string                    `json:"id"`
+		ID                   BlockchainID              `json:"id"`
 		Blockchain           string                    `json:"blockchain"`
 		ChainID              string                    `json:"chainID"`
 		ChainIDCheck         string                    `json:"chainIDCheck"`
