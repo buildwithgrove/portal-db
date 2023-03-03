@@ -37,7 +37,7 @@ var testPortalApplication = PortalApp{
 		PartnerThroughputLimit: 2_000,
 		PartnerAppLimit:        2,
 	},
-	AAT: AppAAT{
+	AAT: AAT{
 		Address:         "test_34715cae753e67c75fbb340442e7de8e",
 		PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
 		ClientPublicKey: "test_9e9ca4fe13725d412003f4bc518f6974",
@@ -45,14 +45,14 @@ var testPortalApplication = PortalApp{
 		Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 		Version:         "0.0.1",
 	},
-	Settings: AppSettings{
+	Settings: Settings{
 		Environment:            EnvProduction,
 		SecretKey:              "test_90210ac4bdd3423e24877d1ff92",
 		SecretKeyRequired:      true,
 		MonthlyRelayLimit:      250_000,
 		FavoritedBlockchainIDs: map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 	},
-	Whitelists: AppWhitelists{
+	Whitelists: Whitelists{
 		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
 		UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Internet Explorer (lol)": {}},
 		Blockchains: map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},

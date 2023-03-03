@@ -51,15 +51,15 @@ type (
 		Name          string                               `json:"name"`
 		Gigastake     bool                                 `json:"gigastake"`
 		Account       Account                              `json:"account"`
-		AAT           AppAAT                               `json:"aat"`
-		Settings      AppSettings                          `json:"settings"`
-		Whitelists    AppWhitelists                        `json:"whitelists"`
+		AAT           AAT                                  `json:"aat"`
+		Settings      Settings                             `json:"settings"`
+		Whitelists    Whitelists                           `json:"whitelists"`
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
 	}
 
-	AppAAT struct {
+	AAT struct {
 		AppID           ApplicationID `json:"appID,omitempty"`
 		Address         string        `json:"address"`
 		PublicKey       string        `json:"publicKey"`
@@ -69,7 +69,7 @@ type (
 		Version         string        `json:"version"`
 	}
 
-	AppSettings struct {
+	Settings struct {
 		AppID                  ApplicationID             `json:"appID,omitempty"`
 		Environment            Environment               `json:"environment"`
 		SecretKey              string                    `json:"secretKey"`
@@ -80,7 +80,7 @@ type (
 		MonthlyRelayLimit int `json:"monthlyRelayLimit"`
 	}
 
-	AppWhitelists struct {
+	Whitelists struct {
 		AppID       ApplicationID                          `json:"appID,omitempty"`
 		Origins     map[Origin]struct{}                    `json:"origins"`
 		UserAgents  map[UserAgent]struct{}                 `json:"userAgents"`
