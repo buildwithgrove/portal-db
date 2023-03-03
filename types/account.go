@@ -29,3 +29,11 @@ type (
 		UpdatedAt time.Time `json:"updatedAt"`
 	}
 )
+
+func (t *Account) Table() Table {
+	return TableAccounts
+}
+
+func (t *AccountUserAccess) Table() Table {
+	return TableAccountUserAccess
+}

@@ -253,3 +253,23 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 		},
 	}
 }
+
+func (t *PortalApp) Table() Table {
+	return TablePortalApps
+}
+
+func (t *AAT) Table() Table {
+	return TableAppAATs
+}
+
+func (t *Settings) Table() Table {
+	return TableAppSettings
+}
+
+func (t *Whitelists) Table() Table {
+	return TableAppWhitelists
+}
+
+func (t *AppNotification) Table() Table {
+	return TableAppNotifications
+}
