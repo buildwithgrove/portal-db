@@ -33,11 +33,10 @@ const (
 
 	TablePayPlans Table = "pay_plans"
 
-	TableBlockchains               Table = "blockchains"
-	TableChainAltruists            Table = "blockchain_altruists"
-	TableChainGigastakesRedirect   Table = "blockchain_gigastakes_redirects"
-	TableChainSyncCheckOptions     Table = "blockchain_sync_check_options"
-	TableChainGlobalAllowedMethods Table = "blockchain_global_allowed_methods"
+	TableBlockchains              Table = "blockchains"
+	TableChainAltruists           Table = "blockchain_altruists"
+	TableChainGigastakesRedirects Table = "blockchain_gigastake_redirects"
+	TableChainChecks              Table = "blockchain_checks"
 
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 
@@ -54,15 +53,15 @@ func (t *PortalApp) Table() Table {
 	return TablePortalApps
 }
 
-func (t *AppAAT) Table() Table {
+func (t *AAT) Table() Table {
 	return TableAppAATs
 }
 
-func (t *AppSettings) Table() Table {
+func (t *Settings) Table() Table {
 	return TableAppSettings
 }
 
-func (t *AppWhitelists) Table() Table {
+func (t *Whitelists) Table() Table {
 	return TableAppWhitelists
 }
 
@@ -82,28 +81,24 @@ func (t *User) Table() Table {
 	return TableUsers
 }
 
-func (t *PayPlan) Table() Table {
+func (t *Plan) Table() Table {
 	return TablePayPlans
 }
 
-func (t *Blockchain) Table() Table {
+func (b *Chain) Table() Table {
 	return TableBlockchains
 }
 
-func (t *ChainAltruists) Table() Table {
+func (r *Altruist) Table() Table {
 	return TableChainAltruists
 }
 
-func (t *ChainGigastakesRedirect) Table() Table {
-	return TableChainGigastakesRedirect
+func (r *GigastakeRedirect) Table() Table {
+	return TableChainGigastakesRedirects
 }
 
-func (t *ChainSyncCheckOptions) Table() Table {
-	return TableChainSyncCheckOptions
-}
-
-func (t *ChainGlobalAllowedMethods) Table() Table {
-	return TableChainGlobalAllowedMethods
+func (t *Check) Table() Table {
+	return TableChainChecks
 }
 
 func (t *GlobalBlockedContracts) Table() Table {
