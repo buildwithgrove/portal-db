@@ -43,3 +43,7 @@ type (
 		LegacyDailyLimit int `json:"legacyDailyLimit"`
 	}
 )
+
+func (p *Plan) Table() Table {
+	return TablePayPlans
+}
