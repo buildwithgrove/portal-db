@@ -136,7 +136,7 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
 		ChainID:           c.ChainID,
-		ChainIDCheck:      c.ChainIDCheck,
+		ChainIDCheck:      c.Checks[CheckChain].Payload,
 		Description:       c.Description,
 		EnforceResult:     c.EnforceResult,
 		Path:              c.Path,
@@ -147,9 +147,9 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 		Active:            c.Active,
 		Altruist:          c.Altruists[0].URL,
 		SyncCheckOptions: SyncCheckOptions{
-			Body:      c.SyncCheckOptions.Body,
-			ResultKey: c.SyncCheckOptions.ResultKey,
-			Allowance: c.SyncCheckOptions.Allowance,
+			Body:      c.Checks[CheckSync].Payload,
+			ResultKey: c.Checks[CheckSync].ResultKey,
+			Allowance: c.Checks[CheckSync].Allowance,
 		},
 		Redirects: redirects,
 		CreatedAt: c.CreatedAt,
@@ -187,7 +187,7 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 				},
 			},
 		},
-		AAT: AppAAT{
+		AAT: AAT{
 			Address:         app.GatewayAAT.Address,
 			PublicKey:       app.GatewayAAT.ApplicationPublicKey,
 			ClientPublicKey: app.GatewayAAT.ClientPublicKey,
@@ -195,7 +195,7 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 			Signature:       app.GatewayAAT.ApplicationSignature,
 			Version:         app.GatewayAAT.Version,
 		},
-		Settings: AppSettings{
+		Settings: Settings{
 			Environment: EnvProduction,
 			SecretKey:   app.GatewaySettings.SecretKey,
 		},
@@ -301,11 +301,21 @@ func (u *UpdateUserAccess) ConvertToV2UpdateAccountUserAccess(accepted bool) Acc
 }
 
 func (b *Blockchain) ConvertToV2Chain() Chain {
+	checks := map[ChainCheckType]Check{
+		CheckSync: {
+			Payload:   b.SyncCheckOptions.Body,
+			ResultKey: b.SyncCheckOptions.ResultKey,
+			Allowance: b.SyncCheckOptions.Allowance,
+		},
+	}
+	if b.ChainIDCheck != "" {
+		checks[CheckChain] = Check{Payload: b.ChainIDCheck}
+	}
+
 	return Chain{
 		ID:                BlockchainID(b.ID),
 		Blockchain:        b.Blockchain,
 		ChainID:           b.ChainID,
-		ChainIDCheck:      b.ChainIDCheck,
 		Description:       b.Description,
 		EnforceResult:     b.EnforceResult,
 		Path:              b.Path,
@@ -314,19 +324,21 @@ func (b *Blockchain) ConvertToV2Chain() Chain {
 		LogLimitBlocks:    b.LogLimitBlocks,
 		RequestTimeout:    b.RequestTimeout,
 		Active:            b.Active,
-		Altruists:         []ChainAltruist{{URL: b.Altruist}},
-		SyncCheckOptions: ChainSyncCheckOptions{
-			Body:      b.SyncCheckOptions.Body,
-			ResultKey: b.SyncCheckOptions.ResultKey,
-			Allowance: b.SyncCheckOptions.Allowance,
-		},
+		Altruists:         []Altruist{{URL: b.Altruist}},
+		Checks:            checks,
 	}
 }
 
 func (u *UpdateBlockchain) ConvertToV2UpdateChain() UpdateChain {
+	checks := map[ChainCheckType]UpdateCheck{
+		CheckSync: {Payload: u.Body, ResultKey: u.ResultKey, Allowance: u.Allowance},
+	}
+	if u.ChainIDCheck != "" {
+		checks[CheckChain] = UpdateCheck{Payload: u.ChainIDCheck}
+	}
+
 	return UpdateChain{
 		Blockchain:        u.Blockchain,
-		ChainIDCheck:      u.ChainIDCheck,
 		Description:       u.Description,
 		EnforceResult:     u.EnforceResult,
 		Path:              u.Path,
@@ -334,15 +346,13 @@ func (u *UpdateBlockchain) ConvertToV2UpdateChain() UpdateChain {
 		BlockchainAliases: u.BlockchainAliases,
 		LogLimitBlocks:    u.LogLimitBlocks,
 		RequestTimeout:    u.RequestTimeout,
-		Body:              u.Body,
-		ResultKey:         u.ResultKey,
-		Allowance:         u.Allowance,
-		Altruists:         []ChainAltruist{{URL: u.Altruist}},
+		Altruists:         []Altruist{{URL: u.Altruist}},
+		Checks:            checks,
 	}
 }
 
-func (r *Redirect) ConvertToV2Redirect() ChainGigastakesRedirect {
-	return ChainGigastakesRedirect{
+func (r *Redirect) ConvertToV2Redirect() GigastakeRedirect {
+	return GigastakeRedirect{
 		Alias:         r.Alias,
 		Domain:        r.Domain,
 		ProtocolAppID: r.LoadBalancerID,

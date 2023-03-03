@@ -9,6 +9,7 @@ import (
 
 var (
 	trueBool, falseBool = true, false
+	allowanceInt        = 3
 
 	testLegacyLoadBalancer = LoadBalancer{
 		ID:                "test_5416bb8d696386455b8",
@@ -106,6 +107,7 @@ var (
 		Altruist:          "https://user:test_123@pokt-test.us-1.pokt.network:1234",
 		Blockchain:        "pokt-mainnet",
 		Description:       "POKT Network Mainnet",
+		ChainIDCheck:      `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`,
 		EnforceResult:     "JSON",
 		Path:              "/wow/test",
 		Ticker:            "POKT",
@@ -120,7 +122,7 @@ var (
 			},
 		},
 		SyncCheckOptions: SyncCheckOptions{
-			Body:      `{}`,
+			Body:      `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
 			ResultKey: "testing",
 			Allowance: 1,
 		},
@@ -132,14 +134,15 @@ var (
 		Altruist:          "https://user:test_123@pokt-test.us-1.pokt.network:1234",
 		Blockchain:        "pokt-mainnet",
 		Description:       "POKT Network Mainnet",
+		ChainIDCheck:      `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`,
 		EnforceResult:     "JSON",
 		Path:              "/wow/test",
 		Ticker:            "POKT",
 		BlockchainAliases: []string{"pokt-mainnet"},
 		LogLimitBlocks:    100_000,
-		Body:              `{}`,
+		Body:              `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
 		ResultKey:         "testing",
-		Allowance:         nil,
+		Allowance:         &allowanceInt,
 	}
 
 	testLegacyUpdateRedirect = Redirect{
@@ -181,7 +184,7 @@ var (
 				},
 			},
 		},
-		AAT: AppAAT{
+		AAT: AAT{
 			Address:         "test_34715cae753e67c75fbb340442e7de8e",
 			PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
 			ClientPublicKey: "test_9e9ca4fe13725d412003f4bc518f6974",
@@ -189,7 +192,7 @@ var (
 			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 			Version:         "0.0.1",
 		},
-		Settings: AppSettings{Environment: EnvProduction, SecretKey: "test_90210ac4bdd3423e24877d1ff92"},
+		Settings: Settings{Environment: EnvProduction, SecretKey: "test_90210ac4bdd3423e24877d1ff92"},
 		Notifications: map[NotificationType]AppNotification{
 			NotificationEmail: {
 				Active:      true,
@@ -246,11 +249,14 @@ var (
 		BlockchainAliases: []string{"pokt-mainnet"},
 		LogLimitBlocks:    100_000,
 		Active:            true,
-		Altruists:         []ChainAltruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
-		SyncCheckOptions: ChainSyncCheckOptions{
-			Body:      "{}",
-			ResultKey: "testing",
-			Allowance: 1,
+		Altruists:         []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
+		Checks: map[ChainCheckType]Check{
+			CheckSync: {
+				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
+				ResultKey: "testing",
+				Allowance: 1,
+			},
+			CheckChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
 		},
 	}
 
@@ -262,10 +268,15 @@ var (
 		Ticker:            "POKT",
 		BlockchainAliases: []string{"pokt-mainnet"},
 		LogLimitBlocks:    100_000,
-		Altruists:         []ChainAltruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
-		Body:              "{}",
-		ResultKey:         "testing",
-		Allowance:         nil,
+		Altruists:         []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
+		Checks: map[ChainCheckType]UpdateCheck{
+			CheckSync: {
+				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
+				ResultKey: "testing",
+				Allowance: &allowanceInt,
+			},
+			CheckChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
+		},
 	}
 
 	testV2AccountUserAccess = AccountUserAccess{
@@ -428,20 +439,20 @@ func Test_LegacyAdapators_ConvertToV2UpdateChain(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
-		name                 string
-		updateBlockchain     UpdateBlockchain
-		expectedV2Blockchain UpdateChain
+		name                  string
+		updateBlockchain      UpdateBlockchain
+		expectedV2UpdateChain UpdateChain
 	}{
 		{
-			name:                 "Should convert a legacy UpdateBlockchain struct to a V2 UpdateChain struct",
-			updateBlockchain:     testLegacyUpdateBlockchain,
-			expectedV2Blockchain: testV2UpdateChain,
+			name:                  "Should convert a legacy UpdateBlockchain struct to a V2 UpdateChain struct",
+			updateBlockchain:      testLegacyUpdateBlockchain,
+			expectedV2UpdateChain: testV2UpdateChain,
 		},
 	}
 
 	for _, test := range tests {
 		v2UpdateChain := test.updateBlockchain.ConvertToV2UpdateChain()
-		c.Equal(test.expectedV2Blockchain, v2UpdateChain)
+		c.Equal(test.expectedV2UpdateChain, v2UpdateChain)
 	}
 }
 
@@ -451,7 +462,7 @@ func Test_LegacyAdapators_ConvertToV2Redirect(t *testing.T) {
 	tests := []struct {
 		name               string
 		redirect           Redirect
-		expectedV2Redirect ChainGigastakesRedirect
+		expectedV2Redirect GigastakeRedirect
 	}{
 		{
 			name:               "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",

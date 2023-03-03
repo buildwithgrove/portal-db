@@ -11,29 +11,31 @@ var (
 		Path:              "/wow/test",
 		Ticker:            "POKT",
 		BlockchainAliases: []string{"pokt-mainnet"},
+		AllowedMethods:    []string{"GET", "POST", "PUT"},
 		LogLimitBlocks:    100_000,
 		Active:            true,
-		Altruists: []ChainAltruist{
+		Altruists: []Altruist{
 			{
 				URL:      "https://user:test_123@pokt-test.us-1.pokt.network:1234",
 				Auth:     "auth_123",
 				AuthType: ChainAuthBearer,
 			},
 		},
-		Redirects: []ChainGigastakesRedirect{testRedirect},
-		SyncCheckOptions: ChainSyncCheckOptions{
-			Body:      `{}`,
-			ResultKey: "testing",
-			Allowance: 1,
+		Redirects: []GigastakeRedirect{testRedirect},
+		Checks: map[ChainCheckType]Check{
+			CheckSync: {
+				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
+				ResultKey: "testing",
+				Allowance: 1,
+			},
+			CheckChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
 		},
-		GlobalAllowedMethods: ChainGlobalAllowedMethods{
-			Methods: []string{"GET", "POST", "PUT"},
-		},
+
 		CreatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
 		UpdatedAt: time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
 	}
 
-	testRedirect = ChainGigastakesRedirect{
+	testRedirect = GigastakeRedirect{
 		Alias:         "mainnet",
 		Domain:        "pokt.test.com",
 		ProtocolAppID: "test_5416bb8d696386455b8",
