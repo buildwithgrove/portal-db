@@ -50,6 +50,7 @@ type (
 		ID            string                               `json:"id"`
 		Name          string                               `json:"name"`
 		Gigastake     bool                                 `json:"gigastake"`
+		Staked        bool                                 `json:"staked"`
 		Account       Account                              `json:"account"`
 		AAT           AAT                                  `json:"aat"`
 		Settings      Settings                             `json:"settings"`
@@ -57,6 +58,20 @@ type (
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
+		// TODO - remove when v2 migration finished
+		// Fields required for compatibility with the old Portal API and Services (temporary)
+		LegacyFields LegacyFields `json:"legacyFields"`
+	}
+
+	// TODO - remove when v2 migration finished
+	// Fields required for compatibility with the old Portal API and Services (temporary)
+	LegacyFields struct {
+		ApplicationID      string        `json:"applicationID"`
+		CustomLimit        int           `json:"customLimit"`
+		RequestTimeout     int           `json:"requestTimeout"`
+		GigastakeRedirect  bool          `json:"gigastakeRedirect"`
+		FirstDateSurpassed time.Time     `json:"firstDateSurpassed"`
+		StickyOptions      StickyOptions `json:"stickyOptions"`
 	}
 
 	AAT struct {
@@ -117,31 +132,41 @@ type (
 
 	//UpdatePortalApp Struct Definition and Methods
 	UpdatePortalApp struct {
-		ApplicationID        ApplicationID
-		Name                 *string                              `json:"name,omitempty"`
-		GatewaySettings      *UpdateApplicationSettings           `json:"gatewaySettings,omitempty"`
-		NotificationSettings *UpdatePortalAppNotificationSettings `json:"notificationSettings,omitempty"`
-		Whitelists           *WhitelistsObject                    `json:"whitelists,omitempty"`
+		AppID         ApplicationID           `json:"appID,omitempty"`
+		Name          string                  `json:"name,omitempty"`
+		Settings      *UpdateAppSettings      `json:"appSettings,omitempty"`
+		Notifications *UpdateAppNotifications `json:"notificationSettings,omitempty"`
+		Whitelists    *WhitelistsObject       `json:"whitelists,omitempty"`
 	}
 
-	UpdateApplicationSettings struct {
-		ID                string      `json:"id,omitempty"`
-		Environment       Environment `json:"environment"`
-		SecretKey         string      `json:"secretKey"`
-		SecretKeyRequired *bool       `json:"secretKeyRequired"`
-		MonthlyRelayLimit int         `json:"monthlyRelayLimit"`
-		FavoritedChainIDs []string    `json:"favoritedChainIDs"`
+	UpdateAppSettings struct {
+		AppID             ApplicationID `json:"appID,omitempty"`
+		Environment       Environment   `json:"environment"`
+		SecretKey         string        `json:"secretKey"`
+		SecretKeyRequired bool          `json:"secretKeyRequired"`
+		MonthlyRelayLimit int           `json:"monthlyRelayLimit"`
+		FavoritedChainIDs []string      `json:"favoritedChainIDs"`
 	}
 
-	UpdatePortalAppNotificationSettings struct {
-		ID               string           `json:"id,omitempty"`
-		NotificationType NotificationType `json:"notificationType"`
-		Active           *bool            `json:"active"`
-		Destination      string           `json:"destination"`
-		Trigger          string           `json:"trigger"`
-		Events           []string         `json:"events"`
+	UpdateAppNotifications struct {
+		AppID            ApplicationID              `json:"appID,omitempty"`
+		NotificationType NotificationType           `json:"notificationType"`
+		Active           *bool                      `json:"active"`
+		Destination      string                     `json:"destination"`
+		Trigger          string                     `json:"trigger"`
+		Events           map[NotificationEvent]bool `json:"events"`
+	}
+
+	UpdateFirstDateSurpassed struct {
+		ApplicationIDs     []string  `json:"applicationIDs"`
+		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
 	}
 )
+
+// LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
+func (a *PortalApp) LegacyDailyLimit() int {
+	return a.Account.Plan.LegacyDailyLimit
+}
 
 // UserID returns the UserID of the Application OWNER
 func (a *PortalApp) UserID() UserID {
@@ -218,24 +243,24 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	var contractWhitelists, methodWhitelists []BlockchainIDWhitelists // Chain whitelists
 
 	for blockchainID, chainContracts := range a.Whitelists.Contracts {
-		values := []string{}
+		contracts := []string{}
 		for contract := range chainContracts {
-			values = append(values, string(contract))
+			contracts = append(contracts, string(contract))
 		}
-		sort.Strings(values)
-		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: values})
+		sort.Strings(contracts)
+		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: contracts})
 	}
 	sort.Slice(contractWhitelists, func(i, j int) bool {
 		return contractWhitelists[i].BlockchainID < contractWhitelists[j].BlockchainID
 	})
 
 	for blockchainID, chainMethods := range a.Whitelists.Methods {
-		values := []string{}
+		methods := []string{}
 		for method := range chainMethods {
-			values = append(values, string(method))
+			methods = append(methods, string(method))
 		}
-		sort.Strings(values)
-		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: values})
+		sort.Strings(methods)
+		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: methods})
 	}
 	sort.Slice(methodWhitelists, func(i, j int) bool {
 		return methodWhitelists[i].BlockchainID < methodWhitelists[j].BlockchainID
@@ -254,22 +279,22 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	}
 }
 
-func (t *PortalApp) Table() Table {
+func (a *PortalApp) Table() Table {
 	return TablePortalApps
 }
 
-func (t *AAT) Table() Table {
+func (a *AAT) Table() Table {
 	return TableAppAATs
 }
 
-func (t *Settings) Table() Table {
+func (a *Settings) Table() Table {
 	return TableAppSettings
 }
 
-func (t *Whitelists) Table() Table {
+func (a *Whitelists) Table() Table {
 	return TableAppWhitelists
 }
 
-func (t *AppNotification) Table() Table {
+func (a *AppNotification) Table() Table {
 	return TableAppNotifications
 }

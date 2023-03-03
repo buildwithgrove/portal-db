@@ -14,12 +14,13 @@ var testPortalApplication = PortalApp{
 	Name:      "test_portal_app_123",
 	Gigastake: true,
 	Account: Account{
-		PayPlan: PayPlan{
+		Plan: Plan{
 			Type:              FreetierV0,
-			MonthlyRelayLimit: 250_000,
+			MonthlyRelayLimit: 2_500_000,
 			ThroughputLimit:   2_000,
 			AppLimit:          2,
 			BlockchainIDs:     map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+			LegacyDailyLimit:  250_000,
 		},
 		Users: map[UserID]AccountUserAccess{
 			"user_id_123": {
@@ -54,7 +55,7 @@ var testPortalApplication = PortalApp{
 	},
 	Whitelists: Whitelists{
 		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
-		UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Internet Explorer (lol)": {}},
+		UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
 		Blockchains: map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 		Contracts: map[BlockchainID]map[Contract]struct{}{
 			"0001": {"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}, "0xtest_2f78db6436527729929aaf6c616361de0f7": {}},
@@ -88,6 +89,20 @@ var testPortalApplication = PortalApp{
 	},
 	CreatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
 	UpdatedAt: time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
+
+	LegacyFields: LegacyFields{
+		ApplicationID:      "test_475jf893f9j2f30jd230e",
+		CustomLimit:        0,
+		RequestTimeout:     5_000,
+		GigastakeRedirect:  true,
+		FirstDateSurpassed: time.Date(2023, time.February, 28, 15, 15, 15, 0, time.UTC),
+		StickyOptions: StickyOptions{
+			Duration:      "4000",
+			StickyOrigins: []string{"origin123"},
+			StickyMax:     4_000,
+			Stickiness:    true,
+		},
+	},
 }
 
 func Test_PortalApp_IsOriginWhitelisted(t *testing.T) {
@@ -302,7 +317,7 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 			expectedResult: &WhitelistsObject{
 				AppWhitelists: [3]ApplicationWhitelists{
 					{Type: "origins", Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
-					{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Internet Explorer (lol)", "Mozilla Firefox", "Safari"}},
+					{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
 					{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},
 				},
 				ChainWhitelists: [2]ChainWhitelists{
@@ -337,8 +352,8 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 						"values": [
 							"Brave",
 							"Google Chrome",
-							"Internet Explorer (lol)",
 							"Mozilla Firefox",
+							"Netscape Navigator",
 							"Safari"
 						]
 					},

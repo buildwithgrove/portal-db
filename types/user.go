@@ -148,6 +148,6 @@ func (u *UserPermissions) HasPermission(appID ApplicationID, permission Permissi
 	return false
 }
 
-func (t *User) Table() Table {
+func (u *User) Table() Table {
 	return TableUsers
 }

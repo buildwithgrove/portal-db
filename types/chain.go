@@ -24,7 +24,7 @@ const (
 /* Chain Struct and Methods */
 type (
 	Chain struct {
-		ID                string                   `json:"id"`
+		ID                BlockchainID             `json:"id"`
 		Blockchain        string                   `json:"blockchain"`
 		ChainID           string                   `json:"chainID"`
 		Description       string                   `json:"description"`
@@ -80,9 +80,15 @@ type (
 		RequestTimeout    int        `json:"requestTimeout,omitempty"`
 		Altruists         []Altruist `json:"altruists,omitempty"`
 
-		Checks map[ChainCheckType]Check `json:"chainChecks"`
+		Checks map[ChainCheckType]UpdateCheck `json:"chainChecks"`
 
 		UpdatedAt time.Time `json:"updatedAt"`
+	}
+	UpdateCheck struct {
+		BlockchainID string `json:"blockchainID,omitempty"`
+		Payload      string `json:"payload"`
+		ResultKey    string `json:"resultKey"`
+		Allowance    *int   `json:"allowance"` // must be able to set allowance to 0
 	}
 )
 
@@ -127,7 +133,15 @@ func (c *Chain) UpdateBlockchain(update *UpdateChain) *Chain {
 func (c *Chain) updateChainChecks(update *UpdateChain) {
 	for checkType, check := range update.Checks {
 		if check.Payload != "" {
-			c.Checks[checkType] = check
+			updatedCheck := Check{
+				Payload:   check.Payload,
+				ResultKey: check.ResultKey,
+				Allowance: c.Checks[checkType].Allowance,
+			}
+			if check.Allowance != nil {
+				updatedCheck.Allowance = *check.Allowance
+			}
+			c.Checks[checkType] = updatedCheck
 		}
 	}
 }
