@@ -1,5 +1,13 @@
 package types
 
+/* Common string types */
+type (
+	ApplicationID string
+	BlockchainID  string
+	UserID        string
+)
+
+/* Listener types */
 type (
 	Table  string
 	Action string
