@@ -14,46 +14,42 @@ const (
 
 type (
 	Chain struct {
-		ID                string                    `json:"id"`
-		Blockchain        string                    `json:"blockchain"`
-		ChainID           string                    `json:"chainID"`
-		ChainIDCheck      string                    `json:"chainIDCheck"`
-		Description       string                    `json:"description"`
-		EnforceResult     string                    `json:"enforceResult"`
-		Path              string                    `json:"path"`
-		Ticker            string                    `json:"ticker"`
-		BlockchainAliases []string                  `json:"blockchainAliases"`
-		LogLimitBlocks    int                       `json:"logLimitBlocks"`
-		RequestTimeout    int                       `json:"requestTimeout"`
-		Active            bool                      `json:"active"`
-		Altruists         []ChainAltruist           `json:"altruists"`
-		Redirects         []ChainGigastakesRedirect `json:"redirects"`
-		SyncCheckOptions  ChainSyncCheckOptions     `json:"syncCheckOptions"`
-		AllowedMethods    ChainAllowedMethods       `json:"globalAllowedMethods"`
-		CreatedAt         time.Time                 `json:"createdAt"`
-		UpdatedAt         time.Time                 `json:"updatedAt"`
+		ID                string              `json:"id"`
+		Blockchain        string              `json:"blockchain"`
+		ChainID           string              `json:"chainID"`
+		ChainIDCheck      string              `json:"chainIDCheck"`
+		Description       string              `json:"description"`
+		EnforceResult     string              `json:"enforceResult"`
+		Path              string              `json:"path"`
+		Ticker            string              `json:"ticker"`
+		BlockchainAliases []string            `json:"blockchainAliases"`
+		AllowedMethods    []string            `json:"allowedMethods"`
+		LogLimitBlocks    int                 `json:"logLimitBlocks"`
+		RequestTimeout    int                 `json:"requestTimeout"`
+		Active            bool                `json:"active"`
+		Altruists         []Altruist          `json:"altruists"`
+		Redirects         []GigastakeRedirect `json:"redirects"`
+		SyncCheckOptions  SyncCheckOptions    `json:"syncCheckOptions"`
+		CreatedAt         time.Time           `json:"createdAt"`
+		UpdatedAt         time.Time           `json:"updatedAt"`
 	}
-	ChainAltruist struct {
+	Altruist struct {
 		BlockchainID string        `json:"blockchainID,omitempty"`
 		URL          string        `json:"url"`
 		Auth         string        `json:"auth"`
 		AuthType     ChainAuthtype `json:"authType"`
 	}
-	ChainGigastakesRedirect struct {
+	GigastakeRedirect struct {
 		BlockchainID  string `json:"blockchainID,omitempty"`
 		Alias         string `json:"alias"`
 		Domain        string `json:"domain"`
 		ProtocolAppID string `json:"loadBalancerID"`
 	}
-	ChainSyncCheckOptions struct {
+	SyncCheckOptions struct {
 		BlockchainID string `json:"blockchainID,omitempty"`
 		Body         string `json:"body"`
 		ResultKey    string `json:"resultKey"`
 		Allowance    int    `json:"allowance"`
-	}
-	ChainAllowedMethods struct {
-		BlockchainID string   `json:"blockchainID,omitempty"`
-		Methods      []string `json:"methods"`
 	}
 
 	// Represents global blocked addresses across the entire Portal
@@ -65,16 +61,16 @@ type (
 
 	/* Update structs */
 	UpdateChain struct {
-		Blockchain        string          `json:"blockchain,omitempty"`
-		ChainIDCheck      string          `json:"chainIDCheck,omitempty"`
-		Description       string          `json:"description,omitempty"`
-		EnforceResult     string          `json:"enforceResult,omitempty"`
-		Path              string          `json:"path,omitempty"`
-		Ticker            string          `json:"ticker,omitempty"`
-		BlockchainAliases []string        `json:"blockchainAliases,omitempty"`
-		LogLimitBlocks    int             `json:"logLimitBlocks,omitempty"`
-		RequestTimeout    int             `json:"requestTimeout,omitempty"`
-		Altruists         []ChainAltruist `json:"altruists,omitempty"`
+		Blockchain        string     `json:"blockchain,omitempty"`
+		ChainIDCheck      string     `json:"chainIDCheck,omitempty"`
+		Description       string     `json:"description,omitempty"`
+		EnforceResult     string     `json:"enforceResult,omitempty"`
+		Path              string     `json:"path,omitempty"`
+		Ticker            string     `json:"ticker,omitempty"`
+		BlockchainAliases []string   `json:"blockchainAliases,omitempty"`
+		LogLimitBlocks    int        `json:"logLimitBlocks,omitempty"`
+		RequestTimeout    int        `json:"requestTimeout,omitempty"`
+		Altruists         []Altruist `json:"altruists,omitempty"`
 
 		Body      string `json:"body,omitempty"`
 		ResultKey string `json:"resultKey,omitempty"`

@@ -86,9 +86,9 @@ func (s *NotificationSettings) Table() Table {
 func (b *Chain) Table() Table {
 	return TableBlockchains
 }
-func (r *ChainGigastakesRedirect) Table() Table {
+func (r *GigastakeRedirect) Table() Table {
 	return TableRedirects
 }
-func (o *ChainSyncCheckOptions) Table() Table {
+func (o *SyncCheckOptions) Table() Table {
 	return TableSyncCheckOptions
 }
