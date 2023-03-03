@@ -1,20 +1,7 @@
 package types
 
-type (
-	PayPlan struct {
-		ID            string                    `json:"id"`
-		Type          PayPlanType               `json:"planType"`
-		BlockchainIDs map[BlockchainID]struct{} `json:"blockchainIDs"`
-		// MonthlyRelayLimit is the number of relays-per-month for a pay plan
-		MonthlyRelayLimit int `json:"monthlyRelayLimit"`
-		// ThroughputLimit is the number of relays-per-second for a pay plan
-		ThroughputLimit int `json:"throughputLimit"`
-		// AppLimit is the number of apps permitted for a pay plan
-		AppLimit int `json:"appLimit"`
-	}
-
-	PayPlanType string
-)
+/* Enums */
+type PayPlanType string
 
 const (
 	// TODO will be updating plan types
@@ -35,5 +22,23 @@ var (
 		FreetierV0:   true,
 		PayAsYouGoV0: true,
 		Enterprise:   true,
+	}
+)
+
+/* Pay Plan Type and Methods */
+type (
+	PayPlan struct {
+		ID            string                    `json:"id"`
+		Type          PayPlanType               `json:"planType"`
+		BlockchainIDs map[BlockchainID]struct{} `json:"blockchainIDs"`
+		// MonthlyRelayLimit is the number of relays-per-month for a pay plan
+		MonthlyRelayLimit int `json:"monthlyRelayLimit"`
+		// ThroughputLimit is the number of relays-per-second for a pay plan
+		ThroughputLimit int `json:"throughputLimit"`
+		// AppLimit is the number of apps permitted for a pay plan
+		AppLimit int `json:"appLimit"`
+		// TODO - remove when v2 migration finished
+		// LegacyDailyLimit is the daily limit (required for legacy apps to function)
+		LegacyDailyLimit int `json:"legacyDailyLimit"`
 	}
 )

@@ -50,6 +50,7 @@ type (
 		ID            string                               `json:"id"`
 		Name          string                               `json:"name"`
 		Gigastake     bool                                 `json:"gigastake"`
+		Staked        bool                                 `json:"staked"`
 		Account       Account                              `json:"account"`
 		AAT           AppAAT                               `json:"aat"`
 		Settings      AppSettings                          `json:"settings"`
@@ -57,6 +58,20 @@ type (
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
+		// TODO - remove when v2 migration finished
+		// Fields required for compatibility with the old Portal API and Services (temporary)
+		LegacyFields LegacyFields `json:"legacyFields"`
+	}
+
+	// TODO - remove when v2 migration finished
+	// Fields required for compatibility with the old Portal API and Services (temporary)
+	LegacyFields struct {
+		ApplicationID      string        `json:"applicationID"`
+		CustomLimit        int           `json:"customLimit"`
+		RequestTimeout     int           `json:"requestTimeout"`
+		GigastakeRedirect  bool          `json:"gigastakeRedirect"`
+		FirstDateSurpassed time.Time     `json:"firstDateSurpassed"`
+		StickyOptions      StickyOptions `json:"stickyOptions"`
 	}
 
 	AppAAT struct {
@@ -141,7 +156,17 @@ type (
 		Trigger          string           `json:"trigger"`
 		Events           []string         `json:"events"`
 	}
+
+	UpdateFirstDateSurpassed struct {
+		ApplicationIDs     []string  `json:"applicationIDs"`
+		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
+	}
 )
+
+// LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
+func (a *PortalApp) LegacyDailyLimit() int {
+	return a.Account.PayPlan.LegacyDailyLimit
+}
 
 // UserID returns the UserID of the Application OWNER
 func (a *PortalApp) UserID() UserID {

@@ -7,13 +7,13 @@ import (
 type ChainAuthtype string
 
 const (
-	None      ChainAuthtype = "none"
-	BasicAuth ChainAuthtype = "basicAuth"
-	Bearer    ChainAuthtype = "bearer"
+	ChainAuthNone      ChainAuthtype = "none"
+	ChainAuthBasicAuth ChainAuthtype = "basicAuth"
+	ChainAuthBearer    ChainAuthtype = "bearer"
 )
 
 type (
-	Blockchain struct {
+	Chain struct {
 		ID                   string                    `json:"id"`
 		Blockchain           string                    `json:"blockchain"`
 		ChainID              string                    `json:"chainID"`
@@ -26,28 +26,24 @@ type (
 		LogLimitBlocks       int                       `json:"logLimitBlocks"`
 		RequestTimeout       int                       `json:"requestTimeout"`
 		Active               bool                      `json:"active"`
-		Altruists            []ChainAltruists          `json:"altruists"`
+		Altruists            []ChainAltruist           `json:"altruists"`
 		Redirects            []ChainGigastakesRedirect `json:"redirects"`
 		SyncCheckOptions     ChainSyncCheckOptions     `json:"syncCheckOptions"`
 		GlobalAllowedMethods ChainGlobalAllowedMethods `json:"globalAllowedMethods"`
 		CreatedAt            time.Time                 `json:"createdAt"`
 		UpdatedAt            time.Time                 `json:"updatedAt"`
 	}
-	ChainAltruists struct {
+	ChainAltruist struct {
 		BlockchainID string        `json:"blockchainID,omitempty"`
 		URL          string        `json:"url"`
 		Auth         string        `json:"auth"`
 		AuthType     ChainAuthtype `json:"authType"`
-		CreatedAt    time.Time     `json:"createdAt"`
-		UpdatedAt    time.Time     `json:"updatedAt"`
 	}
 	ChainGigastakesRedirect struct {
-		BlockchainID  string    `json:"blockchainID,omitempty"`
-		Alias         string    `json:"alias"`
-		Domain        string    `json:"domain"`
-		ProtocolAppID string    `json:"loadBalancerID"`
-		CreatedAt     time.Time `json:"createdAt"`
-		UpdatedAt     time.Time `json:"updatedAt"`
+		BlockchainID  string `json:"blockchainID,omitempty"`
+		Alias         string `json:"alias"`
+		Domain        string `json:"domain"`
+		ProtocolAppID string `json:"loadBalancerID"`
 	}
 	ChainSyncCheckOptions struct {
 		BlockchainID string    `json:"blockchainID,omitempty"`
@@ -58,31 +54,29 @@ type (
 	}
 	ChainGlobalAllowedMethods struct {
 		BlockchainID string    `json:"blockchainID,omitempty"`
-		Method       string    `json:"method"`
+		Methods      []string  `json:"method"`
 		UpdatedAt    time.Time `json:"updatedAt"`
 	}
 
 	// Represents global blocked addresses across the entire Portal
 	// TODO should this be in a separate file?
 	GlobalBlockedContracts struct {
-		ID               string    `json:"id"`
-		BlockedAddresses []string  `json:"blockedAddresses"`
-		CreatedAt        time.Time `json:"createdAt"`
-		UpdatedAt        time.Time `json:"updatedAt"`
+		ID               string   `json:"id"`
+		BlockedAddresses []string `json:"blockedAddresses"`
 	}
 
 	/* Update structs */
-	UpdateBlockchain struct {
-		Altruist          string   `json:"altruist,omitempty"`
-		Blockchain        string   `json:"blockchain,omitempty"`
-		ChainIDCheck      string   `json:"chainIDCheck,omitempty"`
-		Description       string   `json:"description,omitempty"`
-		EnforceResult     string   `json:"enforceResult,omitempty"`
-		Path              string   `json:"path,omitempty"`
-		Ticker            string   `json:"ticker,omitempty"`
-		BlockchainAliases []string `json:"blockchainAliases,omitempty"`
-		LogLimitBlocks    int      `json:"logLimitBlocks,omitempty"`
-		RequestTimeout    int      `json:"requestTimeout,omitempty"`
+	UpdateChain struct {
+		Blockchain        string          `json:"blockchain,omitempty"`
+		ChainIDCheck      string          `json:"chainIDCheck,omitempty"`
+		Description       string          `json:"description,omitempty"`
+		EnforceResult     string          `json:"enforceResult,omitempty"`
+		Path              string          `json:"path,omitempty"`
+		Ticker            string          `json:"ticker,omitempty"`
+		BlockchainAliases []string        `json:"blockchainAliases,omitempty"`
+		LogLimitBlocks    int             `json:"logLimitBlocks,omitempty"`
+		RequestTimeout    int             `json:"requestTimeout,omitempty"`
+		Altruists         []ChainAltruist `json:"altruists,omitempty"`
 
 		Body      string `json:"body,omitempty"`
 		ResultKey string `json:"resultKey,omitempty"`
@@ -92,10 +86,7 @@ type (
 	}
 )
 
-func (b *Blockchain) UpdateBlockchain(update *UpdateBlockchain) *Blockchain {
-	if update.Altruist != "" {
-		b.Altruist = update.Altruist
-	}
+func (b *Chain) UpdateBlockchain(update *UpdateChain) *Chain {
 	if update.Blockchain != "" {
 		b.Blockchain = update.Blockchain
 	}
@@ -123,15 +114,16 @@ func (b *Blockchain) UpdateBlockchain(update *UpdateBlockchain) *Blockchain {
 	if update.RequestTimeout != 0 {
 		b.RequestTimeout = update.RequestTimeout
 	}
-
+	if update.Altruists != nil && len(update.Altruists) > 0 {
+		b.Altruists = update.Altruists
+	}
 	if update.syncCheckUpdateNotNil() {
 		b.updateSyncCheckOptions(update)
 	}
-
 	return b
 }
 
-func (b *Blockchain) updateSyncCheckOptions(update *UpdateBlockchain) {
+func (b *Chain) updateSyncCheckOptions(update *UpdateChain) {
 	if update.Body != "" {
 		b.SyncCheckOptions.Body = update.Body
 	}
@@ -143,6 +135,6 @@ func (b *Blockchain) updateSyncCheckOptions(update *UpdateBlockchain) {
 	}
 }
 
-func (u *UpdateBlockchain) syncCheckUpdateNotNil() bool {
+func (u *UpdateChain) syncCheckUpdateNotNil() bool {
 	return u.Body != "" || u.ResultKey != "" || u.Allowance != nil
 }
