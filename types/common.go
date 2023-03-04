@@ -29,7 +29,8 @@ const (
 	TableAccounts          Table = "accounts"
 	TableAccountUserAccess Table = "account_user_access"
 
-	TableUsers Table = "users"
+	TableUsers     Table = "users"
+	TableUserRoles Table = "user_roles"
 
 	TablePayPlans Table = "pay_plans"
 
