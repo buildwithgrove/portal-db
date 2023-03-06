@@ -41,6 +41,7 @@ CREATE TABLE blockchains (
     active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted BOOLEAN DEFAULT false,
     PRIMARY KEY (id)
 );
 CREATE TABLE blockchain_altruists (
@@ -106,6 +107,7 @@ CREATE TABLE portal_applications (
     first_date_surpassed TIMESTAMP,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted BOOLEAN DEFAULT false,
     PRIMARY KEY (id),
     CONSTRAINT portal_application__account_id_fk FOREIGN KEY(account_id) REFERENCES accounts(id)
 );
@@ -222,6 +224,7 @@ CREATE TABLE accounts (
     partner_application_limit INT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted BOOLEAN DEFAULT false,
     PRIMARY KEY (id),
     CONSTRAINT accounts_pay_plans_fk FOREIGN KEY (plan_type) REFERENCES pay_plans(plan_type)
 );
@@ -242,6 +245,7 @@ CREATE TABLE account_user_access (
 CREATE TABLE global_blocked_contracts (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     blocked_address VARCHAR UNIQUE,
+    active BOOLEAN DEFAULT true,
     updated_at TIMESTAMP,
     PRIMARY KEY (id)
 );
