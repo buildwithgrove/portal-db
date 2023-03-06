@@ -403,7 +403,7 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 
 type Account struct {
 	ID                      int64         `json:"id"`
-	AppID                   string        `json:"appID"`
+	ApplicationID           string        `json:"applicationID"`
 	PlanType                string        `json:"planType"`
 	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
 	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
@@ -501,7 +501,7 @@ type PortalApplication struct {
 
 type PortalApplicationAat struct {
 	ID              int64        `json:"id"`
-	AppID           string       `json:"appID"`
+	ApplicationID   string       `json:"applicationID"`
 	Address         string       `json:"address"`
 	PublicKey       string       `json:"publicKey"`
 	PrivateKey      string       `json:"privateKey"`
@@ -512,20 +512,20 @@ type PortalApplicationAat struct {
 }
 
 type PortalApplicationNotification struct {
-	ID          int64               `json:"id"`
-	AppID       string              `json:"appID"`
-	Active      bool                `json:"active"`
-	Type        NotificationType    `json:"type"`
-	Destination sql.NullString      `json:"destination"`
-	Trigger     sql.NullString      `json:"trigger"`
-	Events      []NotificationEvent `json:"events"`
-	CreatedAt   sql.NullTime        `json:"createdAt"`
-	UpdatedAt   sql.NullTime        `json:"updatedAt"`
+	ID            int64               `json:"id"`
+	ApplicationID string              `json:"applicationID"`
+	Active        bool                `json:"active"`
+	Type          NotificationType    `json:"type"`
+	Destination   sql.NullString      `json:"destination"`
+	Trigger       sql.NullString      `json:"trigger"`
+	Events        []NotificationEvent `json:"events"`
+	CreatedAt     sql.NullTime        `json:"createdAt"`
+	UpdatedAt     sql.NullTime        `json:"updatedAt"`
 }
 
 type PortalApplicationSetting struct {
 	ID                     int64        `json:"id"`
-	AppID                  string       `json:"appID"`
+	ApplicationID          string       `json:"applicationID"`
 	SecretKey              string       `json:"secretKey"`
 	SecretKeyRequired      bool         `json:"secretKeyRequired"`
 	MonthlyRelayLimit      int32        `json:"monthlyRelayLimit"`
@@ -535,21 +535,21 @@ type PortalApplicationSetting struct {
 }
 
 type PortalApplicationWhitelist struct {
-	ID           int64          `json:"id"`
-	AppID        string         `json:"appID"`
-	Type         WhitelistType  `json:"type"`
-	Value        string         `json:"value"`
-	BlockchainID sql.NullString `json:"blockchainID"`
-	CreatedAt    sql.NullTime   `json:"createdAt"`
+	ID            int64          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	Type          WhitelistType  `json:"type"`
+	Value         string         `json:"value"`
+	BlockchainID  sql.NullString `json:"blockchainID"`
+	CreatedAt     sql.NullTime   `json:"createdAt"`
 }
 
 type StickinessOption struct {
-	ID         int32          `json:"id"`
-	AppID      string         `json:"appID"`
-	Duration   sql.NullString `json:"duration"`
-	StickyMax  sql.NullInt32  `json:"stickyMax"`
-	Stickiness sql.NullBool   `json:"stickiness"`
-	Origins    []string       `json:"origins"`
+	ID            int32          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	Duration      sql.NullString `json:"duration"`
+	StickyMax     sql.NullInt32  `json:"stickyMax"`
+	Stickiness    sql.NullBool   `json:"stickiness"`
+	Origins       []string       `json:"origins"`
 }
 
 type User struct {
