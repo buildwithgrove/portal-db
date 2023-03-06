@@ -12,7 +12,7 @@ func (a *PortalApp) ConvertToLegacyLoadBalancer() LoadBalancer {
 		users = append(users, UserAccess{
 			UserID:   string(userID),
 			RoleName: accountUser.RoleName,
-			Email:    accountUser.User.Email,
+			Email:    string(accountUser.User.Email),
 			Accepted: accountUser.Accepted,
 		})
 	}
@@ -38,7 +38,7 @@ func (a *PortalApp) ConvertToLegacyLoadBalancer() LoadBalancer {
 
 func (a *PortalApp) ConvertToLegacyApplication() Application {
 	return Application{
-		ID:     a.LegacyFields.ApplicationID,
+		ID:     a.LegacyFields.PortalAppID,
 		UserID: string(a.UserID()),
 		Name:   a.Name,
 		GatewayAAT: GatewayAAT{
@@ -177,11 +177,11 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 		ID:        "", // generate ID inside postgresdriver (same ID as LoadBalancer)
 		Name:      lb.Name,
 		Gigastake: lb.Gigastake,
-		Account: Account{
+		Account: &Account{
 			Plan: Plan{Type: app.Limit.Plan.Type},
 			Users: map[UserID]AccountUserAccess{
 				UserID(owner.UserID): {
-					User:     User{ID: owner.UserID, Email: owner.Email, AuthProvider: ProviderAuth0},
+					User:     User{ID: UserID(owner.UserID), Email: Email(owner.Email), AuthProvider: ProviderAuth0},
 					RoleName: RoleOwner,
 					Accepted: true,
 				},
@@ -214,7 +214,7 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 		},
 
 		LegacyFields: LegacyFields{
-			ApplicationID:     "", // generate ID inside postgres driver (same ID as Application)
+			PortalAppID:       "", // generate ID inside postgres driver (same ID as Application)
 			RequestTimeout:    lb.RequestTimeout,
 			GigastakeRedirect: lb.GigastakeRedirect,
 			StickyOptions:     lb.StickyOptions,
@@ -281,21 +281,21 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 	}
 
 	return UpdatePortalApp{
-		AppID: ApplicationID(loadBalancerID), Name: u.Name,
+		AppID: PortalAppID(loadBalancerID), Name: u.Name,
 		Settings: settings, Notifications: notifications, Whitelists: whitelists,
 	}
 }
 
 func (u *UserAccess) ConvertToV2AccountUserAccess() AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: u.UserID, Email: u.Email, AuthProvider: ProviderAuth0},
+		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: ProviderAuth0},
 		RoleName: u.RoleName, Accepted: u.Accepted,
 	}
 }
 
 func (u *UpdateUserAccess) ConvertToV2UpdateAccountUserAccess(accepted bool) AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: u.UserID, Email: u.Email, AuthProvider: ProviderAuth0},
+		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: ProviderAuth0},
 		RoleName: u.RoleName, Accepted: accepted,
 	}
 }

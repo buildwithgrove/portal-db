@@ -1,10 +1,12 @@
 package types
 
-/* Common string types */
+/* String ID types */
 type (
-	ApplicationID string
-	BlockchainID  string
-	UserID        string
+	AccountID    string
+	BlockchainID string
+	Email        string
+	PortalAppID  string
+	UserID       string
 )
 
 /* Listener types */

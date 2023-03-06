@@ -174,7 +174,7 @@ var (
 		Name:      "test_portal_app_123",
 		Gigastake: true,
 		Staked:    false,
-		Account: Account{
+		Account: &Account{
 			Plan: Plan{Type: FreetierV0},
 			Users: map[UserID]AccountUserAccess{
 				UserID("user_id_123"): {

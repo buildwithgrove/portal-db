@@ -51,7 +51,7 @@ type (
 		Name          string                               `json:"name"`
 		Gigastake     bool                                 `json:"gigastake"`
 		Staked        bool                                 `json:"staked"`
-		Account       Account                              `json:"account"`
+		Account       *Account                             `json:"account"`
 		AAT           AAT                                  `json:"aat"`
 		Settings      Settings                             `json:"settings"`
 		Whitelists    Whitelists                           `json:"whitelists"`
@@ -66,8 +66,9 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		ApplicationID      string        `json:"applicationID"`
+		PortalAppID        string        `json:"applicationID"`
 		CustomLimit        int           `json:"customLimit"`
+		DailyLimit         int           `json:"dailyLimit"`
 		RequestTimeout     int           `json:"requestTimeout"`
 		GigastakeRedirect  bool          `json:"gigastakeRedirect"`
 		FirstDateSurpassed time.Time     `json:"firstDateSurpassed"`
@@ -75,17 +76,17 @@ type (
 	}
 
 	AAT struct {
-		AppID           ApplicationID `json:"appID,omitempty"`
-		Address         string        `json:"address"`
-		PublicKey       string        `json:"publicKey"`
-		ClientPublicKey string        `json:"clientPublicKey"`
-		PrivateKey      string        `json:"privateKey"`
-		Signature       string        `json:"signature"`
-		Version         string        `json:"version"`
+		AppID           PortalAppID `json:"appID,omitempty"`
+		Address         string      `json:"address"`
+		PublicKey       string      `json:"publicKey"`
+		ClientPublicKey string      `json:"clientPublicKey"`
+		PrivateKey      string      `json:"privateKey"`
+		Signature       string      `json:"signature"`
+		Version         string      `json:"version"`
 	}
 
 	Settings struct {
-		AppID                  ApplicationID             `json:"appID,omitempty"`
+		AppID                  PortalAppID               `json:"appID,omitempty"`
 		Environment            Environment               `json:"environment"`
 		SecretKey              string                    `json:"secretKey"`
 		SecretKeyRequired      bool                      `json:"secretKeyRequired"`
@@ -96,7 +97,7 @@ type (
 	}
 
 	Whitelists struct {
-		AppID       ApplicationID                          `json:"appID,omitempty"`
+		AppID       PortalAppID                            `json:"appID,omitempty"`
 		Origins     map[Origin]struct{}                    `json:"origins"`
 		UserAgents  map[UserAgent]struct{}                 `json:"userAgents"`
 		Blockchains map[BlockchainID]struct{}              `json:"blockchains"`
@@ -130,9 +131,9 @@ type (
 		Values       []string `json:"values"`
 	}
 
-	//UpdatePortalApp Struct Definition and Methods
+	// UpdatePortalApp Struct Definition and Methods
 	UpdatePortalApp struct {
-		AppID         ApplicationID           `json:"appID,omitempty"`
+		AppID         PortalAppID             `json:"appID,omitempty"`
 		Name          string                  `json:"name,omitempty"`
 		Settings      *UpdateAppSettings      `json:"appSettings,omitempty"`
 		Notifications *UpdateAppNotifications `json:"notificationSettings,omitempty"`
@@ -140,16 +141,16 @@ type (
 	}
 
 	UpdateAppSettings struct {
-		AppID             ApplicationID `json:"appID,omitempty"`
-		Environment       Environment   `json:"environment"`
-		SecretKey         string        `json:"secretKey"`
-		SecretKeyRequired bool          `json:"secretKeyRequired"`
-		MonthlyRelayLimit int           `json:"monthlyRelayLimit"`
-		FavoritedChainIDs []string      `json:"favoritedChainIDs"`
+		AppID             PortalAppID `json:"appID,omitempty"`
+		Environment       Environment `json:"environment"`
+		SecretKey         string      `json:"secretKey"`
+		SecretKeyRequired bool        `json:"secretKeyRequired"`
+		MonthlyRelayLimit int         `json:"monthlyRelayLimit"`
+		FavoritedChainIDs []string    `json:"favoritedChainIDs"`
 	}
 
 	UpdateAppNotifications struct {
-		AppID            ApplicationID              `json:"appID,omitempty"`
+		AppID            PortalAppID                `json:"appID,omitempty"`
 		NotificationType NotificationType           `json:"notificationType"`
 		Active           *bool                      `json:"active"`
 		Destination      string                     `json:"destination"`
@@ -176,6 +177,11 @@ func (a *PortalApp) UserID() UserID {
 		}
 	}
 	return ""
+}
+
+// Users returns all Users for the PortalApp's Account
+func (a *PortalApp) Users() map[UserID]AccountUserAccess {
+	return a.Account.Users
 }
 
 // MonthlyLimit returns the monthly relay limit for a given application

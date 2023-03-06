@@ -13,7 +13,7 @@ var testPortalApplication = PortalApp{
 	ID:        "test_5416bb8d696386455b8",
 	Name:      "test_portal_app_123",
 	Gigastake: true,
-	Account: Account{
+	Account: &Account{
 		Plan: Plan{
 			Type:              FreetierV0,
 			MonthlyRelayLimit: 2_500_000,
@@ -72,7 +72,7 @@ var testPortalApplication = PortalApp{
 	},
 	Notifications: map[NotificationType]AppNotification{
 		NotificationEmail: {
-			Active: true, Destination: "test@user.com", Trigger: "what_am_i", //TODO what is trigger?
+			Active: true, Destination: "test@user.com", Trigger: "what_am_i", // TODO what is trigger?
 			Events: map[NotificationEvent]bool{
 				"signedUp":      true,
 				"quarter":       true,
@@ -91,7 +91,7 @@ var testPortalApplication = PortalApp{
 	UpdatedAt: time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
 
 	LegacyFields: LegacyFields{
-		ApplicationID:      "test_475jf893f9j2f30jd230e",
+		PortalAppID:        "test_475jf893f9j2f30jd230e",
 		CustomLimit:        0,
 		RequestTimeout:     5_000,
 		GigastakeRedirect:  true,
