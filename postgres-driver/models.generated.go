@@ -12,6 +12,306 @@ import (
 	"github.com/pokt-foundation/portal-db/types"
 )
 
+type AuthProviders string
+
+const (
+	AuthProvidersAuth0 AuthProviders = "auth0"
+)
+
+func (e *AuthProviders) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthProviders(s)
+	case string:
+		*e = AuthProviders(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthProviders: %T", src)
+	}
+	return nil
+}
+
+type NullAuthProviders struct {
+	AuthProviders AuthProviders
+	Valid         bool // Valid is true if AuthProviders is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthProviders) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthProviders, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthProviders.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthProviders) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.AuthProviders, nil
+}
+
+type AuthSignIn string
+
+const (
+	AuthSignInGithub   AuthSignIn = "github"
+	AuthSignInUsername AuthSignIn = "username"
+)
+
+func (e *AuthSignIn) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthSignIn(s)
+	case string:
+		*e = AuthSignIn(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthSignIn: %T", src)
+	}
+	return nil
+}
+
+type NullAuthSignIn struct {
+	AuthSignIn AuthSignIn
+	Valid      bool // Valid is true if AuthSignIn is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthSignIn) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthSignIn, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthSignIn.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthSignIn) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.AuthSignIn, nil
+}
+
+type AuthType string
+
+const (
+	AuthTypeBasicAuth   AuthType = "basic_auth"
+	AuthTypeBearerToken AuthType = "bearer_token"
+	AuthTypeNone        AuthType = "none"
+)
+
+func (e *AuthType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthType(s)
+	case string:
+		*e = AuthType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthType: %T", src)
+	}
+	return nil
+}
+
+type NullAuthType struct {
+	AuthType AuthType
+	Valid    bool // Valid is true if AuthType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.AuthType, nil
+}
+
+type ChainCheckType string
+
+const (
+	ChainCheckTypeArchival ChainCheckType = "archival"
+	ChainCheckTypeChain    ChainCheckType = "chain"
+	ChainCheckTypeMerge    ChainCheckType = "merge"
+	ChainCheckTypeSync     ChainCheckType = "sync"
+)
+
+func (e *ChainCheckType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ChainCheckType(s)
+	case string:
+		*e = ChainCheckType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ChainCheckType: %T", src)
+	}
+	return nil
+}
+
+type NullChainCheckType struct {
+	ChainCheckType ChainCheckType
+	Valid          bool // Valid is true if ChainCheckType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullChainCheckType) Scan(value interface{}) error {
+	if value == nil {
+		ns.ChainCheckType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ChainCheckType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullChainCheckType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.ChainCheckType, nil
+}
+
+type Environment string
+
+const (
+	EnvironmentProduction Environment = "production"
+	EnvironmentTest       Environment = "test"
+)
+
+func (e *Environment) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Environment(s)
+	case string:
+		*e = Environment(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Environment: %T", src)
+	}
+	return nil
+}
+
+type NullEnvironment struct {
+	Environment Environment
+	Valid       bool // Valid is true if Environment is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEnvironment) Scan(value interface{}) error {
+	if value == nil {
+		ns.Environment, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Environment.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEnvironment) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.Environment, nil
+}
+
+type NotificationEvent string
+
+const (
+	NotificationEventFull          NotificationEvent = "full"
+	NotificationEventHalf          NotificationEvent = "half"
+	NotificationEventQuarter       NotificationEvent = "quarter"
+	NotificationEventSignedUp      NotificationEvent = "signedUp"
+	NotificationEventThreeQuarters NotificationEvent = "threeQuarters"
+)
+
+func (e *NotificationEvent) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = NotificationEvent(s)
+	case string:
+		*e = NotificationEvent(s)
+	default:
+		return fmt.Errorf("unsupported scan type for NotificationEvent: %T", src)
+	}
+	return nil
+}
+
+type NullNotificationEvent struct {
+	NotificationEvent NotificationEvent
+	Valid             bool // Valid is true if NotificationEvent is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullNotificationEvent) Scan(value interface{}) error {
+	if value == nil {
+		ns.NotificationEvent, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.NotificationEvent.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullNotificationEvent) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.NotificationEvent, nil
+}
+
+type NotificationType string
+
+const (
+	NotificationTypeEmail   NotificationType = "email"
+	NotificationTypePortal  NotificationType = "portal"
+	NotificationTypeWebhook NotificationType = "webhook"
+)
+
+func (e *NotificationType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = NotificationType(s)
+	case string:
+		*e = NotificationType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for NotificationType: %T", src)
+	}
+	return nil
+}
+
+type NullNotificationType struct {
+	NotificationType NotificationType
+	Valid            bool // Valid is true if NotificationType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullNotificationType) Scan(value interface{}) error {
+	if value == nil {
+		ns.NotificationType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.NotificationType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullNotificationType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.NotificationType, nil
+}
+
 type PermissionsEnum string
 
 const (
@@ -56,163 +356,215 @@ func (ns NullPermissionsEnum) Value() (driver.Value, error) {
 	return ns.PermissionsEnum, nil
 }
 
-type AppLimit struct {
-	ID            int32         `json:"id"`
-	ApplicationID string        `json:"applicationID"`
-	PayPlan       string        `json:"payPlan"`
-	CustomLimit   sql.NullInt32 `json:"customLimit"`
+type WhitelistType string
+
+const (
+	WhitelistTypeBlockchains WhitelistType = "blockchains"
+	WhitelistTypeContracts   WhitelistType = "contracts"
+	WhitelistTypeMethods     WhitelistType = "methods"
+	WhitelistTypeOrigins     WhitelistType = "origins"
+	WhitelistTypeUserAgents  WhitelistType = "userAgents"
+)
+
+func (e *WhitelistType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = WhitelistType(s)
+	case string:
+		*e = WhitelistType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for WhitelistType: %T", src)
+	}
+	return nil
 }
 
-type Application struct {
-	ID                 sql.NullInt32  `json:"id"`
-	ApplicationID      string         `json:"applicationID"`
-	ContactEmail       sql.NullString `json:"contactEmail"`
-	Description        sql.NullString `json:"description"`
-	Name               sql.NullString `json:"name"`
-	Status             sql.NullString `json:"status"`
-	Owner              sql.NullString `json:"owner"`
-	Url                sql.NullString `json:"url"`
-	UserID             sql.NullString `json:"userID"`
-	Dummy              sql.NullBool   `json:"dummy"`
+type NullWhitelistType struct {
+	WhitelistType WhitelistType
+	Valid         bool // Valid is true if WhitelistType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullWhitelistType) Scan(value interface{}) error {
+	if value == nil {
+		ns.WhitelistType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.WhitelistType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullWhitelistType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.WhitelistType, nil
+}
+
+type Account struct {
+	ID                      int64         `json:"id"`
+	PlanType                string        `json:"planType"`
+	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
+	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
+	PartnerApplicationLimit sql.NullInt32 `json:"partnerApplicationLimit"`
+	CreatedAt               sql.NullTime  `json:"createdAt"`
+	UpdatedAt               sql.NullTime  `json:"updatedAt"`
+}
+
+type AccountUserAccess struct {
+	ID        int64        `json:"id"`
+	AccountID int64        `json:"accountID"`
+	UserID    string       `json:"userID"`
+	RoleName  string       `json:"roleName"`
+	Accepted  sql.NullBool `json:"accepted"`
+	UpdatedAt sql.NullTime `json:"updatedAt"`
+}
+
+type Blockchain struct {
+	ID                string         `json:"id"`
+	Blockchain        string         `json:"blockchain"`
+	Description       string         `json:"description"`
+	EnforceResult     string         `json:"enforceResult"`
+	Path              string         `json:"path"`
+	Ticker            string         `json:"ticker"`
+	ChainID           sql.NullString `json:"chainID"`
+	RequestTimeout    sql.NullInt32  `json:"requestTimeout"`
+	LogLimitBlocks    sql.NullInt32  `json:"logLimitBlocks"`
+	BlockchainAliases []string       `json:"blockchainAliases"`
+	AllowedMethods    []string       `json:"allowedMethods"`
+	Active            bool           `json:"active"`
+	CreatedAt         sql.NullTime   `json:"createdAt"`
+	UpdatedAt         sql.NullTime   `json:"updatedAt"`
+}
+
+type BlockchainAltruist struct {
+	ID           int64          `json:"id"`
+	BlockchainID string         `json:"blockchainID"`
+	Url          string         `json:"url"`
+	Auth         sql.NullString `json:"auth"`
+	AuthType     NullAuthType   `json:"authType"`
+	CreatedAt    sql.NullTime   `json:"createdAt"`
+	UpdatedAt    sql.NullTime   `json:"updatedAt"`
+}
+
+type BlockchainCheck struct {
+	ID           int64              `json:"id"`
+	BlockchainID string             `json:"blockchainID"`
+	Type         NullChainCheckType `json:"type"`
+	Payload      string             `json:"payload"`
+	ResultKey    sql.NullString     `json:"resultKey"`
+	Allowance    sql.NullInt32      `json:"allowance"`
+	CreatedAt    sql.NullTime       `json:"createdAt"`
+	UpdatedAt    sql.NullTime       `json:"updatedAt"`
+}
+
+type BlockchainGigastakeRedirect struct {
+	ID            int64        `json:"id"`
+	BlockchainID  string       `json:"blockchainID"`
+	Alias         string       `json:"alias"`
+	ProtocolAppID string       `json:"protocolAppID"`
+	Domain        string       `json:"domain"`
+	CreatedAt     sql.NullTime `json:"createdAt"`
+	UpdatedAt     sql.NullTime `json:"updatedAt"`
+}
+
+type GlobalBlockedContract struct {
+	ID             int64          `json:"id"`
+	BlockedAddress sql.NullString `json:"blockedAddress"`
+	UpdatedAt      sql.NullTime   `json:"updatedAt"`
+}
+
+type PayPlan struct {
+	ID                int64          `json:"id"`
+	PlanType          sql.NullString `json:"planType"`
+	BlockchainIds     []string       `json:"blockchainIds"`
+	MonthlyRelayLimit int32          `json:"monthlyRelayLimit"`
+	ThroughputLimit   int32          `json:"throughputLimit"`
+	ApplicationLimit  int32          `json:"applicationLimit"`
+	DailyLimit        sql.NullInt32  `json:"dailyLimit"`
+	CreatedAt         sql.NullTime   `json:"createdAt"`
+	UpdatedAt         sql.NullTime   `json:"updatedAt"`
+}
+
+type PortalApplication struct {
+	ID                 string         `json:"id"`
+	AccountID          sql.NullInt64  `json:"accountID"`
+	Name               string         `json:"name"`
+	Gigastake          bool           `json:"gigastake"`
+	ApplicationID      sql.NullString `json:"applicationID"`
+	RequestTimeout     sql.NullInt32  `json:"requestTimeout"`
+	GigastakeRedirect  sql.NullBool   `json:"gigastakeRedirect"`
 	FirstDateSurpassed sql.NullTime   `json:"firstDateSurpassed"`
 	CreatedAt          sql.NullTime   `json:"createdAt"`
 	UpdatedAt          sql.NullTime   `json:"updatedAt"`
 }
 
-type Blockchain struct {
-	ID                sql.NullInt32  `json:"id"`
-	BlockchainID      string         `json:"blockchainID"`
-	Active            sql.NullBool   `json:"active"`
-	Altruist          sql.NullString `json:"altruist"`
-	Blockchain        sql.NullString `json:"blockchain"`
-	BlockchainAliases []string       `json:"blockchainAliases"`
-	ChainID           sql.NullString `json:"chainID"`
-	ChainIDCheck      sql.NullString `json:"chainIDCheck"`
-	Description       sql.NullString `json:"description"`
-	EnforceResult     sql.NullString `json:"enforceResult"`
-	LogLimitBlocks    sql.NullInt32  `json:"logLimitBlocks"`
-	Network           sql.NullString `json:"network"`
-	Path              sql.NullString `json:"path"`
-	RequestTimeout    sql.NullInt32  `json:"requestTimeout"`
-	Ticker            sql.NullString `json:"ticker"`
-	CreatedAt         sql.NullTime   `json:"createdAt"`
-	UpdatedAt         sql.NullTime   `json:"updatedAt"`
-}
-
-type GatewayAat struct {
-	ID              int32          `json:"id"`
-	ApplicationID   string         `json:"applicationID"`
-	Address         string         `json:"address"`
-	PublicKey       string         `json:"publicKey"`
-	PrivateKey      sql.NullString `json:"privateKey"`
-	Signature       string         `json:"signature"`
-	ClientPublicKey string         `json:"clientPublicKey"`
-	Version         sql.NullString `json:"version"`
-}
-
-type GatewaySetting struct {
-	ID                   int32          `json:"id"`
-	ApplicationID        string         `json:"applicationID"`
-	SecretKey            sql.NullString `json:"secretKey"`
-	SecretKeyRequired    sql.NullBool   `json:"secretKeyRequired"`
-	WhitelistBlockchains []string       `json:"whitelistBlockchains"`
-	WhitelistOrigins     []string       `json:"whitelistOrigins"`
-	WhitelistUserAgents  []string       `json:"whitelistUserAgents"`
-}
-
-type LbApp struct {
-	ID    int32  `json:"id"`
-	LbID  string `json:"lbID"`
-	AppID string `json:"appID"`
-}
-
-type Loadbalancer struct {
-	ID                int32          `json:"id"`
-	LbID              string         `json:"lbID"`
-	UserID            sql.NullString `json:"userID"`
-	Name              sql.NullString `json:"name"`
-	RequestTimeout    sql.NullInt32  `json:"requestTimeout"`
-	Gigastake         sql.NullBool   `json:"gigastake"`
-	GigastakeRedirect sql.NullBool   `json:"gigastakeRedirect"`
-	CreatedAt         sql.NullTime   `json:"createdAt"`
-	UpdatedAt         sql.NullTime   `json:"updatedAt"`
-}
-
-type NotificationSetting struct {
-	ID              int32        `json:"id"`
+type PortalApplicationAat struct {
+	ID              int64        `json:"id"`
 	ApplicationID   string       `json:"applicationID"`
-	SignedUp        sql.NullBool `json:"signedUp"`
-	OnQuarter       sql.NullBool `json:"onQuarter"`
-	OnHalf          sql.NullBool `json:"onHalf"`
-	OnThreeQuarters sql.NullBool `json:"onThreeQuarters"`
-	OnFull          sql.NullBool `json:"onFull"`
+	Address         string       `json:"address"`
+	PublicKey       string       `json:"publicKey"`
+	PrivateKey      string       `json:"privateKey"`
+	ClientPublicKey string       `json:"clientPublicKey"`
+	Signature       string       `json:"signature"`
+	Version         string       `json:"version"`
+	UpdatedAt       sql.NullTime `json:"updatedAt"`
 }
 
-type PayPlan struct {
-	ID         sql.NullInt32 `json:"id"`
-	PlanType   string        `json:"planType"`
-	DailyLimit int32         `json:"dailyLimit"`
-	CreatedAt  sql.NullTime  `json:"createdAt"`
-	UpdatedAt  sql.NullTime  `json:"updatedAt"`
+type PortalApplicationNotification struct {
+	ID            int64               `json:"id"`
+	ApplicationID string              `json:"applicationID"`
+	Active        bool                `json:"active"`
+	Type          NotificationType    `json:"type"`
+	Destination   sql.NullString      `json:"destination"`
+	Trigger       sql.NullString      `json:"trigger"`
+	Events        []NotificationEvent `json:"events"`
+	CreatedAt     sql.NullTime        `json:"createdAt"`
+	UpdatedAt     sql.NullTime        `json:"updatedAt"`
 }
 
-type Redirect struct {
-	ID           int32        `json:"id"`
-	BlockchainID string       `json:"blockchainID"`
-	Alias        string       `json:"alias"`
-	Loadbalancer string       `json:"loadbalancer"`
-	Domain       string       `json:"domain"`
-	CreatedAt    sql.NullTime `json:"createdAt"`
-	UpdatedAt    sql.NullTime `json:"updatedAt"`
+type PortalApplicationSetting struct {
+	ID                     int64        `json:"id"`
+	ApplicationID          string       `json:"applicationID"`
+	SecretKey              string       `json:"secretKey"`
+	SecretKeyRequired      bool         `json:"secretKeyRequired"`
+	MonthlyRelayLimit      int32        `json:"monthlyRelayLimit"`
+	Environment            Environment  `json:"environment"`
+	FavoritedBlockchainIds []string     `json:"favoritedBlockchainIds"`
+	UpdatedAt              sql.NullTime `json:"updatedAt"`
+}
+
+type PortalApplicationWhitelist struct {
+	ID            int64          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	Type          WhitelistType  `json:"type"`
+	Value         string         `json:"value"`
+	BlockchainID  sql.NullString `json:"blockchainID"`
+	CreatedAt     sql.NullTime   `json:"createdAt"`
 }
 
 type StickinessOption struct {
-	ID         int32          `json:"id"`
-	LbID       string         `json:"lbID"`
-	Duration   sql.NullString `json:"duration"`
-	StickyMax  sql.NullInt32  `json:"stickyMax"`
-	Stickiness sql.NullBool   `json:"stickiness"`
-	Origins    []string       `json:"origins"`
+	ID            int32          `json:"id"`
+	ApplicationID string         `json:"applicationID"`
+	Duration      sql.NullString `json:"duration"`
+	StickyMax     sql.NullInt32  `json:"stickyMax"`
+	Stickiness    sql.NullBool   `json:"stickiness"`
+	Origins       []string       `json:"origins"`
 }
 
-type SyncCheckOption struct {
-	ID           int32          `json:"id"`
-	BlockchainID string         `json:"blockchainID"`
-	Allowance    sql.NullInt32  `json:"allowance"`
-	Body         sql.NullString `json:"body"`
-	Path         sql.NullString `json:"path"`
-	ResultKey    sql.NullString `json:"resultKey"`
-}
-
-type UserAccess struct {
-	ID        int32          `json:"id"`
-	LbID      string         `json:"lbID"`
-	UserID    sql.NullString `json:"userID"`
-	RoleName  types.RoleName `json:"roleName"`
-	Email     string         `json:"email"`
-	Accepted  bool           `json:"accepted"`
-	CreatedAt sql.NullTime   `json:"createdAt"`
-	UpdatedAt sql.NullTime   `json:"updatedAt"`
+type User struct {
+	ID           string            `json:"id"`
+	Email        string            `json:"email"`
+	AuthProvider NullAuthProviders `json:"authProvider"`
+	SignInType   NullAuthSignIn    `json:"signInType"`
+	CreatedAt    sql.NullTime      `json:"createdAt"`
+	UpdatedAt    sql.NullTime      `json:"updatedAt"`
 }
 
 type UserRole struct {
-	ID          sql.NullInt32           `json:"id"`
-	Name        string                  `json:"name"`
+	ID          string                  `json:"id"`
+	RoleName    sql.NullString          `json:"roleName"`
 	Permissions []types.PermissionsEnum `json:"permissions"`
 	CreatedAt   sql.NullTime            `json:"createdAt"`
 	UpdatedAt   sql.NullTime            `json:"updatedAt"`
-}
-
-type WhitelistContract struct {
-	ID            int32          `json:"id"`
-	ApplicationID string         `json:"applicationID"`
-	BlockchainID  sql.NullString `json:"blockchainID"`
-	Contract      sql.NullString `json:"contract"`
-}
-
-type WhitelistMethod struct {
-	ID            int32          `json:"id"`
-	ApplicationID string         `json:"applicationID"`
-	BlockchainID  sql.NullString `json:"blockchainID"`
-	Method        sql.NullString `json:"method"`
 }

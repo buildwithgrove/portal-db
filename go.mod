@@ -3,7 +3,6 @@ module github.com/pokt-foundation/portal-db
 go 1.18
 
 require (
-	github.com/google/go-cmp v0.5.9
 	github.com/lib/pq v1.10.7
 	github.com/stretchr/testify v1.8.1
 )
