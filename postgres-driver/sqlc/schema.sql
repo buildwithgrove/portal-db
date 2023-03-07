@@ -236,8 +236,8 @@ CREATE TABLE account_user_access (
     accepted BOOLEAN,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
-    CONSTRAINT account_user_access_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id),
-    CONSTRAINT account_user_access_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT account_user_access_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+    CONSTRAINT account_user_access_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT account_user_access_user_roles_fk FOREIGN KEY (role_name) REFERENCES user_roles(role_name),
     CONSTRAINT account_user_access_unique_account_user UNIQUE (account_id, user_id)
 );
