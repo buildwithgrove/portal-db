@@ -95,47 +95,47 @@ func (ns NullAuthSignIn) Value() (driver.Value, error) {
 	return ns.AuthSignIn, nil
 }
 
-type AuthType string
+type ChainAuthType string
 
 const (
-	AuthTypeBasicAuth   AuthType = "basic_auth"
-	AuthTypeBearerToken AuthType = "bearer_token"
-	AuthTypeNone        AuthType = "none"
+	ChainAuthTypeBasicAuth   ChainAuthType = "basic_auth"
+	ChainAuthTypeBearerToken ChainAuthType = "bearer_token"
+	ChainAuthTypeNone        ChainAuthType = "none"
 )
 
-func (e *AuthType) Scan(src interface{}) error {
+func (e *ChainAuthType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = AuthType(s)
+		*e = ChainAuthType(s)
 	case string:
-		*e = AuthType(s)
+		*e = ChainAuthType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for AuthType: %T", src)
+		return fmt.Errorf("unsupported scan type for ChainAuthType: %T", src)
 	}
 	return nil
 }
 
-type NullAuthType struct {
-	AuthType AuthType
-	Valid    bool // Valid is true if AuthType is not NULL
+type NullChainAuthType struct {
+	ChainAuthType ChainAuthType
+	Valid         bool // Valid is true if ChainAuthType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullAuthType) Scan(value interface{}) error {
+func (ns *NullChainAuthType) Scan(value interface{}) error {
 	if value == nil {
-		ns.AuthType, ns.Valid = "", false
+		ns.ChainAuthType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.AuthType.Scan(value)
+	return ns.ChainAuthType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullAuthType) Value() (driver.Value, error) {
+func (ns NullChainAuthType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return ns.AuthType, nil
+	return ns.ChainAuthType, nil
 }
 
 type ChainCheckType string
@@ -417,50 +417,50 @@ type AccountUserAccess struct {
 	AccountID int64        `json:"accountID"`
 	UserID    string       `json:"userID"`
 	RoleName  string       `json:"roleName"`
-	Accepted  sql.NullBool `json:"accepted"`
+	Accepted  bool         `json:"accepted"`
 	UpdatedAt sql.NullTime `json:"updatedAt"`
 }
 
-type Blockchain struct {
-	ID                string        `json:"id"`
-	Blockchain        string        `json:"blockchain"`
-	Description       string        `json:"description"`
-	EnforceResult     string        `json:"enforceResult"`
-	Path              string        `json:"path"`
-	Ticker            string        `json:"ticker"`
-	ChainID           sql.NullInt32 `json:"chainID"`
-	RequestTimeout    sql.NullInt32 `json:"requestTimeout"`
-	LogLimitBlocks    sql.NullInt32 `json:"logLimitBlocks"`
-	BlockchainAliases []string      `json:"blockchainAliases"`
-	AllowedMethods    []string      `json:"allowedMethods"`
-	Active            bool          `json:"active"`
-	CreatedAt         sql.NullTime  `json:"createdAt"`
-	UpdatedAt         sql.NullTime  `json:"updatedAt"`
-	Deleted           sql.NullBool  `json:"deleted"`
+type Chain struct {
+	ID             string        `json:"id"`
+	Blockchain     string        `json:"blockchain"`
+	Description    string        `json:"description"`
+	EnforceResult  string        `json:"enforceResult"`
+	Path           string        `json:"path"`
+	Ticker         string        `json:"ticker"`
+	ChainID        sql.NullInt32 `json:"chainID"`
+	RequestTimeout sql.NullInt32 `json:"requestTimeout"`
+	LogLimitBlocks sql.NullInt32 `json:"logLimitBlocks"`
+	ChainAliases   []string      `json:"chainAliases"`
+	AllowedMethods []string      `json:"allowedMethods"`
+	Active         bool          `json:"active"`
+	CreatedAt      sql.NullTime  `json:"createdAt"`
+	UpdatedAt      sql.NullTime  `json:"updatedAt"`
+	Deleted        sql.NullBool  `json:"deleted"`
 }
 
-type BlockchainAltruist struct {
+type ChainAltruist struct {
 	ID           int64          `json:"id"`
 	BlockchainID string         `json:"blockchainID"`
 	Url          string         `json:"url"`
 	Auth         sql.NullString `json:"auth"`
-	AuthType     NullAuthType   `json:"authType"`
+	AuthType     ChainAuthType  `json:"authType"`
 	CreatedAt    sql.NullTime   `json:"createdAt"`
 	UpdatedAt    sql.NullTime   `json:"updatedAt"`
 }
 
-type BlockchainCheck struct {
-	ID           int64              `json:"id"`
-	BlockchainID string             `json:"blockchainID"`
-	Type         NullChainCheckType `json:"type"`
-	Payload      string             `json:"payload"`
-	ResultKey    sql.NullString     `json:"resultKey"`
-	Allowance    sql.NullInt32      `json:"allowance"`
-	CreatedAt    sql.NullTime       `json:"createdAt"`
-	UpdatedAt    sql.NullTime       `json:"updatedAt"`
+type ChainCheck struct {
+	ID           int64          `json:"id"`
+	BlockchainID string         `json:"blockchainID"`
+	Type         ChainCheckType `json:"type"`
+	Payload      string         `json:"payload"`
+	ResultKey    sql.NullString `json:"resultKey"`
+	Allowance    sql.NullInt32  `json:"allowance"`
+	CreatedAt    sql.NullTime   `json:"createdAt"`
+	UpdatedAt    sql.NullTime   `json:"updatedAt"`
 }
 
-type BlockchainGigastakeRedirect struct {
+type ChainGigastakeRedirect struct {
 	ID           int64        `json:"id"`
 	AccountID    int64        `json:"accountID"`
 	BlockchainID string       `json:"blockchainID"`
@@ -557,17 +557,17 @@ type StickinessOption struct {
 }
 
 type User struct {
-	ID           string            `json:"id"`
-	Email        string            `json:"email"`
-	AuthProvider NullAuthProviders `json:"authProvider"`
-	SignInType   NullAuthSignIn    `json:"signInType"`
-	CreatedAt    sql.NullTime      `json:"createdAt"`
-	UpdatedAt    sql.NullTime      `json:"updatedAt"`
+	ID           string         `json:"id"`
+	Email        string         `json:"email"`
+	AuthProvider AuthProviders  `json:"authProvider"`
+	SignInType   NullAuthSignIn `json:"signInType"`
+	CreatedAt    sql.NullTime   `json:"createdAt"`
+	UpdatedAt    sql.NullTime   `json:"updatedAt"`
 }
 
 type UserRole struct {
 	ID          int64                   `json:"id"`
-	RoleName    sql.NullString          `json:"roleName"`
+	RoleName    string                  `json:"roleName"`
 	Permissions []types.PermissionsEnum `json:"permissions"`
 	CreatedAt   sql.NullTime            `json:"createdAt"`
 	UpdatedAt   sql.NullTime            `json:"updatedAt"`

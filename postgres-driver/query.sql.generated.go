@@ -10,7 +10,7 @@ import (
 )
 
 const placeholder = `-- name: Placeholder :exec
-SELECT id, blockchain, description, enforce_result, path, ticker, chain_id, request_timeout, log_limit_blocks, blockchain_aliases, allowed_methods, active, created_at, updated_at, deleted FROM blockchains
+SELECT id, blockchain, description, enforce_result, path, ticker, chain_id, request_timeout, log_limit_blocks, chain_aliases, allowed_methods, active, created_at, updated_at, deleted FROM chains
 `
 
 // only here to avoid SQLC erroring out when trying to gen types from schema
