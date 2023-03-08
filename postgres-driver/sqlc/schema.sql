@@ -27,17 +27,17 @@ CREATE TYPE whitelist_type AS ENUM (
 );
 -- Blockchains Tables
 CREATE TABLE blockchains (
-    id VARCHAR NOT NULL,
-    blockchain VARCHAR NOT NULL,
-    description VARCHAR NOT NULL,
-    enforce_result VARCHAR NOT NULL,
-    path VARCHAR NOT NULL,
-    ticker VARCHAR NOT NULL,
-    chain_id VARCHAR,
+    id VARCHAR(4) NOT NULL,
+    blockchain VARCHAR(100) NOT NULL,
+    description VARCHAR(100) NOT NULL,
+    enforce_result VARCHAR(4) NOT NULL,
+    path VARCHAR(100) NOT NULL,
+    ticker VARCHAR(20) NOT NULL,
+    chain_id INT,
     request_timeout INT,
     log_limit_blocks INT,
-    blockchain_aliases VARCHAR [],
-    allowed_methods VARCHAR [],
+    blockchain_aliases VARCHAR(100) ARRAY,
+    allowed_methods VARCHAR(10) ARRAY,
     active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
@@ -46,9 +46,9 @@ CREATE TABLE blockchains (
 );
 CREATE TABLE blockchain_altruists (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    blockchain_id VARCHAR NOT NULL,
-    url VARCHAR NOT NULL,
-    auth VARCHAR,
+    blockchain_id VARCHAR(4) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    auth VARCHAR(100),
     auth_type auth_type,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
@@ -58,10 +58,10 @@ CREATE TABLE blockchain_altruists (
 );
 CREATE TABLE blockchain_gigastake_redirects (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    blockchain_id VARCHAR NOT NULL,
     account_id BIGINT NOT NULL UNIQUE,
-    alias VARCHAR NOT NULL,
-    domain VARCHAR NOT NULL,
+    blockchain_id VARCHAR(4) NOT NULL,
+    alias VARCHAR(100) NOT NULL,
+    domain VARCHAR(100) NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
@@ -70,10 +70,10 @@ CREATE TABLE blockchain_gigastake_redirects (
 );
 CREATE TABLE blockchain_checks (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    blockchain_id VARCHAR NOT NULL,
+    blockchain_id VARCHAR(4) NOT NULL,
     type chain_check_type,
-    payload VARCHAR NOT NULL,
-    result_key VARCHAR,
+    payload VARCHAR(255) NOT NULL,
+    result_key VARCHAR(100),
     allowance INT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
@@ -93,12 +93,12 @@ CREATE TABLE blockchain_checks (
 );
 -- Portal Application Tables
 CREATE TABLE portal_applications (
-    id VARCHAR NOT NULL,
+    id VARCHAR(24) NOT NULL,
     account_id BIGINT,
-    name VARCHAR NOT NULL,
+    name VARCHAR(255) NOT NULL,
     gigastake BOOLEAN NOT NULL,
     -- legacy field
-    application_id VARCHAR,
+    application_id VARCHAR(24),
     -- legacy field
     request_timeout INT,
     -- legacy field
@@ -114,45 +114,45 @@ CREATE TABLE portal_applications (
 -- legacy table
 CREATE TABLE IF NOT EXISTS stickiness_options (
     id INT GENERATED ALWAYS AS IDENTITY,
-    application_id VARCHAR NOT NULL UNIQUE,
+    application_id VARCHAR(24) NOT NULL UNIQUE,
     duration TEXT,
     sticky_max INT,
     stickiness BOOLEAN,
-    origins VARCHAR [],
+    origins VARCHAR ARRAY,
     PRIMARY KEY (id),
     CONSTRAINT stickiness_options_app_id_fk FOREIGN KEY(application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
 );
 CREATE TABLE portal_application_aats (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    application_id VARCHAR NOT NULL UNIQUE,
-    address VARCHAR NOT NULL,
-    public_key VARCHAR NOT NULL,
-    private_key VARCHAR NOT NULL,
-    client_public_key VARCHAR NOT NULL,
-    signature VARCHAR NOT NULL,
-    version VARCHAR NOT NULL,
+    application_id VARCHAR(24) NOT NULL UNIQUE,
+    address VARCHAR(40) NOT NULL,
+    public_key VARCHAR(64) NOT NULL,
+    private_key VARCHAR(400) NOT NULL,
+    client_public_key VARCHAR(64) NOT NULL,
+    signature VARCHAR(128) NOT NULL,
+    version VARCHAR(10) NOT NULL,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT portal_aats_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
 );
 CREATE TABLE portal_application_settings (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    application_id VARCHAR NOT NULL UNIQUE,
-    secret_key VARCHAR NOT NULL,
+    application_id VARCHAR(24) NOT NULL UNIQUE,
+    secret_key VARCHAR(64) NOT NULL,
     secret_key_required BOOLEAN NOT NULL,
     monthly_relay_limit INT NOT NULL,
     environment environment NOT NULL,
-    favorited_blockchain_ids VARCHAR [] REFERENCES blockchains (id),
+    favorited_blockchain_ids VARCHAR(4) ARRAY REFERENCES blockchains (id),
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT portal_settings_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
 );
 CREATE TABLE portal_application_whitelists (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    application_id VARCHAR NOT NULL,
+    application_id VARCHAR(24) NOT NULL,
     type whitelist_type NOT NULL,
-    value VARCHAR NOT NULL,
-    blockchain_id VARCHAR,
+    value VARCHAR(255) NOT NULL,
+    blockchain_id VARCHAR(4),
     created_at TIMESTAMP NULL,
     UNIQUE (application_id, value, type),
     UNIQUE (application_id, value, type, blockchain_id),
@@ -171,12 +171,12 @@ CREATE TABLE portal_application_whitelists (
 );
 CREATE TABLE portal_application_notifications (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    application_id VARCHAR NOT NULL UNIQUE,
+    application_id VARCHAR(24) NOT NULL UNIQUE,
     active BOOLEAN NOT NULL,
     type notification_type NOT NULL,
-    destination VARCHAR,
-    trigger VARCHAR,
-    events notification_event [],
+    destination VARCHAR(255),
+    trigger VARCHAR(255),
+    events notification_event ARRAY,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
@@ -185,8 +185,8 @@ CREATE TABLE portal_application_notifications (
 );
 -- Users Tables
 CREATE TABLE users (
-    id VARCHAR,
-    email VARCHAR NOT NULL UNIQUE,
+    id VARCHAR(320),
+    email VARCHAR(320) NOT NULL UNIQUE,
     auth_provider auth_providers,
     sign_in_type auth_sign_in,
     created_at TIMESTAMP,
@@ -194,9 +194,9 @@ CREATE TABLE users (
     PRIMARY KEY (id)
 );
 CREATE TABLE user_roles (
-    id VARCHAR NOT NULL,
-    role_name VARCHAR UNIQUE,
-    permissions permissions_enum [],
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    role_name VARCHAR(25) UNIQUE,
+    permissions permissions_enum ARRAY,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY (id)
@@ -204,8 +204,8 @@ CREATE TABLE user_roles (
 -- Plans Tables
 CREATE TABLE pay_plans (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    plan_type VARCHAR UNIQUE,
-    blockchain_ids VARCHAR [] REFERENCES blockchains (id),
+    plan_type VARCHAR(25) UNIQUE,
+    blockchain_ids VARCHAR(4) ARRAY REFERENCES blockchains (id),
     monthly_relay_limit INT NOT NULL,
     throughput_limit INT NOT NULL,
     application_limit INT NOT NULL,
@@ -218,8 +218,8 @@ CREATE TABLE pay_plans (
 -- Accounts Tables
 CREATE TABLE accounts (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    plan_type VARCHAR NOT NULL,
-    partner_blockchain_ids VARCHAR [] REFERENCES blockchains (id),
+    plan_type VARCHAR(25) NOT NULL,
+    partner_blockchain_ids VARCHAR(4) ARRAY REFERENCES blockchains (id),
     partner_throughput_limit INT,
     partner_application_limit INT,
     created_at TIMESTAMP,
@@ -231,8 +231,8 @@ CREATE TABLE accounts (
 CREATE TABLE account_user_access (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     account_id BIGINT NOT NULL,
-    user_id VARCHAR NOT NULL,
-    role_name VARCHAR NOT NULL,
+    user_id VARCHAR(320) NOT NULL,
+    role_name VARCHAR(25) NOT NULL,
     accepted BOOLEAN,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
@@ -244,7 +244,7 @@ CREATE TABLE account_user_access (
 -- Blocked Contracts Tables
 CREATE TABLE global_blocked_contracts (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    blocked_address VARCHAR UNIQUE,
+    blocked_address VARCHAR(255) UNIQUE,
     active BOOLEAN DEFAULT true,
     updated_at TIMESTAMP,
     PRIMARY KEY (id)
