@@ -11,15 +11,33 @@ type (
 )
 
 const (
-	ChainAuthNone      ChainAuthType = "none"
-	ChainAuthBasicAuth ChainAuthType = "basicAuth"
-	ChainAuthBearer    ChainAuthType = "bearer"
+	ChainAuthTypeBasicAuth   ChainAuthType = "basic_auth"
+	ChainAuthTypeBearerToken ChainAuthType = "bearer_token"
+	ChainAuthTypeNone        ChainAuthType = "none"
 
-	CheckSync     ChainCheckType = "sync"
-	CheckChain    ChainCheckType = "chain"
-	CheckArchival ChainCheckType = "archival"
-	CheckMerge    ChainCheckType = "merge"
+	ChainCheckTypeArchival ChainCheckType = "archival"
+	ChainCheckTypeChain    ChainCheckType = "chain"
+	ChainCheckTypeMerge    ChainCheckType = "merge"
+	ChainCheckTypeSync     ChainCheckType = "sync"
 )
+
+func (c ChainAuthType) IsValid() bool {
+	switch c {
+	case ChainAuthTypeBasicAuth, ChainAuthTypeBearerToken, ChainAuthTypeNone:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c ChainCheckType) IsValid() bool {
+	switch c {
+	case ChainCheckTypeArchival, ChainCheckTypeChain, ChainCheckTypeMerge, ChainCheckTypeSync:
+		return true
+	default:
+		return false
+	}
+}
 
 /* Chain Struct and Methods */
 type (

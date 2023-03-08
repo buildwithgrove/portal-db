@@ -12,33 +12,76 @@ var (
 	ErrInvalidRole  error = errors.New("invalid role provided")
 )
 
-/* User Struct Definition and Methods */
+/* Enums */
 type (
-	// User represents a single Portal user
-	User struct {
-		ID           string       `json:"id"`
-		Email        string       `json:"email"`
-		AuthProvider AuthProvider `json:"authProvider"`
-		CreatedAt    time.Time    `json:"createdAt"`
-		UpdatedAt    time.Time    `json:"updatedAt"`
-	}
-
-	AuthProvider    string
-	RoleName        string
+	AuthProviders   string
+	AuthSignIn      string
 	PermissionsEnum string
+	RoleName        string
 )
 
 const (
-	ProviderAuth0 AuthProvider = "Auth0"
+	AuthProviderAuth0 AuthProviders = "auth0"
 
-	RoleOwner  RoleName = "OWNER"
-	RoleAdmin  RoleName = "ADMIN"
-	RoleMember RoleName = "MEMBER"
+	AuthSignInGitHub   AuthSignIn = "github"
+	AuthSignInUsername AuthSignIn = "username"
 
 	PermReadEndpoint     PermissionsEnum = "read:endpoint"
 	PermWriteEndpoint    PermissionsEnum = "write:endpoint"
 	PermDeleteEndpoint   PermissionsEnum = "delete:endpoint"
 	PermTransferEndpoint PermissionsEnum = "transfer:endpoint"
+
+	RoleOwner  RoleName = "OWNER"
+	RoleAdmin  RoleName = "ADMIN"
+	RoleMember RoleName = "MEMBER"
+)
+
+func (a AuthProviders) IsValid() bool {
+	switch a {
+	case AuthProviderAuth0:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a AuthSignIn) IsValid() bool {
+	switch a {
+	case AuthSignInGitHub, AuthSignInUsername:
+		return true
+	default:
+		return false
+	}
+}
+
+func (p PermissionsEnum) IsValid() bool {
+	switch p {
+	case PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint:
+		return true
+	default:
+		return false
+	}
+}
+
+func (r RoleName) IsValid() bool {
+	switch r {
+	case RoleOwner, RoleAdmin, RoleMember:
+		return true
+	default:
+		return false
+	}
+}
+
+/* User Struct Definition and Methods */
+type (
+	// User represents a single Portal user
+	User struct {
+		ID           string        `json:"id"`
+		Email        string        `json:"email"`
+		AuthProvider AuthProviders `json:"authProvider"`
+		CreatedAt    time.Time     `json:"createdAt"`
+		UpdatedAt    time.Time     `json:"updatedAt"`
+	}
 )
 
 var (
@@ -68,18 +111,6 @@ func (app *PortalApp) GetOwnerEmail() (string, error) {
 	}
 
 	return "", ErrNoOwner
-}
-
-func (e *PermissionsEnum) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = PermissionsEnum(s)
-	case string:
-		*e = PermissionsEnum(s)
-	default:
-		return fmt.Errorf("unsupported scan type for PermissionsEnum: %T", src)
-	}
-	return nil
 }
 
 // UserPermissions stores all load balancer read/write permissions for a given user
@@ -146,6 +177,18 @@ func (u *UserPermissions) HasPermission(appID ApplicationID, permission Permissi
 	}
 
 	return false
+}
+
+func (e *PermissionsEnum) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PermissionsEnum(s)
+	case string:
+		*e = PermissionsEnum(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PermissionsEnum: %T", src)
+	}
+	return nil
 }
 
 func (u *User) Table() Table {

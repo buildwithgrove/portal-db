@@ -7,41 +7,68 @@ import (
 
 /* Enums */
 type (
-	Environment string
-
-	NotificationType  string
+	Environment       string
 	NotificationEvent string
-
-	Origin    string
-	UserAgent string
-	Method    string
-	Contract  string
-
-	AppWhitelistType   string
-	ChainWhitelistType string
+	NotificationType  string
+	WhitelistType     string
 )
 
 const (
-	EnvProduction Environment = "production"
-	EnvTest       Environment = "test"
+	EnvironmentProduction Environment = "production"
+	EnvironmentTest       Environment = "test"
 
-	NotificationEmail   NotificationType = "email"
-	NotificationWebhook NotificationType = "webhook"
-	NotificationPortal  NotificationType = "portal"
+	NotificationEventFull          NotificationEvent = "full"
+	NotificationEventHalf          NotificationEvent = "half"
+	NotificationEventQuarter       NotificationEvent = "quarter"
+	NotificationEventSignedUp      NotificationEvent = "signedUp"
+	NotificationEventThreeQuarters NotificationEvent = "threeQuarters"
 
-	EventSignedUp      NotificationEvent = "signedUp"
-	EventQuarter       NotificationEvent = "quarter"
-	EventHalf          NotificationEvent = "half"
-	EventThreeQuarters NotificationEvent = "threeQuarters"
-	EventFull          NotificationEvent = "full"
+	NotificationTypeEmail   NotificationType = "email"
+	NotificationTypePortal  NotificationType = "portal"
+	NotificationTypeWebhook NotificationType = "webhook"
 
-	WLOrigins     AppWhitelistType = "origins"
-	WLBlockchains AppWhitelistType = "blockchains"
-	WLUserAgents  AppWhitelistType = "userAgents"
-
-	WLMethods   ChainWhitelistType = "methods"
-	WLContracts ChainWhitelistType = "contracts"
+	WhitelistTypeOrigins     WhitelistType = "origins"
+	WhitelistTypeBlockchains WhitelistType = "blockchains"
+	WhitelistTypeUserAgents  WhitelistType = "userAgents"
+	WhitelistTypeContracts   WhitelistType = "contracts"
+	WhitelistTypeMethods     WhitelistType = "methods"
 )
+
+func (e Environment) IsValid() bool {
+	switch e {
+	case EnvironmentProduction, EnvironmentTest:
+		return true
+	default:
+		return false
+	}
+}
+
+func (n NotificationEvent) IsValid() bool {
+	switch n {
+	case NotificationEventFull, NotificationEventHalf, NotificationEventQuarter, NotificationEventSignedUp, NotificationEventThreeQuarters:
+		return true
+	default:
+		return false
+	}
+}
+
+func (n NotificationType) IsValid() bool {
+	switch n {
+	case NotificationTypeEmail, NotificationTypePortal, NotificationTypeWebhook:
+		return true
+	default:
+		return false
+	}
+}
+
+func (w WhitelistType) IsValid() bool {
+	switch w {
+	case WhitelistTypeBlockchains, WhitelistTypeContracts, WhitelistTypeMethods, WhitelistTypeOrigins, WhitelistTypeUserAgents:
+		return true
+	default:
+		return false
+	}
+}
 
 /* PortalApp Struct Definition and Methods */
 type (
@@ -118,11 +145,11 @@ type (
 		ChainWhitelists [2]ChainWhitelists       `json:"chainWhitelists"`
 	}
 	ApplicationWhitelists struct {
-		Type   AppWhitelistType `json:"type"`
-		Values []string         `json:"values"`
+		Type   WhitelistType `json:"type"`
+		Values []string      `json:"values"`
 	}
 	ChainWhitelists struct {
-		Type   ChainWhitelistType       `json:"type"`
+		Type   WhitelistType            `json:"type"`
 		Values []BlockchainIDWhitelists `json:"values"`
 	}
 	BlockchainIDWhitelists struct {
@@ -161,6 +188,11 @@ type (
 		ApplicationIDs     []string  `json:"applicationIDs"`
 		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
 	}
+
+	Origin    string
+	UserAgent string
+	Method    string
+	Contract  string
 )
 
 // LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
@@ -268,13 +300,13 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 
 	return &WhitelistsObject{
 		AppWhitelists: [3]ApplicationWhitelists{
-			{Type: WLOrigins, Values: origins},
-			{Type: WLUserAgents, Values: userAgents},
-			{Type: WLBlockchains, Values: blockchains},
+			{Type: WhitelistTypeOrigins, Values: origins},
+			{Type: WhitelistTypeUserAgents, Values: userAgents},
+			{Type: WhitelistTypeBlockchains, Values: blockchains},
 		},
 		ChainWhitelists: [2]ChainWhitelists{
-			{Type: WLContracts, Values: contractWhitelists},
-			{Type: WLMethods, Values: methodWhitelists},
+			{Type: WhitelistTypeContracts, Values: contractWhitelists},
+			{Type: WhitelistTypeMethods, Values: methodWhitelists},
 		},
 	}
 }

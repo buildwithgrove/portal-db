@@ -1,8 +1,4 @@
 version: "2"
-overrides:
-  go:
-    rename:
-      price_usd: "PriceUSD"
 
 sql:
   - schema: "schema.sql"
@@ -19,7 +15,32 @@ sql:
         output_querier_file_name: querier.generated.go
         output_files_suffix: .generated
         overrides:
+          - db_type: "auth_providers"
+            go_type: "github.com/pokt-foundation/portal-db/types.AuthProviders"
+
+          - db_type: "auth_sign_in"
+            go_type: "github.com/pokt-foundation/portal-db/types.AuthSignIn"
+
+          - db_type: "chain_auth_type"
+            go_type: "github.com/pokt-foundation/portal-db/types.ChainAuthType"
+
+          - db_type: "chain_check_type"
+            go_type: "github.com/pokt-foundation/portal-db/types.ChainCheckType"
+
+          - db_type: "environment"
+            go_type: "github.com/pokt-foundation/portal-db/types.Environment"
+
+          - db_type: "notification_event"
+            go_type: "github.com/pokt-foundation/portal-db/types.NotificationEvent"
+
+          - db_type: "notification_type"
+            go_type: "github.com/pokt-foundation/portal-db/types.NotificationType"
+
           - db_type: "permissions_enum"
             go_type: "github.com/pokt-foundation/portal-db/types.PermissionsEnum"
+
+          - db_type: "whitelist_type"
+            go_type: "github.com/pokt-foundation/portal-db/types.WhitelistType"
+
           - column: "user_access.role_name"
             go_type: "github.com/pokt-foundation/portal-db/types.RoleName"

@@ -24,12 +24,12 @@ var testPortalApplication = PortalApp{
 		},
 		Users: map[UserID]AccountUserAccess{
 			"user_id_123": {
-				User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: ProviderAuth0},
+				User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: AuthProviderAuth0},
 				RoleName: RoleOwner,
 				Accepted: true,
 			},
 			"user_id_456": {
-				User:     User{ID: "user_id_456", Email: "test_member@user.com", AuthProvider: ProviderAuth0},
+				User:     User{ID: "user_id_456", Email: "test_member@user.com", AuthProvider: AuthProviderAuth0},
 				RoleName: RoleMember,
 				Accepted: true,
 			},
@@ -47,7 +47,7 @@ var testPortalApplication = PortalApp{
 		Version:         "0.0.1",
 	},
 	Settings: Settings{
-		Environment:            EnvProduction,
+		Environment:            EnvironmentProduction,
 		SecretKey:              "test_90210ac4bdd3423e24877d1ff92",
 		SecretKeyRequired:      true,
 		MonthlyRelayLimit:      250_000,
@@ -71,7 +71,7 @@ var testPortalApplication = PortalApp{
 		},
 	},
 	Notifications: map[NotificationType]AppNotification{
-		NotificationEmail: {
+		NotificationTypeEmail: {
 			Active: true, Destination: "test@user.com", Trigger: "what_am_i", // TODO what is trigger?
 			Events: map[NotificationEvent]bool{
 				"signedUp":      true,
@@ -79,7 +79,7 @@ var testPortalApplication = PortalApp{
 				"threeQuarters": true,
 			},
 		},
-		NotificationWebhook: {
+		NotificationTypeWebhook: {
 			Active: false, Destination: "https://wh.destination.io", Trigger: "what_am_i",
 			Events: map[NotificationEvent]bool{
 				"signedUp": true,
