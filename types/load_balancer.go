@@ -63,10 +63,11 @@ type (
 		Stickiness    *bool    `json:"stickiness"`
 	}
 	UpdateUserAccess struct {
-		ID       string   `json:"id,omitempty"`
-		UserID   string   `json:"userID"`
-		Email    string   `json:"email"`
-		RoleName RoleName `json:"roleName"`
+		ID           string   `json:"id,omitempty"`
+		UserID       string   `json:"userID"`
+		Email        string   `json:"email"`
+		UpdaterEmail string   `json:"updaterEmail,omitempty"`
+		RoleName     RoleName `json:"roleName"`
 	}
 
 	RoleName        string
