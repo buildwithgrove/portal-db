@@ -14,7 +14,7 @@ import (
 )
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
-SELECT p.id, p.name, p.gigastake, p.application_id, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.created_at, p.updated_at,
+SELECT p.id, p.account_id, p.name, p.gigastake, p.application_id, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.created_at, p.updated_at, p.deleted,
     pso.duration,
     pso.sticky_max,
     pso.stickiness,
@@ -29,19 +29,19 @@ SELECT p.id, p.name, p.gigastake, p.application_id, p.request_timeout, p.gigasta
     pas.secret_key_required,
     pas.monthly_relay_limit,
     pas.environment,
-  json_object_agg(
-                pn.type,
-                json_build_object(
-                    'active',
-                    pn.active,
-                    'destination',
-                    pn.destination,
-                    'trigger',
-                    pn.trigger,
-                    'events',
-                    pn.events
-                )
-            ) AS notifications,
+    json_object_agg(
+        pn.type,
+        json_build_object(
+            'active',
+            pn.active,
+            'destination',
+            pn.destination,
+            'trigger',
+            pn.trigger,
+            'events',
+            pn.events
+        )
+    ) AS notifications,
     json_agg(
         json_build_object(
             'type',
@@ -56,8 +56,7 @@ FROM portal_applications AS p
     LEFT JOIN stickiness_options AS pso ON p.id = pso.application_id
     LEFT JOIN portal_application_aats AS paa ON p.id = paa.application_id
     LEFT JOIN portal_application_settings AS pas ON p.id = pas.application_id
-    LEFT JOIN portal_application_notifications AS pn
-        ON p.id = pn.application_id
+    LEFT JOIN portal_application_notifications AS pn ON p.id = pn.application_id
     LEFT JOIN portal_application_whitelists AS paw ON p.id = paw.application_id
 GROUP BY p.id,
     pso.duration,
@@ -78,6 +77,7 @@ GROUP BY p.id,
 
 type SelectPortalApplicationsRow struct {
 	ID                 string          `json:"id"`
+	AccountID          sql.NullInt64   `json:"accountID"`
 	Name               string          `json:"name"`
 	Gigastake          bool            `json:"gigastake"`
 	ApplicationID      sql.NullString  `json:"applicationID"`
@@ -86,6 +86,7 @@ type SelectPortalApplicationsRow struct {
 	FirstDateSurpassed sql.NullTime    `json:"firstDateSurpassed"`
 	CreatedAt          sql.NullTime    `json:"createdAt"`
 	UpdatedAt          sql.NullTime    `json:"updatedAt"`
+	Deleted            sql.NullBool    `json:"deleted"`
 	Duration           sql.NullString  `json:"duration"`
 	StickyMax          sql.NullInt32   `json:"stickyMax"`
 	Stickiness         sql.NullBool    `json:"stickiness"`
@@ -115,6 +116,7 @@ func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalA
 		var i SelectPortalApplicationsRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.AccountID,
 			&i.Name,
 			&i.Gigastake,
 			&i.ApplicationID,
@@ -123,6 +125,7 @@ func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalA
 			&i.FirstDateSurpassed,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Deleted,
 			&i.Duration,
 			&i.StickyMax,
 			&i.Stickiness,

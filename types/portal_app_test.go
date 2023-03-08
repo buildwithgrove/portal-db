@@ -72,7 +72,7 @@ var testPortalApplication = PortalApp{
 	},
 	Notifications: map[NotificationType]AppNotification{
 		NotificationEmail: {
-			Active: true, Destination: "test@user.com", Trigger: "what_am_i", //TODO what is trigger?
+			Active: true, Destination: "test@user.com", Trigger: "what_am_i", // TODO what is trigger?
 			Events: map[NotificationEvent]bool{
 				"signedUp":      true,
 				"quarter":       true,

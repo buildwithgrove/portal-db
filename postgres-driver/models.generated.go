@@ -403,13 +403,13 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 
 type Account struct {
 	ID                      int64         `json:"id"`
-	ApplicationID           string        `json:"applicationID"`
 	PlanType                string        `json:"planType"`
 	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
 	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
 	PartnerApplicationLimit sql.NullInt32 `json:"partnerApplicationLimit"`
 	CreatedAt               sql.NullTime  `json:"createdAt"`
 	UpdatedAt               sql.NullTime  `json:"updatedAt"`
+	Deleted                 sql.NullBool  `json:"deleted"`
 }
 
 type AccountUserAccess struct {
@@ -422,20 +422,21 @@ type AccountUserAccess struct {
 }
 
 type Blockchain struct {
-	ID                string         `json:"id"`
-	Blockchain        string         `json:"blockchain"`
-	Description       string         `json:"description"`
-	EnforceResult     string         `json:"enforceResult"`
-	Path              string         `json:"path"`
-	Ticker            string         `json:"ticker"`
-	ChainID           sql.NullString `json:"chainID"`
-	RequestTimeout    sql.NullInt32  `json:"requestTimeout"`
-	LogLimitBlocks    sql.NullInt32  `json:"logLimitBlocks"`
-	BlockchainAliases []string       `json:"blockchainAliases"`
-	AllowedMethods    []string       `json:"allowedMethods"`
-	Active            bool           `json:"active"`
-	CreatedAt         sql.NullTime   `json:"createdAt"`
-	UpdatedAt         sql.NullTime   `json:"updatedAt"`
+	ID                string        `json:"id"`
+	Blockchain        string        `json:"blockchain"`
+	Description       string        `json:"description"`
+	EnforceResult     string        `json:"enforceResult"`
+	Path              string        `json:"path"`
+	Ticker            string        `json:"ticker"`
+	ChainID           sql.NullInt32 `json:"chainID"`
+	RequestTimeout    sql.NullInt32 `json:"requestTimeout"`
+	LogLimitBlocks    sql.NullInt32 `json:"logLimitBlocks"`
+	BlockchainAliases []string      `json:"blockchainAliases"`
+	AllowedMethods    []string      `json:"allowedMethods"`
+	Active            bool          `json:"active"`
+	CreatedAt         sql.NullTime  `json:"createdAt"`
+	UpdatedAt         sql.NullTime  `json:"updatedAt"`
+	Deleted           sql.NullBool  `json:"deleted"`
 }
 
 type BlockchainAltruist struct {
@@ -460,18 +461,19 @@ type BlockchainCheck struct {
 }
 
 type BlockchainGigastakeRedirect struct {
-	ID            int64        `json:"id"`
-	BlockchainID  string       `json:"blockchainID"`
-	Alias         string       `json:"alias"`
-	ProtocolAppID string       `json:"protocolAppID"`
-	Domain        string       `json:"domain"`
-	CreatedAt     sql.NullTime `json:"createdAt"`
-	UpdatedAt     sql.NullTime `json:"updatedAt"`
+	ID           int64        `json:"id"`
+	AccountID    int64        `json:"accountID"`
+	BlockchainID string       `json:"blockchainID"`
+	Alias        string       `json:"alias"`
+	Domain       string       `json:"domain"`
+	CreatedAt    sql.NullTime `json:"createdAt"`
+	UpdatedAt    sql.NullTime `json:"updatedAt"`
 }
 
 type GlobalBlockedContract struct {
 	ID             int64          `json:"id"`
 	BlockedAddress sql.NullString `json:"blockedAddress"`
+	Active         sql.NullBool   `json:"active"`
 	UpdatedAt      sql.NullTime   `json:"updatedAt"`
 }
 
@@ -482,13 +484,14 @@ type PayPlan struct {
 	MonthlyRelayLimit int32          `json:"monthlyRelayLimit"`
 	ThroughputLimit   int32          `json:"throughputLimit"`
 	ApplicationLimit  int32          `json:"applicationLimit"`
-	LegacyDailyLimit  sql.NullInt32  `json:"legacyDailyLimit"`
+	DailyLimit        sql.NullInt32  `json:"dailyLimit"`
 	CreatedAt         sql.NullTime   `json:"createdAt"`
 	UpdatedAt         sql.NullTime   `json:"updatedAt"`
 }
 
 type PortalApplication struct {
 	ID                 string         `json:"id"`
+	AccountID          sql.NullInt64  `json:"accountID"`
 	Name               string         `json:"name"`
 	Gigastake          bool           `json:"gigastake"`
 	ApplicationID      sql.NullString `json:"applicationID"`
@@ -497,6 +500,7 @@ type PortalApplication struct {
 	FirstDateSurpassed sql.NullTime   `json:"firstDateSurpassed"`
 	CreatedAt          sql.NullTime   `json:"createdAt"`
 	UpdatedAt          sql.NullTime   `json:"updatedAt"`
+	Deleted            sql.NullBool   `json:"deleted"`
 }
 
 type PortalApplicationAat struct {
@@ -562,7 +566,7 @@ type User struct {
 }
 
 type UserRole struct {
-	ID          string                  `json:"id"`
+	ID          int64                   `json:"id"`
 	RoleName    sql.NullString          `json:"roleName"`
 	Permissions []types.PermissionsEnum `json:"permissions"`
 	CreatedAt   sql.NullTime            `json:"createdAt"`
