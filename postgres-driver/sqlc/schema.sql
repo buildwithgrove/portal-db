@@ -1,7 +1,7 @@
 -- Enums
 CREATE TYPE auth_providers AS ENUM ('auth0');
 CREATE TYPE auth_sign_in AS ENUM ('github', 'username');
-CREATE TYPE auth_type AS ENUM ('basic_auth', 'bearer_token', 'none');
+CREATE TYPE chain_auth_type AS ENUM ('basic_auth', 'bearer_token', 'none');
 CREATE TYPE chain_check_type AS ENUM ('archival', 'chain', 'merge', 'sync');
 CREATE TYPE environment AS ENUM ('production', 'test');
 CREATE TYPE notification_event AS ENUM (
@@ -25,8 +25,8 @@ CREATE TYPE whitelist_type AS ENUM (
     'origins',
     'userAgents'
 );
--- Blockchains Tables
-CREATE TABLE blockchains (
+-- Chains Tables
+CREATE TABLE chains (
     id VARCHAR(4) NOT NULL,
     blockchain VARCHAR(100) NOT NULL,
     description VARCHAR(100) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE blockchains (
     chain_id INT,
     request_timeout INT,
     log_limit_blocks INT,
-    blockchain_aliases VARCHAR(100) ARRAY,
+    chain_aliases VARCHAR(100) ARRAY,
     allowed_methods VARCHAR(10) ARRAY,
     active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP,
@@ -44,19 +44,19 @@ CREATE TABLE blockchains (
     deleted BOOLEAN DEFAULT false,
     PRIMARY KEY (id)
 );
-CREATE TABLE blockchain_altruists (
+CREATE TABLE chain_altruists (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     blockchain_id VARCHAR(4) NOT NULL,
     url VARCHAR(255) NOT NULL,
     auth VARCHAR(100),
-    auth_type auth_type,
+    auth_type chain_auth_type NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE (blockchain_id, url),
-    CONSTRAINT blockchain_altruists_blockchain_id_fk FOREIGN KEY (blockchain_id) REFERENCES blockchains(id) ON DELETE CASCADE
+    CONSTRAINT chain_altruists_blockchain_id_fk FOREIGN KEY (blockchain_id) REFERENCES chains(id) ON DELETE CASCADE
 );
-CREATE TABLE blockchain_gigastake_redirects (
+CREATE TABLE chain_gigastake_redirects (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     account_id BIGINT NOT NULL UNIQUE,
     blockchain_id VARCHAR(4) NOT NULL,
@@ -65,13 +65,13 @@ CREATE TABLE blockchain_gigastake_redirects (
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
-    CONSTRAINT blockchain_gigastake_redirects_blockchain_id_fk FOREIGN KEY (blockchain_id) REFERENCES blockchains(id) ON DELETE CASCADE,
-    CONSTRAINT blockchain_gigastake_redirects_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id)
+    CONSTRAINT chain_gigastake_redirects_blockchain_id_fk FOREIGN KEY (blockchain_id) REFERENCES chains(id) ON DELETE CASCADE,
+    CONSTRAINT chain_gigastake_redirects_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id)
 );
-CREATE TABLE blockchain_checks (
+CREATE TABLE chain_checks (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     blockchain_id VARCHAR(4) NOT NULL,
-    type chain_check_type,
+    type chain_check_type NOT NULL,
     payload VARCHAR(255) NOT NULL,
     result_key VARCHAR(100),
     allowance INT,
@@ -79,7 +79,7 @@ CREATE TABLE blockchain_checks (
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE (blockchain_id, type),
-    CONSTRAINT blockchain_checks_blockchain_id_fk FOREIGN KEY (blockchain_id) REFERENCES blockchains(id) ON DELETE CASCADE,
+    CONSTRAINT chain_checks_blockchain_id_fk FOREIGN KEY (blockchain_id) REFERENCES chains(id) ON DELETE CASCADE,
     CONSTRAINT sync_allowance_check CHECK (
         (
             type = 'sync'
@@ -142,7 +142,7 @@ CREATE TABLE portal_application_settings (
     secret_key_required BOOLEAN NOT NULL,
     monthly_relay_limit INT NOT NULL,
     environment environment NOT NULL,
-    favorited_blockchain_ids VARCHAR(4) ARRAY REFERENCES blockchains (id),
+    favorited_blockchain_ids VARCHAR(4) ARRAY REFERENCES chains (id),
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT portal_settings_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
@@ -187,7 +187,7 @@ CREATE TABLE portal_application_notifications (
 CREATE TABLE users (
     id VARCHAR(320),
     email VARCHAR(320) NOT NULL UNIQUE,
-    auth_provider auth_providers,
+    auth_provider auth_providers NOT NULL,
     sign_in_type auth_sign_in,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
@@ -195,8 +195,8 @@ CREATE TABLE users (
 );
 CREATE TABLE user_roles (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
-    role_name VARCHAR(25) UNIQUE,
-    permissions permissions_enum ARRAY,
+    role_name VARCHAR(25) NOT NULL UNIQUE,
+    permissions permissions_enum ARRAY NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY (id)
@@ -205,7 +205,7 @@ CREATE TABLE user_roles (
 CREATE TABLE pay_plans (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     plan_type VARCHAR(25) UNIQUE,
-    blockchain_ids VARCHAR(4) ARRAY REFERENCES blockchains (id),
+    blockchain_ids VARCHAR(4) ARRAY REFERENCES chains (id),
     monthly_relay_limit INT NOT NULL,
     throughput_limit INT NOT NULL,
     application_limit INT NOT NULL,
@@ -219,7 +219,7 @@ CREATE TABLE pay_plans (
 CREATE TABLE accounts (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     plan_type VARCHAR(25) NOT NULL,
-    partner_blockchain_ids VARCHAR(4) ARRAY REFERENCES blockchains (id),
+    partner_blockchain_ids VARCHAR(4) ARRAY REFERENCES chains (id),
     partner_throughput_limit INT,
     partner_application_limit INT,
     created_at TIMESTAMP,
@@ -233,7 +233,7 @@ CREATE TABLE account_user_access (
     account_id BIGINT NOT NULL,
     user_id VARCHAR(320) NOT NULL,
     role_name VARCHAR(25) NOT NULL,
-    accepted BOOLEAN,
+    accepted BOOLEAN NOT NULL,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT account_user_access_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
@@ -340,25 +340,25 @@ AFTER
 INSERT
     OR
 UPDATE
-    OR DELETE ON blockchains FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER blockchain_altruists_notify_event
+    OR DELETE ON chains FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER chain_altruists_notify_event
 AFTER
 INSERT
     OR
 UPDATE
-    OR DELETE ON blockchain_altruists FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER blockchain_gigastake_redirects_notify_event
+    OR DELETE ON chain_altruists FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER chain_gigastake_redirects_notify_event
 AFTER
 INSERT
     OR
 UPDATE
-    OR DELETE ON blockchain_gigastake_redirects FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER blockchain_checks_notify_event
+    OR DELETE ON chain_gigastake_redirects FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER chain_checks_notify_event
 AFTER
 INSERT
     OR
 UPDATE
-    OR DELETE ON blockchain_checks FOR EACH ROW EXECUTE PROCEDURE notify_event();
+    OR DELETE ON chain_checks FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER global_blocked_contracts_notify_event
 AFTER
 INSERT
