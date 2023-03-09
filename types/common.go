@@ -2,9 +2,11 @@ package types
 
 /* Common string types */
 type (
-	ApplicationID string
-	BlockchainID  string
-	UserID        string
+	AccountID    int64
+	BlockchainID string
+	Email        string
+	PortalAppID  string
+	UserID       string
 )
 
 /* Listener types */
@@ -34,10 +36,10 @@ const (
 
 	TablePayPlans Table = "pay_plans"
 
-	TableBlockchains              Table = "blockchains"
-	TableChainAltruists           Table = "blockchain_altruists"
-	TableChainGigastakesRedirects Table = "blockchain_gigastake_redirects"
-	TableChainChecks              Table = "blockchain_checks"
+	TableBlockchains              Table = "chains"
+	TableChainAltruists           Table = "chain_altruists"
+	TableChainGigastakesRedirects Table = "chain_gigastake_redirects"
+	TableChainChecks              Table = "chain_checks"
 
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 

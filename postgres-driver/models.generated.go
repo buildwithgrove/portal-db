@@ -491,13 +491,15 @@ type PayPlan struct {
 
 type PortalApplication struct {
 	ID                 string         `json:"id"`
-	AccountID          sql.NullInt64  `json:"accountID"`
+	AccountID          int64          `json:"accountID"`
 	Name               string         `json:"name"`
 	Gigastake          bool           `json:"gigastake"`
+	Staked             bool           `json:"staked"`
 	ApplicationID      sql.NullString `json:"applicationID"`
 	RequestTimeout     sql.NullInt32  `json:"requestTimeout"`
 	GigastakeRedirect  sql.NullBool   `json:"gigastakeRedirect"`
 	FirstDateSurpassed sql.NullTime   `json:"firstDateSurpassed"`
+	CustomLimit        sql.NullInt32  `json:"customLimit"`
 	CreatedAt          sql.NullTime   `json:"createdAt"`
 	UpdatedAt          sql.NullTime   `json:"updatedAt"`
 	Deleted            sql.NullBool   `json:"deleted"`

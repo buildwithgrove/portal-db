@@ -14,11 +14,7 @@ import (
 )
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
-SELECT p.id, p.account_id, p.name, p.gigastake, p.application_id, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.created_at, p.updated_at, p.deleted,
-    pso.duration,
-    pso.sticky_max,
-    pso.stickiness,
-    pso.origins,
+SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.application_id, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit, p.created_at, p.updated_at, p.deleted,
     paa.address,
     paa.public_key,
     paa.private_key,
@@ -29,6 +25,14 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.application_id, p.request_time
     pas.secret_key_required,
     pas.monthly_relay_limit,
     pas.environment,
+    -- legacy field
+    pso.duration,
+    -- legacy field
+    pso.sticky_max,
+    -- legacy field
+    pso.stickiness,
+    -- legacy field
+    pso.origins,
     json_object_agg(
         pn.type,
         json_build_object(
@@ -39,25 +43,37 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.application_id, p.request_time
             'trigger',
             pn.trigger,
             'events',
-            pn.events
+            (
+                SELECT json_object_agg(
+                        event,
+                        true
+                    )
+                FROM (
+                        SELECT unnest(pn.events) AS event
+                    ) subquery
+            )
         )
     ) AS notifications,
-    json_agg(
-        json_build_object(
-            'type',
-            paw.type,
-            'value',
-            paw.value,
-            'blockchain_id',
-            paw.blockchain_id
-        )
+    (
+        SELECT json_agg(
+                json_build_object(
+                    'type',
+                    paw.type,
+                    'value',
+                    paw.value,
+                    'blockchain_id',
+                    paw.blockchain_id
+                )
+            )
+        FROM portal_application_whitelists AS paw
+        WHERE paw.application_id = p.id
     ) AS whitelists
 FROM portal_applications AS p
-    LEFT JOIN stickiness_options AS pso ON p.id = pso.application_id
     LEFT JOIN portal_application_aats AS paa ON p.id = paa.application_id
     LEFT JOIN portal_application_settings AS pas ON p.id = pas.application_id
     LEFT JOIN portal_application_notifications AS pn ON p.id = pn.application_id
-    LEFT JOIN portal_application_whitelists AS paw ON p.id = paw.application_id
+     -- legacy table
+    LEFT JOIN stickiness_options AS pso ON p.id = pso.application_id
 GROUP BY p.id,
     pso.duration,
     pso.sticky_max,
@@ -77,20 +93,18 @@ GROUP BY p.id,
 
 type SelectPortalApplicationsRow struct {
 	ID                 string          `json:"id"`
-	AccountID          sql.NullInt64   `json:"accountID"`
+	AccountID          int64           `json:"accountID"`
 	Name               string          `json:"name"`
 	Gigastake          bool            `json:"gigastake"`
+	Staked             bool            `json:"staked"`
 	ApplicationID      sql.NullString  `json:"applicationID"`
 	RequestTimeout     sql.NullInt32   `json:"requestTimeout"`
 	GigastakeRedirect  sql.NullBool    `json:"gigastakeRedirect"`
 	FirstDateSurpassed sql.NullTime    `json:"firstDateSurpassed"`
+	CustomLimit        sql.NullInt32   `json:"customLimit"`
 	CreatedAt          sql.NullTime    `json:"createdAt"`
 	UpdatedAt          sql.NullTime    `json:"updatedAt"`
 	Deleted            sql.NullBool    `json:"deleted"`
-	Duration           sql.NullString  `json:"duration"`
-	StickyMax          sql.NullInt32   `json:"stickyMax"`
-	Stickiness         sql.NullBool    `json:"stickiness"`
-	Origins            []string        `json:"origins"`
 	Address            sql.NullString  `json:"address"`
 	PublicKey          sql.NullString  `json:"publicKey"`
 	PrivateKey         sql.NullString  `json:"privateKey"`
@@ -101,6 +115,10 @@ type SelectPortalApplicationsRow struct {
 	SecretKeyRequired  sql.NullBool    `json:"secretKeyRequired"`
 	MonthlyRelayLimit  sql.NullInt32   `json:"monthlyRelayLimit"`
 	Environment        NullEnvironment `json:"environment"`
+	Duration           sql.NullString  `json:"duration"`
+	StickyMax          sql.NullInt32   `json:"stickyMax"`
+	Stickiness         sql.NullBool    `json:"stickiness"`
+	Origins            []string        `json:"origins"`
 	Notifications      json.RawMessage `json:"notifications"`
 	Whitelists         json.RawMessage `json:"whitelists"`
 }
@@ -119,17 +137,15 @@ func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalA
 			&i.AccountID,
 			&i.Name,
 			&i.Gigastake,
+			&i.Staked,
 			&i.ApplicationID,
 			&i.RequestTimeout,
 			&i.GigastakeRedirect,
 			&i.FirstDateSurpassed,
+			&i.CustomLimit,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
-			&i.Duration,
-			&i.StickyMax,
-			&i.Stickiness,
-			pq.Array(&i.Origins),
 			&i.Address,
 			&i.PublicKey,
 			&i.PrivateKey,
@@ -140,6 +156,10 @@ func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalA
 			&i.SecretKeyRequired,
 			&i.MonthlyRelayLimit,
 			&i.Environment,
+			&i.Duration,
+			&i.StickyMax,
+			&i.Stickiness,
+			pq.Array(&i.Origins),
 			&i.Notifications,
 			&i.Whitelists,
 		); err != nil {

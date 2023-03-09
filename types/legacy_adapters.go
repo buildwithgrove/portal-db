@@ -21,7 +21,7 @@ func (a *PortalApp) ConvertToLegacyLoadBalancer() LoadBalancer {
 	application := a.ConvertToLegacyApplication()
 
 	return LoadBalancer{
-		ID:           a.ID,
+		ID:           string(a.ID),
 		Name:         a.Name,
 		UserID:       string(a.UserID()),
 		Gigastake:    a.Gigastake,
@@ -281,7 +281,7 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 	}
 
 	return UpdatePortalApp{
-		AppID: ApplicationID(loadBalancerID), Name: u.Name,
+		AppID: PortalAppID(loadBalancerID), Name: u.Name,
 		Settings: settings, Notifications: notifications, Whitelists: whitelists,
 	}
 }

@@ -116,8 +116,8 @@ func (app *PortalApp) GetOwnerEmail() (string, error) {
 // UserPermissions stores all load balancer read/write permissions for a given user
 type (
 	UserPermissions struct {
-		UserID     UserID                                 `json:"userID"`
-		PortalApps map[ApplicationID]PortalAppPermissions `json:"loadBalancers"`
+		UserID     UserID                               `json:"userID"`
+		PortalApps map[PortalAppID]PortalAppPermissions `json:"loadBalancers"`
 	}
 
 	PortalAppPermissions struct {
@@ -133,7 +133,7 @@ func (u *UserPermissions) IsEmpty() bool {
 	return false
 }
 
-func (u *UserPermissions) GetRole(appID ApplicationID) RoleName {
+func (u *UserPermissions) GetRole(appID PortalAppID) RoleName {
 	app, ok := u.PortalApps[appID]
 	if !ok {
 		return RoleName("")
@@ -142,7 +142,7 @@ func (u *UserPermissions) GetRole(appID ApplicationID) RoleName {
 	return app.RoleName
 }
 
-func (u *UserPermissions) UpsertPermissions(appID ApplicationID, role RoleName) (*UserPermissions, error) {
+func (u *UserPermissions) UpsertPermissions(appID PortalAppID, role RoleName) (*UserPermissions, error) {
 	if appID == "" {
 		return nil, ErrAppIDIsEmpty
 	}
@@ -158,13 +158,13 @@ func (u *UserPermissions) UpsertPermissions(appID ApplicationID, role RoleName) 
 	return u, nil
 }
 
-func (u *UserPermissions) DeletePermissions(appID ApplicationID) *UserPermissions {
+func (u *UserPermissions) DeletePermissions(appID PortalAppID) *UserPermissions {
 	delete(u.PortalApps, appID)
 
 	return u
 }
 
-func (u *UserPermissions) HasPermission(appID ApplicationID, permission PermissionsEnum) bool {
+func (u *UserPermissions) HasPermission(appID PortalAppID, permission PermissionsEnum) bool {
 	app, ok := u.PortalApps[appID]
 	if !ok {
 		return false

@@ -13,7 +13,9 @@ var testPortalApplication = PortalApp{
 	ID:        "test_5416bb8d696386455b8",
 	Name:      "test_portal_app_123",
 	Gigastake: true,
+	AccountID: 1,
 	Account: Account{
+		ID: 1,
 		Plan: Plan{
 			Type:              FreetierV0,
 			MonthlyRelayLimit: 2_500_000,
