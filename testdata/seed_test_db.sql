@@ -18,7 +18,7 @@ INSERT INTO portal_applications (
         name,
         gigastake,
         staked,
-        application_id,
+        application_ids,
         request_timeout,
         gigastake_redirect,
         first_date_surpassed,
@@ -31,7 +31,7 @@ VALUES (
         'pokt_app_123',
         true,
         false,
-        'test_app_47hfnths73j2se7',
+        ARRAY ['test_app_47hfnths73j2se7'],
         5000,
         true,
         '2022-11-11 11:11:11.000000',
@@ -44,7 +44,20 @@ VALUES (
         'pokt_app_456',
         false,
         true,
-        'test_app_43jr9304urj30fj',
+        ARRAY ['test_app_43jr9304urj30fj'],
+        10000,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_47fhs7j4hs7fj2',
+        1,
+        'pokt_app_789',
+        false,
+        true,
+        ARRAY ['test_app_43jr947fh23dfg4'],
         10000,
         false,
         '2022-11-11 11:11:11.000000',
@@ -79,8 +92,7 @@ INSERT INTO portal_application_aats (
         private_key,
         client_public_key,
         signature,
-        version,
-        updated_at
+        version
     )
 VALUES (
         'test_app_3487u329rfn23f9',
@@ -89,8 +101,7 @@ VALUES (
         'test_11b8d394ca331d7c7a71ca1896d630f6',
         'test_89a3af6a587aec02cfade6f5000424c2',
         'test_1dc39a2e5a84a35bf030969a0b3231f7',
-        '0.0.1',
-        '2022-11-11 11:11:11.000000'
+        '0.0.1'
     ),
     (
         'test_app_2308rj09r23r9r',
@@ -99,8 +110,16 @@ VALUES (
         'test_2e83c836a29b423a47d8e18c779fd422',
         'test_04c71d90a92f40416b6f1d7d8af17e02',
         'test_f48d33b30ddaf60a1e5bb50d2ba8da5a',
-        '0.0.1',
-        '2022-11-11 11:11:11.000000'
+        '0.0.1'
+    ),
+    (
+        'test_app_47fhs7j4hs7fj2',
+        'test_b5e07928fc80083c13ad0201b81bae9b',
+        'test_f608500e4fe3e09014fe2411b4a560b5',
+        'test_8663e187c19f3c6e27317eab4ed6d7d5',
+        'test_328a9cf1b35085eeaa669aa858f6fba9',
+        'test_c3cd8be16ba32e24dd49fdb0247fc9b8',
+        '0.0.1'
     );
 INSERT INTO portal_application_settings (
         application_id,
@@ -128,12 +147,21 @@ VALUES (
         'production',
         ARRAY ['0021', '0064'],
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_47fhs7j4hs7fj2',
+        'test_9f48b13e2bc5fd31ab367841f11495c1',
+        false,
+        4500000,
+        'production',
+        ARRAY ['0001', '0034'],
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO portal_application_whitelists (
         application_id,
         type,
         value,
-        blockchain_id,
+        chain_id,
         created_at
     )
 VALUES (

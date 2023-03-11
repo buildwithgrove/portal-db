@@ -40,7 +40,7 @@ type (
 
 		// TODO - remove when v2 migration finished
 		// LegacyDailyLimit is the daily limit (required for legacy apps to function)
-		LegacyDailyLimit int `json:"legacyDailyLimit"`
+		LegacyDailyLimit int32 `json:"legacyDailyLimit"`
 	}
 )
 

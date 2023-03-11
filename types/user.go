@@ -14,10 +14,10 @@ var (
 
 /* Enums */
 type (
-	AuthProviders   string
-	AuthSignIn      string
-	PermissionsEnum string
-	RoleName        string
+	AuthProviders string
+	AuthSignIn    string
+	Permissions   string
+	RoleName      string
 )
 
 const (
@@ -26,10 +26,10 @@ const (
 	AuthSignInGitHub   AuthSignIn = "github"
 	AuthSignInUsername AuthSignIn = "username"
 
-	PermReadEndpoint     PermissionsEnum = "read:endpoint"
-	PermWriteEndpoint    PermissionsEnum = "write:endpoint"
-	PermDeleteEndpoint   PermissionsEnum = "delete:endpoint"
-	PermTransferEndpoint PermissionsEnum = "transfer:endpoint"
+	PermReadEndpoint     Permissions = "read:endpoint"
+	PermWriteEndpoint    Permissions = "write:endpoint"
+	PermDeleteEndpoint   Permissions = "delete:endpoint"
+	PermTransferEndpoint Permissions = "transfer:endpoint"
 
 	RoleOwner  RoleName = "OWNER"
 	RoleAdmin  RoleName = "ADMIN"
@@ -54,7 +54,7 @@ func (a AuthSignIn) IsValid() bool {
 	}
 }
 
-func (p PermissionsEnum) IsValid() bool {
+func (p Permissions) IsValid() bool {
 	switch p {
 	case PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint:
 		return true
@@ -91,12 +91,12 @@ var (
 		RoleMember: true,
 	}
 
-	ValidPermissions = map[PermissionsEnum]bool{
+	ValidPermissions = map[Permissions]bool{
 		PermReadEndpoint:  true,
 		PermWriteEndpoint: true,
 	}
 
-	permissionsList = map[RoleName][]PermissionsEnum{
+	permissionsList = map[RoleName][]Permissions{
 		RoleOwner:  {PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 		RoleAdmin:  {PermReadEndpoint, PermWriteEndpoint},
 		RoleMember: {PermReadEndpoint},
@@ -121,8 +121,8 @@ type (
 	}
 
 	PortalAppPermissions struct {
-		RoleName    RoleName          `json:"roleName"`
-		Permissions []PermissionsEnum `json:"permissions"`
+		RoleName    RoleName      `json:"roleName"`
+		Permissions []Permissions `json:"permissions"`
 	}
 )
 
@@ -164,7 +164,7 @@ func (u *UserPermissions) DeletePermissions(appID PortalAppID) *UserPermissions 
 	return u
 }
 
-func (u *UserPermissions) HasPermission(appID PortalAppID, permission PermissionsEnum) bool {
+func (u *UserPermissions) HasPermission(appID PortalAppID, permission Permissions) bool {
 	app, ok := u.PortalApps[appID]
 	if !ok {
 		return false
@@ -179,14 +179,14 @@ func (u *UserPermissions) HasPermission(appID PortalAppID, permission Permission
 	return false
 }
 
-func (e *PermissionsEnum) Scan(src interface{}) error {
+func (e *Permissions) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = PermissionsEnum(s)
+		*e = Permissions(s)
 	case string:
-		*e = PermissionsEnum(s)
+		*e = Permissions(s)
 	default:
-		return fmt.Errorf("unsupported scan type for PermissionsEnum: %T", src)
+		return fmt.Errorf("unsupported scan type for Permissions: %T", src)
 	}
 	return nil
 }

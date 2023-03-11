@@ -52,7 +52,7 @@ CREATE TABLE users (
 CREATE TABLE user_roles (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     role_name VARCHAR(25) NOT NULL UNIQUE,
-    permissions permissions_enum ARRAY NOT NULL,
+    permissions permissions ARRAY NOT NULL,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ,
     PRIMARY KEY (id)
@@ -192,7 +192,6 @@ CREATE TABLE portal_application_aats (
     client_public_key VARCHAR(64) NOT NULL,
     signature VARCHAR(128) NOT NULL,
     version VARCHAR(10) NOT NULL,
-    updated_at TIMESTAMPTZ,
     PRIMARY KEY (id),
     CONSTRAINT portal_aats_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
 );
@@ -215,7 +214,7 @@ CREATE TABLE portal_application_whitelists (
     value VARCHAR(255) NOT NULL,
     chain_id VARCHAR(4),
     created_at TIMESTAMPTZ NULL,
-    UNIQUE (application_id, value, type),
+    -- UNIQUE (application_id, value, type),
     UNIQUE (application_id, value, type, chain_id),
     PRIMARY KEY (id),
     CONSTRAINT portal_whitelists_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE,
@@ -230,6 +229,8 @@ CREATE TABLE portal_application_whitelists (
         )
     )
 );
+CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_application_whitelists (application_id, value, type)
+WHERE chain_id IS NULL;
 CREATE TABLE portal_application_notifications (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     application_id VARCHAR(24) NOT NULL UNIQUE,

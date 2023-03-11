@@ -94,9 +94,9 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		ApplicationID      string        `json:"applicationID"`
-		CustomLimit        int           `json:"customLimit"`
-		RequestTimeout     int           `json:"requestTimeout"`
+		ApplicationIDs     []string      `json:"applicationID"`
+		CustomLimit        int32         `json:"customLimit"`
+		RequestTimeout     int32         `json:"requestTimeout"`
 		GigastakeRedirect  bool          `json:"gigastakeRedirect"`
 		FirstDateSurpassed time.Time     `json:"firstDateSurpassed"`
 		StickyOptions      StickyOptions `json:"stickyOptions"`
@@ -120,7 +120,7 @@ type (
 		FavoritedBlockchainIDs map[BlockchainID]struct{} `json:"favoritedBlockchainIDs"`
 		// MonthlyRelayLimit sets the monthly limit per-application
 		// Sum of an Account's Apps MonthlyRelayLimits cannot exceed the Account's MonthlyRelayLimit
-		MonthlyRelayLimit int `json:"monthlyRelayLimit"`
+		MonthlyRelayLimit int32 `json:"monthlyRelayLimit"`
 	}
 
 	Whitelists struct {
@@ -160,11 +160,11 @@ type (
 
 	// UpdatePortalApp Struct Definition and Methods
 	UpdatePortalApp struct {
-		AppID         PortalAppID             `json:"appID,omitempty"`
-		Name          string                  `json:"name,omitempty"`
-		Settings      *UpdateAppSettings      `json:"appSettings,omitempty"`
-		Notifications *UpdateAppNotifications `json:"notificationSettings,omitempty"`
-		Whitelists    *WhitelistsObject       `json:"whitelists,omitempty"`
+		AppID         PortalAppID              `json:"appID,omitempty"`
+		Name          string                   `json:"name,omitempty"`
+		Settings      *UpdateAppSettings       `json:"appSettings,omitempty"`
+		Notifications []UpdateAppNotifications `json:"notificationSettings,omitempty"`
+		Whitelists    *WhitelistsObject        `json:"whitelists,omitempty"`
 	}
 
 	UpdateAppSettings struct {
@@ -172,7 +172,7 @@ type (
 		Environment       Environment `json:"environment"`
 		SecretKey         string      `json:"secretKey"`
 		SecretKeyRequired bool        `json:"secretKeyRequired"`
-		MonthlyRelayLimit int         `json:"monthlyRelayLimit"`
+		MonthlyRelayLimit int32       `json:"monthlyRelayLimit"`
 		FavoritedChainIDs []string    `json:"favoritedChainIDs"`
 	}
 
@@ -197,7 +197,7 @@ type (
 )
 
 // LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
-func (a *PortalApp) LegacyDailyLimit() int {
+func (a *PortalApp) LegacyDailyLimit() int32 {
 	return a.Account.Plan.LegacyDailyLimit
 }
 
@@ -212,7 +212,7 @@ func (a *PortalApp) UserID() UserID {
 }
 
 // MonthlyLimit returns the monthly relay limit for a given application
-func (a *PortalApp) MonthlyLimit() int {
+func (a *PortalApp) MonthlyLimit() int32 {
 	return a.Settings.MonthlyRelayLimit
 }
 

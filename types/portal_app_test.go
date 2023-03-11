@@ -93,7 +93,7 @@ var testPortalApplication = PortalApp{
 	UpdatedAt: time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
 
 	LegacyFields: LegacyFields{
-		ApplicationID:      "test_475jf893f9j2f30jd230e",
+		ApplicationIDs:     []string{"test_475jf893f9j2f30jd230e"},
 		CustomLimit:        0,
 		RequestTimeout:     5_000,
 		GigastakeRedirect:  true,

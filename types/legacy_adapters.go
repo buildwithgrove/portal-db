@@ -18,27 +18,24 @@ func (a *PortalApp) ConvertToLegacyLoadBalancer() LoadBalancer {
 	}
 	sortUsersByRole(users)
 
-	application := a.ConvertToLegacyApplication()
-
 	return LoadBalancer{
 		ID:           string(a.ID),
 		Name:         a.Name,
 		UserID:       string(a.UserID()),
 		Gigastake:    a.Gigastake,
-		Applications: []*Application{&application},
+		Applications: a.ConvertToLegacyApplications(),
 		Users:        users,
 		CreatedAt:    a.CreatedAt,
 		UpdatedAt:    a.UpdatedAt,
 
-		RequestTimeout:    a.LegacyFields.RequestTimeout,
+		RequestTimeout:    int(a.LegacyFields.RequestTimeout),
 		GigastakeRedirect: a.LegacyFields.GigastakeRedirect,
 		StickyOptions:     a.LegacyFields.StickyOptions,
 	}
 }
 
-func (a *PortalApp) ConvertToLegacyApplication() Application {
-	return Application{
-		ID:     a.LegacyFields.ApplicationID,
+func (a *PortalApp) ConvertToLegacyApplications() []*Application {
+	appDetails := &Application{
 		UserID: string(a.UserID()),
 		Name:   a.Name,
 		GatewayAAT: GatewayAAT{
@@ -53,9 +50,9 @@ func (a *PortalApp) ConvertToLegacyApplication() Application {
 		Limit: AppLimit{
 			Plan: PayPlan{
 				Type:  a.Account.Plan.Type,
-				Limit: a.LegacyDailyLimit(),
+				Limit: int(a.LegacyDailyLimit()),
 			},
-			CustomLimit: a.LegacyFields.CustomLimit,
+			CustomLimit: int(a.LegacyFields.CustomLimit),
 		},
 		NotificationSettings: NotificationSettings{
 			SignedUp:      a.Notifications[NotificationTypeEmail].Events[NotificationEventSignedUp],
@@ -68,6 +65,16 @@ func (a *PortalApp) ConvertToLegacyApplication() Application {
 		CreatedAt:          a.CreatedAt,
 		UpdatedAt:          a.UpdatedAt,
 	}
+
+	var applications []*Application
+	for _, id := range a.LegacyFields.ApplicationIDs {
+		application := appDetails
+		application.ID = id
+
+		applications = append(applications, application)
+	}
+
+	return applications
 }
 
 func (a *PortalApp) ConvertToLegacyGatewaySettings() GatewaySettings {
@@ -160,7 +167,7 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 func (c *Plan) ConvertToLegacyPayPlan() PayPlan {
 	return PayPlan{
 		Type:  c.Type,
-		Limit: c.LegacyDailyLimit,
+		Limit: int(c.LegacyDailyLimit),
 	}
 }
 
@@ -214,8 +221,8 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 		},
 
 		LegacyFields: LegacyFields{
-			ApplicationID:     "", // generate ID inside postgres driver (same ID as Application)
-			RequestTimeout:    lb.RequestTimeout,
+			ApplicationIDs:    []string{}, // generate ID inside postgres driver (same ID as Application)
+			RequestTimeout:    int32(lb.RequestTimeout),
 			GigastakeRedirect: lb.GigastakeRedirect,
 			StickyOptions:     lb.StickyOptions,
 		},
@@ -228,20 +235,22 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) UpdatePortalApp {
 	var (
 		settings                             *UpdateAppSettings
-		notifications                        *UpdateAppNotifications
+		notifications                        []UpdateAppNotifications
 		whitelists                           *WhitelistsObject
 		contractWhitelists, methodWhitelists []BlockchainIDWhitelists
 	)
 
 	if u.NotificationSettings != nil {
-		notifications = &UpdateAppNotifications{
-			NotificationType: NotificationTypeEmail,
-			Events: map[NotificationEvent]bool{
-				NotificationEventSignedUp:      *u.NotificationSettings.SignedUp,
-				NotificationEventQuarter:       *u.NotificationSettings.Quarter,
-				NotificationEventHalf:          *u.NotificationSettings.Half,
-				NotificationEventThreeQuarters: *u.NotificationSettings.ThreeQuarters,
-				NotificationEventFull:          *u.NotificationSettings.Full,
+		notifications = []UpdateAppNotifications{
+			{
+				NotificationType: NotificationTypeEmail,
+				Events: map[NotificationEvent]bool{
+					NotificationEventSignedUp:      *u.NotificationSettings.SignedUp,
+					NotificationEventQuarter:       *u.NotificationSettings.Quarter,
+					NotificationEventHalf:          *u.NotificationSettings.Half,
+					NotificationEventThreeQuarters: *u.NotificationSettings.ThreeQuarters,
+					NotificationEventFull:          *u.NotificationSettings.Full,
+				},
 			},
 		}
 	}

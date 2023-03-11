@@ -12,7 +12,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_6774900350d9c42": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
 		},
 	},
@@ -21,11 +21,11 @@ var testUserPermissions = map[UserID]UserPermissions{
 		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_6774900350d9c42": {
 				RoleName:    RoleAdmin,
-				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint},
+				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
 			},
 			"test_app_be591c4dea8566a": {
 				RoleName:    RoleMember,
-				Permissions: []PermissionsEnum{PermReadEndpoint},
+				Permissions: []Permissions{PermReadEndpoint},
 			},
 		},
 	},
@@ -34,7 +34,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_3487u329rfn23f9": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
 		},
 	},
@@ -98,11 +98,11 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_6774900350d9c42": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
 					"test_new_portal_app": {
 						RoleName:    RoleAdmin,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
 					},
 				},
 			},
@@ -117,11 +117,11 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_6774900350d9c42": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
 					"test_new_portal_app": {
 						RoleName:    RoleMember,
-						Permissions: []PermissionsEnum{PermReadEndpoint},
+						Permissions: []Permissions{PermReadEndpoint},
 					},
 				},
 			},
@@ -171,7 +171,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_3487u329rfn23f9": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
 				},
 			},

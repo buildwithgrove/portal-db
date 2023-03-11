@@ -211,9 +211,11 @@ var (
 		AppID:    "test_5416bb8d696386455b8",
 		Name:     "test_portal_app_123",
 		Settings: &UpdateAppSettings{SecretKey: "test_90210ac4bdd3423e24877d1ff92", SecretKeyRequired: false},
-		Notifications: &UpdateAppNotifications{
-			NotificationType: NotificationTypeEmail,
-			Events:           map[NotificationEvent]bool{NotificationEventSignedUp: true, NotificationEventQuarter: true, NotificationEventHalf: false, NotificationEventThreeQuarters: true, NotificationEventFull: false},
+		Notifications: []UpdateAppNotifications{
+			{
+				NotificationType: NotificationTypeEmail,
+				Events:           map[NotificationEvent]bool{NotificationEventSignedUp: true, NotificationEventQuarter: true, NotificationEventHalf: false, NotificationEventThreeQuarters: true, NotificationEventFull: false},
+			},
 		},
 		Whitelists: &WhitelistsObject{
 			AppWhitelists: [3]ApplicationWhitelists{
@@ -307,23 +309,23 @@ func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
 	}
 }
 
-func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
+func Test_LegacyAdapators_ConvertToLegacyApplications(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
 		name                      string
 		portalApp                 PortalApp
-		expectedLegacyApplication Application
+		expectedLegacyApplication []*Application
 	}{
 		{
 			name:                      "Should convert a V2 PortalApp struct to a legacy Application struct",
 			portalApp:                 testPortalApplication,
-			expectedLegacyApplication: testLegacyApplication,
+			expectedLegacyApplication: []*Application{&testLegacyApplication},
 		},
 	}
 
 	for _, test := range tests {
-		legacyApplication := test.portalApp.ConvertToLegacyApplication()
+		legacyApplication := test.portalApp.ConvertToLegacyApplications()
 		c.Equal(test.expectedLegacyApplication, legacyApplication)
 	}
 }
