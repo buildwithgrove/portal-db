@@ -33,8 +33,8 @@ CREATE TABLE pay_plans (
     monthly_relay_limit INT NOT NULL,
     throughput_limit INT NOT NULL,
     application_limit INT NOT NULL,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id),
     -- legacy field
     daily_limit INT
@@ -45,16 +45,16 @@ CREATE TABLE users (
     email VARCHAR(320) NOT NULL UNIQUE,
     auth_provider auth_providers NOT NULL,
     sign_in_type auth_sign_in,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id)
 );
 CREATE TABLE user_roles (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     role_name VARCHAR(25) NOT NULL UNIQUE,
-    permissions permissions_enum ARRAY NOT NULL,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    permissions permissions ARRAY NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id)
 );
 -- Accounts Tables
@@ -64,8 +64,8 @@ CREATE TABLE accounts (
     partner_blockchain_ids VARCHAR(4) ARRAY,
     partner_throughput_limit INT,
     partner_application_limit INT,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     deleted BOOLEAN DEFAULT false,
     PRIMARY KEY (id),
     CONSTRAINT accounts_pay_plans_fk FOREIGN KEY (plan_type) REFERENCES pay_plans(plan_type)
@@ -76,7 +76,7 @@ CREATE TABLE account_user_access (
     user_id VARCHAR(320) NOT NULL,
     role_name VARCHAR(25) NOT NULL,
     accepted BOOLEAN NOT NULL,
-    updated_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT account_user_access_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
     CONSTRAINT account_user_access_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -97,8 +97,8 @@ CREATE TABLE chains (
     chain_aliases VARCHAR(100) ARRAY,
     allowed_methods VARCHAR(10) ARRAY,
     active BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     deleted BOOLEAN DEFAULT false,
     PRIMARY KEY (id)
 );
@@ -108,8 +108,8 @@ CREATE TABLE chain_altruists (
     url VARCHAR(255) NOT NULL,
     auth VARCHAR(100),
     auth_type chain_auth_type NOT NULL,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (chain_id, url),
     CONSTRAINT chain_altruists_chain_id_fk FOREIGN KEY (chain_id) REFERENCES chains(id) ON DELETE CASCADE
@@ -120,8 +120,8 @@ CREATE TABLE chain_gigastake_redirects (
     chain_id VARCHAR(4) NOT NULL,
     alias VARCHAR(100) NOT NULL,
     domain VARCHAR(100) NOT NULL,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT chain_gigastake_redirects_chain_id_fk FOREIGN KEY (chain_id) REFERENCES chains(id) ON DELETE CASCADE,
     CONSTRAINT chain_gigastake_redirects_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id)
@@ -133,8 +133,8 @@ CREATE TABLE chain_checks (
     payload VARCHAR(255) NOT NULL,
     result_key VARCHAR(100),
     allowance INT,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (chain_id, type),
     CONSTRAINT chain_checks_chain_id_fk FOREIGN KEY (chain_id) REFERENCES chains(id) ON DELETE CASCADE,
@@ -156,13 +156,13 @@ CREATE TABLE portal_applications (
     name VARCHAR(255) NOT NULL,
     gigastake BOOLEAN NOT NULL,
     staked BOOLEAN NOT NULL,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     deleted BOOLEAN DEFAULT false,
     PRIMARY KEY (id),
     CONSTRAINT portal_application__account_id_fk FOREIGN KEY(account_id) REFERENCES accounts(id),
     -- legacy field
-    application_id VARCHAR(24),
+    application_ids VARCHAR(24) ARRAY,
     -- legacy field
     request_timeout INT,
     -- legacy field
@@ -192,7 +192,6 @@ CREATE TABLE portal_application_aats (
     client_public_key VARCHAR(64) NOT NULL,
     signature VARCHAR(128) NOT NULL,
     version VARCHAR(10) NOT NULL,
-    updated_at TIMESTAMPTZ,
     PRIMARY KEY (id),
     CONSTRAINT portal_aats_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
 );
@@ -203,10 +202,23 @@ CREATE TABLE portal_application_settings (
     secret_key_required BOOLEAN NOT NULL,
     monthly_relay_limit INT NOT NULL,
     environment environment NOT NULL,
-    favorited_blockchain_ids VARCHAR(4) ARRAY,
+    favorited_chain_ids VARCHAR(4) ARRAY,
     updated_at TIMESTAMPTZ,
     PRIMARY KEY (id),
     CONSTRAINT portal_settings_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
+);
+CREATE TABLE portal_application_notifications (
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
+    application_id VARCHAR(24) NOT NULL UNIQUE,
+    active BOOLEAN NOT NULL,
+    type notification_type NOT NULL,
+    destination VARCHAR(255),
+    trigger VARCHAR(255),
+    events notification_event ARRAY,
+    updated_at TIMESTAMPTZ,
+    PRIMARY KEY (id),
+    UNIQUE (application_id, type),
+    CONSTRAINT portal_notifications_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
 );
 CREATE TABLE portal_application_whitelists (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
@@ -214,8 +226,7 @@ CREATE TABLE portal_application_whitelists (
     type whitelist_type NOT NULL,
     value VARCHAR(255) NOT NULL,
     chain_id VARCHAR(4),
-    created_at TIMESTAMPTZ NULL,
-    UNIQUE (application_id, value, type),
+    created_at TIMESTAMPTZ NOT NULL,
     UNIQUE (application_id, value, type, chain_id),
     PRIMARY KEY (id),
     CONSTRAINT portal_whitelists_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE,
@@ -230,26 +241,14 @@ CREATE TABLE portal_application_whitelists (
         )
     )
 );
-CREATE TABLE portal_application_notifications (
-    id BIGINT GENERATED ALWAYS AS IDENTITY,
-    application_id VARCHAR(24) NOT NULL UNIQUE,
-    active BOOLEAN NOT NULL,
-    type notification_type NOT NULL,
-    destination VARCHAR(255),
-    trigger VARCHAR(255),
-    events notification_event ARRAY,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
-    PRIMARY KEY (id),
-    UNIQUE (application_id, type),
-    CONSTRAINT portal_notifications_app_id_fk FOREIGN KEY (application_id) REFERENCES portal_applications(id) ON DELETE CASCADE
-);
+CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_application_whitelists (application_id, value, type)
+WHERE chain_id IS NULL;
 -- Blocked Contracts Tables
 CREATE TABLE global_blocked_contracts (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     blocked_address VARCHAR(255) UNIQUE,
     active BOOLEAN DEFAULT true,
-    updated_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (id)
 );
 -- Listener Notification Function
@@ -338,7 +337,7 @@ INSERT
     OR
 UPDATE
     OR DELETE ON pay_plans FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER blockchains_notify_event
+CREATE TRIGGER chains_notify_event
 AFTER
 INSERT
     OR
