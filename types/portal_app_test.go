@@ -49,11 +49,11 @@ var testPortalApplication = PortalApp{
 		Version:         "0.0.1",
 	},
 	Settings: Settings{
-		Environment:            EnvironmentProduction,
-		SecretKey:              "test_90210ac4bdd3423e24877d1ff92",
-		SecretKeyRequired:      true,
-		MonthlyRelayLimit:      250_000,
-		FavoritedBlockchainIDs: map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		Environment:       EnvironmentProduction,
+		SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
+		SecretKeyRequired: true,
+		MonthlyRelayLimit: 250_000,
+		FavoritedChainIDs: map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 	},
 	Whitelists: Whitelists{
 		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},

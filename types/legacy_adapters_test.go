@@ -214,7 +214,7 @@ var (
 		Notifications: []UpdateAppNotifications{
 			{
 				NotificationType: NotificationTypeEmail,
-				Events:           map[NotificationEvent]bool{NotificationEventSignedUp: true, NotificationEventQuarter: true, NotificationEventHalf: false, NotificationEventThreeQuarters: true, NotificationEventFull: false},
+				Events:           []NotificationEvent{NotificationEventSignedUp, NotificationEventQuarter, NotificationEventHalf, NotificationEventThreeQuarters, NotificationEventFull},
 			},
 		},
 		Whitelists: &WhitelistsObject{

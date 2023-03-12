@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"github.com/pokt-foundation/portal-db/types"
 )
@@ -407,18 +408,18 @@ type Account struct {
 	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
 	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
 	PartnerApplicationLimit sql.NullInt32 `json:"partnerApplicationLimit"`
-	CreatedAt               sql.NullTime  `json:"createdAt"`
-	UpdatedAt               sql.NullTime  `json:"updatedAt"`
+	CreatedAt               time.Time     `json:"createdAt"`
+	UpdatedAt               time.Time     `json:"updatedAt"`
 	Deleted                 sql.NullBool  `json:"deleted"`
 }
 
 type AccountUserAccess struct {
-	ID        int64        `json:"id"`
-	AccountID int64        `json:"accountID"`
-	UserID    string       `json:"userID"`
-	RoleName  string       `json:"roleName"`
-	Accepted  bool         `json:"accepted"`
-	UpdatedAt sql.NullTime `json:"updatedAt"`
+	ID        int64     `json:"id"`
+	AccountID int64     `json:"accountID"`
+	UserID    string    `json:"userID"`
+	RoleName  string    `json:"roleName"`
+	Accepted  bool      `json:"accepted"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type Chain struct {
@@ -434,8 +435,8 @@ type Chain struct {
 	ChainAliases   []string      `json:"chainAliases"`
 	AllowedMethods []string      `json:"allowedMethods"`
 	Active         bool          `json:"active"`
-	CreatedAt      sql.NullTime  `json:"createdAt"`
-	UpdatedAt      sql.NullTime  `json:"updatedAt"`
+	CreatedAt      time.Time     `json:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt"`
 	Deleted        sql.NullBool  `json:"deleted"`
 }
 
@@ -445,8 +446,8 @@ type ChainAltruist struct {
 	Url       string              `json:"url"`
 	Auth      sql.NullString      `json:"auth"`
 	AuthType  types.ChainAuthType `json:"authType"`
-	CreatedAt sql.NullTime        `json:"createdAt"`
-	UpdatedAt sql.NullTime        `json:"updatedAt"`
+	CreatedAt time.Time           `json:"createdAt"`
+	UpdatedAt time.Time           `json:"updatedAt"`
 }
 
 type ChainCheck struct {
@@ -456,25 +457,25 @@ type ChainCheck struct {
 	Payload   string               `json:"payload"`
 	ResultKey sql.NullString       `json:"resultKey"`
 	Allowance sql.NullInt32        `json:"allowance"`
-	CreatedAt sql.NullTime         `json:"createdAt"`
-	UpdatedAt sql.NullTime         `json:"updatedAt"`
+	CreatedAt time.Time            `json:"createdAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
 }
 
 type ChainGigastakeRedirect struct {
-	ID        int64        `json:"id"`
-	AccountID int64        `json:"accountID"`
-	ChainID   string       `json:"chainID"`
-	Alias     string       `json:"alias"`
-	Domain    string       `json:"domain"`
-	CreatedAt sql.NullTime `json:"createdAt"`
-	UpdatedAt sql.NullTime `json:"updatedAt"`
+	ID        int64     `json:"id"`
+	AccountID int64     `json:"accountID"`
+	ChainID   string    `json:"chainID"`
+	Alias     string    `json:"alias"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type GlobalBlockedContract struct {
 	ID             int64          `json:"id"`
 	BlockedAddress sql.NullString `json:"blockedAddress"`
 	Active         sql.NullBool   `json:"active"`
-	UpdatedAt      sql.NullTime   `json:"updatedAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 type PayPlan struct {
@@ -484,8 +485,8 @@ type PayPlan struct {
 	MonthlyRelayLimit int32         `json:"monthlyRelayLimit"`
 	ThroughputLimit   int32         `json:"throughputLimit"`
 	ApplicationLimit  int32         `json:"applicationLimit"`
-	CreatedAt         sql.NullTime  `json:"createdAt"`
-	UpdatedAt         sql.NullTime  `json:"updatedAt"`
+	CreatedAt         time.Time     `json:"createdAt"`
+	UpdatedAt         time.Time     `json:"updatedAt"`
 	DailyLimit        sql.NullInt32 `json:"dailyLimit"`
 }
 
@@ -495,8 +496,8 @@ type PortalApplication struct {
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
-	CreatedAt          sql.NullTime      `json:"createdAt"`
-	UpdatedAt          sql.NullTime      `json:"updatedAt"`
+	CreatedAt          time.Time         `json:"createdAt"`
+	UpdatedAt          time.Time         `json:"updatedAt"`
 	Deleted            sql.NullBool      `json:"deleted"`
 	ApplicationIDs     []string          `json:"applicationIds"`
 	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
@@ -524,19 +525,18 @@ type PortalApplicationNotification struct {
 	Destination   sql.NullString            `json:"destination"`
 	Trigger       sql.NullString            `json:"trigger"`
 	Events        []types.NotificationEvent `json:"events"`
-	CreatedAt     sql.NullTime              `json:"createdAt"`
 	UpdatedAt     sql.NullTime              `json:"updatedAt"`
 }
 
 type PortalApplicationSetting struct {
-	ID                     int64             `json:"id"`
-	ApplicationID          types.PortalAppID `json:"applicationID"`
-	SecretKey              string            `json:"secretKey"`
-	SecretKeyRequired      bool              `json:"secretKeyRequired"`
-	MonthlyRelayLimit      int32             `json:"monthlyRelayLimit"`
-	Environment            types.Environment `json:"environment"`
-	FavoritedBlockchainIds []string          `json:"favoritedBlockchainIds"`
-	UpdatedAt              sql.NullTime      `json:"updatedAt"`
+	ID                int64             `json:"id"`
+	ApplicationID     types.PortalAppID `json:"applicationID"`
+	SecretKey         string            `json:"secretKey"`
+	SecretKeyRequired bool              `json:"secretKeyRequired"`
+	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
+	Environment       types.Environment `json:"environment"`
+	FavoritedChainIDs []string          `json:"favoritedChainIds"`
+	UpdatedAt         sql.NullTime      `json:"updatedAt"`
 }
 
 type PortalApplicationWhitelist struct {
@@ -545,7 +545,7 @@ type PortalApplicationWhitelist struct {
 	Type          types.WhitelistType `json:"type"`
 	Value         string              `json:"value"`
 	ChainID       sql.NullString      `json:"chainID"`
-	CreatedAt     sql.NullTime        `json:"createdAt"`
+	CreatedAt     time.Time           `json:"createdAt"`
 }
 
 type StickinessOption struct {
@@ -562,14 +562,14 @@ type User struct {
 	Email        string              `json:"email"`
 	AuthProvider types.AuthProviders `json:"authProvider"`
 	SignInType   NullAuthSignIn      `json:"signInType"`
-	CreatedAt    sql.NullTime        `json:"createdAt"`
-	UpdatedAt    sql.NullTime        `json:"updatedAt"`
+	CreatedAt    time.Time           `json:"createdAt"`
+	UpdatedAt    time.Time           `json:"updatedAt"`
 }
 
 type UserRole struct {
 	ID          int64               `json:"id"`
 	RoleName    string              `json:"roleName"`
 	Permissions []types.Permissions `json:"permissions"`
-	CreatedAt   sql.NullTime        `json:"createdAt"`
-	UpdatedAt   sql.NullTime        `json:"updatedAt"`
+	CreatedAt   time.Time           `json:"createdAt"`
+	UpdatedAt   time.Time           `json:"updatedAt"`
 }

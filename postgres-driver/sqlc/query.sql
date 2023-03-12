@@ -144,6 +144,43 @@ INSERT INTO portal_application_settings (
     )
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+-- name: UpdatePortalAppName :exec
+UPDATE portal_applications
+SET name = $2,
+    updated_at = $3
+WHERE id = $1;
+-- name: UpdatePortalAppSettings :exec
+UPDATE portal_application_settings
+SET secret_key = COALESCE($2, secret_key),
+    secret_key_required = COALESCE($3, secret_key_required),
+    monthly_relay_limit = COALESCE($4, monthly_relay_limit),
+    environment = COALESCE($5, environment),
+    favorited_chain_ids = COALESCE($6, favorited_chain_ids),
+    updated_at = COALESCE($7, updated_at)
+WHERE application_id = $1;
+-- name: UpsertPortalAppNotifications :exec
+INSERT INTO portal_application_notifications (
+        application_id,
+        active,
+        type,
+        destination,
+        trigger,
+        events,
+        updated_at
+    )
+SELECT $1,
+    UNNEST(@active::BOOLEAN []),
+    UNNEST(@types::notification_type []),
+    UNNEST(@destination::VARCHAR(255) []),
+    UNNEST(@trigger::VARCHAR(255) []),
+    UNNEST(@events::notification_event []),
+    $2 ON CONFLICT (application_id, type) DO
+UPDATE
+SET active = EXCLUDED.active,
+    destination = EXCLUDED.destination,
+    trigger = EXCLUDED.trigger,
+    events = EXCLUDED.events,
+    updated_at = EXCLUDED.updated_at;
 -- name: UpdateInsertWhitelists :exec
 INSERT INTO portal_application_whitelists (
         application_id,
@@ -159,22 +196,7 @@ VALUES(
         unnest(@values::VARCHAR []),
         @created_at::TIMESTAMPTZ
     ) ON CONFLICT (application_id, chain_id, type, value) DO NOTHING;
--- name: UpdateInsertChainWhitelists :exec
-INSERT INTO portal_application_whitelists (
-        application_id,
-        type,
-        chain_id,
-        value,
-        created_at
-    )
-VALUES(
-        $1,
-        unnest(@types::whitelist_type []),
-        unnest(@chain_ids::VARCHAR []),
-        unnest(@values::VARCHAR []),
-        @created_at::TIMESTAMPTZ
-    ) ON CONFLICT (application_id, chain_id, type, value) DO NOTHING;
--- name: UpdateDeletePortalAppWhitelists :exec
+-- name: UpdateDeleteWhitelists :exec
 DELETE FROM portal_application_whitelists
 WHERE (
         type IN ('methods', 'contracts')

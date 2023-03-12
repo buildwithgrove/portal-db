@@ -53,8 +53,8 @@ type InsertPortalApplicationParams struct {
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
-	CreatedAt          sql.NullTime      `json:"createdAt"`
-	UpdatedAt          sql.NullTime      `json:"updatedAt"`
+	CreatedAt          time.Time         `json:"createdAt"`
+	UpdatedAt          time.Time         `json:"updatedAt"`
 	ApplicationIDs     []string          `json:"applicationIds"`
 	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
 	GigastakeRedirect  sql.NullBool      `json:"gigastakeRedirect"`
@@ -153,7 +153,7 @@ INSERT INTO portal_application_settings (
         environment
     )
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, application_id, secret_key, secret_key_required, monthly_relay_limit, environment, favorited_blockchain_ids, updated_at
+RETURNING id, application_id, secret_key, secret_key_required, monthly_relay_limit, environment, favorited_chain_ids, updated_at
 `
 
 type InsertPortalApplicationSettingParams struct {
@@ -180,7 +180,7 @@ func (q *Queries) InsertPortalApplicationSetting(ctx context.Context, arg Insert
 		&i.SecretKeyRequired,
 		&i.MonthlyRelayLimit,
 		&i.Environment,
-		pq.Array(&i.FavoritedBlockchainIds),
+		pq.Array(&i.FavoritedChainIDs),
 		&i.UpdatedAt,
 	)
 	return i, err
@@ -318,8 +318,8 @@ type SelectPortalApplicationsRow struct {
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
-	CreatedAt          sql.NullTime      `json:"createdAt"`
-	UpdatedAt          sql.NullTime      `json:"updatedAt"`
+	CreatedAt          time.Time         `json:"createdAt"`
+	UpdatedAt          time.Time         `json:"updatedAt"`
 	Deleted            sql.NullBool      `json:"deleted"`
 	ApplicationIDs     []string          `json:"applicationIds"`
 	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
@@ -397,7 +397,7 @@ func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalA
 	return items, nil
 }
 
-const updateDeletePortalAppWhitelists = `-- name: UpdateDeletePortalAppWhitelists :exec
+const updateDeleteWhitelists = `-- name: UpdateDeleteWhitelists :exec
 DELETE FROM portal_application_whitelists
 WHERE (
         type IN ('methods', 'contracts')
@@ -425,55 +425,19 @@ WHERE (
     )
 `
 
-type UpdateDeletePortalAppWhitelistsParams struct {
+type UpdateDeleteWhitelistsParams struct {
 	ApplicationID types.PortalAppID     `json:"applicationID"`
 	Types         []types.WhitelistType `json:"types"`
 	Values        []string              `json:"values"`
 	ChainIDs      []string              `json:"chainIds"`
 }
 
-func (q *Queries) UpdateDeletePortalAppWhitelists(ctx context.Context, arg UpdateDeletePortalAppWhitelistsParams) error {
-	_, err := q.db.ExecContext(ctx, updateDeletePortalAppWhitelists,
+func (q *Queries) UpdateDeleteWhitelists(ctx context.Context, arg UpdateDeleteWhitelistsParams) error {
+	_, err := q.db.ExecContext(ctx, updateDeleteWhitelists,
 		arg.ApplicationID,
 		pq.Array(arg.Types),
 		pq.Array(arg.Values),
 		pq.Array(arg.ChainIDs),
-	)
-	return err
-}
-
-const updateInsertChainWhitelists = `-- name: UpdateInsertChainWhitelists :exec
-INSERT INTO portal_application_whitelists (
-        application_id,
-        type,
-        chain_id,
-        value,
-        created_at
-    )
-VALUES(
-        $1,
-        unnest($2::whitelist_type []),
-        unnest($3::VARCHAR []),
-        unnest($4::VARCHAR []),
-        $5::TIMESTAMPTZ
-    ) ON CONFLICT (application_id, chain_id, type, value) DO NOTHING
-`
-
-type UpdateInsertChainWhitelistsParams struct {
-	ApplicationID types.PortalAppID     `json:"applicationID"`
-	Types         []types.WhitelistType `json:"types"`
-	ChainIDs      []string              `json:"chainIds"`
-	Values        []string              `json:"values"`
-	CreatedAt     time.Time             `json:"createdAt"`
-}
-
-func (q *Queries) UpdateInsertChainWhitelists(ctx context.Context, arg UpdateInsertChainWhitelistsParams) error {
-	_, err := q.db.ExecContext(ctx, updateInsertChainWhitelists,
-		arg.ApplicationID,
-		pq.Array(arg.Types),
-		pq.Array(arg.ChainIDs),
-		pq.Array(arg.Values),
-		arg.CreatedAt,
 	)
 	return err
 }
@@ -510,6 +474,106 @@ func (q *Queries) UpdateInsertWhitelists(ctx context.Context, arg UpdateInsertWh
 		pq.Array(arg.ChainIDs),
 		pq.Array(arg.Values),
 		arg.CreatedAt,
+	)
+	return err
+}
+
+const updatePortalAppName = `-- name: UpdatePortalAppName :exec
+UPDATE portal_applications
+SET name = $2,
+    updated_at = $3
+WHERE id = $1
+`
+
+type UpdatePortalAppNameParams struct {
+	ID        types.PortalAppID `json:"id"`
+	Name      string            `json:"name"`
+	UpdatedAt time.Time         `json:"updatedAt"`
+}
+
+func (q *Queries) UpdatePortalAppName(ctx context.Context, arg UpdatePortalAppNameParams) error {
+	_, err := q.db.ExecContext(ctx, updatePortalAppName, arg.ID, arg.Name, arg.UpdatedAt)
+	return err
+}
+
+const updatePortalAppSettings = `-- name: UpdatePortalAppSettings :exec
+UPDATE portal_application_settings
+SET secret_key = COALESCE($2, secret_key),
+    secret_key_required = COALESCE($3, secret_key_required),
+    monthly_relay_limit = COALESCE($4, monthly_relay_limit),
+    environment = COALESCE($5, environment),
+    favorited_chain_ids = COALESCE($6, favorited_chain_ids),
+    updated_at = COALESCE($7, updated_at)
+WHERE application_id = $1
+`
+
+type UpdatePortalAppSettingsParams struct {
+	ApplicationID     types.PortalAppID `json:"applicationID"`
+	SecretKey         string            `json:"secretKey"`
+	SecretKeyRequired bool              `json:"secretKeyRequired"`
+	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
+	Environment       types.Environment `json:"environment"`
+	FavoritedChainIDs []string          `json:"favoritedChainIds"`
+	UpdatedAt         sql.NullTime      `json:"updatedAt"`
+}
+
+func (q *Queries) UpdatePortalAppSettings(ctx context.Context, arg UpdatePortalAppSettingsParams) error {
+	_, err := q.db.ExecContext(ctx, updatePortalAppSettings,
+		arg.ApplicationID,
+		arg.SecretKey,
+		arg.SecretKeyRequired,
+		arg.MonthlyRelayLimit,
+		arg.Environment,
+		pq.Array(arg.FavoritedChainIDs),
+		arg.UpdatedAt,
+	)
+	return err
+}
+
+const upsertPortalAppNotifications = `-- name: UpsertPortalAppNotifications :exec
+INSERT INTO portal_application_notifications (
+        application_id,
+        active,
+        type,
+        destination,
+        trigger,
+        events,
+        updated_at
+    )
+SELECT $1,
+    UNNEST($3::BOOLEAN []),
+    UNNEST($4::notification_type []),
+    UNNEST($5::VARCHAR(255) []),
+    UNNEST($6::VARCHAR(255) []),
+    UNNEST($7::notification_event []),
+    $2 ON CONFLICT (application_id, type) DO
+UPDATE
+SET active = EXCLUDED.active,
+    destination = EXCLUDED.destination,
+    trigger = EXCLUDED.trigger,
+    events = EXCLUDED.events,
+    updated_at = EXCLUDED.updated_at
+`
+
+type UpsertPortalAppNotificationsParams struct {
+	ApplicationID types.PortalAppID         `json:"applicationID"`
+	UpdatedAt     sql.NullTime              `json:"updatedAt"`
+	Active        []bool                    `json:"active"`
+	Types         []types.NotificationType  `json:"types"`
+	Destination   []string                  `json:"destination"`
+	Trigger       []string                  `json:"trigger"`
+	Events        []types.NotificationEvent `json:"events"`
+}
+
+func (q *Queries) UpsertPortalAppNotifications(ctx context.Context, arg UpsertPortalAppNotificationsParams) error {
+	_, err := q.db.ExecContext(ctx, upsertPortalAppNotifications,
+		arg.ApplicationID,
+		arg.UpdatedAt,
+		pq.Array(arg.Active),
+		pq.Array(arg.Types),
+		pq.Array(arg.Destination),
+		pq.Array(arg.Trigger),
+		pq.Array(arg.Events),
 	)
 	return err
 }

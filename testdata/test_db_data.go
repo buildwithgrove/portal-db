@@ -211,32 +211,114 @@ var (
 
 	/* Update Data */
 
-	TestUpdatePortalAppOne = types.UpdatePortalApp{
-		AppID:         types.PortalAppID("test_app_3487u329rfn23f9"),
-		Name:          "",
-		Settings:      &types.UpdateAppSettings{},
-		Notifications: []types.UpdateAppNotifications{},
-		Whitelists: &types.WhitelistsObject{
-			AppWhitelists: [3]types.ApplicationWhitelists{
-				{Type: "origins", Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
-				{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
-				{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},
+	TestCreateAppForUpdate = types.PortalApp{
+		ID:        "test_app_3487u329rfn23f9",
+		AccountID: 1,
+		Gigastake: true,
+		Staked:    false,
+		AAT: types.AAT{
+			Address:         "test_34715cae753e67c75fbb340442e7de8e",
+			PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
+			ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
+			PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
+			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+			Version:         "0.0.1",
+		},
+		Settings: types.Settings{
+			Environment:       types.EnvironmentProduction,
+			SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
+			SecretKeyRequired: true,
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+		LegacyFields: types.LegacyFields{
+			ApplicationIDs:     []string{"test_app_47hfnths73j2se7"},
+			CustomLimit:        0,
+			RequestTimeout:     5_000,
+			GigastakeRedirect:  true,
+			FirstDateSurpassed: MockTimestamp,
+			StickyOptions: types.StickyOptions{
+				Duration:      "60",
+				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
+				StickyMax:     300,
+				Stickiness:    true,
 			},
-			ChainWhitelists: [2]types.ChainWhitelists{
-				{Type: "contracts", Values: []types.BlockchainIDWhitelists{
-					{BlockchainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
-					{BlockchainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
-					{BlockchainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
-					{BlockchainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
-				},
-				},
-				{Type: "methods", Values: []types.BlockchainIDWhitelists{
-					{BlockchainID: "0001", Values: []string{"GET", "POST", "PUT"}},
-					{BlockchainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
-					{BlockchainID: "003E", Values: []string{"GET"}},
-					{BlockchainID: "0056", Values: []string{"GET", "POST"}},
-				},
-				},
+		},
+	}
+
+	TestUpdatePortalAppAll = types.UpdatePortalApp{
+		Name:          testPortalAppName,
+		Settings:      testPortalAppSettings,
+		Notifications: testPortalAppNotifications,
+		Whitelists:    testPortalAppWhitelists,
+	}
+	TestUpdatePortalAppName = types.UpdatePortalApp{
+		Name: testPortalAppName,
+	}
+	TestUpdatePortalAppSettings = types.UpdatePortalApp{
+		Settings: testPortalAppSettings,
+	}
+	TestUpdatePortalAppNotifications = types.UpdatePortalApp{
+		Notifications: testPortalAppNotifications,
+	}
+	TestUpdatePortalAppWhitelists = types.UpdatePortalApp{
+		Whitelists: testPortalAppWhitelists,
+	}
+
+	testPortalAppName     = "portal-app-updated"
+	testPortalAppSettings = &types.UpdateAppSettings{
+		Environment:       types.EnvironmentProduction,
+		SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
+		SecretKeyRequired: true,
+		MonthlyRelayLimit: 2_500_000,
+		FavoritedChainIDs: []string{"0003", "0009", "00H3"},
+	}
+	testPortalAppNotifications = []types.UpdateAppNotifications{
+		{
+			NotificationType: types.NotificationTypeEmail,
+			Active:           true,
+			Destination:      "user@example.com",
+			Trigger:          "daily",
+			Events: []types.NotificationEvent{
+				types.NotificationEventSignedUp,
+				types.NotificationEventHalf,
+				types.NotificationEventQuarter,
+				types.NotificationEventThreeQuarters,
+				types.NotificationEventFull,
+			},
+		},
+		{
+			NotificationType: types.NotificationTypeWebhook,
+			Active:           true,
+			Destination:      "https://example.com/webhook",
+			Trigger:          "hourly",
+			Events: []types.NotificationEvent{
+				types.NotificationEventHalf,
+				types.NotificationEventFull,
+			},
+		},
+		{NotificationType: types.NotificationTypePortal, Active: false},
+	}
+	testPortalAppWhitelists = &types.WhitelistsObject{
+		AppWhitelists: [3]types.ApplicationWhitelists{
+			{Type: "origins", Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
+			{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
+			{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},
+		},
+		ChainWhitelists: [2]types.ChainWhitelists{
+			{Type: "contracts", Values: []types.BlockchainIDWhitelists{
+				{BlockchainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
+				{BlockchainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
+				{BlockchainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
+				{BlockchainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
+			},
+			},
+			{Type: "methods", Values: []types.BlockchainIDWhitelists{
+				{BlockchainID: "0001", Values: []string{"GET", "POST", "PUT"}},
+				{BlockchainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
+				{BlockchainID: "003E", Values: []string{"GET"}},
+				{BlockchainID: "0056", Values: []string{"GET", "POST"}},
+			},
 			},
 		},
 	}

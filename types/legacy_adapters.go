@@ -241,17 +241,26 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 	)
 
 	if u.NotificationSettings != nil {
+		notificationEvents := []NotificationEvent{}
+
+		if u.NotificationSettings.SignedUp != nil && *u.NotificationSettings.SignedUp {
+			notificationEvents = append(notificationEvents, NotificationEventSignedUp)
+		}
+		if u.NotificationSettings.Quarter != nil && *u.NotificationSettings.Quarter {
+			notificationEvents = append(notificationEvents, NotificationEventQuarter)
+		}
+		if u.NotificationSettings.Half != nil && *u.NotificationSettings.Half {
+			notificationEvents = append(notificationEvents, NotificationEventHalf)
+		}
+		if u.NotificationSettings.ThreeQuarters != nil && *u.NotificationSettings.ThreeQuarters {
+			notificationEvents = append(notificationEvents, NotificationEventThreeQuarters)
+		}
+		if u.NotificationSettings.Full != nil && *u.NotificationSettings.Full {
+			notificationEvents = append(notificationEvents, NotificationEventFull)
+		}
+
 		notifications = []UpdateAppNotifications{
-			{
-				NotificationType: NotificationTypeEmail,
-				Events: map[NotificationEvent]bool{
-					NotificationEventSignedUp:      *u.NotificationSettings.SignedUp,
-					NotificationEventQuarter:       *u.NotificationSettings.Quarter,
-					NotificationEventHalf:          *u.NotificationSettings.Half,
-					NotificationEventThreeQuarters: *u.NotificationSettings.ThreeQuarters,
-					NotificationEventFull:          *u.NotificationSettings.Full,
-				},
-			},
+			{NotificationType: NotificationTypeEmail, Events: notificationEvents},
 		}
 	}
 

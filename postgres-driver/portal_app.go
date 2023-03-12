@@ -2,6 +2,7 @@ package postgresdriver
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,7 +26,7 @@ var (
 
 /* ----- postgresdriver PortalApp Read Methods ----- */
 
-// ReadApplications returns all Applications in the database
+// ReadApplications returns all Applications in the database as PortalApp structs
 func (pg *PostgresDriver) ReadPortalApps(ctx context.Context) (map[types.PortalAppID]*types.PortalApp, error) {
 	dbPortalApps, err := pg.SelectPortalApplications(ctx)
 	if err != nil {
@@ -45,6 +46,7 @@ func (pg *PostgresDriver) ReadPortalApps(ctx context.Context) (map[types.PortalA
 	return portalApps, nil
 }
 
+// toPortalApp converts PortalApp SELECT output to PortalApp struct
 func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 	var appWhitelists types.Whitelists
 	if len(string(a.Whitelists)) > 2 {
@@ -61,10 +63,6 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 			return nil, fmt.Errorf("%s: %w", errUnmarshallingNotifications, err)
 		}
 	}
-
-	// if a.ID == types.PortalAppID("test_app_3487u329rfn23f9") {
-	// 	PrettyString("ROWS HERE in toPortalApp", appWhitelists)
-	// }
 
 	// TODO remove legacy fields when migration to V2 schema complete
 	legacyFields := types.LegacyFields{
@@ -102,13 +100,14 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		},
 		Notifications: notifications,
 		Whitelists:    appWhitelists,
-		CreatedAt:     a.CreatedAt.Time.UTC(),
-		UpdatedAt:     a.UpdatedAt.Time.UTC(),
+		CreatedAt:     a.CreatedAt.UTC(),
+		UpdatedAt:     a.UpdatedAt.UTC(),
 		// TODO remove legacy fields when migration to V2 schema complete
 		LegacyFields: legacyFields,
 	}, nil
 }
 
+// toWhitelists converts whitelists from DB rows to map-based PortalApp.Whitelists struct
 func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 	whitelists := types.Whitelists{
 		Origins:     make(map[types.Origin]struct{}),
@@ -123,19 +122,13 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 		return whitelists, err
 	}
 
-	// if a.ID == types.PortalAppID("test_app_3487u329rfn23f9") {
-	// 	PrettyString("ROWS HERE in toWhitelists", whitelistRows)
-	// }
-
 	for _, wl := range whitelistRows {
 		switch wl.Type {
 
 		case types.WhitelistTypeBlockchains:
 			whitelists.Blockchains[types.BlockchainID(wl.Value)] = struct{}{}
-
 		case types.WhitelistTypeOrigins:
 			whitelists.Origins[types.Origin(wl.Value)] = struct{}{}
-
 		case types.WhitelistTypeUserAgents:
 			whitelists.UserAgents[types.UserAgent(wl.Value)] = struct{}{}
 
@@ -144,7 +137,6 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 				whitelists.Contracts[types.BlockchainID(wl.BlockchainID)] = make(map[types.Contract]struct{})
 			}
 			whitelists.Contracts[types.BlockchainID(wl.BlockchainID)][types.Contract(wl.Value)] = struct{}{}
-
 		case types.WhitelistTypeMethods:
 			if _, ok := whitelists.Methods[types.BlockchainID(wl.BlockchainID)]; !ok {
 				whitelists.Methods[types.BlockchainID(wl.BlockchainID)] = make(map[types.Method]struct{})
@@ -191,8 +183,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		GigastakeRedirect:  newSQLNullBool(&portalApp.LegacyFields.GigastakeRedirect),
 		FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
 
-		CreatedAt: newSQLNullTime(portalApp.CreatedAt),
-		UpdatedAt: newSQLNullTime(portalApp.UpdatedAt),
+		CreatedAt: portalApp.CreatedAt,
+		UpdatedAt: portalApp.UpdatedAt,
 	})
 	if err != nil {
 		_ = tx.Rollback()
@@ -258,41 +250,9 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 
 	qtx := pg.WithTx(tx)
 
-	// TODO -> add rest of updates
-
-	if update.Whitelists != nil {
-		// Map all whitelist rows from update struct to insert query params
-		updateWhitelists := UpdateInsertWhitelistsParams{ApplicationID: update.AppID, CreatedAt: updatedAt}
-		for _, appWhitelist := range update.Whitelists.AppWhitelists {
-			for _, whitelistValue := range appWhitelist.Values {
-				updateWhitelists.Types = append(updateWhitelists.Types, appWhitelist.Type)
-				updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
-				updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, "")
-			}
-		}
-		for _, chainWhitelist := range update.Whitelists.ChainWhitelists {
-			for _, blockchainValues := range chainWhitelist.Values {
-				for _, whitelistValue := range blockchainValues.Values {
-					updateWhitelists.Types = append(updateWhitelists.Types, chainWhitelist.Type)
-					updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, blockchainValues.BlockchainID)
-					updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
-				}
-			}
-		}
-
-		// Insert all whitelist rows in update struct that don't exist in DB
-		err := qtx.UpdateInsertWhitelists(ctx, updateWhitelists)
-		if err != nil {
-			_ = tx.Rollback()
-			return err
-		}
-
-		// Delete all whitelist rows in DB that don't exists in update struct
-		err = qtx.UpdateDeletePortalAppWhitelists(ctx, UpdateDeletePortalAppWhitelistsParams{
-			ApplicationID: updateWhitelists.ApplicationID,
-			Types:         updateWhitelists.Types,
-			Values:        updateWhitelists.Values,
-			ChainIDs:      updateWhitelists.ChainIDs,
+	if update.Name != "" {
+		err := qtx.UpdatePortalAppName(ctx, UpdatePortalAppNameParams{
+			ID: update.AppID, Name: update.Name, UpdatedAt: updatedAt,
 		})
 		if err != nil {
 			_ = tx.Rollback()
@@ -300,8 +260,117 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 		}
 	}
 
+	if update.Settings != nil {
+		err := pg.updateSettings(ctx, tx, qtx, update, updatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO uncomment once notifications figured out
+	// if update.Notifications != nil && len(update.Notifications) > 0 {
+	// 	err := pg.updateNotifications(ctx, tx, qtx, update, updatedAt)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+
+	if update.Whitelists != nil {
+		err := pg.updateWhitelists(ctx, tx, qtx, update, updatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = tx.Commit()
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// updateSettings updates the PortalApp's settings row in the portal_application_settings table
+func (pg *PostgresDriver) updateSettings(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
+	updateSettings := UpdatePortalAppSettingsParams{
+		ApplicationID:     update.AppID,
+		SecretKey:         update.Settings.SecretKey,
+		SecretKeyRequired: update.Settings.SecretKeyRequired,
+		MonthlyRelayLimit: update.Settings.MonthlyRelayLimit,
+		Environment:       update.Settings.Environment,
+		FavoritedChainIDs: update.Settings.FavoritedChainIDs,
+		UpdatedAt:         newSQLNullTime(updatedAt),
+	}
+
+	err := qtx.UpdatePortalAppSettings(ctx, updateSettings)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
+// TODO uncomment once notifications figured out
+// updateNotifications updates the PortalApp's notifications rows in the portal_application_notifications table
+// func (pg *PostgresDriver) updateNotifications(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
+// 	updateNotifications := UpsertPortalAppNotificationsParams{ApplicationID: update.AppID, UpdatedAt: newSQLNullTime(updatedAt)}
+
+// 	for _, appNotification := range update.Notifications {
+// 		updateNotifications.Active = append(updateNotifications.Active, appNotification.Active)
+// 		updateNotifications.Types = append(updateNotifications.Types, appNotification.NotificationType)
+// 		updateNotifications.Destination = append(updateNotifications.Destination, appNotification.Destination)
+// 		updateNotifications.Trigger = append(updateNotifications.Trigger, appNotification.Trigger)
+// 		// TODO need to update here (events should be slice of slices, figure out how to make SQLC represent as such)
+// 		// updateNotifications.Events = append(updateNotifications.Events, appNotification.Events)
+// 	}
+
+// 	err := qtx.UpsertPortalAppNotifications(ctx, updateNotifications)
+// 	if err != nil {
+// 		_ = tx.Rollback()
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+// updateWhitelists updates the PortalApp's whitelists rows in the portal_application_whitelists table
+func (pg *PostgresDriver) updateWhitelists(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
+	// Map all whitelist rows from update struct to insert query params
+	updateWhitelists := UpdateInsertWhitelistsParams{ApplicationID: update.AppID, CreatedAt: updatedAt}
+	for _, appWhitelist := range update.Whitelists.AppWhitelists {
+		for _, whitelistValue := range appWhitelist.Values {
+			updateWhitelists.Types = append(updateWhitelists.Types, appWhitelist.Type)
+			updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
+			updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, "")
+		}
+	}
+	for _, chainWhitelist := range update.Whitelists.ChainWhitelists {
+		for _, blockchainValues := range chainWhitelist.Values {
+			for _, whitelistValue := range blockchainValues.Values {
+				updateWhitelists.Types = append(updateWhitelists.Types, chainWhitelist.Type)
+				updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, blockchainValues.BlockchainID)
+				updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
+			}
+		}
+	}
+
+	// Insert all whitelist rows in update struct that don't exist in DB
+	err := qtx.UpdateInsertWhitelists(ctx, updateWhitelists)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Delete all whitelist rows in DB that don't exists in update struct
+	err = qtx.UpdateDeleteWhitelists(ctx, UpdateDeleteWhitelistsParams{
+		ApplicationID: updateWhitelists.ApplicationID,
+		Types:         updateWhitelists.Types,
+		Values:        updateWhitelists.Values,
+		ChainIDs:      updateWhitelists.ChainIDs,
+	})
+	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 

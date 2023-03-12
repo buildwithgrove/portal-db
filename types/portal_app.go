@@ -113,11 +113,11 @@ type (
 	}
 
 	Settings struct {
-		AppID                  PortalAppID               `json:"appID,omitempty"`
-		Environment            Environment               `json:"environment"`
-		SecretKey              string                    `json:"secretKey"`
-		SecretKeyRequired      bool                      `json:"secretKeyRequired"`
-		FavoritedBlockchainIDs map[BlockchainID]struct{} `json:"favoritedBlockchainIDs"`
+		AppID             PortalAppID               `json:"appID,omitempty"`
+		Environment       Environment               `json:"environment"`
+		SecretKey         string                    `json:"secretKey"`
+		SecretKeyRequired bool                      `json:"secretKeyRequired"`
+		FavoritedChainIDs map[BlockchainID]struct{} `json:"favoritedBlockchainIDs"`
 		// MonthlyRelayLimit sets the monthly limit per-application
 		// Sum of an Account's Apps MonthlyRelayLimits cannot exceed the Account's MonthlyRelayLimit
 		MonthlyRelayLimit int32 `json:"monthlyRelayLimit"`
@@ -141,6 +141,7 @@ type (
 	}
 
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
+	// It is also used to update Whitelists for an app (sent from Portal UI to PUB to PHD)
 	WhitelistsObject struct {
 		AppWhitelists   [3]ApplicationWhitelists `json:"appWhitelists"`
 		ChainWhitelists [2]ChainWhitelists       `json:"chainWhitelists"`
@@ -177,12 +178,12 @@ type (
 	}
 
 	UpdateAppNotifications struct {
-		AppID            PortalAppID                `json:"appID,omitempty"`
-		NotificationType NotificationType           `json:"notificationType"`
-		Active           *bool                      `json:"active"`
-		Destination      string                     `json:"destination"`
-		Trigger          string                     `json:"trigger"`
-		Events           map[NotificationEvent]bool `json:"events"`
+		AppID            string              `json:"appID,omitempty"`
+		NotificationType NotificationType    `json:"notificationType"`
+		Active           bool                `json:"active"`
+		Destination      string              `json:"destination"`
+		Trigger          string              `json:"trigger"`
+		Events           []NotificationEvent `json:"events"`
 	}
 
 	UpdateFirstDateSurpassed struct {

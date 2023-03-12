@@ -2,16 +2,28 @@ INSERT INTO pay_plans (
         plan_type,
         monthly_relay_limit,
         throughput_limit,
-        application_limit
+        application_limit,
+        created_at,
+        updated_at
     )
 VALUES (
         'test_plan',
         4200000,
         2000,
-        3
+        3,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
-INSERT INTO accounts (plan_type)
-VALUES ('test_plan');
+INSERT INTO accounts (
+        plan_type,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'test_plan',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
 INSERT INTO portal_applications (
         id,
         account_id,
@@ -127,8 +139,7 @@ INSERT INTO portal_application_settings (
         secret_key_required,
         monthly_relay_limit,
         environment,
-        favorited_blockchain_ids,
-        updated_at
+        favorited_chain_ids
     )
 VALUES (
         'test_app_3487u329rfn23f9',
@@ -136,8 +147,7 @@ VALUES (
         true,
         2500000,
         'production',
-        ARRAY ['0001', '0053'],
-        '2022-11-11 11:11:11.000000'
+        ARRAY ['0001', '0053']
     ),
     (
         'test_app_2308rj09r23r9r',
@@ -145,8 +155,7 @@ VALUES (
         false,
         1500000,
         'production',
-        ARRAY ['0021', '0064'],
-        '2022-11-11 11:11:11.000000'
+        ARRAY ['0021', '0064']
     ),
     (
         'test_app_47fhs7j4hs7fj2',
@@ -154,8 +163,7 @@ VALUES (
         false,
         4500000,
         'production',
-        ARRAY ['0001', '0034'],
-        '2022-11-11 11:11:11.000000'
+        ARRAY ['0001', '0034']
     );
 INSERT INTO portal_application_whitelists (
         application_id,
@@ -240,9 +248,7 @@ INSERT INTO portal_application_notifications (
         type,
         destination,
         trigger,
-        events,
-        created_at,
-        updated_at
+        events
     )
 VALUES (
         'test_app_3487u329rfn23f9',
@@ -250,9 +256,7 @@ VALUES (
         'email',
         'test@test.com',
         'trigger123',
-        ARRAY ['quarter'::notification_event,'threeQuarters'::notification_event,'full'::notification_event],
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        ARRAY ['quarter'::notification_event,'threeQuarters'::notification_event,'full'::notification_event]
     ),
     (
         'test_app_2308rj09r23r9r',
@@ -260,7 +264,5 @@ VALUES (
         'email',
         'email@pokt.network',
         'trigger456',
-        ARRAY ['full'::notification_event,'half'::notification_event],
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        ARRAY ['full'::notification_event,'half'::notification_event]
     );

@@ -4,6 +4,7 @@ overrides:
     rename:
       application_ids: "ApplicationIDs"
       chain_ids: "ChainIDs"
+      favorited_chain_ids: "FavoritedChainIDs"
 
 sql:
   - schema: "schema.sql"
