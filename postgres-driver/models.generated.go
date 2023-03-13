@@ -410,7 +410,8 @@ type Account struct {
 	PartnerApplicationLimit sql.NullInt32 `json:"partnerApplicationLimit"`
 	CreatedAt               time.Time     `json:"createdAt"`
 	UpdatedAt               time.Time     `json:"updatedAt"`
-	Deleted                 sql.NullBool  `json:"deleted"`
+	Deleted                 bool          `json:"deleted"`
+	DeletedAt               sql.NullTime  `json:"deletedAt"`
 }
 
 type AccountUserAccess struct {
@@ -438,6 +439,7 @@ type Chain struct {
 	CreatedAt      time.Time     `json:"createdAt"`
 	UpdatedAt      time.Time     `json:"updatedAt"`
 	Deleted        sql.NullBool  `json:"deleted"`
+	DeletedAt      sql.NullTime  `json:"deletedAt"`
 }
 
 type ChainAltruist struct {
@@ -497,7 +499,8 @@ type PortalApplication struct {
 	Staked             bool              `json:"staked"`
 	CreatedAt          time.Time         `json:"createdAt"`
 	UpdatedAt          time.Time         `json:"updatedAt"`
-	Deleted            sql.NullBool      `json:"deleted"`
+	Deleted            bool              `json:"deleted"`
+	DeletedAt          sql.NullTime      `json:"deletedAt"`
 	ApplicationIDs     []string          `json:"applicationIds"`
 	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
 	GigastakeRedirect  sql.NullBool      `json:"gigastakeRedirect"`

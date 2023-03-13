@@ -65,9 +65,12 @@ SELECT p.*,
     )::json AS whitelists
 FROM portal_applications p
     LEFT JOIN portal_application_aats paa ON p.id = paa.application_id
-    LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    -- legacy table
+    LEFT JOIN portal_application_settings pas ON p.id = pas.application_id -- legacy table
     LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
+WHERE (
+        @include_deleted::BOOLEAN
+        OR p.deleted = false
+    )
 GROUP BY p.id,
     paa.address,
     paa.public_key,
@@ -159,29 +162,35 @@ SET secret_key = COALESCE($2, secret_key),
     favorited_chain_ids = COALESCE($6, favorited_chain_ids),
     updated_at = COALESCE($7, updated_at)
 WHERE application_id = $1;
--- name: UpsertPortalAppNotifications :exec
+-- name: UpdateUpsertPortalAppNotification :exec
 INSERT INTO portal_application_notifications (
         application_id,
-        active,
         type,
+        active,
         destination,
         trigger,
         events,
         updated_at
     )
 SELECT $1,
-    UNNEST(@active::BOOLEAN []),
-    UNNEST(@types::notification_type []),
-    UNNEST(@destination::VARCHAR(255) []),
-    UNNEST(@trigger::VARCHAR(255) []),
-    UNNEST(@events::notification_event []),
-    $2 ON CONFLICT (application_id, type) DO
+    @type::notification_type,
+    @active::BOOLEAN,
+    @destination::VARCHAR(255),
+    @trigger::VARCHAR(255),
+    @events::notification_event [],
+    $2
+WHERE @active IS true ON CONFLICT (application_id, type) DO
 UPDATE
 SET active = EXCLUDED.active,
     destination = EXCLUDED.destination,
     trigger = EXCLUDED.trigger,
     events = EXCLUDED.events,
-    updated_at = EXCLUDED.updated_at;
+    updated_at = EXCLUDED.updated_at
+WHERE EXCLUDED.active IS true;
+-- name: UpdateDeletePortalAppNotification :exec
+DELETE FROM portal_application_notifications
+WHERE application_id = $1
+    and type = $2;
 -- name: UpdateInsertWhitelists :exec
 INSERT INTO portal_application_whitelists (
         application_id,
@@ -223,3 +232,12 @@ WHERE (
                 AND t2.value = portal_application_whitelists.value
         )
     );
+-- name: UpdateFirstDatesSurpassed :exec
+UPDATE portal_applications
+SET first_date_surpassed = @first_date_surpassed
+WHERE id = ANY (@application_ids::VARCHAR []);
+-- name: DeletePortalApp :exec
+UPDATE portal_applications
+SET deleted = true,
+    deleted_at = $2
+WHERE id = $1;

@@ -27,8 +27,8 @@ var (
 /* ----- postgresdriver PortalApp Read Methods ----- */
 
 // ReadApplications returns all Applications in the database as PortalApp structs
-func (pg *PostgresDriver) ReadPortalApps(ctx context.Context) (map[types.PortalAppID]*types.PortalApp, error) {
-	dbPortalApps, err := pg.SelectPortalApplications(ctx)
+func (pg *PostgresDriver) ReadPortalApps(ctx context.Context, options types.DriverOptions) (map[types.PortalAppID]*types.PortalApp, error) {
+	dbPortalApps, err := pg.SelectPortalApplications(ctx, options.IncludeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (pg *PostgresDriver) ReadPortalApps(ctx context.Context) (map[types.PortalA
 			return nil, err
 		}
 
-		portalApps[types.PortalAppID(dbPortalApp.ID)] = portalApp
+		portalApps[dbPortalApp.ID] = portalApp
 	}
 
 	return portalApps, nil
@@ -49,7 +49,7 @@ func (pg *PostgresDriver) ReadPortalApps(ctx context.Context) (map[types.PortalA
 // toPortalApp converts PortalApp SELECT output to PortalApp struct
 func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 	var appWhitelists types.Whitelists
-	if len(string(a.Whitelists)) > 2 {
+	if len(string(a.Whitelists)) > 2 { // length of empty JSON array in bytes
 		whitelists, err := a.toWhitelists()
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", errUnmarshallingWhitelists, err)
@@ -58,7 +58,7 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 	}
 
 	var notifications map[types.NotificationType]types.AppNotification
-	if len(string(a.Notifications)) > 2 {
+	if len(string(a.Notifications)) > 2 { // length of empty JSON array in bytes
 		if err := json.Unmarshal(a.Notifications, &notifications); err != nil {
 			return nil, fmt.Errorf("%s: %w", errUnmarshallingNotifications, err)
 		}
@@ -102,6 +102,7 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		Whitelists:    appWhitelists,
 		CreatedAt:     a.CreatedAt.UTC(),
 		UpdatedAt:     a.UpdatedAt.UTC(),
+		Deleted:       a.Deleted,
 		// TODO remove legacy fields when migration to V2 schema complete
 		LegacyFields: legacyFields,
 	}, nil
@@ -175,16 +176,14 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		Name:      portalApp.Name,
 		Gigastake: portalApp.Gigastake,
 		Staked:    portalApp.Staked,
-
+		CreatedAt: portalApp.CreatedAt,
+		UpdatedAt: portalApp.UpdatedAt,
 		// TODO remove legacy fields when migration to V2 schema complete
 		ApplicationIDs:     (portalApp.LegacyFields.ApplicationIDs),
 		RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
 		CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
 		GigastakeRedirect:  newSQLNullBool(&portalApp.LegacyFields.GigastakeRedirect),
 		FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
-
-		CreatedAt: portalApp.CreatedAt,
-		UpdatedAt: portalApp.UpdatedAt,
 	})
 	if err != nil {
 		_ = tx.Rollback()
@@ -258,22 +257,18 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 			return err
 		}
 	}
-
 	if update.Settings != nil {
 		err := pg.updateSettings(ctx, tx, qtx, update, updatedAt)
 		if err != nil {
 			return err
 		}
 	}
-
-	// TODO uncomment once notifications figured out
-	// if update.Notifications != nil && len(update.Notifications) > 0 {
-	// 	err := pg.updateNotifications(ctx, tx, qtx, update, updatedAt)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-
+	if update.Notifications != nil && len(update.Notifications) > 0 {
+		err := pg.updateNotifications(ctx, tx, qtx, update, updatedAt)
+		if err != nil {
+			return err
+		}
+	}
 	if update.Whitelists != nil {
 		err := pg.updateWhitelists(ctx, tx, qtx, update, updatedAt)
 		if err != nil {
@@ -310,28 +305,40 @@ func (pg *PostgresDriver) updateSettings(ctx context.Context, tx *sql.Tx, qtx *Q
 	return nil
 }
 
-// TODO uncomment once notifications figured out
 // updateNotifications updates the PortalApp's notifications rows in the portal_application_notifications table
-// func (pg *PostgresDriver) updateNotifications(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
-// 	updateNotifications := UpsertPortalAppNotificationsParams{ApplicationID: update.AppID, UpdatedAt: newSQLNullTime(updatedAt)}
+func (pg *PostgresDriver) updateNotifications(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
+	for _, appNotification := range update.Notifications {
+		updateNotification := UpdateUpsertPortalAppNotificationParams{
+			ApplicationID: update.AppID,
+			Type:          appNotification.NotificationType,
+			Active:        appNotification.Active,
+			Destination:   appNotification.Destination,
+			Trigger:       appNotification.Trigger,
+			Events:        appNotification.Events,
+			UpdatedAt:     newSQLNullTime(updatedAt),
+		}
 
-// 	for _, appNotification := range update.Notifications {
-// 		updateNotifications.Active = append(updateNotifications.Active, appNotification.Active)
-// 		updateNotifications.Types = append(updateNotifications.Types, appNotification.NotificationType)
-// 		updateNotifications.Destination = append(updateNotifications.Destination, appNotification.Destination)
-// 		updateNotifications.Trigger = append(updateNotifications.Trigger, appNotification.Trigger)
-// 		// TODO need to update here (events should be slice of slices, figure out how to make SQLC represent as such)
-// 		// updateNotifications.Events = append(updateNotifications.Events, appNotification.Events)
-// 	}
+		// Upsert notification row for application_id & type if active: true in update struct
+		err := qtx.UpdateUpsertPortalAppNotification(ctx, updateNotification)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 
-// 	err := qtx.UpsertPortalAppNotifications(ctx, updateNotifications)
-// 	if err != nil {
-// 		_ = tx.Rollback()
-// 		return err
-// 	}
+		// Delete notification row for application_id & type in DB if active: false in update struct
+		if !appNotification.Active {
+			err := qtx.UpdateDeletePortalAppNotification(ctx, UpdateDeletePortalAppNotificationParams{
+				ApplicationID: update.AppID, Type: appNotification.NotificationType,
+			})
+			if err != nil {
+				_ = tx.Rollback()
+				return err
+			}
+		}
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 // updateWhitelists updates the PortalApp's whitelists rows in the portal_application_whitelists table
 func (pg *PostgresDriver) updateWhitelists(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
@@ -370,6 +377,36 @@ func (pg *PostgresDriver) updateWhitelists(ctx context.Context, tx *sql.Tx, qtx 
 	})
 	if err != nil {
 		_ = tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
+// UpdatePortalAppsFirstDateSurpassed updates multiple PortalApps' LegacyFields.FirstDateSurpassed fields
+// TODO legacy method - determine if still needed and remove if not when V2 migration completed
+func (pg *PostgresDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error {
+	params := UpdateFirstDatesSurpassedParams{
+		ApplicationIDs:     update.PortalAppIDs,
+		FirstDateSurpassed: newSQLNullTime(update.FirstDateSurpassed),
+	}
+
+	err := pg.UpdateFirstDatesSurpassed(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/* ----- postgresdriver PortalApp Delete Methods ----- */
+
+// SetPortalAppDeleted updates a single PortalApp in the database's Deleted field to true
+func (pg *PostgresDriver) SetPortalAppDeleted(ctx context.Context, portalAppID types.PortalAppID, deletedAt time.Time) error {
+	params := DeletePortalAppParams{ID: portalAppID, DeletedAt: newSQLNullTime(deletedAt)}
+
+	err := pg.DeletePortalApp(ctx, params)
+	if err != nil {
 		return err
 	}
 

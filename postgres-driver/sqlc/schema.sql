@@ -61,7 +61,8 @@ CREATE TABLE accounts (
     partner_application_limit INT,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
-    deleted BOOLEAN DEFAULT false,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    deleted_at TIMESTAMPTZ NULL,
     CONSTRAINT accounts_pay_plans_fk FOREIGN KEY (plan_type) REFERENCES pay_plans(plan_type)
 );
 CREATE TABLE account_user_access (
@@ -92,7 +93,8 @@ CREATE TABLE chains (
     active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
-    deleted BOOLEAN DEFAULT false
+    deleted BOOLEAN DEFAULT false,
+    deleted_at TIMESTAMPTZ NULL
 );
 CREATE TABLE chain_altruists (
     id SERIAL PRIMARY KEY,
@@ -147,7 +149,8 @@ CREATE TABLE portal_applications (
     staked BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
-    deleted BOOLEAN DEFAULT false,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    deleted_at TIMESTAMPTZ NULL,
     CONSTRAINT portal_application__account_id_fk FOREIGN KEY(account_id) REFERENCES accounts(id),
     -- legacy field
     application_ids VARCHAR(24) ARRAY,
@@ -195,7 +198,7 @@ CREATE TABLE portal_application_settings (
 );
 CREATE TABLE portal_application_notifications (
     id SERIAL PRIMARY KEY,
-    application_id VARCHAR(24) NOT NULL UNIQUE,
+    application_id VARCHAR(24) NOT NULL,
     active BOOLEAN NOT NULL,
     type notification_type NOT NULL,
     destination VARCHAR(255),

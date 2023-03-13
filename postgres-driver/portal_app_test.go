@@ -13,15 +13,50 @@ func (ts *PGDriverTestSuite) Test_ReadPortalApps() {
 	tests := []struct {
 		name       string
 		portalApps map[types.PortalAppID]*types.PortalApp
+		options    types.DriverOptions
 		err        error
 	}{
 		{
-			name: "Should return all PortalApps from the database",
-
+			name: "Should return all non-deleted PortalApps from the database",
 			portalApps: map[types.PortalAppID]*types.PortalApp{
 				testdata.TestPortalAppOne.ID:   &testdata.TestPortalAppOne,
 				testdata.TestPortalAppTwo.ID:   &testdata.TestPortalAppTwo,
 				testdata.TestPortalAppThree.ID: &testdata.TestPortalAppThree,
+			},
+			options: types.DriverOptions{},
+			err:     nil,
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			portalApps, err := ts.driver.ReadPortalApps(context.Background(), test.options)
+			ts.Equal(test.err, err)
+			ts.Equal(test.portalApps, portalApps)
+		})
+	}
+}
+
+func (ts *PGDriverTestSuite) Test_SetPortalAppDeleted() {
+	tests := []struct {
+		name                                          string
+		deleteParams                                  DeletePortalAppParams
+		portalAppsBeforeDelete, portalAppsAfterDelete map[types.PortalAppID]*types.PortalApp
+		err                                           error
+	}{
+		{
+			name: "Should set a PortalApp's deleted field to true, causing it to not appear in the ReadPortalApps query",
+			deleteParams: DeletePortalAppParams{
+				ID: testdata.TestPortalAppThree.ID, DeletedAt: newSQLNullTime(testdata.MockTimestamp),
+			},
+			portalAppsBeforeDelete: map[types.PortalAppID]*types.PortalApp{
+				testdata.TestPortalAppOne.ID:   &testdata.TestPortalAppOne,
+				testdata.TestPortalAppTwo.ID:   &testdata.TestPortalAppTwo,
+				testdata.TestPortalAppThree.ID: &testdata.TestPortalAppThree,
+			},
+			portalAppsAfterDelete: map[types.PortalAppID]*types.PortalApp{
+				testdata.TestPortalAppOne.ID: &testdata.TestPortalAppOne,
+				testdata.TestPortalAppTwo.ID: &testdata.TestPortalAppTwo,
 			},
 			err: nil,
 		},
@@ -29,9 +64,27 @@ func (ts *PGDriverTestSuite) Test_ReadPortalApps() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			portalApps, err := ts.driver.ReadPortalApps(context.Background())
+			// Check all PortalApps exist before delete
+			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{IncludeDeleted: false})
 			ts.Equal(test.err, err)
-			ts.Equal(test.portalApps, portalApps)
+			ts.Equal(test.portalAppsBeforeDelete, portalApps)
+
+			// Delete PortalApp
+			err = ts.driver.SetPortalAppDeleted(context.Background(), test.deleteParams.ID, test.deleteParams.DeletedAt.Time)
+			ts.Equal(test.err, err)
+
+			// Check PortalApp was deleted
+			portalApps, err = ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{IncludeDeleted: false})
+			ts.Equal(test.err, err)
+			ts.Equal(test.portalAppsAfterDelete, portalApps)
+
+			// Check PortalApp still appears if IncludeDeleted: true
+			portalApps, err = ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{IncludeDeleted: true})
+			ts.Equal(test.err, err)
+			testDeletedApp, ok := test.portalAppsBeforeDelete[test.deleteParams.ID]
+			ts.True(ok)
+			testDeletedApp.Deleted = true
+			ts.Equal(test.portalAppsBeforeDelete, portalApps)
 		})
 	}
 }
@@ -59,7 +112,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			test.portalApp.ID = createdPortalApp.ID
 			ts.Equal(&test.portalApp, createdPortalApp)
 
-			portalApps, err := ts.driver.ReadPortalApps(context.Background())
+			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
 			ts.Equal(test.err, err)
 			ts.Equal(&test.portalApp, portalApps[createdPortalApp.ID])
 		})
@@ -73,13 +126,18 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 		testUpdateTime           time.Time
 		testUpdatedName          string
 		testUpdatedSettings      types.Settings
-		testUpdatedNotifications map[NotificationType]types.AppNotification
+		testUpdatedNotifications map[types.NotificationType]types.AppNotification
 		testUpdatedWhitelists    types.Whitelists
 		err                      error
 	}{
 		{
-			name:            "Should update a new PortalApp in the database with all fields",
-			updatePortalApp: testdata.TestUpdatePortalAppAll,
+			name: "Should update a new PortalApp in the database with all fields",
+			updatePortalApp: types.UpdatePortalApp{
+				Name:          testdata.TestPortalAppName,
+				Settings:      testdata.TestPortalAppSettings,
+				Notifications: testdata.TestPortalAppNotifications,
+				Whitelists:    testdata.TestPortalAppWhitelists,
+			},
 			testUpdateTime:  testdata.MockTimestamp,
 			testUpdatedName: "portal-app-updated",
 			testUpdatedSettings: types.Settings{
@@ -88,6 +146,29 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				SecretKeyRequired: true,
 				MonthlyRelayLimit: 2_500_000,
 				FavoritedChainIDs: map[types.ChainID]struct{}{"0003": {}, "0009": {}, "00H3": {}},
+			},
+			testUpdatedNotifications: map[types.NotificationType]types.AppNotification{
+				types.NotificationTypeEmail: {
+					Active:      true,
+					Destination: "user@example.com",
+					Trigger:     "daily",
+					Events: map[types.NotificationEvent]bool{
+						types.NotificationEventSignedUp:      true,
+						types.NotificationEventHalf:          true,
+						types.NotificationEventQuarter:       true,
+						types.NotificationEventThreeQuarters: true,
+						types.NotificationEventFull:          true,
+					},
+				},
+				types.NotificationTypeWebhook: {
+					Active:      true,
+					Destination: "https://example.com/webhook",
+					Trigger:     "hourly",
+					Events: map[types.NotificationEvent]bool{
+						types.NotificationEventHalf: true,
+						types.NotificationEventFull: true,
+					},
+				},
 			},
 			testUpdatedWhitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://portalgun.io": {}, "https://subdomain.example.com": {}, "https://www.example.com": {}},
@@ -109,16 +190,20 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			err: nil,
 		},
 		{
-			name:            "Should update a new PortalApp in the database with only a new Name",
-			updatePortalApp: testdata.TestUpdatePortalAppName,
+			name: "Should update a new PortalApp in the database with only a new Name",
+			updatePortalApp: types.UpdatePortalApp{
+				Name: testdata.TestPortalAppName,
+			},
 			testUpdateTime:  testdata.MockTimestamp,
 			testUpdatedName: "portal-app-updated",
 			err:             nil,
 		},
 		{
-			name:            "Should update a new PortalApp in the database with only new Settings",
-			updatePortalApp: testdata.TestUpdatePortalAppSettings,
-			testUpdateTime:  testdata.MockTimestamp,
+			name: "Should update a new PortalApp in the database with only new Settings",
+			updatePortalApp: types.UpdatePortalApp{
+				Settings: testdata.TestPortalAppSettings,
+			},
+			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedSettings: types.Settings{
 				Environment:       types.EnvironmentProduction,
 				SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
@@ -128,18 +213,43 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			},
 			err: nil,
 		},
-		// TODO -> test notifications
-		// {
-		// 	name:                     "Should update a new PortalApp in the database with only new Notifications",
-		// 	updatePortalApp:          testdata.TestUpdatePortalAppSettings,
-		// 	testUpdateTime:           testdata.MockTimestamp,
-		// 	testUpdatedNotifications: map[NotificationType]types.AppNotification{},
-		// 	err:                      nil,
-		// },
 		{
-			name:            "Should update a new PortalApp in the database with only new Whitelists",
-			updatePortalApp: testdata.TestUpdatePortalAppWhitelists,
-			testUpdateTime:  testdata.MockTimestamp,
+			name: "Should update a new PortalApp in the database with only new Notifications",
+			updatePortalApp: types.UpdatePortalApp{
+				Notifications: testdata.TestPortalAppNotifications,
+			},
+			testUpdateTime: testdata.MockTimestamp,
+			testUpdatedNotifications: map[types.NotificationType]types.AppNotification{
+				types.NotificationTypeEmail: {
+					Active:      true,
+					Destination: "user@example.com",
+					Trigger:     "daily",
+					Events: map[types.NotificationEvent]bool{
+						types.NotificationEventSignedUp:      true,
+						types.NotificationEventHalf:          true,
+						types.NotificationEventQuarter:       true,
+						types.NotificationEventThreeQuarters: true,
+						types.NotificationEventFull:          true,
+					},
+				},
+				types.NotificationTypeWebhook: {
+					Active:      true,
+					Destination: "https://example.com/webhook",
+					Trigger:     "hourly",
+					Events: map[types.NotificationEvent]bool{
+						types.NotificationEventHalf: true,
+						types.NotificationEventFull: true,
+					},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Should update a new PortalApp in the database with only new Whitelists",
+			updatePortalApp: types.UpdatePortalApp{
+				Whitelists: testdata.TestPortalAppWhitelists,
+			},
+			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedWhitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://portalgun.io": {}, "https://subdomain.example.com": {}, "https://www.example.com": {}},
 				UserAgents:  map[types.UserAgent]struct{}{"Brave": {}, "Google Chrome": {}, "Mozilla Firefox": {}, "Netscape Navigator": {}, "Safari": {}},
@@ -160,8 +270,6 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			err: nil,
 		},
 	}
-
-	// TODO -> add rest of update tests
 
 	for i, test := range tests {
 		ts.Run(test.name, func() {
@@ -178,7 +286,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			ts.Equal(test.err, err)
 
 			// Get all portal apps from DB
-			portalApps, err := ts.driver.ReadPortalApps(context.Background())
+			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
 			ts.Equal(test.err, err)
 			updatedPortalApp, ok := portalApps[createdPortalApp.ID]
 			ts.True(ok)
@@ -190,12 +298,16 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				ts.Equal(createdPortalApp.Name, updatedPortalApp.Name)
 			}
 
-			// TODO -> test notifications
-
 			if test.testUpdatedSettings.Environment != "" {
 				ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
 			} else {
 				ts.Equal(createdPortalApp.Settings, updatedPortalApp.Settings)
+			}
+
+			if len(test.testUpdatedNotifications) != 0 {
+				ts.Equal(test.testUpdatedNotifications, updatedPortalApp.Notifications)
+			} else {
+				ts.Equal(createdPortalApp.Notifications, updatedPortalApp.Notifications)
 			}
 
 			if len(test.testUpdatedWhitelists.Origins) != 0 {
@@ -203,7 +315,40 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			} else {
 				ts.Equal(createdPortalApp.Whitelists, updatedPortalApp.Whitelists)
 			}
+		})
+	}
+}
 
+func (ts *PGDriverTestSuite) Test_UpdatePortalAppsFirstDateSurpassed() {
+	tests := []struct {
+		name   string
+		update *types.UpdateFirstDateSurpassed
+		err    error
+	}{
+		{
+			name: "Should update multiple PortalApps in the database with a LegacyFields.FirstDateSurpassed timestamp ",
+			update: &types.UpdateFirstDateSurpassed{
+				PortalAppIDs:       []string{string(testdata.TestPortalAppOne.ID), string(testdata.TestPortalAppTwo.ID)},
+				FirstDateSurpassed: time.Date(2023, time.February, 14, 0, 0, 0, 0, time.UTC),
+			},
+			err: nil,
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			// Update FirstDateSurpassed fields for PortalApps
+			err := ts.driver.UpdatePortalAppsFirstDateSurpassed(context.Background(), test.update)
+			ts.Equal(test.err, err)
+
+			// Check FirstDateSurpassed fields for PortalApps in the DB
+			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
+			ts.Equal(test.err, err)
+			for _, appID := range test.update.PortalAppIDs {
+				portalApp, ok := portalApps[types.PortalAppID(appID)]
+				ts.True(ok)
+				ts.Equal(test.update.FirstDateSurpassed, portalApp.LegacyFields.FirstDateSurpassed)
+			}
 		})
 	}
 }

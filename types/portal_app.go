@@ -86,6 +86,7 @@ type (
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
+		Deleted       bool                                 `json:"deleted"`
 		// TODO - remove when v2 migration finished
 		// Fields required for compatibility with the old Portal API and Services (temporary)
 		LegacyFields LegacyFields `json:"legacyFields"`

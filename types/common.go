@@ -13,7 +13,7 @@ type (
 
 // Provides options for passing to Driver interface methods
 type DriverOptions struct {
-	IncludeDelete bool
+	IncludeDeleted bool
 }
 
 /* Listener types */

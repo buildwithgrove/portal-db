@@ -2,6 +2,7 @@ package driver
 
 import (
 	"context"
+	"time"
 
 	"github.com/pokt-foundation/portal-db/types"
 )
@@ -31,14 +32,15 @@ type (
 
 	Writer interface {
 		/* WritePortalApp saves input PortalApp to the database. */
-		WritePortalApp(ctx context.Context, portalApp *types.PortalApp) (*types.PortalApp, error)
+		WritePortalApp(ctx context.Context, portalApp types.PortalApp, createdAt time.Time) (*types.PortalApp, error)
 		/* UpdateLoadBalancer updates PortalApp and related table rows. */
-		UpdatePortalApp(ctx context.Context, portalAppID types.PortalAppID, options *types.UpdatePortalApp) error
+		UpdatePortalApp(ctx context.Context, update types.UpdatePortalApp, updatedAt time.Time) error
+		/* SetPortalAppDeleted sets the portal app Deleted field to true. */
+		SetPortalAppDeleted(ctx context.Context, portalAppID types.PortalAppID, deletedAt time.Time) error
+
 		/* UpdatePortalAppsFirstDateSurpassed updates multiple PortalApps firstDateSurpassed field. */
-		// TODO legacy app - determine if still needed and remove if not when V2 migration completed
+		// TODO legacy method - determine if still needed and remove if not when V2 migration completed
 		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
-		/* DeletePortalApp sets the portal app Deleted field to true. */
-		DeletePortalApp(ctx context.Context, portalAppID types.PortalAppID) error
 
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, account types.Account) error

@@ -15,6 +15,23 @@ import (
 	"github.com/pokt-foundation/portal-db/types"
 )
 
+const deletePortalApp = `-- name: DeletePortalApp :exec
+UPDATE portal_applications
+SET deleted = true,
+    deleted_at = $2
+WHERE id = $1
+`
+
+type DeletePortalAppParams struct {
+	ID        types.PortalAppID `json:"id"`
+	DeletedAt sql.NullTime      `json:"deletedAt"`
+}
+
+func (q *Queries) DeletePortalApp(ctx context.Context, arg DeletePortalAppParams) error {
+	_, err := q.db.ExecContext(ctx, deletePortalApp, arg.ID, arg.DeletedAt)
+	return err
+}
+
 const insertPortalApplication = `-- name: InsertPortalApplication :one
 INSERT INTO portal_applications (
         id,
@@ -44,7 +61,7 @@ VALUES (
         $11,
         $12
     )
-RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, deleted, application_ids, request_timeout, gigastake_redirect, first_date_surpassed, custom_limit
+RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, deleted, deleted_at, application_ids, request_timeout, gigastake_redirect, first_date_surpassed, custom_limit
 `
 
 type InsertPortalApplicationParams struct {
@@ -87,6 +104,7 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
+		&i.DeletedAt,
 		pq.Array(&i.ApplicationIDs),
 		&i.RequestTimeout,
 		&i.GigastakeRedirect,
@@ -227,7 +245,7 @@ func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickine
 }
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
-SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.application_ids, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
+SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.application_ids, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
     paa.address,
     paa.public_key,
     paa.private_key,
@@ -293,9 +311,12 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.update
     )::json AS whitelists
 FROM portal_applications p
     LEFT JOIN portal_application_aats paa ON p.id = paa.application_id
-    LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    -- legacy table
+    LEFT JOIN portal_application_settings pas ON p.id = pas.application_id -- legacy table
     LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
+WHERE (
+        $1::BOOLEAN
+        OR p.deleted = false
+    )
 GROUP BY p.id,
     paa.address,
     paa.public_key,
@@ -321,7 +342,8 @@ type SelectPortalApplicationsRow struct {
 	Staked             bool              `json:"staked"`
 	CreatedAt          time.Time         `json:"createdAt"`
 	UpdatedAt          time.Time         `json:"updatedAt"`
-	Deleted            sql.NullBool      `json:"deleted"`
+	Deleted            bool              `json:"deleted"`
+	DeletedAt          sql.NullTime      `json:"deletedAt"`
 	ApplicationIDs     []string          `json:"applicationIds"`
 	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
 	GigastakeRedirect  sql.NullBool      `json:"gigastakeRedirect"`
@@ -345,8 +367,8 @@ type SelectPortalApplicationsRow struct {
 	Whitelists         json.RawMessage   `json:"whitelists"`
 }
 
-func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalApplicationsRow, error) {
-	rows, err := q.db.QueryContext(ctx, selectPortalApplications)
+func (q *Queries) SelectPortalApplications(ctx context.Context, includeDeleted bool) ([]SelectPortalApplicationsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectPortalApplications, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -363,6 +385,7 @@ func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalA
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
+			&i.DeletedAt,
 			pq.Array(&i.ApplicationIDs),
 			&i.RequestTimeout,
 			&i.GigastakeRedirect,
@@ -396,6 +419,22 @@ func (q *Queries) SelectPortalApplications(ctx context.Context) ([]SelectPortalA
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateDeletePortalAppNotification = `-- name: UpdateDeletePortalAppNotification :exec
+DELETE FROM portal_application_notifications
+WHERE application_id = $1
+    and type = $2
+`
+
+type UpdateDeletePortalAppNotificationParams struct {
+	ApplicationID types.PortalAppID      `json:"applicationID"`
+	Type          types.NotificationType `json:"type"`
+}
+
+func (q *Queries) UpdateDeletePortalAppNotification(ctx context.Context, arg UpdateDeletePortalAppNotificationParams) error {
+	_, err := q.db.ExecContext(ctx, updateDeletePortalAppNotification, arg.ApplicationID, arg.Type)
+	return err
 }
 
 const updateDeleteWhitelists = `-- name: UpdateDeleteWhitelists :exec
@@ -440,6 +479,22 @@ func (q *Queries) UpdateDeleteWhitelists(ctx context.Context, arg UpdateDeleteWh
 		pq.Array(arg.Values),
 		pq.Array(arg.ChainIDs),
 	)
+	return err
+}
+
+const updateFirstDatesSurpassed = `-- name: UpdateFirstDatesSurpassed :exec
+UPDATE portal_applications
+SET first_date_surpassed = $1
+WHERE id = ANY ($2::VARCHAR [])
+`
+
+type UpdateFirstDatesSurpassedParams struct {
+	FirstDateSurpassed sql.NullTime `json:"firstDateSurpassed"`
+	ApplicationIDs     []string     `json:"applicationIds"`
+}
+
+func (q *Queries) UpdateFirstDatesSurpassed(ctx context.Context, arg UpdateFirstDatesSurpassedParams) error {
+	_, err := q.db.ExecContext(ctx, updateFirstDatesSurpassed, arg.FirstDateSurpassed, pq.Array(arg.ApplicationIDs))
 	return err
 }
 
@@ -531,49 +586,51 @@ func (q *Queries) UpdatePortalAppSettings(ctx context.Context, arg UpdatePortalA
 	return err
 }
 
-const upsertPortalAppNotifications = `-- name: UpsertPortalAppNotifications :exec
+const updateUpsertPortalAppNotification = `-- name: UpdateUpsertPortalAppNotification :exec
 INSERT INTO portal_application_notifications (
         application_id,
-        active,
         type,
+        active,
         destination,
         trigger,
         events,
         updated_at
     )
 SELECT $1,
-    UNNEST($3::BOOLEAN []),
-    UNNEST($4::notification_type []),
-    UNNEST($5::VARCHAR(255) []),
-    UNNEST($6::VARCHAR(255) []),
-    UNNEST($7::notification_event []),
-    $2 ON CONFLICT (application_id, type) DO
+    $3::notification_type,
+    $4::BOOLEAN,
+    $5::VARCHAR(255),
+    $6::VARCHAR(255),
+    $7::notification_event [],
+    $2
+WHERE $4 IS true ON CONFLICT (application_id, type) DO
 UPDATE
 SET active = EXCLUDED.active,
     destination = EXCLUDED.destination,
     trigger = EXCLUDED.trigger,
     events = EXCLUDED.events,
     updated_at = EXCLUDED.updated_at
+WHERE EXCLUDED.active IS true
 `
 
-type UpsertPortalAppNotificationsParams struct {
+type UpdateUpsertPortalAppNotificationParams struct {
 	ApplicationID types.PortalAppID         `json:"applicationID"`
 	UpdatedAt     sql.NullTime              `json:"updatedAt"`
-	Active        []bool                    `json:"active"`
-	Types         []types.NotificationType  `json:"types"`
-	Destination   []string                  `json:"destination"`
-	Trigger       []string                  `json:"trigger"`
+	Type          types.NotificationType    `json:"type"`
+	Active        bool                      `json:"active"`
+	Destination   string                    `json:"destination"`
+	Trigger       string                    `json:"trigger"`
 	Events        []types.NotificationEvent `json:"events"`
 }
 
-func (q *Queries) UpsertPortalAppNotifications(ctx context.Context, arg UpsertPortalAppNotificationsParams) error {
-	_, err := q.db.ExecContext(ctx, upsertPortalAppNotifications,
+func (q *Queries) UpdateUpsertPortalAppNotification(ctx context.Context, arg UpdateUpsertPortalAppNotificationParams) error {
+	_, err := q.db.ExecContext(ctx, updateUpsertPortalAppNotification,
 		arg.ApplicationID,
 		arg.UpdatedAt,
-		pq.Array(arg.Active),
-		pq.Array(arg.Types),
-		pq.Array(arg.Destination),
-		pq.Array(arg.Trigger),
+		arg.Type,
+		arg.Active,
+		arg.Destination,
+		arg.Trigger,
 		pq.Array(arg.Events),
 	)
 	return err

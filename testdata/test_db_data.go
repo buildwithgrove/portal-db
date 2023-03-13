@@ -212,27 +212,27 @@ var (
 	/* Update Data */
 
 	TestCreateAppForUpdate = types.PortalApp{
-		ID:        "test_app_3487u329rfn23f9",
+		ID:        "test_app_539a081b03ca84c",
 		AccountID: 1,
 		Gigastake: true,
 		Staked:    false,
 		AAT: types.AAT{
-			Address:         "test_34715cae753e67c75fbb340442e7de8e",
-			PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
-			ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
-			PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
-			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+			Address:         "test_7d0cd2743543a6200e41224594954b06",
+			PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
+			ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
+			PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
+			Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
 			Version:         "0.0.1",
 		},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
+			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
 			SecretKeyRequired: true,
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
 		LegacyFields: types.LegacyFields{
-			ApplicationIDs:     []string{"test_app_47hfnths73j2se7"},
+			ApplicationIDs:     []string{"test_app_bb162dd67c99615"},
 			CustomLimit:        0,
 			RequestTimeout:     5_000,
 			GigastakeRedirect:  true,
@@ -246,34 +246,15 @@ var (
 		},
 	}
 
-	TestUpdatePortalAppAll = types.UpdatePortalApp{
-		Name:          testPortalAppName,
-		Settings:      testPortalAppSettings,
-		Notifications: testPortalAppNotifications,
-		Whitelists:    testPortalAppWhitelists,
-	}
-	TestUpdatePortalAppName = types.UpdatePortalApp{
-		Name: testPortalAppName,
-	}
-	TestUpdatePortalAppSettings = types.UpdatePortalApp{
-		Settings: testPortalAppSettings,
-	}
-	TestUpdatePortalAppNotifications = types.UpdatePortalApp{
-		Notifications: testPortalAppNotifications,
-	}
-	TestUpdatePortalAppWhitelists = types.UpdatePortalApp{
-		Whitelists: testPortalAppWhitelists,
-	}
-
-	testPortalAppName     = "portal-app-updated"
-	testPortalAppSettings = &types.UpdateAppSettings{
+	TestPortalAppName     = "portal-app-updated"
+	TestPortalAppSettings = &types.UpdateAppSettings{
 		Environment:       types.EnvironmentProduction,
 		SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
 		SecretKeyRequired: true,
 		MonthlyRelayLimit: 2_500_000,
 		FavoritedChainIDs: []string{"0003", "0009", "00H3"},
 	}
-	testPortalAppNotifications = []types.UpdateAppNotifications{
+	TestPortalAppNotifications = []types.UpdateAppNotifications{
 		{
 			NotificationType: types.NotificationTypeEmail,
 			Active:           true,
@@ -299,7 +280,7 @@ var (
 		},
 		{NotificationType: types.NotificationTypePortal, Active: false},
 	}
-	testPortalAppWhitelists = &types.WhitelistsObject{
+	TestPortalAppWhitelists = &types.WhitelistsObject{
 		AppWhitelists: [3]types.ApplicationWhitelists{
 			{Type: "origins", Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
 			{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
