@@ -403,23 +403,24 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 }
 
 type Account struct {
-	ID                      types.AccountID `json:"id"`
-	PlanType                string          `json:"planType"`
-	PartnerChainIDs         []string        `json:"partnerChainIds"`
-	PartnerThroughputLimit  sql.NullInt32   `json:"partnerThroughputLimit"`
-	PartnerApplicationLimit sql.NullInt32   `json:"partnerApplicationLimit"`
-	CreatedAt               time.Time       `json:"createdAt"`
-	UpdatedAt               time.Time       `json:"updatedAt"`
-	Deleted                 bool            `json:"deleted"`
-	DeletedAt               sql.NullTime    `json:"deletedAt"`
+	ID                      types.AccountID   `json:"id"`
+	PlanType                types.PayPlanType `json:"planType"`
+	PartnerChainIDs         []string          `json:"partnerChainIds"`
+	PartnerThroughputLimit  sql.NullInt32     `json:"partnerThroughputLimit"`
+	PartnerApplicationLimit sql.NullInt32     `json:"partnerApplicationLimit"`
+	CreatedAt               time.Time         `json:"createdAt"`
+	UpdatedAt               time.Time         `json:"updatedAt"`
+	Deleted                 bool              `json:"deleted"`
+	DeletedAt               sql.NullTime      `json:"deletedAt"`
 }
 
 type AccountUserAccess struct {
 	ID        int32           `json:"id"`
 	AccountID types.AccountID `json:"accountID"`
 	UserID    types.UserID    `json:"userID"`
-	RoleName  string          `json:"roleName"`
+	RoleName  types.RoleName  `json:"roleName"`
 	Accepted  bool            `json:"accepted"`
+	CreatedAt time.Time       `json:"createdAt"`
 	UpdatedAt time.Time       `json:"updatedAt"`
 }
 
@@ -561,7 +562,7 @@ type StickinessOption struct {
 
 type User struct {
 	ID           types.UserID        `json:"id"`
-	Email        string              `json:"email"`
+	Email        types.Email         `json:"email"`
 	AuthProvider types.AuthProviders `json:"authProvider"`
 	SignInType   NullAuthSignIn      `json:"signInType"`
 	CreatedAt    time.Time           `json:"createdAt"`

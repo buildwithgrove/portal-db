@@ -265,9 +265,9 @@ SELECT a.*,
     ) AS users
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
-    LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
 WHERE (
         @include_deleted::BOOLEAN
         OR a.deleted = false
@@ -279,3 +279,40 @@ GROUP BY a.id,
     p.throughput_limit,
     p.application_limit,
     p.daily_limit;
+-- name: InsertAccount :one
+INSERT INTO accounts (
+        plan_type,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3)
+RETURNING *;
+-- name: CheckUserExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM users
+        WHERE id = $1
+    );
+-- name: InsertAccountUserAccess :one
+INSERT INTO account_user_access (
+        account_id,
+        user_id,
+        role_name,
+        accepted,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING account_user_access.user_id,
+    account_user_access.role_name,
+    account_user_access.accepted,
+    (
+        SELECT email
+        FROM users
+        WHERE id = $2
+    ) AS email,
+    (
+        SELECT auth_provider
+        FROM users
+        WHERE id = $2
+    ) AS auth_provider;

@@ -287,18 +287,27 @@ func (_m *MockDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, up
 	return r0
 }
 
-// WriteAccount provides a mock function with given fields: ctx, account
-func (_m *MockDriver) WriteAccount(ctx context.Context, account types.Account) error {
-	ret := _m.Called(ctx, account)
+// WriteAccount provides a mock function with given fields: ctx, accountOwnerID, account, createdAt
+func (_m *MockDriver) WriteAccount(ctx context.Context, accountOwnerID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
+	ret := _m.Called(ctx, accountOwnerID, account, createdAt)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Account) error); ok {
-		r0 = rf(ctx, account)
+	var r0 *types.Account
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.Account, time.Time) *types.Account); ok {
+		r0 = rf(ctx, accountOwnerID, account, createdAt)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Account)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.UserID, types.Account, time.Time) error); ok {
+		r1 = rf(ctx, accountOwnerID, account, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // WriteAccountUser provides a mock function with given fields: ctx, portalAppID, accountUser

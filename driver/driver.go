@@ -43,7 +43,7 @@ type (
 		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
 
 		/* WriteAccount saves input Account to the database. */
-		WriteAccount(ctx context.Context, account types.Account) error
+		WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error)
 		/* DeleteAccount saves input Account to the database. */
 		DeleteAccount(ctx context.Context, account types.Account) error
 

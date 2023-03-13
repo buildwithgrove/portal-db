@@ -71,6 +71,7 @@ CREATE TABLE account_user_access (
     user_id VARCHAR(320) NOT NULL,
     role_name VARCHAR(25) NOT NULL,
     accepted BOOLEAN NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT account_user_access_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
     CONSTRAINT account_user_access_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -165,14 +166,14 @@ CREATE TABLE portal_applications (
 );
 -- legacy table
 CREATE TABLE IF NOT EXISTS stickiness_options (
-	id INT GENERATED ALWAYS AS IDENTITY,
-	lb_id VARCHAR NOT NULL UNIQUE,
-	duration TEXT,
-	sticky_max INT,
-	stickiness BOOLEAN,
-	origins VARCHAR [],
-	PRIMARY KEY (id),
-	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES portal_applications(id)
+    id INT GENERATED ALWAYS AS IDENTITY,
+    lb_id VARCHAR NOT NULL UNIQUE,
+    duration TEXT,
+    sticky_max INT,
+    stickiness BOOLEAN,
+    origins VARCHAR [],
+    PRIMARY KEY (id),
+    CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES portal_applications(id)
 );
 CREATE TABLE portal_application_aats (
     id SERIAL PRIMARY KEY,

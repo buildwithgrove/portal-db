@@ -20,35 +20,35 @@ var (
 
 	/* ----- Read Data ----- */
 
-	TestPayPlans = map[types.PayPlanType]types.Plan{
+	PayPlans = map[types.PayPlanType]types.Plan{
 		"basic_plan": {
 			Type:              "basic_plan",
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 5000000,
-			ThroughputLimit:   5000,
+			MonthlyRelayLimit: 5_000_000,
+			ThroughputLimit:   5_000,
 			AppLimit:          2,
 			LegacyDailyLimit:  1000,
 		},
 		"pro_plan": {
 			Type:              "pro_plan",
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
-			MonthlyRelayLimit: 10000000,
-			ThroughputLimit:   10000,
+			MonthlyRelayLimit: 10_000_000,
+			ThroughputLimit:   10_000,
 			AppLimit:          5,
-			LegacyDailyLimit:  5000,
+			LegacyDailyLimit:  5_000,
 		},
 		"enterprise_plan": {
 			Type:              "enterprise_plan",
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}, "0034": {}},
-			MonthlyRelayLimit: 20000000,
-			ThroughputLimit:   20000,
+			MonthlyRelayLimit: 20_000_000,
+			ThroughputLimit:   20_000,
 			AppLimit:          10,
-			LegacyDailyLimit:  10000,
+			LegacyDailyLimit:  10_000,
 		},
 		"developer_plan": {
 			Type:              "developer_plan",
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0034": {}},
-			MonthlyRelayLimit: 500000,
+			MonthlyRelayLimit: 500_000,
 			ThroughputLimit:   500,
 			AppLimit:          1,
 			LegacyDailyLimit:  100,
@@ -56,113 +56,120 @@ var (
 		"startup_plan": {
 			Type:              "startup_plan",
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
-			MonthlyRelayLimit: 1000000,
-			ThroughputLimit:   1000,
+			MonthlyRelayLimit: 1_000_000,
+			ThroughputLimit:   1_000,
 			AppLimit:          5,
 			LegacyDailyLimit:  500,
 		},
 	}
 
-	TestAccounts = map[types.AccountID]*types.Account{
+	Accounts = map[types.AccountID]*types.Account{
 		1: {
 			ID:   1,
-			Plan: TestPayPlans["basic_plan"],
+			Plan: PayPlans["basic_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
-				"test_user_a06ab0cf00a714": TestUserAccess["test_user_a06ab0cf00a714"],
-				"test_user_817516a5c3661b": TestUserAccess["test_user_817516a5c3661b"],
-				"test_user_4da2e080d893a2": TestUserAccess["test_user_4da2e080d893a2"],
+				"test_user_a06ab0cf00a714": UserAccess["test_user_a06ab0cf00a714"],
+				"test_user_817516a5c3661b": UserAccess["test_user_817516a5c3661b"],
+				"test_user_4da2e080d893a2": UserAccess["test_user_4da2e080d893a2"],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
-			PartnerThroughputLimit: 2000,
+			PartnerThroughputLimit: 2_000,
 			PartnerAppLimit:        1,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
 		2: {
 			ID:   2,
-			Plan: TestPayPlans["pro_plan"],
+			Plan: PayPlans["pro_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
-				"test_user_1e58b747ca4ea0": TestUserAccess["test_user_1e58b747ca4ea0"],
-				"test_user_208ff0b4a1b9be": TestUserAccess["test_user_208ff0b4a1b9be"],
-				"test_user_2dd0d5ad5cdaa9": TestUserAccess["test_user_2dd0d5ad5cdaa9"],
+				"test_user_1e58b747ca4ea0": UserAccess["test_user_1e58b747ca4ea0"],
+				"test_user_208ff0b4a1b9be": UserAccess["test_user_208ff0b4a1b9be"],
+				"test_user_2dd0d5ad5cdaa9": UserAccess["test_user_2dd0d5ad5cdaa9"],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
-			PartnerThroughputLimit: 5000,
+			PartnerThroughputLimit: 5_000,
 			PartnerAppLimit:        3,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
 		3: {
 			ID:   3,
-			Plan: TestPayPlans["startup_plan"],
+			Plan: PayPlans["startup_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
-				"test_user_12de743291e750": TestUserAccess["test_user_12de743291e750"],
-				"test_user_bf1ec64b1db1db": TestUserAccess["test_user_bf1ec64b1db1db"],
-				"test_user_4e4dc3b9440ffb": TestUserAccess["test_user_4e4dc3b9440ffb"],
-				"test_user_e071178370b597": TestUserAccess["test_user_e071178370b597"],
+				"test_user_12de743291e750": UserAccess["test_user_12de743291e750"],
+				"test_user_bf1ec64b1db1db": UserAccess["test_user_bf1ec64b1db1db"],
+				"test_user_4e4dc3b9440ffb": UserAccess["test_user_4e4dc3b9440ffb"],
+				"test_user_e071178370b597": UserAccess["test_user_e071178370b597"],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
-			PartnerThroughputLimit: 1000,
+			PartnerThroughputLimit: 1_000,
 			PartnerAppLimit:        2,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
+
+		// This account used to test creation of Accounts
+		4: {
+			Plan:      PayPlans["developer_plan"],
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
 	}
 
-	TestUserAccess = map[types.UserID]types.AccountUserAccess{
+	UserAccess = map[types.UserID]types.AccountUserAccess{
 		"test_user_a06ab0cf00a714": {
-			User:     TestUsers["test_user_a06ab0cf00a714"],
+			User:     Users["test_user_a06ab0cf00a714"],
 			RoleName: types.RoleOwner,
 			Accepted: true,
 		},
 		"test_user_817516a5c3661b": {
-			User:     TestUsers["test_user_817516a5c3661b"],
+			User:     Users["test_user_817516a5c3661b"],
 			RoleName: types.RoleAdmin,
 			Accepted: true,
 		},
 		"test_user_1e58b747ca4ea0": {
-			User:     TestUsers["test_user_1e58b747ca4ea0"],
+			User:     Users["test_user_1e58b747ca4ea0"],
 			RoleName: types.RoleOwner,
 			Accepted: true,
 		},
 		"test_user_208ff0b4a1b9be": {
-			User:     TestUsers["test_user_208ff0b4a1b9be"],
+			User:     Users["test_user_208ff0b4a1b9be"],
 			RoleName: types.RoleMember,
 			Accepted: true,
 		},
 		"test_user_12de743291e750": {
-			User:     TestUsers["test_user_12de743291e750"],
+			User:     Users["test_user_12de743291e750"],
 			RoleName: types.RoleOwner,
 			Accepted: true,
 		},
 		"test_user_bf1ec64b1db1db": {
-			User:     TestUsers["test_user_bf1ec64b1db1db"],
+			User:     Users["test_user_bf1ec64b1db1db"],
 			RoleName: types.RoleAdmin,
 			Accepted: true,
 		},
 		"test_user_4e4dc3b9440ffb": {
-			User:     TestUsers["test_user_4e4dc3b9440ffb"],
+			User:     Users["test_user_4e4dc3b9440ffb"],
 			RoleName: types.RoleMember,
 			Accepted: true,
 		},
 		"test_user_4da2e080d893a2": {
-			User:     TestUsers["test_user_4da2e080d893a2"],
+			User:     Users["test_user_4da2e080d893a2"],
 			RoleName: types.RoleAdmin,
 			Accepted: false,
 		},
 		"test_user_2dd0d5ad5cdaa9": {
-			User:     TestUsers["test_user_2dd0d5ad5cdaa9"],
+			User:     Users["test_user_2dd0d5ad5cdaa9"],
 			RoleName: types.RoleMember,
 			Accepted: false,
 		},
 		"test_user_e071178370b597": {
-			User:     TestUsers["test_user_e071178370b597"],
+			User:     Users["test_user_e071178370b597"],
 			RoleName: types.RoleMember,
 			Accepted: false,
 		},
 	}
 
-	TestUsers = map[types.UserID]types.User{
+	Users = map[types.UserID]types.User{
 		"test_user_a06ab0cf00a714": {
 			ID:           "test_user_a06ab0cf00a714",
 			Email:        "user1@example.com",
@@ -215,7 +222,7 @@ var (
 		},
 	}
 
-	TestPortalApps = map[types.PortalAppID]*types.PortalApp{
+	PortalApps = map[types.PortalAppID]*types.PortalApp{
 		"test_app_3487u329rfn23f9": {
 			ID:        "test_app_3487u329rfn23f9",
 			AccountID: 1,
@@ -363,6 +370,7 @@ var (
 				FirstDateSurpassed: MockTimestamp,
 			},
 		},
+
 		// This app used to test creation of PortalApps
 		"test_app_create_208r23r": {
 			ID:        "test_app_create_208r23r",
@@ -400,6 +408,7 @@ var (
 				},
 			},
 		},
+
 		// This app used to test updates of PortalApps
 		"test_app_update_b03ca84c": {
 			ID:        "test_app_update_b03ca84c",
@@ -439,15 +448,15 @@ var (
 
 	/* ----- Update Data ----- */
 
-	TestPortalAppName     = "portal-app-updated"
-	TestPortalAppSettings = &types.UpdateAppSettings{
+	UpdatePortalAppName     = "portal-app-updated"
+	UpdatePortalAppSettings = &types.UpdateAppSettings{
 		Environment:       types.EnvironmentProduction,
 		SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
 		SecretKeyRequired: true,
 		MonthlyRelayLimit: 2_500_000,
 		FavoritedChainIDs: []string{"0003", "0009", "00H3"},
 	}
-	TestPortalAppNotifications = []types.UpdateAppNotifications{
+	UpdatePortalAppNotifications = []types.UpdateAppNotifications{
 		{
 			NotificationType: types.NotificationTypeEmail,
 			Active:           true,
@@ -473,7 +482,7 @@ var (
 		},
 		{NotificationType: types.NotificationTypePortal, Active: false},
 	}
-	TestPortalAppWhitelists = &types.WhitelistsObject{
+	UpdatePortalAppWhitelists = &types.WhitelistsObject{
 		AppWhitelists: [3]types.ApplicationWhitelists{
 			{Type: "origins", Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
 			{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
