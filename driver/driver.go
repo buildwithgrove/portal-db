@@ -14,55 +14,55 @@ type (
 	}
 
 	Reader interface {
-		/* ReadPayPlans returns all pay plans in the database and marshals to types struct */
-		ReadPayPlans(ctx context.Context) ([]*types.PayPlan, error)
-		/* ReadApplications returns all Applications in the database */
-		ReadApplications(ctx context.Context) ([]*types.Application, error)
-		/* ReadLoadBalancers returns all LoadBalancers in the database */
-		ReadLoadBalancers(ctx context.Context) ([]*types.LoadBalancer, error)
+		/* ReadAccounts returns all Accounts in the database. Can specify if deleted Accounts should be included. */
+		ReadAccounts(ctx context.Context, includeDeleted bool) (map[types.AccountID]*types.Account, error)
+		/* ReadChains returns all Chains in the databas. Can specify if deleted Chains should be included. */
+		ReadChains(ctx context.Context, includeDeleted bool) (map[types.ChainID]*types.Chain, error)
+		/* ReadPortalApps returns all PortalApps in the database. Can specify if deleted PortalApps should be included.  */
+		ReadPortalApps(ctx context.Context, includeDeleted bool) (map[types.PortalAppID]*types.PortalApp, error)
+
+		/* ReadPlans returns all Plans in the database */
+		ReadPlans(ctx context.Context) (map[types.PayPlanType]*types.Plan, error)
 		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
 		ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error)
-		/* ReadBlockchains returns all blockchains in the database and marshals to types struct */
-		ReadBlockchains(ctx context.Context) ([]*types.Blockchain, error)
 
 		NotificationChannel() <-chan *types.Notification
 	}
 
 	Writer interface {
-		/* WriteLoadBalancer saves input LoadBalancer to the database */
-		WriteLoadBalancer(ctx context.Context, loadBalancer *types.LoadBalancer) (*types.LoadBalancer, error)
-		/* WriteLoadBalancerUser saves input LoadBalancer to the database */
-		WriteLoadBalancerUser(ctx context.Context, lbID string, userAccess types.UserAccess) error
-		/* UpdateLoadBalancer updates LoadBalancer and related table rows */
-		UpdateLoadBalancer(ctx context.Context, id string, options *types.UpdateLoadBalancer) error
-		/* UpdateUserAccessRole updates the RoleName for a UserAccess row */
-		UpdateUserAccessRole(ctx context.Context, email, lbID string, roleName types.RoleName) error
-		/* AcceptUserAccess sets the User ID and the Accepted field to true for a UserAccess row */
-		AcceptUserAccess(ctx context.Context, email, userID, lbID string) error
-		/* RemoveLoadBalancer sets the user ID to an empty string (will not appear in Portal API or UI) */
-		RemoveLoadBalancer(ctx context.Context, id string) error
-		/* RemoveUserAccess deletes a UserAccess row */
-		RemoveUserAccess(ctx context.Context, email, lbID string) error
+		/* WritePortalApp saves input PortalApp to the database. */
+		WritePortalApp(ctx context.Context, portalApp *types.PortalApp) (*types.PortalApp, error)
+		/* UpdateLoadBalancer updates PortalApp and related table rows. */
+		UpdatePortalApp(ctx context.Context, portalAppID types.PortalAppID, options *types.UpdatePortalApp) error
+		/* UpdatePortalAppsFirstDateSurpassed updates multiple PortalApps firstDateSurpassed field. */
+		// TODO legacy app - dtermine if still needed and remove if not when V2 migration completed
+		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
+		/* DeletePortalApp sets the portal app Deleted field to true. */
+		DeletePortalApp(ctx context.Context, portalAppID types.PortalAppID) error
 
-		/* WriteApplication saves input Application to the database */
-		WriteApplication(ctx context.Context, app *types.Application) (*types.Application, error)
-		/* UpdateApplication updates Application and related table rows */
-		UpdateApplication(ctx context.Context, id string, update *types.UpdateApplication) error
-		/* UpdateAppFirstDateSurpassed updates Application's firstDateSurpassed field */
-		UpdateAppFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
-		/* RemoveApplication updates Application's status field to AwaitingGracePeriod */
-		RemoveApplication(ctx context.Context, id string) error
+		/* WriteAccount saves input Account to the database. */
+		WriteAccount(ctx context.Context, account types.Account) error
+		/* DeleteAccount saves input Account to the database. */
+		DeleteAccount(ctx context.Context, account types.Account) error
 
-		/* WriteBlockchain saves input Blockchain struct to the database */
-		WriteBlockchain(ctx context.Context, blockchain *types.Blockchain) (*types.Blockchain, error)
+		/* WriteAccountUser saves input AccountUserAccess to the database. */
+		WriteAccountUser(ctx context.Context, portalAppID types.PortalAppID, accountUser types.AccountUserAccess) error
+		/* UpdateUserAccessRole updates the RoleName for an AccountUserAccess row. */
+		UpdateAccountUserRole(ctx context.Context, email types.Email, portalAppID types.PortalAppID, roleName types.RoleName) error
+		/* AcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
+		AcceptAccountUser(ctx context.Context, email types.Email, userID types.UserID, portalAppID string) error
+		/* DeleteAccountUser deletes a UserAccess row. */
+		DeleteAccountUser(ctx context.Context, email types.Email, portalAppID types.PortalAppID) error
 
-		/* WriteRedirect saves input Redirect struct to the database.
-		   It must be called separately from WriteBlockchain due to how new chains are added to the dB */
-		WriteRedirect(ctx context.Context, redirect *types.Redirect) (*types.Redirect, error)
-		/* UpdateChain updates Blockchain and Sync Check Options */
-		UpdateChain(ctx context.Context, blockchainID string, update *types.UpdateBlockchain) error
-		/* ActivateChain toggles chain.active field on or off */
-		ActivateChain(ctx context.Context, id string, active bool) error
-		RemoveRedirect(ctx context.Context, blockchainID, domain string) error
+		/* WriteChain saves input Chain struct to the database. */
+		WriteChain(ctx context.Context, blockchain *types.Chain) (*types.Chain, error)
+		/* WriteGigastakeRedirect saves input GigastakeRedirect struct to the database for a given Chain. */
+		WriteGigastakeRedirect(ctx context.Context, redirect *types.GigastakeRedirect) (*types.GigastakeRedirect, error)
+		/* UpdateChain updates Chain and ChainCheck for a given Chain. */
+		UpdateChain(ctx context.Context, chainID types.ChainID, update *types.UpdateChain) error
+		/* ActivateChain toggles Chain.Active field on or off. */
+		ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error
+		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
+		DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error
 	}
 )

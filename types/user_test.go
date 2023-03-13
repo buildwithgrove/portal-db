@@ -9,7 +9,7 @@ import (
 var testUserPermissions = map[UserID]UserPermissions{
 	"test_user_687463gh2h72gs": {
 		UserID: "test_user_687463gh2h72gs",
-		PortalApps: map[ApplicationID]PortalAppPermissions{
+		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_6774900350d9c42": {
 				RoleName:    RoleOwner,
 				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
@@ -18,7 +18,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 	},
 	"test_user_47fhf7rwejf943": {
 		UserID: "test_user_47fhf7rwejf943",
-		PortalApps: map[ApplicationID]PortalAppPermissions{
+		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_6774900350d9c42": {
 				RoleName:    RoleAdmin,
 				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint},
@@ -31,7 +31,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 	},
 	"test_user_774900350d9c43": {
 		UserID: "test_user_774900350d9c43",
-		PortalApps: map[ApplicationID]PortalAppPermissions{
+		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_3487u329rfn23f": {
 				RoleName:    RoleOwner,
 				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
@@ -46,7 +46,7 @@ func Test_UserPermissions_GetRole(t *testing.T) {
 	tests := []struct {
 		name        string
 		userID      UserID
-		portalAppID ApplicationID
+		portalAppID PortalAppID
 		roleName    RoleName
 	}{
 		{
@@ -83,7 +83,7 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 	tests := []struct {
 		name                string
 		userID              UserID
-		portalAppID         ApplicationID
+		portalAppID         PortalAppID
 		roleName            RoleName
 		expectedPermissions *UserPermissions
 		err                 error
@@ -95,7 +95,7 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 			roleName:    RoleAdmin,
 			expectedPermissions: &UserPermissions{
 				UserID: "test_user_687463gh2h72gs",
-				PortalApps: map[ApplicationID]PortalAppPermissions{
+				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_6774900350d9c42": {
 						RoleName:    RoleOwner,
 						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
@@ -114,7 +114,7 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 			roleName:    RoleMember,
 			expectedPermissions: &UserPermissions{
 				UserID: "test_user_687463gh2h72gs",
-				PortalApps: map[ApplicationID]PortalAppPermissions{
+				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_6774900350d9c42": {
 						RoleName:    RoleOwner,
 						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
@@ -156,7 +156,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 	tests := []struct {
 		name                string
 		userID              UserID
-		portalAppID         ApplicationID
+		portalAppID         PortalAppID
 		roleName            RoleName
 		expectedPermissions *UserPermissions
 		err                 error
@@ -168,7 +168,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 			roleName:    RoleMember,
 			expectedPermissions: &UserPermissions{
 				UserID: "test_user_774900350d9c43",
-				PortalApps: map[ApplicationID]PortalAppPermissions{
+				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_3487u329rfn23f": {
 						RoleName:    RoleOwner,
 						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
@@ -196,7 +196,7 @@ func Test_UserPermissions_HasPermission_Read(t *testing.T) {
 	tests := []struct {
 		name              string
 		userID            UserID
-		portalAppID       ApplicationID
+		portalAppID       PortalAppID
 		hasReadPermission bool
 	}{
 		{
@@ -233,7 +233,7 @@ func Test_UserPermissions_HasPermission_Write(t *testing.T) {
 	tests := []struct {
 		name              string
 		userID            UserID
-		portalAppID       ApplicationID
+		portalAppID       PortalAppID
 		hasReadPermission bool
 	}{
 		{
@@ -270,7 +270,7 @@ func Test_UserPermissions_HasPermission_Delete(t *testing.T) {
 	tests := []struct {
 		name                string
 		userID              UserID
-		portalAppID         ApplicationID
+		portalAppID         PortalAppID
 		hasDeletePermission bool
 	}{
 		{
@@ -306,7 +306,7 @@ func Test_UserPermissions_HasPermission_Transfer(t *testing.T) {
 	tests := []struct {
 		name                string
 		userID              UserID
-		portalAppID         ApplicationID
+		portalAppID         PortalAppID
 		hasDeletePermission bool
 	}{
 		{

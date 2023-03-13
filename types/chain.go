@@ -24,7 +24,7 @@ const (
 /* Chain Struct and Methods */
 type (
 	Chain struct {
-		ID                BlockchainID             `json:"id"`
+		ID                ChainID                  `json:"id"`
 		Blockchain        string                   `json:"blockchain"`
 		ChainID           string                   `json:"chainID"`
 		Description       string                   `json:"description"`
@@ -43,22 +43,22 @@ type (
 		UpdatedAt         time.Time                `json:"updatedAt"`
 	}
 	Altruist struct {
-		BlockchainID string        `json:"blockchainID,omitempty"`
-		URL          string        `json:"url"`
-		Auth         string        `json:"auth"`
-		AuthType     ChainAuthType `json:"authType"`
+		ChainID  string        `json:"chainID,omitempty"`
+		URL      string        `json:"url"`
+		Auth     string        `json:"auth"`
+		AuthType ChainAuthType `json:"authType"`
 	}
 	GigastakeRedirect struct {
-		BlockchainID  string `json:"blockchainID,omitempty"`
+		ChainID       string `json:"chainID,omitempty"`
 		Alias         string `json:"alias"`
 		Domain        string `json:"domain"`
 		ProtocolAppID string `json:"loadBalancerID"`
 	}
 	Check struct {
-		BlockchainID string `json:"blockchainID,omitempty"`
-		Payload      string `json:"payload"`
-		ResultKey    string `json:"resultKey"`
-		Allowance    int    `json:"allowance"`
+		ChainID   string `json:"chainID,omitempty"`
+		Payload   string `json:"payload"`
+		ResultKey string `json:"resultKey"`
+		Allowance int    `json:"allowance"`
 	}
 
 	// Represents global blocked addresses across the entire Portal
@@ -85,10 +85,10 @@ type (
 		UpdatedAt time.Time `json:"updatedAt"`
 	}
 	UpdateCheck struct {
-		BlockchainID string `json:"blockchainID,omitempty"`
-		Payload      string `json:"payload"`
-		ResultKey    string `json:"resultKey"`
-		Allowance    *int   `json:"allowance"` // must be able to set allowance to 0
+		ChainID   string `json:"chainID,omitempty"`
+		Payload   string `json:"payload"`
+		ResultKey string `json:"resultKey"`
+		Allowance *int   `json:"allowance"` // must be able to set allowance to 0
 	}
 )
 

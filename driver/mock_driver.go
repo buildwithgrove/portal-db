@@ -14,13 +14,13 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// AcceptUserAccess provides a mock function with given fields: ctx, email, userID, lbID
-func (_m *MockDriver) AcceptUserAccess(ctx context.Context, email string, userID string, lbID string) error {
-	ret := _m.Called(ctx, email, userID, lbID)
+// AcceptAccountUser provides a mock function with given fields: ctx, email, userID, portalAppID
+func (_m *MockDriver) AcceptAccountUser(ctx context.Context, email types.Email, userID types.UserID, portalAppID string) error {
+	ret := _m.Called(ctx, email, userID, portalAppID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, email, userID, lbID)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Email, types.UserID, string) error); ok {
+		r0 = rf(ctx, email, userID, portalAppID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -28,13 +28,69 @@ func (_m *MockDriver) AcceptUserAccess(ctx context.Context, email string, userID
 	return r0
 }
 
-// ActivateChain provides a mock function with given fields: ctx, id, active
-func (_m *MockDriver) ActivateChain(ctx context.Context, id string, active bool) error {
-	ret := _m.Called(ctx, id, active)
+// ActivateChain provides a mock function with given fields: ctx, chainID, active
+func (_m *MockDriver) ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error {
+	ret := _m.Called(ctx, chainID, active)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, bool) error); ok {
-		r0 = rf(ctx, id, active)
+	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, bool) error); ok {
+		r0 = rf(ctx, chainID, active)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteAccount provides a mock function with given fields: ctx, account
+func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account) error {
+	ret := _m.Called(ctx, account)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.Account) error); ok {
+		r0 = rf(ctx, account)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteAccountUser provides a mock function with given fields: ctx, email, portalAppID
+func (_m *MockDriver) DeleteAccountUser(ctx context.Context, email types.Email, portalAppID types.PortalAppID) error {
+	ret := _m.Called(ctx, email, portalAppID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.Email, types.PortalAppID) error); ok {
+		r0 = rf(ctx, email, portalAppID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteGigastakeRedirect provides a mock function with given fields: ctx, chainID, domain
+func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error {
+	ret := _m.Called(ctx, chainID, domain)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, string) error); ok {
+		r0 = rf(ctx, chainID, domain)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeletePortalApp provides a mock function with given fields: ctx, portalAppID
+func (_m *MockDriver) DeletePortalApp(ctx context.Context, portalAppID types.PortalAppID) error {
+	ret := _m.Called(ctx, portalAppID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.PortalAppID) error); ok {
+		r0 = rf(ctx, portalAppID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -58,16 +114,16 @@ func (_m *MockDriver) NotificationChannel() <-chan *types.Notification {
 	return r0
 }
 
-// ReadApplications provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadApplications(ctx context.Context) ([]*types.Application, error) {
+// ReadAccounts provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadAccounts(ctx context.Context) (map[types.AccountID]*types.Account, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []*types.Application
-	if rf, ok := ret.Get(0).(func(context.Context) []*types.Application); ok {
+	var r0 map[types.AccountID]*types.Account
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.AccountID]*types.Account); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.Application)
+			r0 = ret.Get(0).(map[types.AccountID]*types.Account)
 		}
 	}
 
@@ -81,16 +137,16 @@ func (_m *MockDriver) ReadApplications(ctx context.Context) ([]*types.Applicatio
 	return r0, r1
 }
 
-// ReadBlockchains provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadBlockchains(ctx context.Context) ([]*types.Blockchain, error) {
+// ReadChains provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadChains(ctx context.Context) (map[types.ChainID]*types.Chain, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []*types.Blockchain
-	if rf, ok := ret.Get(0).(func(context.Context) []*types.Blockchain); ok {
+	var r0 map[types.ChainID]*types.Chain
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.ChainID]*types.Chain); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.Blockchain)
+			r0 = ret.Get(0).(map[types.ChainID]*types.Chain)
 		}
 	}
 
@@ -104,16 +160,16 @@ func (_m *MockDriver) ReadBlockchains(ctx context.Context) ([]*types.Blockchain,
 	return r0, r1
 }
 
-// ReadLoadBalancers provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadLoadBalancers(ctx context.Context) ([]*types.LoadBalancer, error) {
+// ReadPlans provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadPlans(ctx context.Context) (map[types.PayPlanType]*types.Plan, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []*types.LoadBalancer
-	if rf, ok := ret.Get(0).(func(context.Context) []*types.LoadBalancer); ok {
+	var r0 map[types.PayPlanType]*types.Plan
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.PayPlanType]*types.Plan); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.LoadBalancer)
+			r0 = ret.Get(0).(map[types.PayPlanType]*types.Plan)
 		}
 	}
 
@@ -127,16 +183,16 @@ func (_m *MockDriver) ReadLoadBalancers(ctx context.Context) ([]*types.LoadBalan
 	return r0, r1
 }
 
-// ReadPayPlans provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadPayPlans(ctx context.Context) ([]*types.PayPlan, error) {
+// ReadPortalApps provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadPortalApps(ctx context.Context) (map[types.PortalAppID]*types.PortalApp, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []*types.PayPlan
-	if rf, ok := ret.Get(0).(func(context.Context) []*types.PayPlan); ok {
+	var r0 map[types.PortalAppID]*types.PortalApp
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.PortalAppID]*types.PortalApp); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.PayPlan)
+			r0 = ret.Get(0).(map[types.PortalAppID]*types.PortalApp)
 		}
 	}
 
@@ -173,13 +229,13 @@ func (_m *MockDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID
 	return r0, r1
 }
 
-// RemoveApplication provides a mock function with given fields: ctx, id
-func (_m *MockDriver) RemoveApplication(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// UpdateAccountUserRole provides a mock function with given fields: ctx, email, portalAppID, roleName
+func (_m *MockDriver) UpdateAccountUserRole(ctx context.Context, email types.Email, portalAppID types.PortalAppID, roleName types.RoleName) error {
+	ret := _m.Called(ctx, email, portalAppID, roleName)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Email, types.PortalAppID, types.RoleName) error); ok {
+		r0 = rf(ctx, email, portalAppID, roleName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -187,13 +243,13 @@ func (_m *MockDriver) RemoveApplication(ctx context.Context, id string) error {
 	return r0
 }
 
-// RemoveLoadBalancer provides a mock function with given fields: ctx, id
-func (_m *MockDriver) RemoveLoadBalancer(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// UpdateChain provides a mock function with given fields: ctx, chainID, update
+func (_m *MockDriver) UpdateChain(ctx context.Context, chainID types.ChainID, update *types.UpdateChain) error {
+	ret := _m.Called(ctx, chainID, update)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, *types.UpdateChain) error); ok {
+		r0 = rf(ctx, chainID, update)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -201,13 +257,13 @@ func (_m *MockDriver) RemoveLoadBalancer(ctx context.Context, id string) error {
 	return r0
 }
 
-// RemoveRedirect provides a mock function with given fields: ctx, blockchainID, domain
-func (_m *MockDriver) RemoveRedirect(ctx context.Context, blockchainID string, domain string) error {
-	ret := _m.Called(ctx, blockchainID, domain)
+// UpdatePortalApp provides a mock function with given fields: ctx, portalAppID, options
+func (_m *MockDriver) UpdatePortalApp(ctx context.Context, portalAppID types.PortalAppID, options *types.UpdatePortalApp) error {
+	ret := _m.Called(ctx, portalAppID, options)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, blockchainID, domain)
+	if rf, ok := ret.Get(0).(func(context.Context, types.PortalAppID, *types.UpdatePortalApp) error); ok {
+		r0 = rf(ctx, portalAppID, options)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -215,22 +271,8 @@ func (_m *MockDriver) RemoveRedirect(ctx context.Context, blockchainID string, d
 	return r0
 }
 
-// RemoveUserAccess provides a mock function with given fields: ctx, email, lbID
-func (_m *MockDriver) RemoveUserAccess(ctx context.Context, email string, lbID string) error {
-	ret := _m.Called(ctx, email, lbID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, email, lbID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpdateAppFirstDateSurpassed provides a mock function with given fields: ctx, update
-func (_m *MockDriver) UpdateAppFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error {
+// UpdatePortalAppsFirstDateSurpassed provides a mock function with given fields: ctx, update
+func (_m *MockDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error {
 	ret := _m.Called(ctx, update)
 
 	var r0 error
@@ -243,13 +285,13 @@ func (_m *MockDriver) UpdateAppFirstDateSurpassed(ctx context.Context, update *t
 	return r0
 }
 
-// UpdateApplication provides a mock function with given fields: ctx, id, update
-func (_m *MockDriver) UpdateApplication(ctx context.Context, id string, update *types.UpdateApplication) error {
-	ret := _m.Called(ctx, id, update)
+// WriteAccount provides a mock function with given fields: ctx, account
+func (_m *MockDriver) WriteAccount(ctx context.Context, account types.Account) error {
+	ret := _m.Called(ctx, account)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *types.UpdateApplication) error); ok {
-		r0 = rf(ctx, id, update)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Account) error); ok {
+		r0 = rf(ctx, account)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -257,13 +299,13 @@ func (_m *MockDriver) UpdateApplication(ctx context.Context, id string, update *
 	return r0
 }
 
-// UpdateChain provides a mock function with given fields: ctx, blockchainID, update
-func (_m *MockDriver) UpdateChain(ctx context.Context, blockchainID string, update *types.UpdateBlockchain) error {
-	ret := _m.Called(ctx, blockchainID, update)
+// WriteAccountUser provides a mock function with given fields: ctx, portalAppID, accountUser
+func (_m *MockDriver) WriteAccountUser(ctx context.Context, portalAppID types.PortalAppID, accountUser types.AccountUserAccess) error {
+	ret := _m.Called(ctx, portalAppID, accountUser)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *types.UpdateBlockchain) error); ok {
-		r0 = rf(ctx, blockchainID, update)
+	if rf, ok := ret.Get(0).(func(context.Context, types.PortalAppID, types.AccountUserAccess) error); ok {
+		r0 = rf(ctx, portalAppID, accountUser)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -271,72 +313,21 @@ func (_m *MockDriver) UpdateChain(ctx context.Context, blockchainID string, upda
 	return r0
 }
 
-// UpdateLoadBalancer provides a mock function with given fields: ctx, id, options
-func (_m *MockDriver) UpdateLoadBalancer(ctx context.Context, id string, options *types.UpdateLoadBalancer) error {
-	ret := _m.Called(ctx, id, options)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *types.UpdateLoadBalancer) error); ok {
-		r0 = rf(ctx, id, options)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpdateUserAccessRole provides a mock function with given fields: ctx, email, lbID, roleName
-func (_m *MockDriver) UpdateUserAccessRole(ctx context.Context, email string, lbID string, roleName types.RoleName) error {
-	ret := _m.Called(ctx, email, lbID, roleName)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, types.RoleName) error); ok {
-		r0 = rf(ctx, email, lbID, roleName)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// WriteApplication provides a mock function with given fields: ctx, app
-func (_m *MockDriver) WriteApplication(ctx context.Context, app *types.Application) (*types.Application, error) {
-	ret := _m.Called(ctx, app)
-
-	var r0 *types.Application
-	if rf, ok := ret.Get(0).(func(context.Context, *types.Application) *types.Application); ok {
-		r0 = rf(ctx, app)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.Application)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *types.Application) error); ok {
-		r1 = rf(ctx, app)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// WriteBlockchain provides a mock function with given fields: ctx, blockchain
-func (_m *MockDriver) WriteBlockchain(ctx context.Context, blockchain *types.Blockchain) (*types.Blockchain, error) {
+// WriteChain provides a mock function with given fields: ctx, blockchain
+func (_m *MockDriver) WriteChain(ctx context.Context, blockchain *types.Chain) (*types.Chain, error) {
 	ret := _m.Called(ctx, blockchain)
 
-	var r0 *types.Blockchain
-	if rf, ok := ret.Get(0).(func(context.Context, *types.Blockchain) *types.Blockchain); ok {
+	var r0 *types.Chain
+	if rf, ok := ret.Get(0).(func(context.Context, *types.Chain) *types.Chain); ok {
 		r0 = rf(ctx, blockchain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.Blockchain)
+			r0 = ret.Get(0).(*types.Chain)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *types.Blockchain) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *types.Chain) error); ok {
 		r1 = rf(ctx, blockchain)
 	} else {
 		r1 = ret.Error(1)
@@ -345,22 +336,22 @@ func (_m *MockDriver) WriteBlockchain(ctx context.Context, blockchain *types.Blo
 	return r0, r1
 }
 
-// WriteLoadBalancer provides a mock function with given fields: ctx, loadBalancer
-func (_m *MockDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *types.LoadBalancer) (*types.LoadBalancer, error) {
-	ret := _m.Called(ctx, loadBalancer)
+// WriteGigastakeRedirect provides a mock function with given fields: ctx, redirect
+func (_m *MockDriver) WriteGigastakeRedirect(ctx context.Context, redirect *types.GigastakeRedirect) (*types.GigastakeRedirect, error) {
+	ret := _m.Called(ctx, redirect)
 
-	var r0 *types.LoadBalancer
-	if rf, ok := ret.Get(0).(func(context.Context, *types.LoadBalancer) *types.LoadBalancer); ok {
-		r0 = rf(ctx, loadBalancer)
+	var r0 *types.GigastakeRedirect
+	if rf, ok := ret.Get(0).(func(context.Context, *types.GigastakeRedirect) *types.GigastakeRedirect); ok {
+		r0 = rf(ctx, redirect)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.LoadBalancer)
+			r0 = ret.Get(0).(*types.GigastakeRedirect)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *types.LoadBalancer) error); ok {
-		r1 = rf(ctx, loadBalancer)
+	if rf, ok := ret.Get(1).(func(context.Context, *types.GigastakeRedirect) error); ok {
+		r1 = rf(ctx, redirect)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -368,36 +359,22 @@ func (_m *MockDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *types
 	return r0, r1
 }
 
-// WriteLoadBalancerUser provides a mock function with given fields: ctx, lbID, userAccess
-func (_m *MockDriver) WriteLoadBalancerUser(ctx context.Context, lbID string, userAccess types.UserAccess) error {
-	ret := _m.Called(ctx, lbID, userAccess)
+// WritePortalApp provides a mock function with given fields: ctx, portalApp
+func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp *types.PortalApp) (*types.PortalApp, error) {
+	ret := _m.Called(ctx, portalApp)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, types.UserAccess) error); ok {
-		r0 = rf(ctx, lbID, userAccess)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// WriteRedirect provides a mock function with given fields: ctx, redirect
-func (_m *MockDriver) WriteRedirect(ctx context.Context, redirect *types.Redirect) (*types.Redirect, error) {
-	ret := _m.Called(ctx, redirect)
-
-	var r0 *types.Redirect
-	if rf, ok := ret.Get(0).(func(context.Context, *types.Redirect) *types.Redirect); ok {
-		r0 = rf(ctx, redirect)
+	var r0 *types.PortalApp
+	if rf, ok := ret.Get(0).(func(context.Context, *types.PortalApp) *types.PortalApp); ok {
+		r0 = rf(ctx, portalApp)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.Redirect)
+			r0 = ret.Get(0).(*types.PortalApp)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *types.Redirect) error); ok {
-		r1 = rf(ctx, redirect)
+	if rf, ok := ret.Get(1).(func(context.Context, *types.PortalApp) error); ok {
+		r1 = rf(ctx, portalApp)
 	} else {
 		r1 = ret.Error(1)
 	}
