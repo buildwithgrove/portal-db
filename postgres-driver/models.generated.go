@@ -403,24 +403,24 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 }
 
 type Account struct {
-	ID                      int32         `json:"id"`
-	PlanType                string        `json:"planType"`
-	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
-	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
-	PartnerApplicationLimit sql.NullInt32 `json:"partnerApplicationLimit"`
-	CreatedAt               time.Time     `json:"createdAt"`
-	UpdatedAt               time.Time     `json:"updatedAt"`
-	Deleted                 bool          `json:"deleted"`
-	DeletedAt               sql.NullTime  `json:"deletedAt"`
+	ID                      types.AccountID `json:"id"`
+	PlanType                string          `json:"planType"`
+	PartnerChainIDs         []string        `json:"partnerChainIds"`
+	PartnerThroughputLimit  sql.NullInt32   `json:"partnerThroughputLimit"`
+	PartnerApplicationLimit sql.NullInt32   `json:"partnerApplicationLimit"`
+	CreatedAt               time.Time       `json:"createdAt"`
+	UpdatedAt               time.Time       `json:"updatedAt"`
+	Deleted                 bool            `json:"deleted"`
+	DeletedAt               sql.NullTime    `json:"deletedAt"`
 }
 
 type AccountUserAccess struct {
-	ID        int32     `json:"id"`
-	AccountID int32     `json:"accountID"`
-	UserID    string    `json:"userID"`
-	RoleName  string    `json:"roleName"`
-	Accepted  bool      `json:"accepted"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID        int32           `json:"id"`
+	AccountID types.AccountID `json:"accountID"`
+	UserID    types.UserID    `json:"userID"`
+	RoleName  string          `json:"roleName"`
+	Accepted  bool            `json:"accepted"`
+	UpdatedAt time.Time       `json:"updatedAt"`
 }
 
 type Chain struct {
@@ -482,7 +482,7 @@ type GlobalBlockedContract struct {
 
 type PayPlan struct {
 	PlanType          string        `json:"planType"`
-	BlockchainIds     []string      `json:"blockchainIds"`
+	ChainIDs          []string      `json:"chainIds"`
 	MonthlyRelayLimit int32         `json:"monthlyRelayLimit"`
 	ThroughputLimit   int32         `json:"throughputLimit"`
 	ApplicationLimit  int32         `json:"applicationLimit"`
@@ -560,7 +560,7 @@ type StickinessOption struct {
 }
 
 type User struct {
-	ID           string              `json:"id"`
+	ID           types.UserID        `json:"id"`
 	Email        string              `json:"email"`
 	AuthProvider types.AuthProviders `json:"authProvider"`
 	SignInType   NullAuthSignIn      `json:"signInType"`

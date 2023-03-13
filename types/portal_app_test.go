@@ -21,7 +21,7 @@ var testPortalApplication = PortalApp{
 			MonthlyRelayLimit: 2_500_000,
 			ThroughputLimit:   2_000,
 			AppLimit:          2,
-			BlockchainIDs:     map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+			ChainIDs:          map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 			LegacyDailyLimit:  250_000,
 		},
 		Users: map[UserID]AccountUserAccess{
@@ -36,7 +36,7 @@ var testPortalApplication = PortalApp{
 				Accepted: true,
 			},
 		},
-		PartnerBlockchainIDs:   map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		PartnerChainIDs:        map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 		PartnerThroughputLimit: 2_000,
 		PartnerAppLimit:        2,
 	},

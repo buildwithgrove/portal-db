@@ -1,27 +1,287 @@
+-- Insert pay_plans
 INSERT INTO pay_plans (
         plan_type,
+        chain_ids,
         monthly_relay_limit,
         throughput_limit,
         application_limit,
         created_at,
-        updated_at
+        updated_at,
+        daily_limit
     )
 VALUES (
-        'test_plan',
-        4200000,
-        2000,
-        3,
+        'basic_plan',
+        ARRAY ['0001', '0053'],
+        5000000,
+        5000,
+        2,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        1000
+    ),
+    (
+        'pro_plan',
+        ARRAY ['0001', '0053','0021', '0064'],
+        10000000,
+        10000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        5000
+    ),
+    (
+        'enterprise_plan',
+        ARRAY ['0001', '0053','0021', '0064', '0034'],
+        20000000,
+        20000,
+        10,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        10000
+    ),
+    (
+        'developer_plan',
+        ARRAY ['0001', '0053','0021', '0034'],
+        500000,
+        500,
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        100
+    ),
+    (
+        'startup_plan',
+        ARRAY ['0001', '0053', '0064', '0034'],
+        1000000,
+        1000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        500
     );
+-- Insert accounts
 INSERT INTO accounts (
         plan_type,
+        partner_chain_ids,
+        partner_throughput_limit,
+        partner_application_limit,
         created_at,
         updated_at
     )
 VALUES (
-        'test_plan',
+        'basic_plan',
+        ARRAY ['0001', '0053'],
+        2000,
+        1,
         '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'pro_plan',
+        ARRAY ['0001', '0053','0021', '0064'],
+        5000,
+        3,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'startup_plan',
+        ARRAY ['0001', '0053', '0064', '0034'],
+        1000,
+        2,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+-- Insert users
+INSERT INTO users (
+        id,
+        email,
+        auth_provider,
+        sign_in_type,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'test_user_a06ab0cf00a714',
+        'user1@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_817516a5c3661b',
+        'user2@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_1e58b747ca4ea0',
+        'user3@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_208ff0b4a1b9be',
+        'user4@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_12de743291e750',
+        'user5@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_bf1ec64b1db1db',
+        'user6@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_4e4dc3b9440ffb',
+        'user7@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_4da2e080d893a2',
+        'user8@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_2dd0d5ad5cdaa9',
+        'user9@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_e071178370b597',
+        'user10@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+-- Insert user_roles
+INSERT INTO user_roles (
+        role_name,
+        permissions,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'OWNER',
+        ARRAY ['read:endpoint'::permissions, 'write:endpoint'::permissions, 'delete:endpoint'::permissions, 'transfer:endpoint'],
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'ADMIN',
+        ARRAY ['read:endpoint'::permissions, 'write:endpoint'],
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'MEMBER',
+        ARRAY ['read:endpoint'::permissions],
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+-- Insert account_user_access
+INSERT INTO account_user_access (
+        account_id,
+        user_id,
+        role_name,
+        accepted,
+        updated_at
+    )
+VALUES (
+        1,
+        'test_user_a06ab0cf00a714',
+        'OWNER',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        1,
+        'test_user_817516a5c3661b',
+        'ADMIN',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        2,
+        'test_user_1e58b747ca4ea0',
+        'OWNER',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        2,
+        'test_user_208ff0b4a1b9be',
+        'MEMBER',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        3,
+        'test_user_12de743291e750',
+        'OWNER',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        3,
+        'test_user_bf1ec64b1db1db',
+        'ADMIN',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        3,
+        'test_user_4e4dc3b9440ffb',
+        'MEMBER',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        1,
+        'test_user_4da2e080d893a2',
+        'ADMIN',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        2,
+        'test_user_2dd0d5ad5cdaa9',
+        'MEMBER',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        3,
+        'test_user_e071178370b597',
+        'MEMBER',
+        false,
         '2022-11-11 11:11:11.000000'
     );
 INSERT INTO portal_applications (
@@ -51,7 +311,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         1,
         'pokt_app_456',
         false,
@@ -64,7 +324,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_47fhs7j4hs7fj2',
+        'test_app_47fhs7j4hs7fj24',
         1,
         'pokt_app_789',
         false,
@@ -91,7 +351,7 @@ VALUES (
         '{ "chrome-extension://", "moz-extension://" }'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         30,
         600,
         true,
@@ -116,7 +376,7 @@ VALUES (
         '0.0.1'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         'test_8237c72345f12d1b1a8b64a1a7f66fa4',
         'test_8237c72345f12d1b1a8b64a1a7f66fa4',
         'test_2e83c836a29b423a47d8e18c779fd422',
@@ -125,7 +385,7 @@ VALUES (
         '0.0.1'
     ),
     (
-        'test_app_47fhs7j4hs7fj2',
+        'test_app_47fhs7j4hs7fj24',
         'test_b5e07928fc80083c13ad0201b81bae9b',
         'test_f608500e4fe3e09014fe2411b4a560b5',
         'test_8663e187c19f3c6e27317eab4ed6d7d5',
@@ -150,7 +410,7 @@ VALUES (
         ARRAY ['0001', '0053']
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         'test_9c9e3b193cfba5348f93bb2f3e3fb794',
         false,
         1500000,
@@ -158,7 +418,7 @@ VALUES (
         ARRAY ['0021', '0064']
     ),
     (
-        'test_app_47fhs7j4hs7fj2',
+        'test_app_47fhs7j4hs7fj24',
         'test_9f48b13e2bc5fd31ab367841f11495c1',
         false,
         4500000,
@@ -208,35 +468,35 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         'blockchains',
         '0021',
         NULL,
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         'contracts',
         '0x0987654321abcdef',
         '0064',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         'methods',
         'POST',
         '0064',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         'origins',
         'https://test.com',
         NULL,
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         'userAgents',
         'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
         NULL,
@@ -259,7 +519,7 @@ VALUES (
         ARRAY ['quarter'::notification_event,'threeQuarters'::notification_event,'full'::notification_event]
     ),
     (
-        'test_app_2308rj09r23r9r',
+        'test_app_2308rj09r23r9r2',
         true,
         'email',
         'email@pokt.network',

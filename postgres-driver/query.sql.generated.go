@@ -244,6 +244,103 @@ func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickine
 	return i, err
 }
 
+const selectAccounts = `-- name: SelectAccounts :many
+SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+    p.chain_ids,
+    p.monthly_relay_limit,
+    p.throughput_limit,
+    p.application_limit,
+    -- legacy field
+    p.daily_limit,
+    json_agg(
+        json_build_object(
+            'user_id',
+            u.id,
+            'email',
+            u.email,
+            'auth_provider',
+            u.auth_provider,
+            'accepted',
+            au.accepted,
+            'role_name',
+            au.role_name
+        )
+    ) AS users
+FROM accounts AS a
+    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN users AS u ON au.user_id = u.id
+    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
+    LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
+WHERE (
+        $1::BOOLEAN
+        OR a.deleted = false
+    )
+GROUP BY a.id,
+    p.plan_type,
+    p.chain_ids,
+    p.monthly_relay_limit,
+    p.throughput_limit,
+    p.application_limit,
+    p.daily_limit
+`
+
+type SelectAccountsRow struct {
+	ID                      types.AccountID `json:"id"`
+	PlanType                string          `json:"planType"`
+	PartnerChainIDs         []string        `json:"partnerChainIds"`
+	PartnerThroughputLimit  sql.NullInt32   `json:"partnerThroughputLimit"`
+	PartnerApplicationLimit sql.NullInt32   `json:"partnerApplicationLimit"`
+	CreatedAt               time.Time       `json:"createdAt"`
+	UpdatedAt               time.Time       `json:"updatedAt"`
+	Deleted                 bool            `json:"deleted"`
+	DeletedAt               sql.NullTime    `json:"deletedAt"`
+	ChainIDs                []string        `json:"chainIds"`
+	MonthlyRelayLimit       sql.NullInt32   `json:"monthlyRelayLimit"`
+	ThroughputLimit         sql.NullInt32   `json:"throughputLimit"`
+	ApplicationLimit        sql.NullInt32   `json:"applicationLimit"`
+	DailyLimit              sql.NullInt32   `json:"dailyLimit"`
+	Users                   json.RawMessage `json:"users"`
+}
+
+func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]SelectAccountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectAccounts, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectAccountsRow
+	for rows.Next() {
+		var i SelectAccountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlanType,
+			pq.Array(&i.PartnerChainIDs),
+			&i.PartnerThroughputLimit,
+			&i.PartnerApplicationLimit,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Deleted,
+			&i.DeletedAt,
+			pq.Array(&i.ChainIDs),
+			&i.MonthlyRelayLimit,
+			&i.ThroughputLimit,
+			&i.ApplicationLimit,
+			&i.DailyLimit,
+			&i.Users,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectPortalApplications = `-- name: SelectPortalApplications :many
 SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.application_ids, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
     paa.address,

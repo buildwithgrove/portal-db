@@ -3,7 +3,6 @@ package types
 import (
 	"errors"
 	"fmt"
-	"time"
 )
 
 var (
@@ -79,8 +78,6 @@ type (
 		ID           UserID        `json:"id"`
 		Email        Email         `json:"email"`
 		AuthProvider AuthProviders `json:"authProvider"`
-		CreatedAt    time.Time     `json:"createdAt"`
-		UpdatedAt    time.Time     `json:"updatedAt"`
 	}
 )
 

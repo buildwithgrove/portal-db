@@ -28,7 +28,7 @@ CREATE TYPE whitelist_type AS ENUM (
 -- Plans Tables
 CREATE TABLE pay_plans (
     plan_type VARCHAR(25) PRIMARY KEY,
-    blockchain_ids VARCHAR(4) ARRAY,
+    chain_ids VARCHAR(4) ARRAY,
     monthly_relay_limit INT NOT NULL,
     throughput_limit INT NOT NULL,
     application_limit INT NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE user_roles (
 CREATE TABLE accounts (
     id SERIAL PRIMARY KEY,
     plan_type VARCHAR(25) NOT NULL,
-    partner_blockchain_ids VARCHAR(4) ARRAY,
+    partner_chain_ids VARCHAR(4) ARRAY,
     partner_throughput_limit INT,
     partner_application_limit INT,
     created_at TIMESTAMPTZ NOT NULL,

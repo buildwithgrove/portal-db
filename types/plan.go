@@ -28,15 +28,14 @@ var (
 /* Pay Plan Type and Methods */
 type (
 	Plan struct {
-		ID            string               `json:"id"`
-		Type          PayPlanType          `json:"planType"`
-		BlockchainIDs map[ChainID]struct{} `json:"blockchainIDs"`
+		Type     PayPlanType          `json:"planType"`
+		ChainIDs map[ChainID]struct{} `json:"blockchainIDs"`
 		// MonthlyRelayLimit is the number of relays-per-month for a pay plan
-		MonthlyRelayLimit int `json:"monthlyRelayLimit"`
+		MonthlyRelayLimit int32 `json:"monthlyRelayLimit"`
 		// ThroughputLimit is the number of relays-per-second for a pay plan
-		ThroughputLimit int `json:"throughputLimit"`
+		ThroughputLimit int32 `json:"throughputLimit"`
 		// AppLimit is the number of apps permitted for a pay plan
-		AppLimit int `json:"appLimit"`
+		AppLimit int32 `json:"appLimit"`
 
 		// TODO - remove when v2 migration finished
 		// LegacyDailyLimit is the daily limit (required for legacy apps to function)

@@ -18,233 +18,426 @@ This means all E2E tests that use `pocketfoundation/test-portal-postgres` only n
 var (
 	MockTimestamp = time.Date(2022, time.November, 11, 11, 11, 11, 0, time.UTC)
 
-	/* Read Data */
+	/* ----- Read Data ----- */
 
-	TestPortalAppOne = types.PortalApp{
-		ID:        "test_app_3487u329rfn23f9",
-		AccountID: 1,
-		Name:      "pokt_app_123",
-		Gigastake: true,
-		Staked:    false,
-		AAT: types.AAT{
-			Address:         "test_34715cae753e67c75fbb340442e7de8e",
-			PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
-			ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
-			PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
-			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
-			Version:         "0.0.1",
+	TestPayPlans = map[types.PayPlanType]types.Plan{
+		"basic_plan": {
+			Type:              "basic_plan",
+			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}},
+			MonthlyRelayLimit: 5000000,
+			ThroughputLimit:   5000,
+			AppLimit:          2,
+			LegacyDailyLimit:  1000,
 		},
-		Settings: types.Settings{
-			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
-			SecretKeyRequired: true,
+		"pro_plan": {
+			Type:              "pro_plan",
+			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
+			MonthlyRelayLimit: 10000000,
+			ThroughputLimit:   10000,
+			AppLimit:          5,
+			LegacyDailyLimit:  5000,
 		},
-		Whitelists: types.Whitelists{
-			Origins:     map[types.Origin]struct{}{"https://example.com": {}},
-			UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)": {}},
-			Blockchains: map[types.ChainID]struct{}{"0053": {}},
-			Contracts: map[types.ChainID]map[types.Contract]struct{}{
-				"0001": {"0x1234567890abcdef": {}},
+		"enterprise_plan": {
+			Type:              "enterprise_plan",
+			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}, "0034": {}},
+			MonthlyRelayLimit: 20000000,
+			ThroughputLimit:   20000,
+			AppLimit:          10,
+			LegacyDailyLimit:  10000,
+		},
+		"developer_plan": {
+			Type:              "developer_plan",
+			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0034": {}},
+			MonthlyRelayLimit: 500000,
+			ThroughputLimit:   500,
+			AppLimit:          1,
+			LegacyDailyLimit:  100,
+		},
+		"startup_plan": {
+			Type:              "startup_plan",
+			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
+			MonthlyRelayLimit: 1000000,
+			ThroughputLimit:   1000,
+			AppLimit:          5,
+			LegacyDailyLimit:  500,
+		},
+	}
+
+	TestAccounts = map[types.AccountID]*types.Account{
+		1: {
+			ID:   1,
+			Plan: TestPayPlans["basic_plan"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				"test_user_a06ab0cf00a714": TestUserAccess["test_user_a06ab0cf00a714"],
+				"test_user_817516a5c3661b": TestUserAccess["test_user_817516a5c3661b"],
+				"test_user_4da2e080d893a2": TestUserAccess["test_user_4da2e080d893a2"],
 			},
-			Methods: map[types.ChainID]map[types.Method]struct{}{
-				"0001": {"GET": {}},
-			},
+			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
+			PartnerThroughputLimit: 2000,
+			PartnerAppLimit:        1,
+			CreatedAt:              MockTimestamp,
+			UpdatedAt:              MockTimestamp,
 		},
-		Notifications: map[types.NotificationType]types.AppNotification{
-			types.NotificationTypeEmail: {
-				Active:      true,
-				Destination: "test@test.com",
-				Trigger:     "trigger123",
-				Events: map[types.NotificationEvent]bool{
-					types.NotificationEventFull:          true,
-					types.NotificationEventQuarter:       true,
-					types.NotificationEventThreeQuarters: true,
+		2: {
+			ID:   2,
+			Plan: TestPayPlans["pro_plan"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				"test_user_1e58b747ca4ea0": TestUserAccess["test_user_1e58b747ca4ea0"],
+				"test_user_208ff0b4a1b9be": TestUserAccess["test_user_208ff0b4a1b9be"],
+				"test_user_2dd0d5ad5cdaa9": TestUserAccess["test_user_2dd0d5ad5cdaa9"],
+			},
+			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
+			PartnerThroughputLimit: 5000,
+			PartnerAppLimit:        3,
+			CreatedAt:              MockTimestamp,
+			UpdatedAt:              MockTimestamp,
+		},
+		3: {
+			ID:   3,
+			Plan: TestPayPlans["startup_plan"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				"test_user_12de743291e750": TestUserAccess["test_user_12de743291e750"],
+				"test_user_bf1ec64b1db1db": TestUserAccess["test_user_bf1ec64b1db1db"],
+				"test_user_4e4dc3b9440ffb": TestUserAccess["test_user_4e4dc3b9440ffb"],
+				"test_user_e071178370b597": TestUserAccess["test_user_e071178370b597"],
+			},
+			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
+			PartnerThroughputLimit: 1000,
+			PartnerAppLimit:        2,
+			CreatedAt:              MockTimestamp,
+			UpdatedAt:              MockTimestamp,
+		},
+	}
+
+	TestUserAccess = map[types.UserID]types.AccountUserAccess{
+		"test_user_a06ab0cf00a714": {
+			User:     TestUsers["test_user_a06ab0cf00a714"],
+			RoleName: types.RoleOwner,
+			Accepted: true,
+		},
+		"test_user_817516a5c3661b": {
+			User:     TestUsers["test_user_817516a5c3661b"],
+			RoleName: types.RoleAdmin,
+			Accepted: true,
+		},
+		"test_user_1e58b747ca4ea0": {
+			User:     TestUsers["test_user_1e58b747ca4ea0"],
+			RoleName: types.RoleOwner,
+			Accepted: true,
+		},
+		"test_user_208ff0b4a1b9be": {
+			User:     TestUsers["test_user_208ff0b4a1b9be"],
+			RoleName: types.RoleMember,
+			Accepted: true,
+		},
+		"test_user_12de743291e750": {
+			User:     TestUsers["test_user_12de743291e750"],
+			RoleName: types.RoleOwner,
+			Accepted: true,
+		},
+		"test_user_bf1ec64b1db1db": {
+			User:     TestUsers["test_user_bf1ec64b1db1db"],
+			RoleName: types.RoleAdmin,
+			Accepted: true,
+		},
+		"test_user_4e4dc3b9440ffb": {
+			User:     TestUsers["test_user_4e4dc3b9440ffb"],
+			RoleName: types.RoleMember,
+			Accepted: true,
+		},
+		"test_user_4da2e080d893a2": {
+			User:     TestUsers["test_user_4da2e080d893a2"],
+			RoleName: types.RoleAdmin,
+			Accepted: false,
+		},
+		"test_user_2dd0d5ad5cdaa9": {
+			User:     TestUsers["test_user_2dd0d5ad5cdaa9"],
+			RoleName: types.RoleMember,
+			Accepted: false,
+		},
+		"test_user_e071178370b597": {
+			User:     TestUsers["test_user_e071178370b597"],
+			RoleName: types.RoleMember,
+			Accepted: false,
+		},
+	}
+
+	TestUsers = map[types.UserID]types.User{
+		"test_user_a06ab0cf00a714": {
+			ID:           "test_user_a06ab0cf00a714",
+			Email:        "user1@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_817516a5c3661b": {
+			ID:           "test_user_817516a5c3661b",
+			Email:        "user2@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_1e58b747ca4ea0": {
+			ID:           "test_user_1e58b747ca4ea0",
+			Email:        "user3@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_208ff0b4a1b9be": {
+			ID:           "test_user_208ff0b4a1b9be",
+			Email:        "user4@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_12de743291e750": {
+			ID:           "test_user_12de743291e750",
+			Email:        "user5@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_bf1ec64b1db1db": {
+			ID:           "test_user_bf1ec64b1db1db",
+			Email:        "user6@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_4e4dc3b9440ffb": {
+			ID:           "test_user_4e4dc3b9440ffb",
+			Email:        "user7@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_4da2e080d893a2": {
+			ID:           "test_user_4da2e080d893a2",
+			Email:        "user8@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_2dd0d5ad5cdaa9": {
+			ID:           "test_user_2dd0d5ad5cdaa9",
+			Email:        "user9@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+		"test_user_e071178370b597": {
+			ID:           "test_user_e071178370b597",
+			Email:        "user10@example.com",
+			AuthProvider: types.AuthProviderAuth0,
+		},
+	}
+
+	TestPortalApps = map[types.PortalAppID]*types.PortalApp{
+		"test_app_3487u329rfn23f9": {
+			ID:        "test_app_3487u329rfn23f9",
+			AccountID: 1,
+			Name:      "pokt_app_123",
+			Gigastake: true,
+			Staked:    false,
+			AAT: types.AAT{
+				Address:         "test_34715cae753e67c75fbb340442e7de8e",
+				PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
+				ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
+				PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
+				Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+				Version:         "0.0.1",
+			},
+			Settings: types.Settings{
+				Environment:       types.EnvironmentProduction,
+				SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
+				SecretKeyRequired: true,
+			},
+			Whitelists: types.Whitelists{
+				Origins:     map[types.Origin]struct{}{"https://example.com": {}},
+				UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)": {}},
+				Blockchains: map[types.ChainID]struct{}{"0053": {}},
+				Contracts: map[types.ChainID]map[types.Contract]struct{}{
+					"0001": {"0x1234567890abcdef": {}},
+				},
+				Methods: map[types.ChainID]map[types.Method]struct{}{
+					"0001": {"GET": {}},
+				},
+			},
+			Notifications: map[types.NotificationType]types.AppNotification{
+				types.NotificationTypeEmail: {
+					Active:      true,
+					Destination: "test@test.com",
+					Trigger:     "trigger123",
+					Events: map[types.NotificationEvent]bool{
+						types.NotificationEventFull:          true,
+						types.NotificationEventQuarter:       true,
+						types.NotificationEventThreeQuarters: true,
+					},
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+			// TODO remove legacy fields when migration to V2 schema complete
+			LegacyFields: types.LegacyFields{
+				ApplicationIDs:     []string{"test_app_47hfnths73j2se7"},
+				CustomLimit:        0,
+				RequestTimeout:     5_000,
+				GigastakeRedirect:  true,
+				FirstDateSurpassed: MockTimestamp,
+				StickyOptions: types.StickyOptions{
+					Duration:      "60",
+					StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
+					StickyMax:     300,
+					Stickiness:    true,
 				},
 			},
 		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
-		// TODO remove legacy fields when migration to V2 schema complete
-		LegacyFields: types.LegacyFields{
-			ApplicationIDs:     []string{"test_app_47hfnths73j2se7"},
-			CustomLimit:        0,
-			RequestTimeout:     5_000,
-			GigastakeRedirect:  true,
-			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: types.StickyOptions{
-				Duration:      "60",
-				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-				StickyMax:     300,
-				Stickiness:    true,
+		"test_app_2308rj09r23r9r2": {
+			ID:        "test_app_2308rj09r23r9r2",
+			AccountID: 1,
+			Name:      "pokt_app_456",
+			Gigastake: false,
+			Staked:    true,
+			AAT: types.AAT{
+				Address:         "test_8237c72345f12d1b1a8b64a1a7f66fa4",
+				PublicKey:       "test_8237c72345f12d1b1a8b64a1a7f66fa4",
+				ClientPublicKey: "test_04c71d90a92f40416b6f1d7d8af17e02",
+				PrivateKey:      "test_2e83c836a29b423a47d8e18c779fd422",
+				Signature:       "test_f48d33b30ddaf60a1e5bb50d2ba8da5a",
+				Version:         "0.0.1",
 			},
-		},
-	}
-
-	TestPortalAppTwo = types.PortalApp{
-		ID:        "test_app_2308rj09r23r9r",
-		AccountID: 1,
-		Name:      "pokt_app_456",
-		Gigastake: false,
-		Staked:    true,
-		AAT: types.AAT{
-			Address:         "test_8237c72345f12d1b1a8b64a1a7f66fa4",
-			PublicKey:       "test_8237c72345f12d1b1a8b64a1a7f66fa4",
-			ClientPublicKey: "test_04c71d90a92f40416b6f1d7d8af17e02",
-			PrivateKey:      "test_2e83c836a29b423a47d8e18c779fd422",
-			Signature:       "test_f48d33b30ddaf60a1e5bb50d2ba8da5a",
-			Version:         "0.0.1",
-		},
-		Settings: types.Settings{
-			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_9c9e3b193cfba5348f93bb2f3e3fb794",
-			SecretKeyRequired: false,
-		},
-		Whitelists: types.Whitelists{
-			Origins:     map[types.Origin]struct{}{"https://test.com": {}},
-			UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36": {}},
-			Blockchains: map[types.ChainID]struct{}{"0021": {}},
-			Contracts: map[types.ChainID]map[types.Contract]struct{}{
-				"0064": {"0x0987654321abcdef": {}},
+			Settings: types.Settings{
+				Environment:       types.EnvironmentProduction,
+				SecretKey:         "test_9c9e3b193cfba5348f93bb2f3e3fb794",
+				SecretKeyRequired: false,
 			},
-			Methods: map[types.ChainID]map[types.Method]struct{}{
-				"0064": {"POST": {}},
+			Whitelists: types.Whitelists{
+				Origins:     map[types.Origin]struct{}{"https://test.com": {}},
+				UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36": {}},
+				Blockchains: map[types.ChainID]struct{}{"0021": {}},
+				Contracts: map[types.ChainID]map[types.Contract]struct{}{
+					"0064": {"0x0987654321abcdef": {}},
+				},
+				Methods: map[types.ChainID]map[types.Method]struct{}{
+					"0064": {"POST": {}},
+				},
 			},
-		},
-		Notifications: map[types.NotificationType]types.AppNotification{
-			types.NotificationTypeEmail: {
-				Active:      true,
-				Destination: "email@pokt.network",
-				Trigger:     "trigger456",
-				Events: map[types.NotificationEvent]bool{
-					types.NotificationEventHalf: true,
-					types.NotificationEventFull: true,
+			Notifications: map[types.NotificationType]types.AppNotification{
+				types.NotificationTypeEmail: {
+					Active:      true,
+					Destination: "email@pokt.network",
+					Trigger:     "trigger456",
+					Events: map[types.NotificationEvent]bool{
+						types.NotificationEventHalf: true,
+						types.NotificationEventFull: true,
+					},
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+			// TODO remove legacy fields when migration to V2 schema complete
+			LegacyFields: types.LegacyFields{
+				ApplicationIDs:     []string{"test_app_43jr9304urj30fj"},
+				CustomLimit:        0,
+				RequestTimeout:     10_000,
+				GigastakeRedirect:  false,
+				FirstDateSurpassed: MockTimestamp,
+				StickyOptions: types.StickyOptions{
+					Duration:      "30",
+					StickyOrigins: []string{"https://example.com", "https://test.com"},
+					StickyMax:     600,
+					Stickiness:    true,
 				},
 			},
 		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
-		// TODO remove legacy fields when migration to V2 schema complete
-		LegacyFields: types.LegacyFields{
-			ApplicationIDs:     []string{"test_app_43jr9304urj30fj"},
-			CustomLimit:        0,
-			RequestTimeout:     10_000,
-			GigastakeRedirect:  false,
-			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: types.StickyOptions{
-				Duration:      "30",
-				StickyOrigins: []string{"https://example.com", "https://test.com"},
-				StickyMax:     600,
-				Stickiness:    true,
+		"test_app_47fhs7j4hs7fj24": {
+			ID:        "test_app_47fhs7j4hs7fj24",
+			AccountID: 1,
+			Name:      "pokt_app_789",
+			Gigastake: false,
+			Staked:    true,
+			AAT: types.AAT{
+				Address:         "test_b5e07928fc80083c13ad0201b81bae9b",
+				PublicKey:       "test_f608500e4fe3e09014fe2411b4a560b5",
+				ClientPublicKey: "test_328a9cf1b35085eeaa669aa858f6fba9",
+				PrivateKey:      "test_8663e187c19f3c6e27317eab4ed6d7d5",
+				Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
+				Version:         "0.0.1",
+			},
+			Settings: types.Settings{
+				Environment:       types.EnvironmentProduction,
+				SecretKey:         "test_9f48b13e2bc5fd31ab367841f11495c1",
+				SecretKeyRequired: false,
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+			// TODO remove legacy fields when migration to V2 schema complete
+			LegacyFields: types.LegacyFields{
+				ApplicationIDs:     []string{"test_app_43jr947fh23dfg4"},
+				CustomLimit:        0,
+				RequestTimeout:     10_000,
+				GigastakeRedirect:  false,
+				FirstDateSurpassed: MockTimestamp,
+			},
+		},
+		// This app used to test creation of PortalApps
+		"test_app_create_208r23r": {
+			ID:        "test_app_create_208r23r",
+			AccountID: 1,
+			Name:      "create_pokt_app_1",
+			Gigastake: true,
+			Staked:    false,
+			AAT: types.AAT{
+				Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
+				PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
+				ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
+				PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
+				Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
+				Version:         "0.0.1",
+			},
+			Settings: types.Settings{
+				Environment:       types.EnvironmentProduction,
+				SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
+				SecretKeyRequired: true,
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+			// TODO remove legacy fields when migration to V2 schema complete
+			LegacyFields: types.LegacyFields{
+				ApplicationIDs:     []string{"test_app_30fj43jr94j9304"},
+				CustomLimit:        750_000,
+				RequestTimeout:     15_000,
+				GigastakeRedirect:  true,
+				FirstDateSurpassed: MockTimestamp,
+				StickyOptions: types.StickyOptions{
+					Duration:      "60",
+					StickyOrigins: []string{"https://pokt.network", "https://example.com"},
+					StickyMax:     1200,
+					Stickiness:    true,
+				},
+			},
+		},
+		// This app used to test updates of PortalApps
+		"test_app_update_b03ca84c": {
+			ID:        "test_app_update_b03ca84c",
+			AccountID: 1,
+			Gigastake: true,
+			Staked:    false,
+			AAT: types.AAT{
+				Address:         "test_7d0cd2743543a6200e41224594954b06",
+				PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
+				ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
+				PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
+				Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
+				Version:         "0.0.1",
+			},
+			Settings: types.Settings{
+				Environment:       types.EnvironmentProduction,
+				SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
+				SecretKeyRequired: true,
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+			LegacyFields: types.LegacyFields{
+				ApplicationIDs:     []string{"test_app_bb162dd67c99615"},
+				CustomLimit:        0,
+				RequestTimeout:     5_000,
+				GigastakeRedirect:  true,
+				FirstDateSurpassed: MockTimestamp,
+				StickyOptions: types.StickyOptions{
+					Duration:      "60",
+					StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
+					StickyMax:     300,
+					Stickiness:    true,
+				},
 			},
 		},
 	}
 
-	TestPortalAppThree = types.PortalApp{
-		ID:        "test_app_47fhs7j4hs7fj2",
-		AccountID: 1,
-		Name:      "pokt_app_789",
-		Gigastake: false,
-		Staked:    true,
-		AAT: types.AAT{
-			Address:         "test_b5e07928fc80083c13ad0201b81bae9b",
-			PublicKey:       "test_f608500e4fe3e09014fe2411b4a560b5",
-			ClientPublicKey: "test_328a9cf1b35085eeaa669aa858f6fba9",
-			PrivateKey:      "test_8663e187c19f3c6e27317eab4ed6d7d5",
-			Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
-			Version:         "0.0.1",
-		},
-		Settings: types.Settings{
-			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_9f48b13e2bc5fd31ab367841f11495c1",
-			SecretKeyRequired: false,
-		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
-		// TODO remove legacy fields when migration to V2 schema complete
-		LegacyFields: types.LegacyFields{
-			ApplicationIDs:     []string{"test_app_43jr947fh23dfg4"},
-			CustomLimit:        0,
-			RequestTimeout:     10_000,
-			GigastakeRedirect:  false,
-			FirstDateSurpassed: MockTimestamp,
-		},
-	}
-
-	/* Write/Create Data */
-
-	TestCreatePortalAppOne = types.PortalApp{
-		ID:        "test_app_rj09fjw208r23r",
-		AccountID: 1,
-		Name:      "create_pokt_app_1",
-		Gigastake: true,
-		Staked:    false,
-		AAT: types.AAT{
-			Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
-			PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
-			ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
-			PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
-			Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
-			Version:         "0.0.1",
-		},
-		Settings: types.Settings{
-			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
-			SecretKeyRequired: true,
-		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
-		// TODO remove legacy fields when migration to V2 schema complete
-		LegacyFields: types.LegacyFields{
-			ApplicationIDs:     []string{"test_app_30fj43jr94j9304"},
-			CustomLimit:        750_000,
-			RequestTimeout:     15_000,
-			GigastakeRedirect:  true,
-			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: types.StickyOptions{
-				Duration:      "60",
-				StickyOrigins: []string{"https://pokt.network", "https://example.com"},
-				StickyMax:     1200,
-				Stickiness:    true,
-			},
-		},
-	}
-
-	/* Update Data */
-
-	TestCreateAppForUpdate = types.PortalApp{
-		ID:        "test_app_539a081b03ca84c",
-		AccountID: 1,
-		Gigastake: true,
-		Staked:    false,
-		AAT: types.AAT{
-			Address:         "test_7d0cd2743543a6200e41224594954b06",
-			PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
-			ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
-			PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
-			Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
-			Version:         "0.0.1",
-		},
-		Settings: types.Settings{
-			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
-			SecretKeyRequired: true,
-		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
-		LegacyFields: types.LegacyFields{
-			ApplicationIDs:     []string{"test_app_bb162dd67c99615"},
-			CustomLimit:        0,
-			RequestTimeout:     5_000,
-			GigastakeRedirect:  true,
-			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: types.StickyOptions{
-				Duration:      "60",
-				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-				StickyMax:     300,
-				Stickiness:    true,
-			},
-		},
-	}
+	/* ----- Update Data ----- */
 
 	TestPortalAppName     = "portal-app-updated"
 	TestPortalAppSettings = &types.UpdateAppSettings{
