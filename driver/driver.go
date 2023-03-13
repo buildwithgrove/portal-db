@@ -15,11 +15,11 @@ type (
 
 	Reader interface {
 		/* ReadAccounts returns all Accounts in the database. Can specify if deleted Accounts should be included. */
-		ReadAccounts(ctx context.Context, includeDeleted bool) (map[types.AccountID]*types.Account, error)
+		ReadAccounts(ctx context.Context, options types.DriverOptions) (map[types.AccountID]*types.Account, error)
 		/* ReadChains returns all Chains in the databas. Can specify if deleted Chains should be included. */
-		ReadChains(ctx context.Context, includeDeleted bool) (map[types.ChainID]*types.Chain, error)
+		ReadChains(ctx context.Context, options types.DriverOptions) (map[types.ChainID]*types.Chain, error)
 		/* ReadPortalApps returns all PortalApps in the database. Can specify if deleted PortalApps should be included.  */
-		ReadPortalApps(ctx context.Context, includeDeleted bool) (map[types.PortalAppID]*types.PortalApp, error)
+		ReadPortalApps(ctx context.Context, options types.DriverOptions) (map[types.PortalAppID]*types.PortalApp, error)
 
 		/* ReadPlans returns all Plans in the database */
 		ReadPlans(ctx context.Context) (map[types.PayPlanType]*types.Plan, error)

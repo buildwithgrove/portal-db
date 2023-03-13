@@ -403,7 +403,7 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 }
 
 type Account struct {
-	ID                      int64         `json:"id"`
+	ID                      int32         `json:"id"`
 	PlanType                string        `json:"planType"`
 	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
 	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
@@ -414,8 +414,8 @@ type Account struct {
 }
 
 type AccountUserAccess struct {
-	ID        int64     `json:"id"`
-	AccountID int64     `json:"accountID"`
+	ID        int32     `json:"id"`
+	AccountID int32     `json:"accountID"`
 	UserID    string    `json:"userID"`
 	RoleName  string    `json:"roleName"`
 	Accepted  bool      `json:"accepted"`
@@ -441,7 +441,7 @@ type Chain struct {
 }
 
 type ChainAltruist struct {
-	ID        int64               `json:"id"`
+	ID        int32               `json:"id"`
 	ChainID   string              `json:"chainID"`
 	Url       string              `json:"url"`
 	Auth      sql.NullString      `json:"auth"`
@@ -451,7 +451,7 @@ type ChainAltruist struct {
 }
 
 type ChainCheck struct {
-	ID        int64                `json:"id"`
+	ID        int32                `json:"id"`
 	ChainID   string               `json:"chainID"`
 	Type      types.ChainCheckType `json:"type"`
 	Payload   string               `json:"payload"`
@@ -462,8 +462,8 @@ type ChainCheck struct {
 }
 
 type ChainGigastakeRedirect struct {
-	ID        int64     `json:"id"`
-	AccountID int64     `json:"accountID"`
+	ID        int32     `json:"id"`
+	AccountID int32     `json:"accountID"`
 	ChainID   string    `json:"chainID"`
 	Alias     string    `json:"alias"`
 	Domain    string    `json:"domain"`
@@ -472,14 +472,13 @@ type ChainGigastakeRedirect struct {
 }
 
 type GlobalBlockedContract struct {
-	ID             int64          `json:"id"`
+	ID             int32          `json:"id"`
 	BlockedAddress sql.NullString `json:"blockedAddress"`
 	Active         sql.NullBool   `json:"active"`
 	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 type PayPlan struct {
-	ID                int64         `json:"id"`
 	PlanType          string        `json:"planType"`
 	BlockchainIds     []string      `json:"blockchainIds"`
 	MonthlyRelayLimit int32         `json:"monthlyRelayLimit"`
@@ -492,7 +491,7 @@ type PayPlan struct {
 
 type PortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int64             `json:"accountID"`
+	AccountID          int32             `json:"accountID"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
@@ -507,7 +506,7 @@ type PortalApplication struct {
 }
 
 type PortalApplicationAat struct {
-	ID              int64             `json:"id"`
+	ID              int32             `json:"id"`
 	ApplicationID   types.PortalAppID `json:"applicationID"`
 	Address         string            `json:"address"`
 	PublicKey       string            `json:"publicKey"`
@@ -518,7 +517,7 @@ type PortalApplicationAat struct {
 }
 
 type PortalApplicationNotification struct {
-	ID            int64                     `json:"id"`
+	ID            int32                     `json:"id"`
 	ApplicationID types.PortalAppID         `json:"applicationID"`
 	Active        bool                      `json:"active"`
 	Type          types.NotificationType    `json:"type"`
@@ -529,7 +528,7 @@ type PortalApplicationNotification struct {
 }
 
 type PortalApplicationSetting struct {
-	ID                int64             `json:"id"`
+	ID                int32             `json:"id"`
 	ApplicationID     types.PortalAppID `json:"applicationID"`
 	SecretKey         string            `json:"secretKey"`
 	SecretKeyRequired bool              `json:"secretKeyRequired"`
@@ -540,7 +539,7 @@ type PortalApplicationSetting struct {
 }
 
 type PortalApplicationWhitelist struct {
-	ID            int64               `json:"id"`
+	ID            int32               `json:"id"`
 	ApplicationID types.PortalAppID   `json:"applicationID"`
 	Type          types.WhitelistType `json:"type"`
 	Value         string              `json:"value"`
@@ -549,12 +548,12 @@ type PortalApplicationWhitelist struct {
 }
 
 type StickinessOption struct {
-	ID            int32             `json:"id"`
-	ApplicationID types.PortalAppID `json:"applicationID"`
-	Duration      sql.NullString    `json:"duration"`
-	StickyMax     sql.NullInt32     `json:"stickyMax"`
-	Stickiness    sql.NullBool      `json:"stickiness"`
-	Origins       []string          `json:"origins"`
+	ID         int32             `json:"id"`
+	LbID       types.PortalAppID `json:"lbID"`
+	Duration   sql.NullString    `json:"duration"`
+	StickyMax  sql.NullInt32     `json:"stickyMax"`
+	Stickiness sql.NullBool      `json:"stickiness"`
+	Origins    []string          `json:"origins"`
 }
 
 type User struct {
@@ -567,7 +566,6 @@ type User struct {
 }
 
 type UserRole struct {
-	ID          int64               `json:"id"`
 	RoleName    string              `json:"roleName"`
 	Permissions []types.Permissions `json:"permissions"`
 	CreatedAt   time.Time           `json:"createdAt"`

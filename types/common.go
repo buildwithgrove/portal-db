@@ -2,12 +2,19 @@ package types
 
 /* String ID types */
 type (
-	AccountID   int64
+	AccountID   int32
 	ChainID     string
 	Email       string
 	PortalAppID string
 	UserID      string
 )
+
+/* Config Structs */
+
+// Provides options for passing to Driver interface methods
+type DriverOptions struct {
+	IncludeDelete bool
+}
 
 /* Listener types */
 type (

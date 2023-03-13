@@ -66,7 +66,8 @@ SELECT p.*,
 FROM portal_applications p
     LEFT JOIN portal_application_aats paa ON p.id = paa.application_id
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    LEFT JOIN stickiness_options pso ON p.id = pso.application_id
+    -- legacy table
+    LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
 GROUP BY p.id,
     paa.address,
     paa.public_key,
@@ -114,7 +115,7 @@ VALUES (
 RETURNING *;
 -- name: InsertStickinessOption :one
 INSERT INTO stickiness_options (
-        application_id,
+        lb_id,
         duration,
         sticky_max,
         stickiness,

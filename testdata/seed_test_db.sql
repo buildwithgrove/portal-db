@@ -77,7 +77,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     );
 INSERT INTO stickiness_options (
-        application_id,
+        lb_id,
         duration,
         sticky_max,
         stickiness,

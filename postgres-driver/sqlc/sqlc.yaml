@@ -21,39 +21,29 @@ sql:
         output_querier_file_name: querier.generated.go
         output_files_suffix: .generated
         overrides:
+          #  Enum Overrides
           - db_type: "auth_providers"
             go_type: "github.com/pokt-foundation/portal-db/types.AuthProviders"
-
           - db_type: "auth_sign_in"
             go_type: "github.com/pokt-foundation/portal-db/types.AuthSignIn"
-
           - db_type: "chain_auth_type"
             go_type: "github.com/pokt-foundation/portal-db/types.ChainAuthType"
-
           - db_type: "chain_check_type"
             go_type: "github.com/pokt-foundation/portal-db/types.ChainCheckType"
-
           - db_type: "environment"
             go_type: "github.com/pokt-foundation/portal-db/types.Environment"
-
           - db_type: "notification_event"
             go_type: "github.com/pokt-foundation/portal-db/types.NotificationEvent"
-
           - db_type: "notification_type"
             go_type: "github.com/pokt-foundation/portal-db/types.NotificationType"
-
           - db_type: "permissions"
             go_type: "github.com/pokt-foundation/portal-db/types.Permissions"
-
           - db_type: "whitelist_type"
             go_type: "github.com/pokt-foundation/portal-db/types.WhitelistType"
-
           - column: "user_access.role_name"
             go_type: "github.com/pokt-foundation/portal-db/types.RoleName"
-
+          # ID type Overrides
           - column: "portal_applications.id"
-            go_type: "github.com/pokt-foundation/portal-db/types.PortalAppID"
-          - column: "stickiness_options.application_id"
             go_type: "github.com/pokt-foundation/portal-db/types.PortalAppID"
           - column: "portal_application_aats.application_id"
             go_type: "github.com/pokt-foundation/portal-db/types.PortalAppID"
@@ -62,4 +52,8 @@ sql:
           - column: "portal_application_whitelists.application_id"
             go_type: "github.com/pokt-foundation/portal-db/types.PortalAppID"
           - column: "portal_application_notifications.application_id"
+            go_type: "github.com/pokt-foundation/portal-db/types.PortalAppID"
+
+          # legacy table
+          - column: "stickiness_options.lb_id"
             go_type: "github.com/pokt-foundation/portal-db/types.PortalAppID"

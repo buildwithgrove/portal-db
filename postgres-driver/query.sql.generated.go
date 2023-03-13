@@ -49,7 +49,7 @@ RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, delet
 
 type InsertPortalApplicationParams struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int64             `json:"accountID"`
+	AccountID          int32             `json:"accountID"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
@@ -188,27 +188,27 @@ func (q *Queries) InsertPortalApplicationSetting(ctx context.Context, arg Insert
 
 const insertStickinessOption = `-- name: InsertStickinessOption :one
 INSERT INTO stickiness_options (
-        application_id,
+        lb_id,
         duration,
         sticky_max,
         stickiness,
         origins
     )
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, application_id, duration, sticky_max, stickiness, origins
+RETURNING id, lb_id, duration, sticky_max, stickiness, origins
 `
 
 type InsertStickinessOptionParams struct {
-	ApplicationID types.PortalAppID `json:"applicationID"`
-	Duration      sql.NullString    `json:"duration"`
-	StickyMax     sql.NullInt32     `json:"stickyMax"`
-	Stickiness    sql.NullBool      `json:"stickiness"`
-	Origins       []string          `json:"origins"`
+	LbID       types.PortalAppID `json:"lbID"`
+	Duration   sql.NullString    `json:"duration"`
+	StickyMax  sql.NullInt32     `json:"stickyMax"`
+	Stickiness sql.NullBool      `json:"stickiness"`
+	Origins    []string          `json:"origins"`
 }
 
 func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickinessOptionParams) (StickinessOption, error) {
 	row := q.db.QueryRowContext(ctx, insertStickinessOption,
-		arg.ApplicationID,
+		arg.LbID,
 		arg.Duration,
 		arg.StickyMax,
 		arg.Stickiness,
@@ -217,7 +217,7 @@ func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickine
 	var i StickinessOption
 	err := row.Scan(
 		&i.ID,
-		&i.ApplicationID,
+		&i.LbID,
 		&i.Duration,
 		&i.StickyMax,
 		&i.Stickiness,
@@ -294,7 +294,8 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.update
 FROM portal_applications p
     LEFT JOIN portal_application_aats paa ON p.id = paa.application_id
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    LEFT JOIN stickiness_options pso ON p.id = pso.application_id
+    -- legacy table
+    LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
 GROUP BY p.id,
     paa.address,
     paa.public_key,
@@ -314,7 +315,7 @@ GROUP BY p.id,
 
 type SelectPortalApplicationsRow struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int64             `json:"accountID"`
+	AccountID          int32             `json:"accountID"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`

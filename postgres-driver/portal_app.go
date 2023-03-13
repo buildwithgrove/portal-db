@@ -171,7 +171,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 	_, err = qtx.InsertPortalApplication(ctx, InsertPortalApplicationParams{
 		ID:        portalApp.ID,
-		AccountID: int64(portalApp.AccountID),
+		AccountID: int32(portalApp.AccountID),
 		Name:      portalApp.Name,
 		Gigastake: portalApp.Gigastake,
 		Staked:    portalApp.Staked,
@@ -219,11 +219,11 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 	// TODO remove legacy fields when migration to V2 schema complete
 	_, err = qtx.InsertStickinessOption(ctx, InsertStickinessOptionParams{
-		ApplicationID: portalApp.ID,
-		Duration:      newSQLNullString(portalApp.LegacyFields.StickyOptions.Duration),
-		StickyMax:     newSQLNullInt32(int32(portalApp.LegacyFields.StickyOptions.StickyMax), true),
-		Stickiness:    newSQLNullBool(&portalApp.LegacyFields.StickyOptions.Stickiness),
-		Origins:       portalApp.LegacyFields.StickyOptions.StickyOrigins,
+		LbID:       portalApp.ID,
+		Duration:   newSQLNullString(portalApp.LegacyFields.StickyOptions.Duration),
+		StickyMax:  newSQLNullInt32(int32(portalApp.LegacyFields.StickyOptions.StickyMax), true),
+		Stickiness: newSQLNullBool(&portalApp.LegacyFields.StickyOptions.Stickiness),
+		Origins:    portalApp.LegacyFields.StickyOptions.StickyOrigins,
 	})
 	if err != nil {
 		_ = tx.Rollback()
