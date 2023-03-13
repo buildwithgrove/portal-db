@@ -42,11 +42,11 @@ var (
 		Whitelists: types.Whitelists{
 			Origins:     map[types.Origin]struct{}{"https://example.com": {}},
 			UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)": {}},
-			Blockchains: map[types.BlockchainID]struct{}{"0053": {}},
-			Contracts: map[types.BlockchainID]map[types.Contract]struct{}{
+			Blockchains: map[types.ChainID]struct{}{"0053": {}},
+			Contracts: map[types.ChainID]map[types.Contract]struct{}{
 				"0001": {"0x1234567890abcdef": {}},
 			},
-			Methods: map[types.BlockchainID]map[types.Method]struct{}{
+			Methods: map[types.ChainID]map[types.Method]struct{}{
 				"0001": {"GET": {}},
 			},
 		},
@@ -102,11 +102,11 @@ var (
 		Whitelists: types.Whitelists{
 			Origins:     map[types.Origin]struct{}{"https://test.com": {}},
 			UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36": {}},
-			Blockchains: map[types.BlockchainID]struct{}{"0021": {}},
-			Contracts: map[types.BlockchainID]map[types.Contract]struct{}{
+			Blockchains: map[types.ChainID]struct{}{"0021": {}},
+			Contracts: map[types.ChainID]map[types.Contract]struct{}{
 				"0064": {"0x0987654321abcdef": {}},
 			},
-			Methods: map[types.BlockchainID]map[types.Method]struct{}{
+			Methods: map[types.ChainID]map[types.Method]struct{}{
 				"0064": {"POST": {}},
 			},
 		},
@@ -307,17 +307,17 @@ var (
 		},
 		ChainWhitelists: [2]types.ChainWhitelists{
 			{Type: "contracts", Values: []types.BlockchainIDWhitelists{
-				{BlockchainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
-				{BlockchainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
-				{BlockchainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
-				{BlockchainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
+				{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
+				{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
+				{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
+				{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 			},
 			},
 			{Type: "methods", Values: []types.BlockchainIDWhitelists{
-				{BlockchainID: "0001", Values: []string{"GET", "POST", "PUT"}},
-				{BlockchainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
-				{BlockchainID: "003E", Values: []string{"GET"}},
-				{BlockchainID: "0056", Values: []string{"GET", "POST"}},
+				{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
+				{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
+				{ChainID: "003E", Values: []string{"GET"}},
+				{ChainID: "0056", Values: []string{"GET", "POST"}},
 			},
 			},
 		},

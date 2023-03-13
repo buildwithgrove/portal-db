@@ -76,8 +76,8 @@ func (r RoleName) IsValid() bool {
 type (
 	// User represents a single Portal user
 	User struct {
-		ID           string        `json:"id"`
-		Email        string        `json:"email"`
+		ID           UserID        `json:"id"`
+		Email        Email         `json:"email"`
 		AuthProvider AuthProviders `json:"authProvider"`
 		CreatedAt    time.Time     `json:"createdAt"`
 		UpdatedAt    time.Time     `json:"updatedAt"`
@@ -103,10 +103,10 @@ var (
 	}
 )
 
-func (app *PortalApp) GetOwnerEmail() (string, error) {
+func (app *PortalApp) GetOwnerEmail() (Email, error) {
 	for _, userAccess := range app.Account.Users {
 		if userAccess.RoleName == RoleOwner {
-			return userAccess.User.Email, nil
+			return Email(userAccess.User.Email), nil
 		}
 	}
 

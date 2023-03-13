@@ -9,7 +9,7 @@ type (
 		ID                   int64                        `json:"id"`
 		Plan                 Plan                         `json:"payPlan"`
 		Users                map[UserID]AccountUserAccess `json:"users"`
-		PartnerBlockchainIDs map[BlockchainID]struct{}    `json:"partnerBlockchainIDs"`
+		PartnerBlockchainIDs map[ChainID]struct{}         `json:"partnerBlockchainIDs"`
 		// PartnerThroughputLimit is the number of relays per second for an accounts partners
 		PartnerThroughputLimit int `json:"partnerThroughputLimit"`
 		// PartnerAppLimit is the number of apps for an accounts partners

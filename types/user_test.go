@@ -32,7 +32,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 	"test_user_774900350d9c43": {
 		UserID: "test_user_774900350d9c43",
 		PortalApps: map[PortalAppID]PortalAppPermissions{
-			"test_app_3487u329rfn23f9": {
+			"test_app_3487u329rfn23f": {
 				RoleName:    RoleOwner,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
@@ -169,7 +169,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 			expectedPermissions: &UserPermissions{
 				UserID: "test_user_774900350d9c43",
 				PortalApps: map[PortalAppID]PortalAppPermissions{
-					"test_app_3487u329rfn23f9": {
+					"test_app_3487u329rfn23f": {
 						RoleName:    RoleOwner,
 						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},

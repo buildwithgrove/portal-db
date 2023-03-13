@@ -112,9 +112,9 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 	whitelists := types.Whitelists{
 		Origins:     make(map[types.Origin]struct{}),
 		UserAgents:  make(map[types.UserAgent]struct{}),
-		Blockchains: make(map[types.BlockchainID]struct{}),
-		Contracts:   make(map[types.BlockchainID]map[types.Contract]struct{}),
-		Methods:     make(map[types.BlockchainID]map[types.Method]struct{}),
+		Blockchains: make(map[types.ChainID]struct{}),
+		Contracts:   make(map[types.ChainID]map[types.Contract]struct{}),
+		Methods:     make(map[types.ChainID]map[types.Method]struct{}),
 	}
 
 	var whitelistRows []whitelistDBRow
@@ -126,22 +126,22 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 		switch wl.Type {
 
 		case types.WhitelistTypeBlockchains:
-			whitelists.Blockchains[types.BlockchainID(wl.Value)] = struct{}{}
+			whitelists.Blockchains[types.ChainID(wl.Value)] = struct{}{}
 		case types.WhitelistTypeOrigins:
 			whitelists.Origins[types.Origin(wl.Value)] = struct{}{}
 		case types.WhitelistTypeUserAgents:
 			whitelists.UserAgents[types.UserAgent(wl.Value)] = struct{}{}
 
 		case types.WhitelistTypeContracts:
-			if _, ok := whitelists.Contracts[types.BlockchainID(wl.BlockchainID)]; !ok {
-				whitelists.Contracts[types.BlockchainID(wl.BlockchainID)] = make(map[types.Contract]struct{})
+			if _, ok := whitelists.Contracts[types.ChainID(wl.BlockchainID)]; !ok {
+				whitelists.Contracts[types.ChainID(wl.BlockchainID)] = make(map[types.Contract]struct{})
 			}
-			whitelists.Contracts[types.BlockchainID(wl.BlockchainID)][types.Contract(wl.Value)] = struct{}{}
+			whitelists.Contracts[types.ChainID(wl.BlockchainID)][types.Contract(wl.Value)] = struct{}{}
 		case types.WhitelistTypeMethods:
-			if _, ok := whitelists.Methods[types.BlockchainID(wl.BlockchainID)]; !ok {
-				whitelists.Methods[types.BlockchainID(wl.BlockchainID)] = make(map[types.Method]struct{})
+			if _, ok := whitelists.Methods[types.ChainID(wl.BlockchainID)]; !ok {
+				whitelists.Methods[types.ChainID(wl.BlockchainID)] = make(map[types.Method]struct{})
 			}
-			whitelists.Methods[types.BlockchainID(wl.BlockchainID)][types.Method(wl.Value)] = struct{}{}
+			whitelists.Methods[types.ChainID(wl.BlockchainID)][types.Method(wl.Value)] = struct{}{}
 		}
 	}
 
@@ -241,7 +241,6 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 /* ----- postgresdriver PortalApp Update Methods ----- */
 
 // UpdatePortalApp updates a single PortalApp in the database: Name field and its Notifications, Whitelists and Settings
-// TEMP - also update its legacy StickinessOptions table (TODO remove when V2 migration completed)
 func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.UpdatePortalApp, updatedAt time.Time) error {
 	tx, err := pg.db.Begin()
 	if err != nil {
@@ -349,20 +348,20 @@ func (pg *PostgresDriver) updateWhitelists(ctx context.Context, tx *sql.Tx, qtx 
 		for _, blockchainValues := range chainWhitelist.Values {
 			for _, whitelistValue := range blockchainValues.Values {
 				updateWhitelists.Types = append(updateWhitelists.Types, chainWhitelist.Type)
-				updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, blockchainValues.BlockchainID)
+				updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, blockchainValues.ChainID)
 				updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
 			}
 		}
 	}
 
-	// Insert all whitelist rows in update struct that don't exist in DB
+	// Insert all whitelist rows for application_id in update struct that are not in DB
 	err := qtx.UpdateInsertWhitelists(ctx, updateWhitelists)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	// Delete all whitelist rows in DB that don't exists in update struct
+	// Delete all whitelist rows for application_id in DB that are not in update struct
 	err = qtx.UpdateDeleteWhitelists(ctx, UpdateDeleteWhitelistsParams{
 		ApplicationID: updateWhitelists.ApplicationID,
 		Types:         updateWhitelists.Types,

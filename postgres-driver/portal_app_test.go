@@ -87,19 +87,19 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
 				SecretKeyRequired: true,
 				MonthlyRelayLimit: 2_500_000,
-				FavoritedChainIDs: map[types.BlockchainID]struct{}{"0003": {}, "0009": {}, "00H3": {}},
+				FavoritedChainIDs: map[types.ChainID]struct{}{"0003": {}, "0009": {}, "00H3": {}},
 			},
 			testUpdatedWhitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://portalgun.io": {}, "https://subdomain.example.com": {}, "https://www.example.com": {}},
 				UserAgents:  map[types.UserAgent]struct{}{"Brave": {}, "Google Chrome": {}, "Mozilla Firefox": {}, "Netscape Navigator": {}, "Safari": {}},
-				Blockchains: map[types.BlockchainID]struct{}{"0001": {}, "0002": {}, "003E": {}, "0056": {}},
-				Contracts: map[types.BlockchainID]map[types.Contract]struct{}{
+				Blockchains: map[types.ChainID]struct{}{"0001": {}, "0002": {}, "003E": {}, "0056": {}},
+				Contracts: map[types.ChainID]map[types.Contract]struct{}{
 					"0001": {"0xtest_2f78db6436527729929aaf6c616361de0f7": {}, "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}},
 					"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
 					"003E": {"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}, "0xtest_f958d2ee523a2206206994597c13d831ec7": {}},
 					"0056": {"0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}, "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}},
 				},
-				Methods: map[types.BlockchainID]map[types.Method]struct{}{
+				Methods: map[types.ChainID]map[types.Method]struct{}{
 					"0001": {"GET": {}, "POST": {}, "PUT": {}},
 					"0002": {"DELETE": {}, "GET": {}, "POST": {}, "PUT": {}},
 					"003E": {"GET": {}},
@@ -124,7 +124,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
 				SecretKeyRequired: true,
 				MonthlyRelayLimit: 2_500_000,
-				FavoritedChainIDs: map[types.BlockchainID]struct{}{"0003": {}, "0009": {}, "00H3": {}},
+				FavoritedChainIDs: map[types.ChainID]struct{}{"0003": {}, "0009": {}, "00H3": {}},
 			},
 			err: nil,
 		},
@@ -143,14 +143,14 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			testUpdatedWhitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://portalgun.io": {}, "https://subdomain.example.com": {}, "https://www.example.com": {}},
 				UserAgents:  map[types.UserAgent]struct{}{"Brave": {}, "Google Chrome": {}, "Mozilla Firefox": {}, "Netscape Navigator": {}, "Safari": {}},
-				Blockchains: map[types.BlockchainID]struct{}{"0001": {}, "0002": {}, "003E": {}, "0056": {}},
-				Contracts: map[types.BlockchainID]map[types.Contract]struct{}{
+				Blockchains: map[types.ChainID]struct{}{"0001": {}, "0002": {}, "003E": {}, "0056": {}},
+				Contracts: map[types.ChainID]map[types.Contract]struct{}{
 					"0001": {"0xtest_2f78db6436527729929aaf6c616361de0f7": {}, "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}},
 					"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
 					"003E": {"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}, "0xtest_f958d2ee523a2206206994597c13d831ec7": {}},
 					"0056": {"0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}, "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}},
 				},
-				Methods: map[types.BlockchainID]map[types.Method]struct{}{
+				Methods: map[types.ChainID]map[types.Method]struct{}{
 					"0001": {"GET": {}, "POST": {}, "PUT": {}},
 					"0002": {"DELETE": {}, "GET": {}, "POST": {}, "PUT": {}},
 					"003E": {"GET": {}},

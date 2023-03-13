@@ -14,14 +14,14 @@ var testPortalApplication = PortalApp{
 	Name:      "test_portal_app_123",
 	Gigastake: true,
 	AccountID: 1,
-	Account: Account{
+	Account: &Account{
 		ID: 1,
 		Plan: Plan{
 			Type:              FreetierV0,
 			MonthlyRelayLimit: 2_500_000,
 			ThroughputLimit:   2_000,
 			AppLimit:          2,
-			BlockchainIDs:     map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+			BlockchainIDs:     map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 			LegacyDailyLimit:  250_000,
 		},
 		Users: map[UserID]AccountUserAccess{
@@ -36,7 +36,7 @@ var testPortalApplication = PortalApp{
 				Accepted: true,
 			},
 		},
-		PartnerBlockchainIDs:   map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		PartnerBlockchainIDs:   map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 		PartnerThroughputLimit: 2_000,
 		PartnerAppLimit:        2,
 	},
@@ -53,19 +53,19 @@ var testPortalApplication = PortalApp{
 		SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
 		SecretKeyRequired: true,
 		MonthlyRelayLimit: 250_000,
-		FavoritedChainIDs: map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		FavoritedChainIDs: map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 	},
 	Whitelists: Whitelists{
 		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
 		UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
-		Blockchains: map[BlockchainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
-		Contracts: map[BlockchainID]map[Contract]struct{}{
+		Blockchains: map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		Contracts: map[ChainID]map[Contract]struct{}{
 			"0001": {"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}, "0xtest_2f78db6436527729929aaf6c616361de0f7": {}},
 			"0056": {"0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}, "0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}},
 			"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
 			"003E": {"0xtest_f958d2ee523a2206206994597c13d831ec7": {}, "0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}},
 		},
-		Methods: map[BlockchainID]map[Method]struct{}{
+		Methods: map[ChainID]map[Method]struct{}{
 			"0001": {"GET": {}, "POST": {}, "PUT": {}},
 			"0056": {"GET": {}, "POST": {}},
 			"0002": {"GET": {}, "POST": {}, "PUT": {}, "DELETE": {}},
@@ -183,25 +183,25 @@ func Test_PortalApp_IsBlockchainWhitelisted(t *testing.T) {
 	tests := []struct {
 		name           string
 		portalApp      PortalApp
-		blockchain     BlockchainID
+		blockchain     ChainID
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given blockchain is whitelisted for a given app",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("0001"),
+			blockchain:     ChainID("0001"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given blockchain is whitelisted for a given app",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("003E"),
+			blockchain:     ChainID("003E"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given blockchain is not whitelisted for a given app",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("7009"),
+			blockchain:     ChainID("7009"),
 			expectedResult: false,
 		},
 	}
@@ -218,35 +218,35 @@ func Test_PortalApp_IsContractWhitelisted(t *testing.T) {
 	tests := []struct {
 		name           string
 		portalApp      PortalApp
-		blockchain     BlockchainID
+		blockchain     ChainID
 		contract       Contract
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given contract is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("0001"),
+			blockchain:     ChainID("0001"),
 			contract:       Contract("0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given contract is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("003E"),
+			blockchain:     ChainID("003E"),
 			contract:       Contract("0xtest_0a85d5af5bf1d1762f925bdaddc4201f984"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given contract is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("0056"),
+			blockchain:     ChainID("0056"),
 			contract:       Contract("0xtest_04938rfj439fj3409jf0439fjf4304f4444"),
 			expectedResult: false,
 		},
 		{
 			name:           "Should return false if a given contract is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("7009"),
+			blockchain:     ChainID("7009"),
 			contract:       Contract("0xtest_439834fnin3f2032f03re3j2f30fj33f3f3"),
 			expectedResult: false,
 		},
@@ -264,35 +264,35 @@ func Test_PortalApp_IsMethodWhitelisted(t *testing.T) {
 	tests := []struct {
 		name           string
 		portalApp      PortalApp
-		blockchain     BlockchainID
+		blockchain     ChainID
 		method         Method
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given method is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("0001"),
+			blockchain:     ChainID("0001"),
 			method:         Method("POST"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given method is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("003E"),
+			blockchain:     ChainID("003E"),
 			method:         Method("GET"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given method is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("0056"),
+			blockchain:     ChainID("0056"),
 			method:         Method("PUT"),
 			expectedResult: false,
 		},
 		{
 			name:           "Should return false if a given method is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     BlockchainID("7009"),
+			blockchain:     ChainID("7009"),
 			method:         Method("GET"),
 			expectedResult: false,
 		},
@@ -324,17 +324,17 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 				},
 				ChainWhitelists: [2]ChainWhitelists{
 					{Type: "contracts", Values: []BlockchainIDWhitelists{
-						{BlockchainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
-						{BlockchainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
-						{BlockchainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
-						{BlockchainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
+						{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
+						{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
+						{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
+						{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 					},
 					},
 					{Type: "methods", Values: []BlockchainIDWhitelists{
-						{BlockchainID: "0001", Values: []string{"GET", "POST", "PUT"}},
-						{BlockchainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
-						{BlockchainID: "003E", Values: []string{"GET"}},
-						{BlockchainID: "0056", Values: []string{"GET", "POST"}},
+						{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
+						{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
+						{ChainID: "003E", Values: []string{"GET"}},
+						{ChainID: "0056", Values: []string{"GET", "POST"}},
 					},
 					},
 				},
@@ -374,28 +374,28 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 						"type": "contracts",
 						"values": [
 							{
-								"blockchainID": "0001",
+								"chainID": "0001",
 								"values": [
 									"0xtest_2f78db6436527729929aaf6c616361de0f7",
 									"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"
 								]
 							},
 							{
-								"blockchainID": "0002",
+								"chainID": "0002",
 								"values": [
 									"0xtest_1111117dc0aa78b770fa6a738034120c302",
 									"0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"
 								]
 							},
 							{
-								"blockchainID": "003E",
+								"chainID": "003E",
 								"values": [
 									"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984",
 									"0xtest_f958d2ee523a2206206994597c13d831ec7"
 								]
 							},
 							{
-								"blockchainID": "0056",
+								"chainID": "0056",
 								"values": [
 									"0xtest_00000f279d81a1d3cc75430faa017fa5a2e",
 									"0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"
@@ -407,7 +407,7 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 						"type": "methods",
 						"values": [
 							{
-								"blockchainID": "0001",
+								"chainID": "0001",
 								"values": [
 									"GET",
 									"POST",
@@ -415,7 +415,7 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 								]
 							},
 							{
-								"blockchainID": "0002",
+								"chainID": "0002",
 								"values": [
 									"DELETE",
 									"GET",
@@ -424,13 +424,13 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 								]
 							},
 							{
-								"blockchainID": "003E",
+								"chainID": "003E",
 								"values": [
 									"GET"
 								]
 							},
 							{
-								"blockchainID": "0056",
+								"chainID": "0056",
 								"values": [
 									"GET",
 									"POST"

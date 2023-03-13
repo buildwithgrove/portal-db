@@ -17,11 +17,11 @@ type (
 
 	Reader interface {
 		/* ReadAccounts returns all PortalApps in the database */
-		ReadAccounts(ctx context.Context) ([]*types.Account, error)
+		ReadAccounts(ctx context.Context) (map[types.AccountID]*types.Account, error)
 		/* ReadChains returns all blockchains in the database and marshals to types struct */
-		ReadChains(ctx context.Context) ([]*types.Chain, error)
+		ReadChains(ctx context.Context) (map[types.ChainID]*types.Chain, error)
 		/* ReadPlans returns all Plans in the database */
-		ReadPlans(ctx context.Context) ([]*types.Plan, error)
+		ReadPlans(ctx context.Context) (map[types.PayPlanType]*types.Plan, error)
 		/* ReadPortalApps returns all PortalApps in the database */
 		ReadPortalApps(ctx context.Context) (map[types.PortalAppID]*types.PortalApp, error)
 		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
@@ -59,10 +59,10 @@ type (
 		/* WriteGigastakeRedirect saves input Redirect struct to the database .*/
 		WriteGigastakeRedirect(ctx context.Context, redirect *types.GigastakeRedirect) (*types.GigastakeRedirect, error)
 		/* UpdateChain updates Blockchain and Sync Check Options */
-		UpdateChain(ctx context.Context, blockchainID types.BlockchainID, update *types.UpdateChain) error
+		UpdateChain(ctx context.Context, chainID types.ChainID, update *types.UpdateChain) error
 		/* ActivateChain toggles chain.active field on or off */
-		ActivateChain(ctx context.Context, blockchainID types.BlockchainID, active bool) error
+		ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error
 		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a chain */
-		DeleteGigastakeRedirect(ctx context.Context, blockchainID types.BlockchainID, domain string) error
+		DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error
 	}
 )
