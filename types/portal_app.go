@@ -130,7 +130,7 @@ type (
 		Values       []string `json:"values"`
 	}
 
-	//UpdatePortalApp Struct Definition and Methods
+	// UpdatePortalApp Struct Definition and Methods
 	UpdatePortalApp struct {
 		AppID         ApplicationID           `json:"appID,omitempty"`
 		Name          string                  `json:"name,omitempty"`

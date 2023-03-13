@@ -1,7 +1,6 @@
 package postgresdriver
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -12,10 +11,6 @@ import (
 
 const (
 	connectionString = "postgres://postgres:pgpassword@localhost:5432/postgres?sslmode=disable" // pragma: allowlist secret
-)
-
-var (
-	testCtx = context.Background()
 )
 
 type (
