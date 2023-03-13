@@ -2,11 +2,11 @@ package types
 
 /* String ID types */
 type (
-	AccountID    string
-	BlockchainID string
-	Email        string
-	PortalAppID  string
-	UserID       string
+	AccountID   string
+	ChainID     string
+	Email       string
+	PortalAppID string
+	UserID      string
 )
 
 /* Listener types */

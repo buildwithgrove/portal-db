@@ -86,37 +86,37 @@ func (a *PortalApp) ConvertToLegacyGatewaySettings() GatewaySettings {
 	}
 	sort.Strings(gatewaySettings.WhitelistUserAgents)
 
-	for blockchainID := range a.Whitelists.Blockchains {
-		gatewaySettings.WhitelistBlockchains = append(gatewaySettings.WhitelistBlockchains, string(blockchainID))
+	for chainID := range a.Whitelists.Blockchains {
+		gatewaySettings.WhitelistBlockchains = append(gatewaySettings.WhitelistBlockchains, string(chainID))
 	}
 	sort.Strings(gatewaySettings.WhitelistBlockchains)
 
-	for blockchainID, contracts := range a.Whitelists.Contracts {
+	for chainID, contracts := range a.Whitelists.Contracts {
 		var contractList []string
 		for contract := range contracts {
 			contractList = append(contractList, string(contract))
 		}
 		sort.Strings(contractList)
 		gatewaySettings.WhitelistContracts = append(gatewaySettings.WhitelistContracts, WhitelistContracts{
-			BlockchainID: string(blockchainID), Contracts: contractList},
+			ChainID: string(chainID), Contracts: contractList},
 		)
 	}
 	sort.Slice(gatewaySettings.WhitelistContracts, func(i, j int) bool {
-		return gatewaySettings.WhitelistContracts[i].BlockchainID < gatewaySettings.WhitelistContracts[j].BlockchainID
+		return gatewaySettings.WhitelistContracts[i].ChainID < gatewaySettings.WhitelistContracts[j].ChainID
 	})
 
-	for blockchainID, methods := range a.Whitelists.Methods {
+	for chainID, methods := range a.Whitelists.Methods {
 		var methodList []string
 		for method := range methods {
 			methodList = append(methodList, string(method))
 		}
 		sort.Strings(methodList)
 		gatewaySettings.WhitelistMethods = append(gatewaySettings.WhitelistMethods, WhitelistMethods{
-			BlockchainID: string(blockchainID), Methods: methodList},
+			ChainID: string(chainID), Methods: methodList},
 		)
 	}
 	sort.Slice(gatewaySettings.WhitelistMethods, func(i, j int) bool {
-		return gatewaySettings.WhitelistMethods[i].BlockchainID < gatewaySettings.WhitelistMethods[j].BlockchainID
+		return gatewaySettings.WhitelistMethods[i].ChainID < gatewaySettings.WhitelistMethods[j].ChainID
 	})
 
 	return gatewaySettings
@@ -256,14 +256,14 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 			contracts := []string{}
 			contracts = append(contracts, chainContracts.Contracts...)
 			contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{
-				BlockchainID: chainContracts.BlockchainID, Values: contracts,
+				ChainID: chainContracts.ChainID, Values: contracts,
 			})
 		}
 		for _, chainMethods := range u.GatewaySettings.WhitelistMethods {
 			methods := []string{}
 			methods = append(methods, chainMethods.Methods...)
 			methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{
-				BlockchainID: chainMethods.BlockchainID, Values: methods,
+				ChainID: chainMethods.ChainID, Values: methods,
 			})
 		}
 
@@ -313,7 +313,7 @@ func (b *Blockchain) ConvertToV2Chain() Chain {
 	}
 
 	return Chain{
-		ID:                BlockchainID(b.ID),
+		ID:                ChainID(b.ID),
 		Blockchain:        b.Blockchain,
 		ChainID:           b.ChainID,
 		Description:       b.Description,
@@ -471,14 +471,14 @@ type (
 		WhitelistBlockchains []string             `json:"whitelistBlockchains,omitempty"`
 	}
 	WhitelistContracts struct {
-		ID           string   `json:"id,omitempty"`
-		BlockchainID string   `json:"blockchainID"`
-		Contracts    []string `json:"contracts"`
+		ID        string   `json:"id,omitempty"`
+		ChainID   string   `json:"chainID"`
+		Contracts []string `json:"contracts"`
 	}
 	WhitelistMethods struct {
-		ID           string   `json:"id,omitempty"`
-		BlockchainID string   `json:"blockchainID"`
-		Methods      []string `json:"methods"`
+		ID      string   `json:"id,omitempty"`
+		ChainID string   `json:"chainID"`
+		Methods []string `json:"methods"`
 	}
 	AppLimit struct {
 		ID          string  `json:"id,omitempty"`
@@ -518,7 +518,7 @@ type (
 		UpdatedAt         time.Time        `json:"updatedAt"`
 	}
 	Redirect struct {
-		BlockchainID   string    `json:"blockchainID,omitempty"`
+		ChainID        string    `json:"chainID,omitempty"`
 		Alias          string    `json:"alias"`
 		Domain         string    `json:"domain"`
 		LoadBalancerID string    `json:"loadBalancerID"`
@@ -526,10 +526,10 @@ type (
 		UpdatedAt      time.Time `json:"updatedAt"`
 	}
 	SyncCheckOptions struct {
-		BlockchainID string `json:"blockchainID,omitempty"`
-		Body         string `json:"body"`
-		ResultKey    string `json:"resultKey"`
-		Allowance    int    `json:"allowance"`
+		ChainID   string `json:"chainID,omitempty"`
+		Body      string `json:"body"`
+		ResultKey string `json:"resultKey"`
+		Allowance int    `json:"allowance"`
 	}
 
 	/* Update structs */

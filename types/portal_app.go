@@ -86,23 +86,23 @@ type (
 	}
 
 	Settings struct {
-		AppID                  PortalAppID               `json:"appID,omitempty"`
-		Environment            Environment               `json:"environment"`
-		SecretKey              string                    `json:"secretKey"`
-		SecretKeyRequired      bool                      `json:"secretKeyRequired"`
-		FavoritedBlockchainIDs map[BlockchainID]struct{} `json:"favoritedBlockchainIDs"`
+		AppID                  PortalAppID          `json:"appID,omitempty"`
+		Environment            Environment          `json:"environment"`
+		SecretKey              string               `json:"secretKey"`
+		SecretKeyRequired      bool                 `json:"secretKeyRequired"`
+		FavoritedBlockchainIDs map[ChainID]struct{} `json:"favoritedBlockchainIDs"`
 		// MonthlyRelayLimit sets the monthly limit per-application
 		// Sum of an Account's Apps MonthlyRelayLimits cannot exceed the Account's MonthlyRelayLimit
 		MonthlyRelayLimit int `json:"monthlyRelayLimit"`
 	}
 
 	Whitelists struct {
-		AppID       PortalAppID                            `json:"appID,omitempty"`
-		Origins     map[Origin]struct{}                    `json:"origins"`
-		UserAgents  map[UserAgent]struct{}                 `json:"userAgents"`
-		Blockchains map[BlockchainID]struct{}              `json:"blockchains"`
-		Contracts   map[BlockchainID]map[Contract]struct{} `json:"contracts"`
-		Methods     map[BlockchainID]map[Method]struct{}   `json:"methods"`
+		AppID       PortalAppID                       `json:"appID,omitempty"`
+		Origins     map[Origin]struct{}               `json:"origins"`
+		UserAgents  map[UserAgent]struct{}            `json:"userAgents"`
+		Blockchains map[ChainID]struct{}              `json:"blockchains"`
+		Contracts   map[ChainID]map[Contract]struct{} `json:"contracts"`
+		Methods     map[ChainID]map[Method]struct{}   `json:"methods"`
 	}
 
 	AppNotification struct {
@@ -127,8 +127,8 @@ type (
 		Values []BlockchainIDWhitelists `json:"values"`
 	}
 	BlockchainIDWhitelists struct {
-		BlockchainID string   `json:"blockchainID"`
-		Values       []string `json:"values"`
+		ChainID string   `json:"chainID"`
+		Values  []string `json:"values"`
 	}
 
 	// UpdatePortalApp Struct Definition and Methods
@@ -202,14 +202,14 @@ func (a *PortalApp) IsUserAgentWhitelisted(userAgent UserAgent) bool {
 }
 
 // IsBlockchainWhitelisted returns a boolean indicating whether the given BLOCKCHAIN is whitelisted for an application
-func (a *PortalApp) IsBlockchainWhitelisted(blockchain BlockchainID) bool {
+func (a *PortalApp) IsBlockchainWhitelisted(blockchain ChainID) bool {
 	_, ok := a.Whitelists.Blockchains[blockchain]
 	return ok
 }
 
 // IsContractWhitelisted returns a boolean indicating whether the given CONTRACT is whitelisted for a blockchain and application
-func (a *PortalApp) IsContractWhitelisted(blockchainID BlockchainID, contract Contract) bool {
-	if chainContracts, contractsOK := a.Whitelists.Contracts[blockchainID]; contractsOK {
+func (a *PortalApp) IsContractWhitelisted(chainID ChainID, contract Contract) bool {
+	if chainContracts, contractsOK := a.Whitelists.Contracts[chainID]; contractsOK {
 		if _, contractOK := chainContracts[contract]; contractOK {
 			return true
 		}
@@ -218,8 +218,8 @@ func (a *PortalApp) IsContractWhitelisted(blockchainID BlockchainID, contract Co
 }
 
 // IsMethodWhitelisted returns a boolean indicating whether the given METHOD is whitelisted for a blockchain and application
-func (a *PortalApp) IsMethodWhitelisted(blockchainID BlockchainID, method Method) bool {
-	if chainMethods, methodsOK := a.Whitelists.Methods[blockchainID]; methodsOK {
+func (a *PortalApp) IsMethodWhitelisted(chainID ChainID, method Method) bool {
+	if chainMethods, methodsOK := a.Whitelists.Methods[chainID]; methodsOK {
 		if _, methodOK := chainMethods[method]; methodOK {
 			return true
 		}
@@ -248,28 +248,28 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 
 	var contractWhitelists, methodWhitelists []BlockchainIDWhitelists // Chain whitelists
 
-	for blockchainID, chainContracts := range a.Whitelists.Contracts {
+	for chainID, chainContracts := range a.Whitelists.Contracts {
 		contracts := []string{}
 		for contract := range chainContracts {
 			contracts = append(contracts, string(contract))
 		}
 		sort.Strings(contracts)
-		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: contracts})
+		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{ChainID: string(chainID), Values: contracts})
 	}
 	sort.Slice(contractWhitelists, func(i, j int) bool {
-		return contractWhitelists[i].BlockchainID < contractWhitelists[j].BlockchainID
+		return contractWhitelists[i].ChainID < contractWhitelists[j].ChainID
 	})
 
-	for blockchainID, chainMethods := range a.Whitelists.Methods {
+	for chainID, chainMethods := range a.Whitelists.Methods {
 		methods := []string{}
 		for method := range chainMethods {
 			methods = append(methods, string(method))
 		}
 		sort.Strings(methods)
-		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{BlockchainID: string(blockchainID), Values: methods})
+		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{ChainID: string(chainID), Values: methods})
 	}
 	sort.Slice(methodWhitelists, func(i, j int) bool {
-		return methodWhitelists[i].BlockchainID < methodWhitelists[j].BlockchainID
+		return methodWhitelists[i].ChainID < methodWhitelists[j].ChainID
 	})
 
 	return &WhitelistsObject{
