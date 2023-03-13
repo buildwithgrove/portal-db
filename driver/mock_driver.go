@@ -114,13 +114,13 @@ func (_m *MockDriver) NotificationChannel() <-chan *types.Notification {
 	return r0
 }
 
-// ReadAccounts provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadAccounts(ctx context.Context) (map[types.AccountID]*types.Account, error) {
-	ret := _m.Called(ctx)
+// ReadAccounts provides a mock function with given fields: ctx, includeDeleted
+func (_m *MockDriver) ReadAccounts(ctx context.Context, includeDeleted bool) (map[types.AccountID]*types.Account, error) {
+	ret := _m.Called(ctx, includeDeleted)
 
 	var r0 map[types.AccountID]*types.Account
-	if rf, ok := ret.Get(0).(func(context.Context) map[types.AccountID]*types.Account); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, bool) map[types.AccountID]*types.Account); ok {
+		r0 = rf(ctx, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[types.AccountID]*types.Account)
@@ -128,8 +128,8 @@ func (_m *MockDriver) ReadAccounts(ctx context.Context) (map[types.AccountID]*ty
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, bool) error); ok {
+		r1 = rf(ctx, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -137,13 +137,13 @@ func (_m *MockDriver) ReadAccounts(ctx context.Context) (map[types.AccountID]*ty
 	return r0, r1
 }
 
-// ReadChains provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadChains(ctx context.Context) (map[types.ChainID]*types.Chain, error) {
-	ret := _m.Called(ctx)
+// ReadChains provides a mock function with given fields: ctx, includeDeleted
+func (_m *MockDriver) ReadChains(ctx context.Context, includeDeleted bool) (map[types.ChainID]*types.Chain, error) {
+	ret := _m.Called(ctx, includeDeleted)
 
 	var r0 map[types.ChainID]*types.Chain
-	if rf, ok := ret.Get(0).(func(context.Context) map[types.ChainID]*types.Chain); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, bool) map[types.ChainID]*types.Chain); ok {
+		r0 = rf(ctx, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[types.ChainID]*types.Chain)
@@ -151,8 +151,8 @@ func (_m *MockDriver) ReadChains(ctx context.Context) (map[types.ChainID]*types.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, bool) error); ok {
+		r1 = rf(ctx, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -183,13 +183,13 @@ func (_m *MockDriver) ReadPlans(ctx context.Context) (map[types.PayPlanType]*typ
 	return r0, r1
 }
 
-// ReadPortalApps provides a mock function with given fields: ctx
-func (_m *MockDriver) ReadPortalApps(ctx context.Context) (map[types.PortalAppID]*types.PortalApp, error) {
-	ret := _m.Called(ctx)
+// ReadPortalApps provides a mock function with given fields: ctx, includeDeleted
+func (_m *MockDriver) ReadPortalApps(ctx context.Context, includeDeleted bool) (map[types.PortalAppID]*types.PortalApp, error) {
+	ret := _m.Called(ctx, includeDeleted)
 
 	var r0 map[types.PortalAppID]*types.PortalApp
-	if rf, ok := ret.Get(0).(func(context.Context) map[types.PortalAppID]*types.PortalApp); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, bool) map[types.PortalAppID]*types.PortalApp); ok {
+		r0 = rf(ctx, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[types.PortalAppID]*types.PortalApp)
@@ -197,8 +197,8 @@ func (_m *MockDriver) ReadPortalApps(ctx context.Context) (map[types.PortalAppID
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, bool) error); ok {
+		r1 = rf(ctx, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

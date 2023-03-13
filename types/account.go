@@ -6,7 +6,7 @@ import "time"
 type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
-		ID                   int64                        `json:"id"`
+		ID                   AccountID                    `json:"id"`
 		Plan                 Plan                         `json:"payPlan"`
 		Users                map[UserID]AccountUserAccess `json:"users"`
 		PartnerBlockchainIDs map[ChainID]struct{}         `json:"partnerBlockchainIDs"`
