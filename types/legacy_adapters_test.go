@@ -176,9 +176,10 @@ var (
 		Staked:    false,
 		Account: &Account{
 			Plan: Plan{Type: FreetierV0},
-			Users: map[UserID]AccountUserAccess{
-				UserID("user_id_123"): {
-					User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: AuthProviderAuth0},
+			Users: map[Email]AccountUserAccess{
+				"test_owner@user.com": {
+					UserID:   "user_id_123",
+					Email:    "test_owner@user.com",
 					RoleName: RoleOwner,
 					Accepted: true,
 				},
@@ -282,7 +283,8 @@ var (
 	}
 
 	testV2AccountUserAccess = AccountUserAccess{
-		User:     User{ID: "test_user_789", Email: "test_admin@user.com", AuthProvider: AuthProviderAuth0},
+		UserID:   "test_user_789",
+		Email:    "test_admin@user.com",
 		RoleName: RoleAdmin,
 		Accepted: true,
 	}

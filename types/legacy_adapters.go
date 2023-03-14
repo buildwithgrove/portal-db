@@ -12,7 +12,7 @@ func (a *PortalApp) ConvertToLegacyLoadBalancer() LoadBalancer {
 		users = append(users, UserAccess{
 			UserID:   string(userID),
 			RoleName: accountUser.RoleName,
-			Email:    string(accountUser.User.Email),
+			Email:    string(accountUser.Email),
 			Accepted: accountUser.Accepted,
 		})
 	}
@@ -186,9 +186,10 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 		Gigastake: lb.Gigastake,
 		Account: &Account{
 			Plan: Plan{Type: app.Limit.Plan.Type},
-			Users: map[UserID]AccountUserAccess{
-				UserID(owner.UserID): {
-					User:     User{ID: UserID(owner.UserID), Email: Email(owner.Email), AuthProvider: AuthProviderAuth0},
+			Users: map[Email]AccountUserAccess{
+				Email(owner.Email): {
+					UserID:   UserID(owner.UserID),
+					Email:    Email(owner.Email),
 					RoleName: RoleOwner,
 					Accepted: true,
 				},
@@ -306,14 +307,16 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 
 func (u *UserAccess) ConvertToV2AccountUserAccess() AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: AuthProviderAuth0},
+		UserID:   UserID(u.UserID),
+		Email:    Email(u.Email),
 		RoleName: u.RoleName, Accepted: u.Accepted,
 	}
 }
 
 func (u *UpdateUserAccess) ConvertToV2UpdateAccountUserAccess(accepted bool) AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: AuthProviderAuth0},
+		UserID:   UserID(u.UserID),
+		Email:    Email(u.Email),
 		RoleName: u.RoleName, Accepted: accepted,
 	}
 }

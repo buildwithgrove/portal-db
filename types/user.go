@@ -100,16 +100,6 @@ var (
 	}
 )
 
-func (app *PortalApp) GetOwnerEmail() (Email, error) {
-	for _, userAccess := range app.Account.Users {
-		if userAccess.RoleName == RoleOwner {
-			return Email(userAccess.User.Email), nil
-		}
-	}
-
-	return "", ErrNoOwner
-}
-
 // UserPermissions stores all load balancer read/write permissions for a given user
 type (
 	UserPermissions struct {

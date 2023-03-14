@@ -205,16 +205,26 @@ func (a *PortalApp) LegacyDailyLimit() int32 {
 
 // UserID returns the UserID of the Application OWNER
 func (a *PortalApp) UserID() UserID {
-	for userID, user := range a.Account.Users {
+	for _, user := range a.Account.Users {
 		if user.RoleName == RoleOwner {
-			return userID
+			return user.UserID
 		}
 	}
 	return ""
 }
 
+func (a *PortalApp) GetOwnerEmail() (Email, error) {
+	for _, userAccess := range a.Account.Users {
+		if userAccess.RoleName == RoleOwner {
+			return Email(userAccess.Email), nil
+		}
+	}
+
+	return "", ErrNoOwner
+}
+
 // Users returns all Users for the PortalApp's Account
-func (a *PortalApp) Users() map[UserID]AccountUserAccess {
+func (a *PortalApp) Users() map[Email]AccountUserAccess {
 	return a.Account.Users
 }
 

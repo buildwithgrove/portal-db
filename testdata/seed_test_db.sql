@@ -91,6 +91,14 @@ VALUES (
         2,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'enterprise_plan',
+        ARRAY ['0001'],
+        1000,
+        2,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 -- Insert users
 INSERT INTO users (
@@ -180,6 +188,22 @@ VALUES (
         'username',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_rjviejk7f93kdf',
+        'user11@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_user_create_77fhgke',
+        'new_user@example.com',
+        'auth0',
+        'username',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 -- Insert user_roles
 INSERT INTO user_roles (
@@ -190,13 +214,13 @@ INSERT INTO user_roles (
     )
 VALUES (
         'OWNER',
-        ARRAY ['read:endpoint'::permissions, 'write:endpoint'::permissions, 'delete:endpoint'::permissions, 'transfer:endpoint'],
+        ARRAY ['read:endpoint'::permissions, 'write:endpoint'::permissions, 'delete:endpoint'::permissions, 'transfer:endpoint'::permissions],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
         'ADMIN',
-        ARRAY ['read:endpoint'::permissions, 'write:endpoint'],
+        ARRAY ['read:endpoint'::permissions, 'write:endpoint'::permissions],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -209,7 +233,7 @@ VALUES (
 -- Insert account_user_access
 INSERT INTO account_user_access (
         account_id,
-        user_id,
+        user_email,
         role_name,
         accepted,
         created_at,
@@ -217,7 +241,7 @@ INSERT INTO account_user_access (
     )
 VALUES (
         1,
-        'test_user_a06ab0cf00a714',
+        'user1@example.com',
         'OWNER',
         true,
         '2022-11-11 11:11:11.000000',
@@ -225,7 +249,7 @@ VALUES (
     ),
     (
         1,
-        'test_user_817516a5c3661b',
+        'user2@example.com',
         'ADMIN',
         true,
         '2022-11-11 11:11:11.000000',
@@ -233,7 +257,7 @@ VALUES (
     ),
     (
         2,
-        'test_user_1e58b747ca4ea0',
+        'user3@example.com',
         'OWNER',
         true,
         '2022-11-11 11:11:11.000000',
@@ -241,7 +265,7 @@ VALUES (
     ),
     (
         2,
-        'test_user_208ff0b4a1b9be',
+        'user4@example.com',
         'MEMBER',
         true,
         '2022-11-11 11:11:11.000000',
@@ -249,7 +273,7 @@ VALUES (
     ),
     (
         3,
-        'test_user_12de743291e750',
+        'user5@example.com',
         'OWNER',
         true,
         '2022-11-11 11:11:11.000000',
@@ -257,7 +281,7 @@ VALUES (
     ),
     (
         3,
-        'test_user_bf1ec64b1db1db',
+        'user6@example.com',
         'ADMIN',
         true,
         '2022-11-11 11:11:11.000000',
@@ -265,7 +289,7 @@ VALUES (
     ),
     (
         3,
-        'test_user_4e4dc3b9440ffb',
+        'user7@example.com',
         'MEMBER',
         true,
         '2022-11-11 11:11:11.000000',
@@ -273,7 +297,7 @@ VALUES (
     ),
     (
         1,
-        'test_user_4da2e080d893a2',
+        'user8@example.com',
         'ADMIN',
         false,
         '2022-11-11 11:11:11.000000',
@@ -281,7 +305,7 @@ VALUES (
     ),
     (
         2,
-        'test_user_2dd0d5ad5cdaa9',
+        'user9@example.com',
         'MEMBER',
         false,
         '2022-11-11 11:11:11.000000',
@@ -289,9 +313,17 @@ VALUES (
     ),
     (
         3,
-        'test_user_e071178370b597',
+        'user10@example.com',
         'MEMBER',
         false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        4,
+        'user11@example.com',
+        'OWNER',
+        true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );

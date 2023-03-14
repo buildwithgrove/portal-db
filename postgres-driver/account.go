@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/types"
@@ -86,27 +87,25 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		PartnerAppLimit:        a.PartnerApplicationLimit.Int32,
 		CreatedAt:              a.CreatedAt.UTC(),
 		UpdatedAt:              a.UpdatedAt.UTC(),
+		Deleted:                a.Deleted,
 	}, nil
 }
 
 // toAccountUsers converts users from DB rows to map-based Account.Users struct
-func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUserAccess, error) {
-	var users map[types.UserID]types.AccountUserAccess
+func (a *SelectAccountsRow) toAccountUsers() (map[types.Email]types.AccountUserAccess, error) {
+	var users map[types.Email]types.AccountUserAccess
 
 	var userRows []userAccessDBRow
 	if err := json.Unmarshal(a.Users, &userRows); err != nil {
 		return users, err
 	}
 
-	users = make(map[types.UserID]types.AccountUserAccess, len(userRows))
+	users = make(map[types.Email]types.AccountUserAccess, len(userRows))
 
 	for _, user := range userRows {
-		users[types.UserID(user.ID)] = types.AccountUserAccess{
-			User: types.User{
-				ID:           types.UserID(user.ID),
-				Email:        types.Email(user.Email),
-				AuthProvider: types.AuthProviders(user.AuthProvider),
-			},
+		users[types.Email(user.Email)] = types.AccountUserAccess{
+			UserID:   types.UserID(user.ID),
+			Email:    types.Email(user.Email),
 			RoleName: types.RoleName(user.RoleName),
 			Accepted: user.Accepted,
 		}
@@ -130,12 +129,14 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 	qtx := pg.WithTx(tx)
 
-	userExists, err := qtx.CheckUserExists(ctx, creatorID)
+	userEmail, err := qtx.CheckUserEmail(ctx, creatorID)
 	if err != nil {
-		return nil, err
-	}
-	if !userExists {
-		return nil, errUserDoesNotExist
+		switch {
+		case strings.Contains(err.Error(), "no rows in result set"):
+			return nil, errUserDoesNotExist
+		default:
+			return nil, err
+		}
 	}
 
 	// Account created with only PlanType
@@ -156,7 +157,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	// Account creator becomes Account OWNER
 	owner, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
 		AccountID: createdAccount.ID,
-		UserID:    creatorID,
+		UserEmail: userEmail,
 		RoleName:  types.RoleOwner,
 		Accepted:  true,
 		CreatedAt: createdAt,
@@ -173,12 +174,54 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	}
 
 	// Assign OWNER to returned Account struct
-	account.Users = map[types.UserID]types.AccountUserAccess{
-		owner.UserID: {
-			User:     types.User{ID: owner.UserID, Email: owner.Email, AuthProvider: owner.AuthProvider},
-			RoleName: owner.RoleName, Accepted: owner.Accepted,
+	account.Users = map[types.Email]types.AccountUserAccess{
+		owner.UserEmail: {
+			UserID:   types.UserID(owner.UserID),
+			Email:    owner.UserEmail,
+			RoleName: owner.RoleName,
+			Accepted: owner.Accepted,
 		},
 	}
 
 	return &account, nil
+}
+
+/* ----- postgresdriver Account Delete Methods ----- */
+
+// SetAccountDeleted updates a single Account in the database's Deleted field to true
+func (pg *PostgresDriver) SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error {
+	params := DeleteAccountParams{ID: accountID, DeletedAt: newSQLNullTime(deletedAt)}
+
+	err := pg.DeleteAccount(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/* ----- postgresdriver AccountUserAccess Write Methods ----- */
+
+// WriteAccountUser saves a single input AccountUserAccess to the database.
+func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, accountUser types.AccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+	params := InsertAccountUserAccessParams{
+		AccountID: accountUser.AccountID,
+		UserEmail: accountUser.Email,
+		RoleName:  accountUser.RoleName,
+		Accepted:  false,
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+	}
+
+	user, err := pg.InsertAccountUserAccess(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AccountUserAccess{
+		UserID:   types.UserID(user.UserID),
+		Email:    user.UserEmail,
+		RoleName: user.RoleName,
+		Accepted: user.Accepted,
+	}, nil
 }

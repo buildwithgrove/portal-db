@@ -252,11 +252,9 @@ SELECT a.*,
     json_agg(
         json_build_object(
             'user_id',
-            u.id,
+            COALESCE(u.id, ''),
             'email',
-            u.email,
-            'auth_provider',
-            u.auth_provider,
+            au.user_email,
             'accepted',
             au.accepted,
             'role_name',
@@ -266,7 +264,7 @@ SELECT a.*,
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
     LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
-    LEFT JOIN users AS u ON au.user_id = u.id
+    LEFT JOIN users AS u ON au.user_email = u.email
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
 WHERE (
         @include_deleted::BOOLEAN
@@ -287,32 +285,33 @@ INSERT INTO accounts (
     )
 VALUES ($1, $2, $3)
 RETURNING *;
--- name: CheckUserExists :one
-SELECT EXISTS(
-        SELECT 1
-        FROM users
-        WHERE id = $1
-    );
+-- name: CheckUserEmail :one
+SELECT email
+FROM users
+WHERE id = $1;
 -- name: InsertAccountUserAccess :one
 INSERT INTO account_user_access (
         account_id,
-        user_id,
+        user_email,
         role_name,
         accepted,
         created_at,
         updated_at
     )
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING account_user_access.user_id,
+RETURNING account_user_access.user_email,
     account_user_access.role_name,
     account_user_access.accepted,
-    (
-        SELECT email
-        FROM users
-        WHERE id = $2
-    ) AS email,
-    (
-        SELECT auth_provider
-        FROM users
-        WHERE id = $2
-    ) AS auth_provider;
+    COALESCE(
+        (
+            SELECT id
+            FROM users
+            WHERE email = $2
+        ),
+        ''
+    )::VARCHAR(320) AS user_id;
+-- name: DeleteAccount :exec
+UPDATE accounts
+SET deleted = true,
+    deleted_at = $2
+WHERE id = $1;

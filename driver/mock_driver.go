@@ -44,13 +44,13 @@ func (_m *MockDriver) ActivateChain(ctx context.Context, chainID types.ChainID, 
 	return r0
 }
 
-// DeleteAccount provides a mock function with given fields: ctx, account
-func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account) error {
-	ret := _m.Called(ctx, account)
+// DeleteAccount provides a mock function with given fields: ctx, account, deletedAt
+func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error {
+	ret := _m.Called(ctx, account, deletedAt)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Account) error); ok {
-		r0 = rf(ctx, account)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Account, time.Time) error); ok {
+		r0 = rf(ctx, account, deletedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -287,13 +287,13 @@ func (_m *MockDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, up
 	return r0
 }
 
-// WriteAccount provides a mock function with given fields: ctx, accountOwnerID, account, createdAt
-func (_m *MockDriver) WriteAccount(ctx context.Context, accountOwnerID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-	ret := _m.Called(ctx, accountOwnerID, account, createdAt)
+// WriteAccount provides a mock function with given fields: ctx, creatorID, account, createdAt
+func (_m *MockDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
+	ret := _m.Called(ctx, creatorID, account, createdAt)
 
 	var r0 *types.Account
 	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.Account, time.Time) *types.Account); ok {
-		r0 = rf(ctx, accountOwnerID, account, createdAt)
+		r0 = rf(ctx, creatorID, account, createdAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*types.Account)
@@ -302,7 +302,7 @@ func (_m *MockDriver) WriteAccount(ctx context.Context, accountOwnerID types.Use
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.UserID, types.Account, time.Time) error); ok {
-		r1 = rf(ctx, accountOwnerID, account, createdAt)
+		r1 = rf(ctx, creatorID, account, createdAt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -310,18 +310,27 @@ func (_m *MockDriver) WriteAccount(ctx context.Context, accountOwnerID types.Use
 	return r0, r1
 }
 
-// WriteAccountUser provides a mock function with given fields: ctx, portalAppID, accountUser
-func (_m *MockDriver) WriteAccountUser(ctx context.Context, portalAppID types.PortalAppID, accountUser types.AccountUserAccess) error {
-	ret := _m.Called(ctx, portalAppID, accountUser)
+// WriteAccountUser provides a mock function with given fields: ctx, accountUser, createdAt
+func (_m *MockDriver) WriteAccountUser(ctx context.Context, accountUser types.AccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+	ret := _m.Called(ctx, accountUser, createdAt)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.PortalAppID, types.AccountUserAccess) error); ok {
-		r0 = rf(ctx, portalAppID, accountUser)
+	var r0 *types.AccountUserAccess
+	if rf, ok := ret.Get(0).(func(context.Context, types.AccountUserAccess, time.Time) *types.AccountUserAccess); ok {
+		r0 = rf(ctx, accountUser, createdAt)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.AccountUserAccess)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.AccountUserAccess, time.Time) error); ok {
+		r1 = rf(ctx, accountUser, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // WriteChain provides a mock function with given fields: ctx, blockchain

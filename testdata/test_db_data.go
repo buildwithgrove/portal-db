@@ -27,7 +27,7 @@ var (
 			MonthlyRelayLimit: 5_000_000,
 			ThroughputLimit:   5_000,
 			AppLimit:          2,
-			LegacyDailyLimit:  1000,
+			LegacyDailyLimit:  1_000,
 		},
 		"pro_plan": {
 			Type:              "pro_plan",
@@ -67,10 +67,10 @@ var (
 		1: {
 			ID:   1,
 			Plan: PayPlans["basic_plan"],
-			Users: map[types.UserID]types.AccountUserAccess{
-				"test_user_a06ab0cf00a714": UserAccess["test_user_a06ab0cf00a714"],
-				"test_user_817516a5c3661b": UserAccess["test_user_817516a5c3661b"],
-				"test_user_4da2e080d893a2": UserAccess["test_user_4da2e080d893a2"],
+			Users: map[types.Email]types.AccountUserAccess{
+				"user1@example.com": UserAccess["user1@example.com"],
+				"user2@example.com": UserAccess["user2@example.com"],
+				"user8@example.com": UserAccess["user8@example.com"],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
 			PartnerThroughputLimit: 2_000,
@@ -81,10 +81,10 @@ var (
 		2: {
 			ID:   2,
 			Plan: PayPlans["pro_plan"],
-			Users: map[types.UserID]types.AccountUserAccess{
-				"test_user_1e58b747ca4ea0": UserAccess["test_user_1e58b747ca4ea0"],
-				"test_user_208ff0b4a1b9be": UserAccess["test_user_208ff0b4a1b9be"],
-				"test_user_2dd0d5ad5cdaa9": UserAccess["test_user_2dd0d5ad5cdaa9"],
+			Users: map[types.Email]types.AccountUserAccess{
+				"user3@example.com": UserAccess["user3@example.com"],
+				"user4@example.com": UserAccess["user4@example.com"],
+				"user9@example.com": UserAccess["user9@example.com"],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
@@ -95,11 +95,11 @@ var (
 		3: {
 			ID:   3,
 			Plan: PayPlans["startup_plan"],
-			Users: map[types.UserID]types.AccountUserAccess{
-				"test_user_12de743291e750": UserAccess["test_user_12de743291e750"],
-				"test_user_bf1ec64b1db1db": UserAccess["test_user_bf1ec64b1db1db"],
-				"test_user_4e4dc3b9440ffb": UserAccess["test_user_4e4dc3b9440ffb"],
-				"test_user_e071178370b597": UserAccess["test_user_e071178370b597"],
+			Users: map[types.Email]types.AccountUserAccess{
+				"user5@example.com":  UserAccess["user5@example.com"],
+				"user6@example.com":  UserAccess["user6@example.com"],
+				"user7@example.com":  UserAccess["user7@example.com"],
+				"user10@example.com": UserAccess["user10@example.com"],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
@@ -107,119 +107,59 @@ var (
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
+		4: {
+			ID:   4,
+			Plan: PayPlans["enterprise_plan"],
+			Users: map[types.Email]types.AccountUserAccess{
+				"user11@example.com": UserAccess["user11@example.com"],
+			},
+			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}},
+			PartnerThroughputLimit: 1_000,
+			PartnerAppLimit:        2,
+			CreatedAt:              MockTimestamp,
+			UpdatedAt:              MockTimestamp,
+		},
 
 		// This account used to test creation of Accounts
-		4: {
+		5: {
 			Plan:      PayPlans["developer_plan"],
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
 	}
 
-	UserAccess = map[types.UserID]types.AccountUserAccess{
-		"test_user_a06ab0cf00a714": {
-			User:     Users["test_user_a06ab0cf00a714"],
-			RoleName: types.RoleOwner,
-			Accepted: true,
-		},
-		"test_user_817516a5c3661b": {
-			User:     Users["test_user_817516a5c3661b"],
-			RoleName: types.RoleAdmin,
-			Accepted: true,
-		},
-		"test_user_1e58b747ca4ea0": {
-			User:     Users["test_user_1e58b747ca4ea0"],
-			RoleName: types.RoleOwner,
-			Accepted: true,
-		},
-		"test_user_208ff0b4a1b9be": {
-			User:     Users["test_user_208ff0b4a1b9be"],
-			RoleName: types.RoleMember,
-			Accepted: true,
-		},
-		"test_user_12de743291e750": {
-			User:     Users["test_user_12de743291e750"],
-			RoleName: types.RoleOwner,
-			Accepted: true,
-		},
-		"test_user_bf1ec64b1db1db": {
-			User:     Users["test_user_bf1ec64b1db1db"],
-			RoleName: types.RoleAdmin,
-			Accepted: true,
-		},
-		"test_user_4e4dc3b9440ffb": {
-			User:     Users["test_user_4e4dc3b9440ffb"],
-			RoleName: types.RoleMember,
-			Accepted: true,
-		},
-		"test_user_4da2e080d893a2": {
-			User:     Users["test_user_4da2e080d893a2"],
-			RoleName: types.RoleAdmin,
-			Accepted: false,
-		},
-		"test_user_2dd0d5ad5cdaa9": {
-			User:     Users["test_user_2dd0d5ad5cdaa9"],
-			RoleName: types.RoleMember,
-			Accepted: false,
-		},
-		"test_user_e071178370b597": {
-			User:     Users["test_user_e071178370b597"],
-			RoleName: types.RoleMember,
-			Accepted: false,
-		},
+	UserAccess = map[types.Email]types.AccountUserAccess{
+		"user1@example.com":  {UserID: "test_user_a06ab0cf00a714", Email: "user1@example.com", RoleName: types.RoleOwner, Accepted: true},
+		"user2@example.com":  {UserID: "test_user_817516a5c3661b", Email: "user2@example.com", RoleName: types.RoleAdmin, Accepted: true},
+		"user3@example.com":  {UserID: "test_user_1e58b747ca4ea0", Email: "user3@example.com", RoleName: types.RoleOwner, Accepted: true},
+		"user4@example.com":  {UserID: "test_user_208ff0b4a1b9be", Email: "user4@example.com", RoleName: types.RoleMember, Accepted: true},
+		"user5@example.com":  {UserID: "test_user_12de743291e750", Email: "user5@example.com", RoleName: types.RoleOwner, Accepted: true},
+		"user6@example.com":  {UserID: "test_user_bf1ec64b1db1db", Email: "user6@example.com", RoleName: types.RoleAdmin, Accepted: true},
+		"user7@example.com":  {UserID: "test_user_4e4dc3b9440ffb", Email: "user7@example.com", RoleName: types.RoleMember, Accepted: true},
+		"user8@example.com":  {UserID: "test_user_4da2e080d893a2", Email: "user8@example.com", RoleName: types.RoleAdmin, Accepted: false},
+		"user9@example.com":  {UserID: "test_user_2dd0d5ad5cdaa9", Email: "user9@example.com", RoleName: types.RoleMember, Accepted: false},
+		"user10@example.com": {UserID: "test_user_e071178370b597", Email: "user10@example.com", RoleName: types.RoleMember, Accepted: false},
+		"user11@example.com": {UserID: "test_user_rjviejk7f93kdf", Email: "user11@example.com", RoleName: types.RoleOwner, Accepted: true},
+		// Used to create a new AccountUserAccess row
+		"new_user@example.com": {UserID: "test_user_create_77fhgke", Email: "new_user@example.com", RoleName: types.RoleAdmin, Accepted: false},
+		// Used to create a new AccountUserAccess row for a user that hasn't signed up yet
+		"not_signed_up@example.com": {UserID: "", Email: "not_signed_up@example.com", RoleName: types.RoleMember, Accepted: false},
 	}
 
 	Users = map[types.UserID]types.User{
-		"test_user_a06ab0cf00a714": {
-			ID:           "test_user_a06ab0cf00a714",
-			Email:        "user1@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_817516a5c3661b": {
-			ID:           "test_user_817516a5c3661b",
-			Email:        "user2@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_1e58b747ca4ea0": {
-			ID:           "test_user_1e58b747ca4ea0",
-			Email:        "user3@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_208ff0b4a1b9be": {
-			ID:           "test_user_208ff0b4a1b9be",
-			Email:        "user4@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_12de743291e750": {
-			ID:           "test_user_12de743291e750",
-			Email:        "user5@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_bf1ec64b1db1db": {
-			ID:           "test_user_bf1ec64b1db1db",
-			Email:        "user6@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_4e4dc3b9440ffb": {
-			ID:           "test_user_4e4dc3b9440ffb",
-			Email:        "user7@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_4da2e080d893a2": {
-			ID:           "test_user_4da2e080d893a2",
-			Email:        "user8@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_2dd0d5ad5cdaa9": {
-			ID:           "test_user_2dd0d5ad5cdaa9",
-			Email:        "user9@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
-		"test_user_e071178370b597": {
-			ID:           "test_user_e071178370b597",
-			Email:        "user10@example.com",
-			AuthProvider: types.AuthProviderAuth0,
-		},
+		"test_user_a06ab0cf00a714": {ID: "test_user_a06ab0cf00a714", Email: "user1@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_817516a5c3661b": {ID: "test_user_817516a5c3661b", Email: "user2@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_1e58b747ca4ea0": {ID: "test_user_1e58b747ca4ea0", Email: "user3@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_208ff0b4a1b9be": {ID: "test_user_208ff0b4a1b9be", Email: "user4@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_12de743291e750": {ID: "test_user_12de743291e750", Email: "user5@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_bf1ec64b1db1db": {ID: "test_user_bf1ec64b1db1db", Email: "user6@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_4e4dc3b9440ffb": {ID: "test_user_4e4dc3b9440ffb", Email: "user7@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_4da2e080d893a2": {ID: "test_user_4da2e080d893a2", Email: "user8@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_2dd0d5ad5cdaa9": {ID: "test_user_2dd0d5ad5cdaa9", Email: "user9@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_e071178370b597": {ID: "test_user_e071178370b597", Email: "user10@example.com", AuthProvider: types.AuthProviderAuth0},
+		"test_user_rjviejk7f93kdf": {ID: "test_user_rjviejk7f93kdf", Email: "user11@example.com", AuthProvider: types.AuthProviderAuth0},
+		// Used to create a new AccountUserAccess row
+		"test_user_create_77fhgke": {ID: "test_user_create_77fhgke", Email: "new_user@example.com", AuthProvider: types.AuthProviderAuth0},
 	}
 
 	PortalApps = map[types.PortalAppID]*types.PortalApp{

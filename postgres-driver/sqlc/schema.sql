@@ -68,15 +68,15 @@ CREATE TABLE accounts (
 CREATE TABLE account_user_access (
     id SERIAL PRIMARY KEY,
     account_id SERIAL NOT NULL,
-    user_id VARCHAR(320) NOT NULL,
+    user_email VARCHAR(320) NOT NULL,
     role_name VARCHAR(25) NOT NULL,
     accepted BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT account_user_access_account_id_fk FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
-    CONSTRAINT account_user_access_user_id_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    -- CONSTRAINT account_user_access_user_email_fk FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE,
     CONSTRAINT account_user_access_user_roles_fk FOREIGN KEY (role_name) REFERENCES user_roles(role_name),
-    CONSTRAINT account_user_access_unique_account_user UNIQUE (account_id, user_id)
+    CONSTRAINT account_user_access_unique_account_user UNIQUE (account_id, user_email)
 );
 -- Chains Tables
 CREATE TABLE chains (

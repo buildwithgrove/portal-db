@@ -45,10 +45,10 @@ type (
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error)
 		/* DeleteAccount saves input Account to the database. */
-		DeleteAccount(ctx context.Context, account types.Account) error
+		DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error
 
 		/* WriteAccountUser saves input AccountUserAccess to the database. */
-		WriteAccountUser(ctx context.Context, portalAppID types.PortalAppID, accountUser types.AccountUserAccess) error
+		WriteAccountUser(ctx context.Context, accountUser types.AccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)
 		/* UpdateUserAccessRole updates the RoleName for an AccountUserAccess row. */
 		UpdateAccountUserRole(ctx context.Context, email types.Email, portalAppID types.PortalAppID, roleName types.RoleName) error
 		/* AcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */

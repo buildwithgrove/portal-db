@@ -24,14 +24,16 @@ var testPortalApplication = PortalApp{
 			ChainIDs:          map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 			LegacyDailyLimit:  250_000,
 		},
-		Users: map[UserID]AccountUserAccess{
-			"user_id_123": {
-				User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: AuthProviderAuth0},
+		Users: map[Email]AccountUserAccess{
+			"test_owner@user.com": {
+				UserID:   "user_id_123",
+				Email:    "test_owner@user.com",
 				RoleName: RoleOwner,
 				Accepted: true,
 			},
-			"user_id_456": {
-				User:     User{ID: "user_id_456", Email: "test_member@user.com", AuthProvider: AuthProviderAuth0},
+			"test_member@user.com": {
+				UserID:   "user_id_456",
+				Email:    "test_member@user.com",
 				RoleName: RoleMember,
 				Accepted: true,
 			},
