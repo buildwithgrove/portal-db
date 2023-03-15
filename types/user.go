@@ -14,17 +14,17 @@ var (
 
 /* Enums */
 type (
-	AuthProviders string
-	AuthSignIn    string
-	Permissions   string
-	RoleName      string
+	AuthProvider string
+	AuthType     string
+	Permissions  string
+	RoleName     string
 )
 
 const (
-	AuthProviderAuth0 AuthProviders = "auth0"
+	AuthProviderAuth0 AuthProvider = "auth0"
 
-	AuthSignInGitHub   AuthSignIn = "github"
-	AuthSignInUsername AuthSignIn = "username"
+	AuthTypeAuth0Github   AuthType = "auth0_github"
+	AuthTypeAuth0Username AuthType = "auth0_username"
 
 	PermReadEndpoint     Permissions = "read:endpoint"
 	PermWriteEndpoint    Permissions = "write:endpoint"
@@ -36,7 +36,7 @@ const (
 	RoleMember RoleName = "MEMBER"
 )
 
-func (a AuthProviders) IsValid() bool {
+func (a AuthProvider) IsValid() bool {
 	switch a {
 	case AuthProviderAuth0:
 		return true
@@ -45,9 +45,9 @@ func (a AuthProviders) IsValid() bool {
 	}
 }
 
-func (a AuthSignIn) IsValid() bool {
+func (a AuthType) IsValid() bool {
 	switch a {
-	case AuthSignInGitHub, AuthSignInUsername:
+	case AuthTypeAuth0Github, AuthTypeAuth0Username:
 		return true
 	default:
 		return false
@@ -76,11 +76,19 @@ func (r RoleName) IsValid() bool {
 type (
 	// User represents a single Portal user
 	User struct {
-		ID           UserID        `json:"id"`
-		Email        Email         `json:"email"`
-		AuthProvider AuthProviders `json:"authProvider"`
-		CreatedAt    time.Time     `json:"createdAt"`
-		UpdatedAt    time.Time     `json:"updatedAt"`
+		ID            UserID                        `json:"id"`
+		Email         Email                         `json:"email"`
+		SignedUp      bool                          `json:"signedUp"`
+		AuthProviders map[AuthType]UserAuthProvider `json:"authProviders"`
+		CreatedAt     time.Time                     `json:"createdAt"`
+		UpdatedAt     time.Time                     `json:"updatedAt"`
+	}
+
+	// UserAuthProvider represents a single auth provider for a user (eg. Auth0)
+	UserAuthProvider struct {
+		ProviderUserID string       `json:"providerUserID"`
+		Provider       AuthProvider `json:"provider"`
+		Federated      bool         `json:"federated"`
 	}
 )
 
@@ -103,16 +111,6 @@ var (
 	}
 )
 
-func (app *PortalApp) GetOwnerEmail() (Email, error) {
-	for _, userAccess := range app.Account.Users {
-		if userAccess.RoleName == RoleOwner {
-			return Email(userAccess.User.Email), nil
-		}
-	}
-
-	return "", ErrNoOwner
-}
-
 // UserPermissions stores all load balancer read/write permissions for a given user
 type (
 	UserPermissions struct {
@@ -127,7 +125,7 @@ type (
 )
 
 func (u *UserPermissions) IsEmpty() bool {
-	if u.UserID == UserID("") || len(u.PortalApps) == 0 {
+	if u.UserID == UserID(0) || len(u.PortalApps) == 0 {
 		return true
 	}
 	return false

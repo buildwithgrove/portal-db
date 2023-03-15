@@ -210,7 +210,18 @@ func (a *PortalApp) UserID() UserID {
 			return userID
 		}
 	}
-	return ""
+	return UserID(0)
+}
+
+// GetOwnerEmail returns the Email of the Application OWNER
+func (app *PortalApp) GetOwnerEmail() (Email, error) {
+	for _, userAccess := range app.Account.Users {
+		if userAccess.RoleName == RoleOwner {
+			return Email(userAccess.Email), nil
+		}
+	}
+
+	return "", ErrNoOwner
 }
 
 // Users returns all Users for the PortalApp's Account

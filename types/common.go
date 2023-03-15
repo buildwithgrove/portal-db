@@ -3,10 +3,10 @@ package types
 /* String ID types */
 type (
 	AccountID   int32
+	UserID      int32
 	ChainID     string
 	Email       string
 	PortalAppID string
-	UserID      string
 )
 
 /* Config Structs */

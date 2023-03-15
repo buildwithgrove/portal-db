@@ -177,8 +177,9 @@ var (
 		Account: &Account{
 			Plan: Plan{Type: FreetierV0},
 			Users: map[UserID]AccountUserAccess{
-				UserID("user_id_123"): {
-					User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: AuthProviderAuth0},
+				1: {
+					UserID:   1,
+					Email:    "test_owner@user.com",
 					RoleName: RoleOwner,
 					Accepted: true,
 				},
@@ -282,9 +283,12 @@ var (
 	}
 
 	testV2AccountUserAccess = AccountUserAccess{
-		User:     User{ID: "test_user_789", Email: "test_admin@user.com", AuthProvider: AuthProviderAuth0},
+		UserID:   2,
+		Email:    "test_admin@user.com",
 		RoleName: RoleAdmin,
 		Accepted: true,
+		// TODO legacy field
+		ProviderUserIDs: []string{"test_user_789"},
 	}
 )
 
@@ -378,17 +382,19 @@ func Test_LegacyAdapators_ConvertToV2PortalApp(t *testing.T) {
 	tests := []struct {
 		name                string
 		loadBalancer        LoadBalancer
+		accountID           AccountID
 		expectedV2PortalApp PortalApp
 	}{
 		{
 			name:                "Should convert a legacy Blockchain struct to a V2 Chain struct",
 			loadBalancer:        testLegacyLoadBalancer,
+			accountID:           1,
 			expectedV2PortalApp: testV2CreatePortalApp,
 		},
 	}
 
 	for _, test := range tests {
-		v2PortalApp := test.loadBalancer.ConvertToV2PortalApp()
+		v2PortalApp := test.loadBalancer.ConvertToV2PortalApp(test.accountID)
 		c.Equal(test.expectedV2PortalApp, v2PortalApp)
 	}
 }

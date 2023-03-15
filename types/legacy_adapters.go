@@ -12,7 +12,7 @@ func (a *PortalApp) ConvertToLegacyLoadBalancer() LoadBalancer {
 		users = append(users, UserAccess{
 			UserID:   string(userID),
 			RoleName: accountUser.RoleName,
-			Email:    string(accountUser.User.Email),
+			Email:    string(accountUser.Email),
 			Accepted: accountUser.Accepted,
 		})
 	}
@@ -176,7 +176,7 @@ func (c *Plan) ConvertToLegacyPayPlan() PayPlan {
 // Creates the struct with all fields needed to create a new PortalApp
 // LoadBalancer must be sent to PHD containing its Application already defined inside PUB
 // This way the PortalApp can be created in only one operation (no PHD client changes needed)
-func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
+func (lb *LoadBalancer) ConvertToV2PortalApp(accountID AccountID) PortalApp {
 	app := lb.Applications[0]
 	owner := lb.Users[0]
 
@@ -184,16 +184,7 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 		ID:        "", // generate ID inside postgresdriver (same ID as LoadBalancer)
 		Name:      lb.Name,
 		Gigastake: lb.Gigastake,
-		Account: &Account{
-			Plan: Plan{Type: app.Limit.Plan.Type},
-			Users: map[UserID]AccountUserAccess{
-				UserID(owner.UserID): {
-					User:     User{ID: UserID(owner.UserID), Email: Email(owner.Email), AuthProvider: AuthProviderAuth0},
-					RoleName: RoleOwner,
-					Accepted: true,
-				},
-			},
-		},
+		AccountID: accountID,
 		AAT: AAT{
 			Address:         app.GatewayAAT.Address,
 			PublicKey:       app.GatewayAAT.ApplicationPublicKey,
@@ -306,15 +297,22 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 
 func (u *UserAccess) ConvertToV2AccountUserAccess() AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: AuthProviderAuth0},
-		RoleName: u.RoleName, Accepted: u.Accepted,
+		UserID:   UserID(0), // TODO figure this out
+		Email:    Email(u.Email),
+		RoleName: u.RoleName,
+		Accepted: u.Accepted,
+		// TODO legacy field
+		ProviderUserIDs: []string{u.UserID},
 	}
 }
 
 func (u *UpdateUserAccess) ConvertToV2UpdateAccountUserAccess(accepted bool) AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: AuthProviderAuth0},
-		RoleName: u.RoleName, Accepted: accepted,
+		UserID:   UserID(0), // TODO figure this out
+		Email:    Email(u.Email),
+		RoleName: u.RoleName,
+		// TODO legacy field
+		ProviderUserIDs: []string{u.UserID},
 	}
 }
 

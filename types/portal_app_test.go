@@ -21,22 +21,28 @@ var testPortalApplication = PortalApp{
 			MonthlyRelayLimit: 2_500_000,
 			ThroughputLimit:   2_000,
 			AppLimit:          2,
-			BlockchainIDs:     map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+			ChainIDs:          map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 			LegacyDailyLimit:  250_000,
 		},
 		Users: map[UserID]AccountUserAccess{
-			"user_id_123": {
-				User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: AuthProviderAuth0},
+			1: {
+				UserID:   1,
+				Email:    "test_owner@user.com",
 				RoleName: RoleOwner,
 				Accepted: true,
+				// TODO legacy field
+				ProviderUserIDs: []string{"user_id_123"},
 			},
-			"user_id_456": {
-				User:     User{ID: "user_id_456", Email: "test_member@user.com", AuthProvider: AuthProviderAuth0},
+			2: {
+				UserID:   2,
+				Email:    "test_member@user.com",
 				RoleName: RoleMember,
 				Accepted: true,
+				// TODO legacy field
+				ProviderUserIDs: []string{"user_id_456"},
 			},
 		},
-		PartnerBlockchainIDs:   map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		PartnerChainIDs:        map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 		PartnerThroughputLimit: 2_000,
 		PartnerAppLimit:        2,
 	},
