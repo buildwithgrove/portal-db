@@ -12,7 +12,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_6774900350d9c42": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
 		},
 	},
@@ -21,11 +21,11 @@ var testUserPermissions = map[UserID]UserPermissions{
 		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_6774900350d9c42": {
 				RoleName:    RoleAdmin,
-				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint},
+				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
 			},
 			"test_app_be591c4dea8566a": {
 				RoleName:    RoleMember,
-				Permissions: []PermissionsEnum{PermReadEndpoint},
+				Permissions: []Permissions{PermReadEndpoint},
 			},
 		},
 	},
@@ -34,7 +34,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 		PortalApps: map[PortalAppID]PortalAppPermissions{
 			"test_app_3487u329rfn23f": {
 				RoleName:    RoleOwner,
-				Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
 		},
 	},
@@ -98,11 +98,11 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_6774900350d9c42": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
 					"test_new_portal_app": {
 						RoleName:    RoleAdmin,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
 					},
 				},
 			},
@@ -117,11 +117,11 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_6774900350d9c42": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
 					"test_new_portal_app": {
 						RoleName:    RoleMember,
-						Permissions: []PermissionsEnum{PermReadEndpoint},
+						Permissions: []Permissions{PermReadEndpoint},
 					},
 				},
 			},
@@ -171,7 +171,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 				PortalApps: map[PortalAppID]PortalAppPermissions{
 					"test_app_3487u329rfn23f": {
 						RoleName:    RoleOwner,
-						Permissions: []PermissionsEnum{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
 				},
 			},
@@ -208,7 +208,7 @@ func Test_UserPermissions_HasPermission_Read(t *testing.T) {
 		{
 			name:              "Should return a boolean indicating whether a given user has read permission for a given load balancer",
 			userID:            "test_user_687463gh2h72gs",
-			portalAppID:       "test_app_3487u329rfn23f",
+			portalAppID:       "test_app_3487u329rfn23f9",
 			hasReadPermission: false,
 		},
 		{
@@ -245,13 +245,13 @@ func Test_UserPermissions_HasPermission_Write(t *testing.T) {
 		{
 			name:              "Should return a boolean indicating whether a given user has write permission for a given load balancer",
 			userID:            "test_user_687463gh2h72gs",
-			portalAppID:       "test_app_3487u329rfn23f",
+			portalAppID:       "test_app_3487u329rfn23f9",
 			hasReadPermission: false,
 		},
 		{
 			name:              "Should return a boolean indicating whether a given user has write permission for a given load balancer",
 			userID:            "test_user_774900350d9c43",
-			portalAppID:       "test_app_3487u329rfn23f",
+			portalAppID:       "test_app_3487u329rfn23f9",
 			hasReadPermission: true,
 		},
 	}
@@ -282,13 +282,13 @@ func Test_UserPermissions_HasPermission_Delete(t *testing.T) {
 		{
 			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
 			userID:              "test_user_687463gh2h72gs",
-			portalAppID:         "test_app_3487u329rfn23f",
+			portalAppID:         "test_app_3487u329rfn23f9",
 			hasDeletePermission: false,
 		},
 		{
 			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
 			userID:              "test_user_774900350d9c43",
-			portalAppID:         "test_app_3487u329rfn23f",
+			portalAppID:         "test_app_3487u329rfn23f9",
 			hasDeletePermission: true,
 		},
 	}
@@ -318,13 +318,13 @@ func Test_UserPermissions_HasPermission_Transfer(t *testing.T) {
 		{
 			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
 			userID:              "test_user_687463gh2h72gs",
-			portalAppID:         "test_app_3487u329rfn23f",
+			portalAppID:         "test_app_3487u329rfn23f9",
 			hasDeletePermission: false,
 		},
 		{
 			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
 			userID:              "test_user_774900350d9c43",
-			portalAppID:         "test_app_3487u329rfn23f",
+			portalAppID:         "test_app_3487u329rfn23f9",
 			hasDeletePermission: true,
 		},
 	}

@@ -7,50 +7,78 @@ import (
 
 /* Enums */
 type (
-	Environment string
-
-	NotificationType  string
+	Environment       string
 	NotificationEvent string
-
-	Origin    string
-	UserAgent string
-	Method    string
-	Contract  string
-
-	AppWhitelistType   string
-	ChainWhitelistType string
+	NotificationType  string
+	WhitelistType     string
 )
 
 const (
-	EnvProduction Environment = "production"
-	EnvTest       Environment = "test"
+	EnvironmentProduction Environment = "production"
+	EnvironmentTest       Environment = "test"
 
-	NotificationEmail   NotificationType = "email"
-	NotificationWebhook NotificationType = "webhook"
-	NotificationPortal  NotificationType = "portal"
+	NotificationEventFull          NotificationEvent = "full"
+	NotificationEventHalf          NotificationEvent = "half"
+	NotificationEventQuarter       NotificationEvent = "quarter"
+	NotificationEventSignedUp      NotificationEvent = "signedUp"
+	NotificationEventThreeQuarters NotificationEvent = "threeQuarters"
 
-	EventSignedUp      NotificationEvent = "signedUp"
-	EventQuarter       NotificationEvent = "quarter"
-	EventHalf          NotificationEvent = "half"
-	EventThreeQuarters NotificationEvent = "threeQuarters"
-	EventFull          NotificationEvent = "full"
+	NotificationTypeEmail   NotificationType = "email"
+	NotificationTypePortal  NotificationType = "portal"
+	NotificationTypeWebhook NotificationType = "webhook"
 
-	WLOrigins     AppWhitelistType = "origins"
-	WLBlockchains AppWhitelistType = "blockchains"
-	WLUserAgents  AppWhitelistType = "userAgents"
-
-	WLMethods   ChainWhitelistType = "methods"
-	WLContracts ChainWhitelistType = "contracts"
+	WhitelistTypeOrigins     WhitelistType = "origins"
+	WhitelistTypeBlockchains WhitelistType = "blockchains"
+	WhitelistTypeUserAgents  WhitelistType = "userAgents"
+	WhitelistTypeContracts   WhitelistType = "contracts"
+	WhitelistTypeMethods     WhitelistType = "methods"
 )
+
+func (e Environment) IsValid() bool {
+	switch e {
+	case EnvironmentProduction, EnvironmentTest:
+		return true
+	default:
+		return false
+	}
+}
+
+func (n NotificationEvent) IsValid() bool {
+	switch n {
+	case NotificationEventFull, NotificationEventHalf, NotificationEventQuarter, NotificationEventSignedUp, NotificationEventThreeQuarters:
+		return true
+	default:
+		return false
+	}
+}
+
+func (n NotificationType) IsValid() bool {
+	switch n {
+	case NotificationTypeEmail, NotificationTypePortal, NotificationTypeWebhook:
+		return true
+	default:
+		return false
+	}
+}
+
+func (w WhitelistType) IsValid() bool {
+	switch w {
+	case WhitelistTypeBlockchains, WhitelistTypeContracts, WhitelistTypeMethods, WhitelistTypeOrigins, WhitelistTypeUserAgents:
+		return true
+	default:
+		return false
+	}
+}
 
 /* PortalApp Struct Definition and Methods */
 type (
 	// PortalApp represents a single application in the Portal
 	PortalApp struct {
-		ID            string                               `json:"id"`
+		ID            PortalAppID                          `json:"id"`
 		Name          string                               `json:"name"`
 		Gigastake     bool                                 `json:"gigastake"`
 		Staked        bool                                 `json:"staked"`
+		AccountID     AccountID                            `json:"accountID"`
 		Account       *Account                             `json:"account"`
 		AAT           AAT                                  `json:"aat"`
 		Settings      Settings                             `json:"settings"`
@@ -58,6 +86,7 @@ type (
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
+		Deleted       bool                                 `json:"deleted"`
 		// TODO - remove when v2 migration finished
 		// Fields required for compatibility with the old Portal API and Services (temporary)
 		LegacyFields LegacyFields `json:"legacyFields"`
@@ -66,10 +95,9 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		PortalAppID        string        `json:"applicationID"`
-		CustomLimit        int           `json:"customLimit"`
-		DailyLimit         int           `json:"dailyLimit"`
-		RequestTimeout     int           `json:"requestTimeout"`
+		ApplicationIDs     []string      `json:"applicationID"`
+		CustomLimit        int32         `json:"customLimit"`
+		RequestTimeout     int32         `json:"requestTimeout"`
 		GigastakeRedirect  bool          `json:"gigastakeRedirect"`
 		FirstDateSurpassed time.Time     `json:"firstDateSurpassed"`
 		StickyOptions      StickyOptions `json:"stickyOptions"`
@@ -86,14 +114,14 @@ type (
 	}
 
 	Settings struct {
-		AppID                  PortalAppID          `json:"appID,omitempty"`
-		Environment            Environment          `json:"environment"`
-		SecretKey              string               `json:"secretKey"`
-		SecretKeyRequired      bool                 `json:"secretKeyRequired"`
-		FavoritedBlockchainIDs map[ChainID]struct{} `json:"favoritedBlockchainIDs"`
+		AppID             PortalAppID          `json:"appID,omitempty"`
+		Environment       Environment          `json:"environment"`
+		SecretKey         string               `json:"secretKey"`
+		SecretKeyRequired bool                 `json:"secretKeyRequired"`
+		FavoritedChainIDs map[ChainID]struct{} `json:"favoritedBlockchainIDs"`
 		// MonthlyRelayLimit sets the monthly limit per-application
 		// Sum of an Account's Apps MonthlyRelayLimits cannot exceed the Account's MonthlyRelayLimit
-		MonthlyRelayLimit int `json:"monthlyRelayLimit"`
+		MonthlyRelayLimit int32 `json:"monthlyRelayLimit"`
 	}
 
 	Whitelists struct {
@@ -114,16 +142,17 @@ type (
 	}
 
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
+	// It is also used to update Whitelists for an app (sent from Portal UI to PUB to PHD)
 	WhitelistsObject struct {
 		AppWhitelists   [3]ApplicationWhitelists `json:"appWhitelists"`
 		ChainWhitelists [2]ChainWhitelists       `json:"chainWhitelists"`
 	}
 	ApplicationWhitelists struct {
-		Type   AppWhitelistType `json:"type"`
-		Values []string         `json:"values"`
+		Type   WhitelistType `json:"type"`
+		Values []string      `json:"values"`
 	}
 	ChainWhitelists struct {
-		Type   ChainWhitelistType       `json:"type"`
+		Type   WhitelistType            `json:"type"`
 		Values []BlockchainIDWhitelists `json:"values"`
 	}
 	BlockchainIDWhitelists struct {
@@ -133,11 +162,11 @@ type (
 
 	// UpdatePortalApp Struct Definition and Methods
 	UpdatePortalApp struct {
-		AppID         PortalAppID             `json:"appID,omitempty"`
-		Name          string                  `json:"name,omitempty"`
-		Settings      *UpdateAppSettings      `json:"appSettings,omitempty"`
-		Notifications *UpdateAppNotifications `json:"notificationSettings,omitempty"`
-		Whitelists    *WhitelistsObject       `json:"whitelists,omitempty"`
+		AppID         PortalAppID              `json:"appID,omitempty"`
+		Name          string                   `json:"name,omitempty"`
+		Settings      *UpdateAppSettings       `json:"appSettings,omitempty"`
+		Notifications []UpdateAppNotifications `json:"notificationSettings,omitempty"`
+		Whitelists    *WhitelistsObject        `json:"whitelists,omitempty"`
 	}
 
 	UpdateAppSettings struct {
@@ -145,27 +174,32 @@ type (
 		Environment       Environment `json:"environment"`
 		SecretKey         string      `json:"secretKey"`
 		SecretKeyRequired bool        `json:"secretKeyRequired"`
-		MonthlyRelayLimit int         `json:"monthlyRelayLimit"`
+		MonthlyRelayLimit int32       `json:"monthlyRelayLimit"`
 		FavoritedChainIDs []string    `json:"favoritedChainIDs"`
 	}
 
 	UpdateAppNotifications struct {
-		AppID            PortalAppID                `json:"appID,omitempty"`
-		NotificationType NotificationType           `json:"notificationType"`
-		Active           *bool                      `json:"active"`
-		Destination      string                     `json:"destination"`
-		Trigger          string                     `json:"trigger"`
-		Events           map[NotificationEvent]bool `json:"events"`
+		AppID            string              `json:"appID,omitempty"`
+		NotificationType NotificationType    `json:"notificationType"`
+		Active           bool                `json:"active"`
+		Destination      string              `json:"destination"`
+		Trigger          string              `json:"trigger"`
+		Events           []NotificationEvent `json:"events"`
 	}
 
 	UpdateFirstDateSurpassed struct {
-		ApplicationIDs     []string  `json:"applicationIDs"`
+		PortalAppIDs       []string  `json:"applicationIDs"`
 		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
 	}
+
+	Origin    string
+	UserAgent string
+	Method    string
+	Contract  string
 )
 
 // LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
-func (a *PortalApp) LegacyDailyLimit() int {
+func (a *PortalApp) LegacyDailyLimit() int32 {
 	return a.Account.Plan.LegacyDailyLimit
 }
 
@@ -185,7 +219,7 @@ func (a *PortalApp) Users() map[UserID]AccountUserAccess {
 }
 
 // MonthlyLimit returns the monthly relay limit for a given application
-func (a *PortalApp) MonthlyLimit() int {
+func (a *PortalApp) MonthlyLimit() int32 {
 	return a.Settings.MonthlyRelayLimit
 }
 
@@ -274,13 +308,13 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 
 	return &WhitelistsObject{
 		AppWhitelists: [3]ApplicationWhitelists{
-			{Type: WLOrigins, Values: origins},
-			{Type: WLUserAgents, Values: userAgents},
-			{Type: WLBlockchains, Values: blockchains},
+			{Type: WhitelistTypeOrigins, Values: origins},
+			{Type: WhitelistTypeUserAgents, Values: userAgents},
+			{Type: WhitelistTypeBlockchains, Values: blockchains},
 		},
 		ChainWhitelists: [2]ChainWhitelists{
-			{Type: WLContracts, Values: contractWhitelists},
-			{Type: WLMethods, Values: methodWhitelists},
+			{Type: WhitelistTypeContracts, Values: contractWhitelists},
+			{Type: WhitelistTypeMethods, Values: methodWhitelists},
 		},
 	}
 }

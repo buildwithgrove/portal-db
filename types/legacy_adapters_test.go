@@ -178,7 +178,7 @@ var (
 			Plan: Plan{Type: FreetierV0},
 			Users: map[UserID]AccountUserAccess{
 				UserID("user_id_123"): {
-					User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: ProviderAuth0},
+					User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: AuthProviderAuth0},
 					RoleName: RoleOwner,
 					Accepted: true,
 				},
@@ -192,12 +192,12 @@ var (
 			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 			Version:         "0.0.1",
 		},
-		Settings: Settings{Environment: EnvProduction, SecretKey: "test_90210ac4bdd3423e24877d1ff92"},
+		Settings: Settings{Environment: EnvironmentProduction, SecretKey: "test_90210ac4bdd3423e24877d1ff92"},
 		Notifications: map[NotificationType]AppNotification{
-			NotificationEmail: {
+			NotificationTypeEmail: {
 				Active:      true,
 				Destination: "test_owner@user.com",
-				Events:      map[NotificationEvent]bool{EventFull: false, EventHalf: false, EventQuarter: true, EventSignedUp: true, EventThreeQuarters: true},
+				Events:      map[NotificationEvent]bool{NotificationEventFull: false, NotificationEventHalf: false, NotificationEventQuarter: true, NotificationEventSignedUp: true, NotificationEventThreeQuarters: true},
 			},
 		},
 		LegacyFields: LegacyFields{
@@ -211,25 +211,27 @@ var (
 		AppID:    "test_5416bb8d696386455b8",
 		Name:     "test_portal_app_123",
 		Settings: &UpdateAppSettings{SecretKey: "test_90210ac4bdd3423e24877d1ff92", SecretKeyRequired: false},
-		Notifications: &UpdateAppNotifications{
-			NotificationType: NotificationEmail,
-			Events:           map[NotificationEvent]bool{EventSignedUp: true, EventQuarter: true, EventHalf: false, EventThreeQuarters: true, EventFull: false},
+		Notifications: []UpdateAppNotifications{
+			{
+				NotificationType: NotificationTypeEmail,
+				Events:           []NotificationEvent{NotificationEventSignedUp, NotificationEventQuarter, NotificationEventHalf, NotificationEventThreeQuarters, NotificationEventFull},
+			},
 		},
 		Whitelists: &WhitelistsObject{
 			AppWhitelists: [3]ApplicationWhitelists{
-				{Type: WLOrigins, Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
-				{Type: WLUserAgents, Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
-				{Type: WLBlockchains, Values: []string{"0001", "0002", "003E", "0056"}},
+				{Type: WhitelistTypeOrigins, Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
+				{Type: WhitelistTypeUserAgents, Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
+				{Type: WhitelistTypeBlockchains, Values: []string{"0001", "0002", "003E", "0056"}},
 			},
 			ChainWhitelists: [2]ChainWhitelists{
-				{Type: WLContracts, Values: []BlockchainIDWhitelists{
+				{Type: WhitelistTypeContracts, Values: []BlockchainIDWhitelists{
 					{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
 					{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
 					{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
 					{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 				},
 				},
-				{Type: WLMethods, Values: []BlockchainIDWhitelists{
+				{Type: WhitelistTypeMethods, Values: []BlockchainIDWhitelists{
 					{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
 					{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
 					{ChainID: "003E", Values: []string{"GET"}},
@@ -251,12 +253,12 @@ var (
 		Active:            true,
 		Altruists:         []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
 		Checks: map[ChainCheckType]Check{
-			CheckSync: {
+			ChainCheckTypeSync: {
 				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
 				ResultKey: "testing",
 				Allowance: 1,
 			},
-			CheckChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
+			ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
 		},
 	}
 
@@ -270,17 +272,17 @@ var (
 		LogLimitBlocks:    100_000,
 		Altruists:         []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
 		Checks: map[ChainCheckType]UpdateCheck{
-			CheckSync: {
+			ChainCheckTypeSync: {
 				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
 				ResultKey: "testing",
 				Allowance: &allowanceInt,
 			},
-			CheckChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
+			ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
 		},
 	}
 
 	testV2AccountUserAccess = AccountUserAccess{
-		User:     User{ID: "test_user_789", Email: "test_admin@user.com", AuthProvider: ProviderAuth0},
+		User:     User{ID: "test_user_789", Email: "test_admin@user.com", AuthProvider: AuthProviderAuth0},
 		RoleName: RoleAdmin,
 		Accepted: true,
 	}
@@ -307,23 +309,23 @@ func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
 	}
 }
 
-func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
+func Test_LegacyAdapators_ConvertToLegacyApplications(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
 		name                      string
 		portalApp                 PortalApp
-		expectedLegacyApplication Application
+		expectedLegacyApplication []*Application
 	}{
 		{
 			name:                      "Should convert a V2 PortalApp struct to a legacy Application struct",
 			portalApp:                 testPortalApplication,
-			expectedLegacyApplication: testLegacyApplication,
+			expectedLegacyApplication: []*Application{&testLegacyApplication},
 		},
 	}
 
 	for _, test := range tests {
-		legacyApplication := test.portalApp.ConvertToLegacyApplication()
+		legacyApplication := test.portalApp.ConvertToLegacyApplications()
 		c.Equal(test.expectedLegacyApplication, legacyApplication)
 	}
 }

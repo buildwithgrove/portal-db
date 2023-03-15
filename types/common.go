@@ -2,12 +2,19 @@ package types
 
 /* String ID types */
 type (
-	AccountID   string
+	AccountID   int32
 	ChainID     string
 	Email       string
 	PortalAppID string
 	UserID      string
 )
+
+/* Config Structs */
+
+// Provides options for passing to Driver interface methods
+type DriverOptions struct {
+	IncludeDeleted bool
+}
 
 /* Listener types */
 type (
@@ -36,10 +43,10 @@ const (
 
 	TablePayPlans Table = "pay_plans"
 
-	TableBlockchains              Table = "blockchains"
-	TableChainAltruists           Table = "blockchain_altruists"
-	TableChainGigastakesRedirects Table = "blockchain_gigastake_redirects"
-	TableChainChecks              Table = "blockchain_checks"
+	TableBlockchains              Table = "chains"
+	TableChainAltruists           Table = "chain_altruists"
+	TableChainGigastakesRedirects Table = "chain_gigastake_redirects"
+	TableChainChecks              Table = "chain_checks"
 
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 

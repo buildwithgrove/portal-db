@@ -6,10 +6,8 @@ import "time"
 type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
-		ID   AccountID `json:"id"`
-		Plan Plan      `json:"payPlan"`
-		// TODO: would this be needed?
-		Apps                 map[PortalAppID]*PortalApp   `json:"apps"`
+		ID                   AccountID                    `json:"id"`
+		Plan                 Plan                         `json:"payPlan"`
 		Users                map[UserID]AccountUserAccess `json:"users"`
 		PartnerBlockchainIDs map[ChainID]struct{}         `json:"partnerBlockchainIDs"`
 		// PartnerThroughputLimit is the number of relays per second for an accounts partners

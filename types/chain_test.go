@@ -18,17 +18,17 @@ var (
 			{
 				URL:      "https://user:test_123@pokt-test.us-1.pokt.network:1234",
 				Auth:     "auth_123",
-				AuthType: ChainAuthBearer,
+				AuthType: ChainAuthTypeBearerToken,
 			},
 		},
 		Redirects: []GigastakeRedirect{testRedirect},
 		Checks: map[ChainCheckType]Check{
-			CheckSync: {
+			ChainCheckTypeSync: {
 				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
 				ResultKey: "testing",
 				Allowance: 1,
 			},
-			CheckChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
+			ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
 		},
 
 		CreatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),

@@ -13,7 +13,9 @@ var testPortalApplication = PortalApp{
 	ID:        "test_5416bb8d696386455b8",
 	Name:      "test_portal_app_123",
 	Gigastake: true,
+	AccountID: 1,
 	Account: &Account{
+		ID: 1,
 		Plan: Plan{
 			Type:              FreetierV0,
 			MonthlyRelayLimit: 2_500_000,
@@ -24,12 +26,12 @@ var testPortalApplication = PortalApp{
 		},
 		Users: map[UserID]AccountUserAccess{
 			"user_id_123": {
-				User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: ProviderAuth0},
+				User:     User{ID: "user_id_123", Email: "test_owner@user.com", AuthProvider: AuthProviderAuth0},
 				RoleName: RoleOwner,
 				Accepted: true,
 			},
 			"user_id_456": {
-				User:     User{ID: "user_id_456", Email: "test_member@user.com", AuthProvider: ProviderAuth0},
+				User:     User{ID: "user_id_456", Email: "test_member@user.com", AuthProvider: AuthProviderAuth0},
 				RoleName: RoleMember,
 				Accepted: true,
 			},
@@ -47,11 +49,11 @@ var testPortalApplication = PortalApp{
 		Version:         "0.0.1",
 	},
 	Settings: Settings{
-		Environment:            EnvProduction,
-		SecretKey:              "test_90210ac4bdd3423e24877d1ff92",
-		SecretKeyRequired:      true,
-		MonthlyRelayLimit:      250_000,
-		FavoritedBlockchainIDs: map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		Environment:       EnvironmentProduction,
+		SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
+		SecretKeyRequired: true,
+		MonthlyRelayLimit: 250_000,
+		FavoritedChainIDs: map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 	},
 	Whitelists: Whitelists{
 		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
@@ -71,7 +73,7 @@ var testPortalApplication = PortalApp{
 		},
 	},
 	Notifications: map[NotificationType]AppNotification{
-		NotificationEmail: {
+		NotificationTypeEmail: {
 			Active: true, Destination: "test@user.com", Trigger: "what_am_i", // TODO what is trigger?
 			Events: map[NotificationEvent]bool{
 				"signedUp":      true,
@@ -79,7 +81,7 @@ var testPortalApplication = PortalApp{
 				"threeQuarters": true,
 			},
 		},
-		NotificationWebhook: {
+		NotificationTypeWebhook: {
 			Active: false, Destination: "https://wh.destination.io", Trigger: "what_am_i",
 			Events: map[NotificationEvent]bool{
 				"signedUp": true,
@@ -91,7 +93,7 @@ var testPortalApplication = PortalApp{
 	UpdatedAt: time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
 
 	LegacyFields: LegacyFields{
-		PortalAppID:        "test_475jf893f9j2f30jd230e",
+		ApplicationIDs:     []string{"test_475jf893f9j2f30jd230e"},
 		CustomLimit:        0,
 		RequestTimeout:     5_000,
 		GigastakeRedirect:  true,

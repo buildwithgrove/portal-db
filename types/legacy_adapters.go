@@ -18,27 +18,24 @@ func (a *PortalApp) ConvertToLegacyLoadBalancer() LoadBalancer {
 	}
 	sortUsersByRole(users)
 
-	application := a.ConvertToLegacyApplication()
-
 	return LoadBalancer{
-		ID:           a.ID,
+		ID:           string(a.ID),
 		Name:         a.Name,
 		UserID:       string(a.UserID()),
 		Gigastake:    a.Gigastake,
-		Applications: []*Application{&application},
+		Applications: a.ConvertToLegacyApplications(),
 		Users:        users,
 		CreatedAt:    a.CreatedAt,
 		UpdatedAt:    a.UpdatedAt,
 
-		RequestTimeout:    a.LegacyFields.RequestTimeout,
+		RequestTimeout:    int(a.LegacyFields.RequestTimeout),
 		GigastakeRedirect: a.LegacyFields.GigastakeRedirect,
 		StickyOptions:     a.LegacyFields.StickyOptions,
 	}
 }
 
-func (a *PortalApp) ConvertToLegacyApplication() Application {
-	return Application{
-		ID:     a.LegacyFields.PortalAppID,
+func (a *PortalApp) ConvertToLegacyApplications() []*Application {
+	appDetails := &Application{
 		UserID: string(a.UserID()),
 		Name:   a.Name,
 		GatewayAAT: GatewayAAT{
@@ -53,21 +50,31 @@ func (a *PortalApp) ConvertToLegacyApplication() Application {
 		Limit: AppLimit{
 			Plan: PayPlan{
 				Type:  a.Account.Plan.Type,
-				Limit: a.LegacyDailyLimit(),
+				Limit: int(a.LegacyDailyLimit()),
 			},
-			CustomLimit: a.LegacyFields.CustomLimit,
+			CustomLimit: int(a.LegacyFields.CustomLimit),
 		},
 		NotificationSettings: NotificationSettings{
-			SignedUp:      a.Notifications[NotificationEmail].Events[EventSignedUp],
-			Quarter:       a.Notifications[NotificationEmail].Events[EventQuarter],
-			Half:          a.Notifications[NotificationEmail].Events[EventHalf],
-			ThreeQuarters: a.Notifications[NotificationEmail].Events[EventThreeQuarters],
-			Full:          a.Notifications[NotificationEmail].Events[EventFull],
+			SignedUp:      a.Notifications[NotificationTypeEmail].Events[NotificationEventSignedUp],
+			Quarter:       a.Notifications[NotificationTypeEmail].Events[NotificationEventQuarter],
+			Half:          a.Notifications[NotificationTypeEmail].Events[NotificationEventHalf],
+			ThreeQuarters: a.Notifications[NotificationTypeEmail].Events[NotificationEventThreeQuarters],
+			Full:          a.Notifications[NotificationTypeEmail].Events[NotificationEventFull],
 		},
 		FirstDateSurpassed: a.LegacyFields.FirstDateSurpassed,
 		CreatedAt:          a.CreatedAt,
 		UpdatedAt:          a.UpdatedAt,
 	}
+
+	var applications []*Application
+	for _, id := range a.LegacyFields.ApplicationIDs {
+		application := appDetails
+		application.ID = id
+
+		applications = append(applications, application)
+	}
+
+	return applications
 }
 
 func (a *PortalApp) ConvertToLegacyGatewaySettings() GatewaySettings {
@@ -136,7 +143,7 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
 		ChainID:           c.ChainID,
-		ChainIDCheck:      c.Checks[CheckChain].Payload,
+		ChainIDCheck:      c.Checks[ChainCheckTypeChain].Payload,
 		Description:       c.Description,
 		EnforceResult:     c.EnforceResult,
 		Path:              c.Path,
@@ -147,9 +154,9 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 		Active:            c.Active,
 		Altruist:          c.Altruists[0].URL,
 		SyncCheckOptions: SyncCheckOptions{
-			Body:      c.Checks[CheckSync].Payload,
-			ResultKey: c.Checks[CheckSync].ResultKey,
-			Allowance: c.Checks[CheckSync].Allowance,
+			Body:      c.Checks[ChainCheckTypeSync].Payload,
+			ResultKey: c.Checks[ChainCheckTypeSync].ResultKey,
+			Allowance: c.Checks[ChainCheckTypeSync].Allowance,
 		},
 		Redirects: redirects,
 		CreatedAt: c.CreatedAt,
@@ -160,7 +167,7 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 func (c *Plan) ConvertToLegacyPayPlan() PayPlan {
 	return PayPlan{
 		Type:  c.Type,
-		Limit: c.LegacyDailyLimit,
+		Limit: int(c.LegacyDailyLimit),
 	}
 }
 
@@ -181,7 +188,7 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 			Plan: Plan{Type: app.Limit.Plan.Type},
 			Users: map[UserID]AccountUserAccess{
 				UserID(owner.UserID): {
-					User:     User{ID: UserID(owner.UserID), Email: Email(owner.Email), AuthProvider: ProviderAuth0},
+					User:     User{ID: UserID(owner.UserID), Email: Email(owner.Email), AuthProvider: AuthProviderAuth0},
 					RoleName: RoleOwner,
 					Accepted: true,
 				},
@@ -196,26 +203,26 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 			Version:         app.GatewayAAT.Version,
 		},
 		Settings: Settings{
-			Environment: EnvProduction,
+			Environment: EnvironmentProduction,
 			SecretKey:   app.GatewaySettings.SecretKey,
 		},
 		Notifications: map[NotificationType]AppNotification{
-			NotificationEmail: {
+			NotificationTypeEmail: {
 				Active:      true,
 				Destination: owner.Email,
 				Events: map[NotificationEvent]bool{
-					EventSignedUp:      app.NotificationSettings.SignedUp,
-					EventQuarter:       app.NotificationSettings.Quarter,
-					EventHalf:          app.NotificationSettings.Half,
-					EventThreeQuarters: app.NotificationSettings.ThreeQuarters,
-					EventFull:          app.NotificationSettings.Full,
+					NotificationEventSignedUp:      app.NotificationSettings.SignedUp,
+					NotificationEventQuarter:       app.NotificationSettings.Quarter,
+					NotificationEventHalf:          app.NotificationSettings.Half,
+					NotificationEventThreeQuarters: app.NotificationSettings.ThreeQuarters,
+					NotificationEventFull:          app.NotificationSettings.Full,
 				},
 			},
 		},
 
 		LegacyFields: LegacyFields{
-			PortalAppID:       "", // generate ID inside postgres driver (same ID as Application)
-			RequestTimeout:    lb.RequestTimeout,
+			ApplicationIDs:    []string{}, // generate ID inside postgres driver (same ID as Application)
+			RequestTimeout:    int32(lb.RequestTimeout),
 			GigastakeRedirect: lb.GigastakeRedirect,
 			StickyOptions:     lb.StickyOptions,
 		},
@@ -228,21 +235,32 @@ func (lb *LoadBalancer) ConvertToV2PortalApp() PortalApp {
 func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) UpdatePortalApp {
 	var (
 		settings                             *UpdateAppSettings
-		notifications                        *UpdateAppNotifications
+		notifications                        []UpdateAppNotifications
 		whitelists                           *WhitelistsObject
 		contractWhitelists, methodWhitelists []BlockchainIDWhitelists
 	)
 
 	if u.NotificationSettings != nil {
-		notifications = &UpdateAppNotifications{
-			NotificationType: NotificationEmail,
-			Events: map[NotificationEvent]bool{
-				EventSignedUp:      *u.NotificationSettings.SignedUp,
-				EventQuarter:       *u.NotificationSettings.Quarter,
-				EventHalf:          *u.NotificationSettings.Half,
-				EventThreeQuarters: *u.NotificationSettings.ThreeQuarters,
-				EventFull:          *u.NotificationSettings.Full,
-			},
+		notificationEvents := []NotificationEvent{}
+
+		if u.NotificationSettings.SignedUp != nil && *u.NotificationSettings.SignedUp {
+			notificationEvents = append(notificationEvents, NotificationEventSignedUp)
+		}
+		if u.NotificationSettings.Quarter != nil && *u.NotificationSettings.Quarter {
+			notificationEvents = append(notificationEvents, NotificationEventQuarter)
+		}
+		if u.NotificationSettings.Half != nil && *u.NotificationSettings.Half {
+			notificationEvents = append(notificationEvents, NotificationEventHalf)
+		}
+		if u.NotificationSettings.ThreeQuarters != nil && *u.NotificationSettings.ThreeQuarters {
+			notificationEvents = append(notificationEvents, NotificationEventThreeQuarters)
+		}
+		if u.NotificationSettings.Full != nil && *u.NotificationSettings.Full {
+			notificationEvents = append(notificationEvents, NotificationEventFull)
+		}
+
+		notifications = []UpdateAppNotifications{
+			{NotificationType: NotificationTypeEmail, Events: notificationEvents},
 		}
 	}
 
@@ -269,13 +287,13 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 
 		whitelists = &WhitelistsObject{
 			AppWhitelists: [3]ApplicationWhitelists{
-				{Type: WLOrigins, Values: u.GatewaySettings.WhitelistOrigins},
-				{Type: WLUserAgents, Values: u.GatewaySettings.WhitelistUserAgents},
-				{Type: WLBlockchains, Values: u.GatewaySettings.WhitelistBlockchains},
+				{Type: WhitelistTypeOrigins, Values: u.GatewaySettings.WhitelistOrigins},
+				{Type: WhitelistTypeUserAgents, Values: u.GatewaySettings.WhitelistUserAgents},
+				{Type: WhitelistTypeBlockchains, Values: u.GatewaySettings.WhitelistBlockchains},
 			},
 			ChainWhitelists: [2]ChainWhitelists{
-				{Type: WLContracts, Values: contractWhitelists},
-				{Type: WLMethods, Values: methodWhitelists},
+				{Type: WhitelistTypeContracts, Values: contractWhitelists},
+				{Type: WhitelistTypeMethods, Values: methodWhitelists},
 			},
 		}
 	}
@@ -288,28 +306,28 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 
 func (u *UserAccess) ConvertToV2AccountUserAccess() AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: ProviderAuth0},
+		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: AuthProviderAuth0},
 		RoleName: u.RoleName, Accepted: u.Accepted,
 	}
 }
 
 func (u *UpdateUserAccess) ConvertToV2UpdateAccountUserAccess(accepted bool) AccountUserAccess {
 	return AccountUserAccess{
-		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: ProviderAuth0},
+		User:     User{ID: UserID(u.UserID), Email: Email(u.Email), AuthProvider: AuthProviderAuth0},
 		RoleName: u.RoleName, Accepted: accepted,
 	}
 }
 
 func (b *Blockchain) ConvertToV2Chain() Chain {
 	checks := map[ChainCheckType]Check{
-		CheckSync: {
+		ChainCheckTypeSync: {
 			Payload:   b.SyncCheckOptions.Body,
 			ResultKey: b.SyncCheckOptions.ResultKey,
 			Allowance: b.SyncCheckOptions.Allowance,
 		},
 	}
 	if b.ChainIDCheck != "" {
-		checks[CheckChain] = Check{Payload: b.ChainIDCheck}
+		checks[ChainCheckTypeChain] = Check{Payload: b.ChainIDCheck}
 	}
 
 	return Chain{
@@ -331,10 +349,10 @@ func (b *Blockchain) ConvertToV2Chain() Chain {
 
 func (u *UpdateBlockchain) ConvertToV2UpdateChain() UpdateChain {
 	checks := map[ChainCheckType]UpdateCheck{
-		CheckSync: {Payload: u.Body, ResultKey: u.ResultKey, Allowance: u.Allowance},
+		ChainCheckTypeSync: {Payload: u.Body, ResultKey: u.ResultKey, Allowance: u.Allowance},
 	}
 	if u.ChainIDCheck != "" {
-		checks[CheckChain] = UpdateCheck{Payload: u.ChainIDCheck}
+		checks[ChainCheckTypeChain] = UpdateCheck{Payload: u.ChainIDCheck}
 	}
 
 	return UpdateChain{
