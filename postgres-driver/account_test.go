@@ -170,6 +170,89 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 		})
 	}
 }
+func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
+	tests := []struct {
+		name                    string
+		updateAccountUser       types.UpdateAccountUserRole
+		accountUsersAfterUpdate map[types.UserID]types.AccountUserAccess
+		testCreatedTime         time.Time
+		err                     error
+	}{
+		{
+			name: "Should update an existing AccountUserAccess row's role to non-OWNER role",
+			updateAccountUser: types.UpdateAccountUserRole{
+				AccountID: 3,
+				UserID:    7,
+				RoleName:  types.RoleAdmin,
+			},
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
+				5:  testdata.AccountUserAccess[5],
+				6:  testdata.AccountUserAccess[6],
+				10: testdata.AccountUserAccess[12],
+				7: {
+					UserID:          7,
+					Email:           "frodo.baggins123@test.com",
+					RoleName:        types.RoleAdmin,
+					Accepted:        true,
+					ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|frodo_baggins"},
+				},
+			},
+			testCreatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name: "Should transfer the OWNER of an Account",
+			updateAccountUser: types.UpdateAccountUserRole{
+				AccountID: 2,
+				UserID:    4,
+				RoleName:  types.RoleOwner,
+			},
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
+				9: testdata.AccountUserAccess[9],
+				2: testdata.AccountUserAccess[10],
+				3: {
+					UserID:          3,
+					Email:           "ellen.ripley789@test.com",
+					RoleName:        types.RoleAdmin,
+					Accepted:        true,
+					ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ellen_ripley"},
+				},
+				4: {
+					UserID:          4,
+					Email:           "ulfric.stormcloak123@test.com",
+					RoleName:        types.RoleOwner,
+					Accepted:        true,
+					ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"},
+				},
+			},
+			testCreatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name: "Should fail if User is not a member of an Account",
+			updateAccountUser: types.UpdateAccountUserRole{
+				AccountID: 2,
+				UserID:    512,
+				RoleName:  types.RoleMember,
+			},
+			testCreatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errAccountUserDoesntExist.Error(), 512, 2),
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			err := ts.driver.SetAccountUserRole(context.Background(), test.updateAccountUser, test.testCreatedTime)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+				ts.Equal(test.err, err)
+				ts.Equal(test.accountUsersAfterUpdate, accounts[test.updateAccountUser.AccountID].Users)
+			}
+		})
+	}
+}
 
 // func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
 // 	tests := []struct {

@@ -28,10 +28,17 @@ type (
 		ProviderUserIDs map[AuthType]string `json:"providerUserIDs"`
 	}
 
-	// CreateAccountUserAccess represents a single Portal user's role for a single Account
+	// CreateAccountUserAccess contains all fields required to create a new Account User
 	CreateAccountUserAccess struct {
 		AccountID AccountID `json:"accountID"`
 		Email     Email     `json:"email"`
+		RoleName  RoleName  `json:"roleName"`
+	}
+
+	// UpdateAccountUserRole contains all fields required to update an Account User's Role
+	UpdateAccountUserRole struct {
+		UserID    UserID    `json:"userID"`
+		AccountID AccountID `json:"accountID"`
 		RoleName  RoleName  `json:"roleName"`
 	}
 )

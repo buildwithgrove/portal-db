@@ -61,6 +61,8 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/types.PayPlanType"
           - column: "account_user_access.account_id"
             go_type: "github.com/pokt-foundation/portal-db/types.AccountID"
+          - column: "account_user_access.user_id"
+            go_type: "github.com/pokt-foundation/portal-db/types.UserID"
           - column: "account_user_access.role_name"
             go_type: "github.com/pokt-foundation/portal-db/types.RoleName"
           - column: "users.id"

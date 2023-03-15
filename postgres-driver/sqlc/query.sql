@@ -310,6 +310,13 @@ SELECT EXISTS(
         FROM users
         WHERE id = $1
     );
+-- name: CheckAccountUserExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM account_user_access
+        WHERE user_id = $1
+            AND account_id = $2
+    );
 -- name: InsertAccountUserAccess :one
 INSERT INTO account_user_access (
         account_id,
@@ -374,6 +381,23 @@ RETURNING account_user_access.user_id,
         SELECT email
         FROM inserted_user
     ) AS user_email;
+-- name: UpdateAccountUserRole :exec
+UPDATE account_user_access
+SET role_name = $3,
+    updated_at = $4
+WHERE account_id = $1
+    AND user_id = $2;
+-- name: UpdateAccountOwnerToAdmin :exec
+UPDATE account_user_access
+SET role_name = 'ADMIN'
+WHERE account_user_access.account_id = $1
+    AND role_name = 'OWNER'
+    AND user_id = (
+        SELECT user_id
+        FROM account_user_access
+        WHERE account_id = $1
+            AND role_name = 'OWNER'
+    );
 -- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)

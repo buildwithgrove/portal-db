@@ -23,6 +23,7 @@ type (
 
 var (
 	errAccountMustHavePlanTypeSet = errors.New("error account input does not have a plan type set")
+	errAccountUserDoesntExist     = errors.New("error user ID '%d' does not exist for account ID '%d'")
 )
 
 /* ----- postgresdriver Account Read Methods ----- */
@@ -155,7 +156,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	// Account creator becomes Account OWNER
 	owner, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
 		AccountID: createdAccount.ID,
-		UserID:    int32(creatorID),
+		UserID:    creatorID,
 		RoleName:  types.RoleOwner,
 		Accepted:  true,
 		CreatedAt: createdAt,
@@ -238,7 +239,11 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUse
 
 // writeAccountUserAccessNoUser creates a new User in the database and then creates a new AccountUserAccess for that user & account
 // Called when a user is invited to a new team but does not yet have a Portal Account for the provided email
-func (pg *PostgresDriver) writeAccountUserAccessNoUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+func (pg *PostgresDriver) writeAccountUserAccessNoUser(
+	ctx context.Context,
+	createAccountUser types.CreateAccountUserAccess,
+	createdAt time.Time,
+) (*types.AccountUserAccess, error) {
 	params := InsertAccountUserAccessNoUserParams{
 		AccountID: createAccountUser.AccountID,
 		Email:     createAccountUser.Email,
@@ -260,11 +265,16 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(ctx context.Context, crea
 	}, nil
 }
 
-// writeAccountUserAccessNoUser creates a new AccountUserAccess for an existing user & account
+// writeAccountUserAccessNoUser creates a new AccountUserAccess row for an existing user & account
 // Called when an existing Portal user is invited to a new team
-func (pg *PostgresDriver) writeAccountUserAccess(ctx context.Context, userID types.UserID, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+func (pg *PostgresDriver) writeAccountUserAccess(
+	ctx context.Context,
+	userID types.UserID,
+	createAccountUser types.CreateAccountUserAccess,
+	createdAt time.Time,
+) (*types.AccountUserAccess, error) {
 	params := InsertAccountUserAccessParams{
-		UserID:    int32(userID),
+		UserID:    userID,
 		AccountID: createAccountUser.AccountID,
 		RoleName:  createAccountUser.RoleName,
 		Accepted:  false,
@@ -289,4 +299,60 @@ func (pg *PostgresDriver) writeAccountUserAccess(ctx context.Context, userID typ
 		Accepted:        user.Accepted,
 		ProviderUserIDs: providerUserIDs,
 	}, nil
+}
+
+/* ----- postgresdriver AccountUserAccess Update Methods ----- */
+
+// SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin.
+func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error {
+	tx, err := pg.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	qtx := pg.WithTx(tx)
+
+	existsParams := CheckAccountUserExistsParams{UserID: updateAccountUser.UserID, AccountID: updateAccountUser.AccountID}
+	accountUserExists, err := qtx.CheckAccountUserExists(ctx, existsParams)
+	if err != nil {
+		return err
+	}
+	if !accountUserExists {
+		return fmt.Errorf(errAccountUserDoesntExist.Error(), updateAccountUser.UserID, updateAccountUser.AccountID)
+	}
+
+	// if transferring ownership of an account the former OWNER becomes an ADMIN
+	if updateAccountUser.RoleName == types.RoleOwner {
+		err := qtx.UpdateAccountOwnerToAdmin(ctx, updateAccountUser.AccountID)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+
+	params := UpdateAccountUserRoleParams{
+		AccountID: updateAccountUser.AccountID,
+		UserID:    updateAccountUser.UserID,
+		RoleName:  updateAccountUser.RoleName,
+		UpdatedAt: updatedAt,
+	}
+
+	err = qtx.UpdateAccountUserRole(ctx, params)
+	if err != nil {
+		_ = tx.Rollback()
+
+		switch err {
+		case sql.ErrNoRows:
+			return fmt.Errorf(errUserDoesntExist.Error(), updateAccountUser.UserID)
+		default:
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
