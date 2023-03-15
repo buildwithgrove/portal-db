@@ -28,6 +28,21 @@ func (q *Queries) CheckUserEmail(ctx context.Context, id types.UserID) (types.Em
 	return email, err
 }
 
+const checkUserExists = `-- name: CheckUserExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM users
+        WHERE id = $1
+    )
+`
+
+func (q *Queries) CheckUserExists(ctx context.Context, id types.UserID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUserExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createUserNewSignUp = `-- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)
@@ -82,7 +97,7 @@ func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSign
 	return user_id, err
 }
 
-const createUserSignedUp = `-- name: CreateUserSignedUp :exec
+const createUserProviderSignedUp = `-- name: CreateUserProviderSignedUp :one
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (
             user_id,
@@ -108,9 +123,13 @@ WHERE id = (
         SELECT user_id
         FROM inserted_provider
     )
+RETURNING (
+        SELECT user_id
+        FROM inserted_provider
+    ) as user_id
 `
 
-type CreateUserSignedUpParams struct {
+type CreateUserProviderSignedUpParams struct {
 	UserID         types.UserID       `json:"userID"`
 	Type           types.AuthType     `json:"type"`
 	Provider       types.AuthProvider `json:"provider"`
@@ -118,15 +137,17 @@ type CreateUserSignedUpParams struct {
 	Federated      bool               `json:"federated"`
 }
 
-func (q *Queries) CreateUserSignedUp(ctx context.Context, arg CreateUserSignedUpParams) error {
-	_, err := q.db.ExecContext(ctx, createUserSignedUp,
+func (q *Queries) CreateUserProviderSignedUp(ctx context.Context, arg CreateUserProviderSignedUpParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, createUserProviderSignedUp,
 		arg.UserID,
 		arg.Type,
 		arg.Provider,
 		arg.ProviderUserID,
 		arg.Federated,
 	)
-	return err
+	var user_id int32
+	err := row.Scan(&user_id)
+	return user_id, err
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
@@ -161,6 +182,18 @@ type DeletePortalAppParams struct {
 func (q *Queries) DeletePortalApp(ctx context.Context, arg DeletePortalAppParams) error {
 	_, err := q.db.ExecContext(ctx, deletePortalApp, arg.ID, arg.DeletedAt)
 	return err
+}
+
+const deleteUser = `-- name: DeleteUser :one
+DELETE FROM users
+WHERE id = $1
+RETURNING id
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) (types.UserID, error) {
+	row := q.db.QueryRowContext(ctx, deleteUser, id)
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getPortalUserID = `-- name: GetPortalUserID :one

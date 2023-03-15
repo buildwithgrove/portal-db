@@ -245,13 +245,6 @@ VALUES (
         'auth0_username',
         'auth0|tyrion_lannister',
         false
-    ),
-    (
-        10,
-        'auth0',
-        'auth0_username',
-        'auth0|daenerys_targaryen',
-        false
     );
     -- Insert user_roles
 INSERT INTO user_roles (

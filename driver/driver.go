@@ -47,8 +47,10 @@ type (
 		// TODO legacy method - determine if still needed and remove if not when V2 migration completed
 		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
 
-		/* WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input*/
+		/* WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input. */
 		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) error
+		/* WriteUserProviderSignedUp creates a new portal UserAuthProvider in the DB when a user accepts their team invite. */
+		WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error)
 
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, account types.Account) error

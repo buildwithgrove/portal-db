@@ -305,6 +305,12 @@ INSERT
     OR
 UPDATE
     OR DELETE ON users FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER user_auth_providers_notify_event
+AFTER
+INSERT
+    OR
+UPDATE
+    OR DELETE ON user_auth_providers FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER user_roles_notify_event
 AFTER
 INSERT

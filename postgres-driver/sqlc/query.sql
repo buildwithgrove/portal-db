@@ -283,6 +283,12 @@ WHERE id = $1;
 SELECT email
 FROM users
 WHERE id = $1;
+-- name: CheckUserExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM users
+        WHERE id = $1
+    );
 -- name: InsertAccountUserAccess :one
 INSERT INTO account_user_access (
         account_id,
@@ -361,7 +367,7 @@ RETURNING (
         SELECT id
         FROM inserted_user
     ) as user_id;
--- name: CreateUserSignedUp :exec
+-- name: CreateUserProviderSignedUp :one
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (
             user_id,
@@ -386,7 +392,11 @@ SET signed_up = true
 WHERE id = (
         SELECT user_id
         FROM inserted_provider
-    );
+    )
+RETURNING (
+        SELECT user_id
+        FROM inserted_provider
+    ) as user_id;
 -- name: GetPortalUserID :one
 SELECT user_id
 FROM user_auth_providers
@@ -405,3 +415,7 @@ FROM users
     LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
 WHERE user_auth_providers.provider_user_id = $1
 GROUP BY users.id;
+-- name: DeleteUser :one
+DELETE FROM users
+WHERE id = $1
+RETURNING id;

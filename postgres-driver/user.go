@@ -24,7 +24,7 @@ type (
 var (
 	errUserIDDoesntExist       = errors.New("error user ID does not exist for auth provider ID '%s'")
 	errUserDoesntExist         = errors.New("error user does not exist for portal ID '%d'")
-	errNotValidEmail           = errors.New("error email input is not a valid email address '%s'")
+	errInvalidEmail            = errors.New("error email input is not a valid email address '%s'")
 	errInvalidAuthProviderType = errors.New("error invalid auth provider type '%s'")
 )
 
@@ -94,11 +94,10 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 
 /* ----- postgresdriver User Create Methods ----- */
 
-// WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input when a new user signs up
-// Includes the user's auth method
+// WriteUserNewSignUp creates a new portal User and UserAuthProviderin the DB from a CreateUser input when a new user signs up.
 func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
 	if !user.Email.IsValid() {
-		return types.UserID(0), fmt.Errorf(errNotValidEmail.Error(), user.Email)
+		return types.UserID(0), fmt.Errorf(errInvalidEmail.Error(), user.Email)
 	}
 	if !user.AuthProviderType.IsValid() {
 		return types.UserID(0), fmt.Errorf(errInvalidAuthProviderType.Error(), user.AuthProviderType)
@@ -114,10 +113,54 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		UpdatedAt:      createdAt,
 	}
 
-	userID, err := pg.CreateUserNewSignUp(ctx, params)
+	createdUserID, err := pg.CreateUserNewSignUp(ctx, params)
 	if err != nil {
 		return types.UserID(0), err
 	}
 
-	return types.UserID(userID), nil
+	return types.UserID(createdUserID), nil
+}
+
+// WriteUserProviderSignedUp creates a new portal UserAuthProvider in the DB when a user accepts their team invite.
+// Also updates User.SignedUp and AccountUserAccess.Accepted fields to true.
+func (pg *PostgresDriver) WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
+	if !user.AuthProviderType.IsValid() {
+		return types.UserID(0), fmt.Errorf(errInvalidAuthProviderType.Error(), user.AuthProviderType)
+	}
+
+	params := CreateUserProviderSignedUpParams{
+		UserID:         userID,
+		ProviderUserID: user.ProviderUserID,
+		Type:           user.AuthProviderType,
+		Provider:       user.AuthProviderType.Provider(),
+		Federated:      user.AuthProviderType.IsFederated(),
+	}
+
+	createdUserID, err := pg.CreateUserProviderSignedUp(ctx, params)
+	if err != nil {
+		return types.UserID(0), err
+	}
+
+	return types.UserID(createdUserID), nil
+}
+
+/* ----- postgresdriver User Delete Methods ----- */
+
+// DeletePortalUser deletes a portal User from the DB. WARNING will do a full delete in the case of users.
+// Will also delete the user's `account_user_access` and `user_auth_providers` rows.
+func (pg *PostgresDriver) DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error) {
+	userExists, err := pg.CheckUserExists(ctx, userID)
+	if err != nil {
+		return types.UserID(0), err
+	}
+	if !userExists {
+		return types.UserID(0), fmt.Errorf(errUserDoesntExist.Error(), userID)
+	}
+
+	deletedUserID, err := pg.DeleteUser(ctx, userID)
+	if err != nil {
+		return types.UserID(0), err
+	}
+
+	return types.UserID(deletedUserID), nil
 }

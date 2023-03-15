@@ -298,20 +298,19 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		10: {
-			ID:       10,
-			Email:    "daenerys.targaryen123@test.com",
-			SignedUp: false,
-			AuthProviders: map[types.AuthType]types.UserAuthProvider{
-				types.AuthTypeAuth0Username: {
-					ProviderUserID: "auth0|daenerys_targaryen",
-					Type:           types.AuthTypeAuth0Username,
-					Provider:       "auth0",
-					Federated:      false,
-				},
-			},
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
+			ID:            10,
+			Email:         "daenerys.targaryen123@test.com",
+			SignedUp:      false,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{},
+			CreatedAt:     MockTimestamp,
+			UpdatedAt:     MockTimestamp,
 		},
+	}
+
+	TestCreateUser = types.CreateUser{
+		Email:            "commander.data@example.com",
+		AuthProviderType: types.AuthTypeAuth0Username,
+		ProviderUserID:   "auth0|commander_data",
 	}
 
 	PortalApps = map[types.PortalAppID]*types.PortalApp{
