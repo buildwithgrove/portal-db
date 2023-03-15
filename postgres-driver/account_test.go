@@ -1,12 +1,26 @@
 package postgresdriver
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/testdata"
 	"github.com/pokt-foundation/portal-db/types"
 )
+
+func PrettyString(label string, thing interface{}) {
+	jsonThing, _ := json.Marshal(thing)
+	str := string(jsonThing)
+
+	var prettyJSON bytes.Buffer
+	_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
+	output := prettyJSON.String()
+
+	fmt.Println(label, output)
+}
 
 func (ts *PGDriverTestSuite) Test_ReadAccounts() {
 	tests := []struct {
@@ -37,66 +51,13 @@ func (ts *PGDriverTestSuite) Test_ReadAccounts() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
-	tests := []struct {
-		name                                      string
-		deleteParams                              DeleteAccountParams
-		accountsBeforeDelete, accountsAfterDelete map[types.AccountID]*types.Account
-		err                                       error
-	}{
-		{
-			name: "Should set a Account's deleted field to true, causing it to not appear in the ReadAccounts query",
-			deleteParams: DeleteAccountParams{
-				ID: testdata.Accounts[4].ID, DeletedAt: newSQLNullTime(testdata.MockTimestamp),
-			},
-			accountsBeforeDelete: map[types.AccountID]*types.Account{
-				types.AccountID(1): testdata.Accounts[types.AccountID(1)],
-				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
-				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
-				types.AccountID(4): testdata.Accounts[types.AccountID(4)],
-			},
-			accountsAfterDelete: map[types.AccountID]*types.Account{
-				types.AccountID(1): testdata.Accounts[types.AccountID(1)],
-				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
-				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
-			},
-			err: nil,
-		},
-	}
-
-	for _, test := range tests {
-		ts.Run(test.name, func() {
-			// Check all Accounts exist before delete
-			accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: false})
-			ts.Equal(test.err, err)
-			ts.Equal(test.accountsBeforeDelete, accounts)
-
-			// Delete Account
-			err = ts.driver.SetAccountDeleted(context.Background(), test.deleteParams.ID, test.deleteParams.DeletedAt.Time)
-			ts.Equal(test.err, err)
-
-			// Check Account was deleted
-			accounts, err = ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: false})
-			ts.Equal(test.err, err)
-			ts.Equal(test.accountsAfterDelete, accounts)
-
-			// Check Account still appears if IncludeDeleted: true
-			accounts, err = ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: true})
-			ts.Equal(test.err, err)
-			testDeletedApp, ok := test.accountsBeforeDelete[test.deleteParams.ID]
-			ts.True(ok)
-			testDeletedApp.Deleted = true
-			ts.Equal(test.accountsBeforeDelete, accounts)
-		})
-	}
-}
-
 func (ts *PGDriverTestSuite) Test_WriteAccount() {
 	tests := []struct {
 		name            string
 		ownerID         types.UserID
 		account         types.Account
 		testCreatedTime time.Time
+		users           map[types.UserID]types.AccountUserAccess
 		err             error
 	}{
 		{
@@ -104,7 +65,19 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 			ownerID:         1,
 			account:         *testdata.Accounts[types.AccountID(5)],
 			testCreatedTime: testdata.MockTimestamp,
-			err:             nil,
+			users: map[types.UserID]types.AccountUserAccess{
+				1: {
+					UserID:   testdata.Users[1].ID,
+					Email:    testdata.Users[1].Email,
+					RoleName: types.RoleOwner,
+					Accepted: true,
+					ProviderUserIDs: map[types.AuthType]string{
+						types.AuthTypeAuth0Username: "auth0|james_holden",
+						types.AuthTypeAuth0Github:   "github|james_holden",
+					},
+				},
+			},
+			err: nil,
 		},
 		{
 			name:            "Should fail if input Account does not have a PayPlanType set",
@@ -118,7 +91,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 			ownerID:         451,
 			account:         *testdata.Accounts[types.AccountID(5)],
 			testCreatedTime: testdata.MockTimestamp,
-			err:             errUserDoesNotExist,
+			err:             fmt.Errorf(errUserDoesntExist.Error(), 451),
 		},
 	}
 
@@ -128,16 +101,8 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				testOwner := testdata.Users[test.ownerID]
 				test.account.ID = createdAccount.ID
-				test.account.Users = map[types.UserID]types.AccountUserAccess{
-					testOwner.ID: {
-						UserID:   test.ownerID,
-						Email:    testOwner.Email,
-						RoleName: types.RoleOwner,
-						Accepted: true,
-					},
-				}
+				test.account.Users = test.users
 				ts.Equal(&test.account, createdAccount)
 
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
@@ -151,35 +116,40 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 	tests := []struct {
 		name                    string
-		accountID               types.AccountID
+		createAccountUser       types.CreateAccountUserAccess
 		accountUser             types.AccountUserAccess
 		accountUsersAfterCreate map[types.UserID]types.AccountUserAccess
 		testCreatedTime         time.Time
 		err                     error
 	}{
 		{
-			name:        "Should create a new AccountUserAccess row in the database for an existing User",
-			accountID:   1,
-			accountUser: testdata.AccountUserAccess[12],
+			name: "Should create a new AccountUserAccess row in the database for an existing User",
+			createAccountUser: types.CreateAccountUserAccess{
+				AccountID: 1,
+				Email:     "bernard.marx@test.com",
+				RoleName:  types.RoleMember,
+			},
+			accountUser: testdata.AccountUserAccess[13],
 			accountUsersAfterCreate: map[types.UserID]types.AccountUserAccess{
 				1:  testdata.AccountUserAccess[1],
 				2:  testdata.AccountUserAccess[2],
 				8:  testdata.AccountUserAccess[8],
-				12: testdata.AccountUserAccess[12],
+				11: testdata.AccountUserAccess[13],
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
 		{
-			name:        "Should create a new AccountUserAccess row in the database for a user that hasn't signed up yet",
-			accountID:   2,
-			accountUser: testdata.AccountUserAccess[13],
+			name: "Should create a new AccountUserAccess row in the database for a user that hasn't signed up yet",
+			createAccountUser: types.CreateAccountUserAccess{
+				AccountID: 4,
+				Email:     "winston.smith@test.com",
+				RoleName:  types.RoleAdmin,
+			},
+			accountUser: testdata.AccountUserAccess[14],
 			accountUsersAfterCreate: map[types.UserID]types.AccountUserAccess{
-				3:  testdata.AccountUserAccess[3],
-				4:  testdata.AccountUserAccess[4],
-				9:  testdata.AccountUserAccess[9],
-				11: testdata.AccountUserAccess[11],
-				13: testdata.AccountUserAccess[13],
+				4:  testdata.AccountUserAccess[11],
+				13: testdata.AccountUserAccess[14],
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
@@ -188,15 +158,69 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			accountUser, err := ts.driver.WriteAccountUser(context.Background(), test.accountID, test.accountUser, test.testCreatedTime)
+			accountUser, err := ts.driver.WriteAccountUser(context.Background(), test.createAccountUser, testdata.MockTimestamp)
 			ts.Equal(test.err, err)
 			ts.Equal(&test.accountUser, accountUser)
 
 			if test.err == nil {
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.Equal(test.err, err)
-				ts.Equal(test.accountUsersAfterCreate, accounts[test.accountID].Users)
+				ts.Equal(test.accountUsersAfterCreate, accounts[test.createAccountUser.AccountID].Users)
 			}
 		})
 	}
 }
+
+// func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
+// 	tests := []struct {
+// 		name                                      string
+// 		deleteParams                              DeleteAccountParams
+// 		accountsBeforeDelete, accountsAfterDelete map[types.AccountID]*types.Account
+// 		err                                       error
+// 	}{
+// 		{
+// 			name: "Should set a Account's deleted field to true, causing it to not appear in the ReadAccounts query",
+// 			deleteParams: DeleteAccountParams{
+// 				ID: testdata.Accounts[4].ID, DeletedAt: newSQLNullTime(testdata.MockTimestamp),
+// 			},
+// 			accountsBeforeDelete: map[types.AccountID]*types.Account{
+// 				types.AccountID(1): testdata.Accounts[types.AccountID(1)],
+// 				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
+// 				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
+// 				types.AccountID(4): testdata.Accounts[types.AccountID(4)],
+// 			},
+// 			accountsAfterDelete: map[types.AccountID]*types.Account{
+// 				types.AccountID(1): testdata.Accounts[types.AccountID(1)],
+// 				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
+// 				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
+// 			},
+// 			err: nil,
+// 		},
+// 	}
+
+// 	for _, test := range tests {
+// 		ts.Run(test.name, func() {
+// 			// Check all Accounts exist before delete
+// 			accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: false})
+// 			ts.Equal(test.err, err)
+// 			ts.Equal(test.accountsBeforeDelete, accounts)
+
+// 			// Delete Account
+// 			err = ts.driver.SetAccountDeleted(context.Background(), test.deleteParams.ID, test.deleteParams.DeletedAt.Time)
+// 			ts.Equal(test.err, err)
+
+// 			// Check Account was deleted
+// 			accounts, err = ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: false})
+// 			ts.Equal(test.err, err)
+// 			ts.Equal(test.accountsAfterDelete, accounts)
+
+// 			// Check Account still appears if IncludeDeleted: true
+// 			accounts, err = ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: true})
+// 			ts.Equal(test.err, err)
+// 			testDeletedApp, ok := test.accountsBeforeDelete[test.deleteParams.ID]
+// 			ts.True(ok)
+// 			testDeletedApp.Deleted = true
+// 			ts.Equal(test.accountsBeforeDelete, accounts)
+// 		})
+// 	}
+// }

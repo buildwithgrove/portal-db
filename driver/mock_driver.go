@@ -375,13 +375,13 @@ func (_m *MockDriver) WriteAccount(ctx context.Context, creatorID types.UserID, 
 	return r0, r1
 }
 
-// WriteAccountUser provides a mock function with given fields: ctx, accountUser, createdAt
-func (_m *MockDriver) WriteAccountUser(ctx context.Context, accountUser types.AccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
-	ret := _m.Called(ctx, accountUser, createdAt)
+// WriteAccountUser provides a mock function with given fields: ctx, accountID, accountUser, createdAt
+func (_m *MockDriver) WriteAccountUser(ctx context.Context, accountID types.AccountID, accountUser types.AccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+	ret := _m.Called(ctx, accountID, accountUser, createdAt)
 
 	var r0 *types.AccountUserAccess
-	if rf, ok := ret.Get(0).(func(context.Context, types.AccountUserAccess, time.Time) *types.AccountUserAccess); ok {
-		r0 = rf(ctx, accountUser, createdAt)
+	if rf, ok := ret.Get(0).(func(context.Context, types.AccountID, types.AccountUserAccess, time.Time) *types.AccountUserAccess); ok {
+		r0 = rf(ctx, accountID, accountUser, createdAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*types.AccountUserAccess)
@@ -389,8 +389,8 @@ func (_m *MockDriver) WriteAccountUser(ctx context.Context, accountUser types.Ac
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.AccountUserAccess, time.Time) error); ok {
-		r1 = rf(ctx, accountUser, createdAt)
+	if rf, ok := ret.Get(1).(func(context.Context, types.AccountID, types.AccountUserAccess, time.Time) error); ok {
+		r1 = rf(ctx, accountID, accountUser, createdAt)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -2,6 +2,7 @@ package postgresdriver
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,17 +13,16 @@ import (
 
 type (
 	userAccessDBRow struct {
-		ID           int32  `json:"user_id"`
-		Email        string `json:"email"`
-		AuthProvider string `json:"auth_provider"`
-		RoleName     string `json:"role_name"`
-		Accepted     bool   `json:"accepted"`
+		UserID          int32                     `json:"user_id"`
+		Email           string                    `json:"email"`
+		RoleName        string                    `json:"role_name"`
+		Accepted        bool                      `json:"accepted"`
+		ProviderUserIDs map[types.AuthType]string `json:"provider_user_ids"`
 	}
 )
 
 var (
 	errAccountMustHavePlanTypeSet = errors.New("error account input does not have a plan type set")
-	errUserDoesNotExist           = errors.New("error account creator does not exist in the database")
 )
 
 /* ----- postgresdriver Account Read Methods ----- */
@@ -102,11 +102,12 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	users = make(map[types.UserID]types.AccountUserAccess, len(userRows))
 
 	for _, user := range userRows {
-		users[types.UserID(user.ID)] = types.AccountUserAccess{
-			UserID:   types.UserID(user.ID),
-			Email:    types.Email(user.Email),
-			RoleName: types.RoleName(user.RoleName),
-			Accepted: user.Accepted,
+		users[types.UserID(user.UserID)] = types.AccountUserAccess{
+			UserID:          types.UserID(user.UserID),
+			Email:           types.Email(user.Email),
+			RoleName:        types.RoleName(user.RoleName),
+			Accepted:        user.Accepted,
+			ProviderUserIDs: user.ProviderUserIDs,
 		}
 	}
 
@@ -165,6 +166,12 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 		return nil, err
 	}
 
+	var providerUserIDs map[types.AuthType]string
+	if err := json.Unmarshal(owner.ProviderUserIDs, &providerUserIDs); err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
@@ -173,10 +180,11 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	// Assign OWNER to returned Account struct
 	account.Users = map[types.UserID]types.AccountUserAccess{
 		types.UserID(owner.UserID): {
-			UserID:   types.UserID(owner.UserID),
-			Email:    types.Email(owner.UserEmail),
-			RoleName: owner.RoleName,
-			Accepted: owner.Accepted,
+			UserID:          types.UserID(owner.UserID),
+			Email:           types.Email(owner.UserEmail),
+			RoleName:        owner.RoleName,
+			Accepted:        owner.Accepted,
+			ProviderUserIDs: providerUserIDs,
 		},
 	}
 
@@ -200,11 +208,65 @@ func (pg *PostgresDriver) SetAccountDeleted(ctx context.Context, accountID types
 /* ----- postgresdriver AccountUserAccess Write Methods ----- */
 
 // WriteAccountUser saves a single input AccountUserAccess to the database.
-func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, accountID types.AccountID, accountUser types.AccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+	userID, err := pg.CheckUserIDFromEmail(ctx, createAccountUser.Email)
+	if err != nil {
+		switch err {
+
+		case sql.ErrNoRows:
+			// user with provided email does not exist in DB so create a new User and AccountUserAccess entry for existing user & account
+			accountUser, err := pg.writeAccountUserAccessNoUser(ctx, createAccountUser, createdAt)
+			if err != nil {
+				return nil, err
+			}
+
+			return accountUser, nil
+
+		default:
+			return nil, err
+		}
+	}
+
+	// user with provided email already exists in DB so create a new AccountUserAccess entry for existing user & account
+	accountUser, err := pg.writeAccountUserAccess(ctx, userID, createAccountUser, createdAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return accountUser, nil
+}
+
+// writeAccountUserAccessNoUser creates a new User in the database and then creates a new AccountUserAccess for that user & account
+// Called when a user is invited to a new team but does not yet have a Portal Account for the provided email
+func (pg *PostgresDriver) writeAccountUserAccessNoUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+	params := InsertAccountUserAccessNoUserParams{
+		AccountID: createAccountUser.AccountID,
+		Email:     createAccountUser.Email,
+		RoleName:  createAccountUser.RoleName,
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+	}
+
+	user, err := pg.InsertAccountUserAccessNoUser(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AccountUserAccess{
+		UserID:   types.UserID(user.UserID),
+		Email:    types.Email(user.UserEmail.String),
+		RoleName: user.RoleName,
+		Accepted: user.Accepted,
+	}, nil
+}
+
+// writeAccountUserAccessNoUser creates a new AccountUserAccess for an existing user & account
+// Called when an existing Portal user is invited to a new team
+func (pg *PostgresDriver) writeAccountUserAccess(ctx context.Context, userID types.UserID, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
 	params := InsertAccountUserAccessParams{
-		AccountID: accountID,
-		UserID:    int32(accountUser.UserID),
-		RoleName:  accountUser.RoleName,
+		UserID:    int32(userID),
+		AccountID: createAccountUser.AccountID,
+		RoleName:  createAccountUser.RoleName,
 		Accepted:  false,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
@@ -215,10 +277,16 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, accountID types.
 		return nil, err
 	}
 
+	var providerUserIDs map[types.AuthType]string
+	if err := json.Unmarshal(user.ProviderUserIDs, &providerUserIDs); err != nil {
+		return nil, err
+	}
+
 	return &types.AccountUserAccess{
-		UserID:   types.UserID(user.UserID),
-		Email:    types.Email(user.UserEmail),
-		RoleName: user.RoleName,
-		Accepted: user.Accepted,
+		UserID:          types.UserID(user.UserID),
+		Email:           types.Email(user.UserEmail),
+		RoleName:        user.RoleName,
+		Accepted:        user.Accepted,
+		ProviderUserIDs: providerUserIDs,
 	}, nil
 }

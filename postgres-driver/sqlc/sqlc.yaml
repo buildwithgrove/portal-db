@@ -6,6 +6,7 @@ overrides:
       chain_ids: "ChainIDs"
       favorited_chain_ids: "FavoritedChainIDs"
       partner_chain_ids: "PartnerChainIDs"
+      provider_user_ids: "ProviderUserIDs"
 
 sql:
   - schema: "schema.sql"

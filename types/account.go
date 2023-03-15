@@ -21,12 +21,18 @@ type (
 
 	// AccountUserAccess represents a single Portal user's role for a single Account
 	AccountUserAccess struct {
-		UserID   UserID   `json:"userID"`
-		Email    Email    `json:"email"`
-		RoleName RoleName `json:"roleName"`
-		Accepted bool     `json:"accepted"`
-		// TODO legacy field
-		ProviderUserIDs []string `json:"providerUserID"`
+		UserID          UserID              `json:"userID"`
+		Email           Email               `json:"email"`
+		RoleName        RoleName            `json:"roleName"`
+		Accepted        bool                `json:"accepted"`
+		ProviderUserIDs map[AuthType]string `json:"providerUserIDs"`
+	}
+
+	// CreateAccountUserAccess represents a single Portal user's role for a single Account
+	CreateAccountUserAccess struct {
+		AccountID AccountID `json:"accountID"`
+		Email     Email     `json:"email"`
+		RoleName  RoleName  `json:"roleName"`
 	}
 )
 

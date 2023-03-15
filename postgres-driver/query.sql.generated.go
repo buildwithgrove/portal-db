@@ -43,6 +43,19 @@ func (q *Queries) CheckUserExists(ctx context.Context, id types.UserID) (bool, e
 	return exists, err
 }
 
+const checkUserIDFromEmail = `-- name: CheckUserIDFromEmail :one
+SELECT id
+FROM users
+WHERE email = $1
+`
+
+func (q *Queries) CheckUserIDFromEmail(ctx context.Context, email types.Email) (types.UserID, error) {
+	row := q.db.QueryRowContext(ctx, checkUserIDFromEmail, email)
+	var id types.UserID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createUserNewSignUp = `-- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)
@@ -323,10 +336,15 @@ RETURNING account_user_access.user_id,
         (
             SELECT email
             FROM users
-            WHERE user_id = $2
+            WHERE id = $2
         ),
         ''
-    )::VARCHAR(320) AS user_email
+    )::VARCHAR(320) AS user_email,
+    (
+        SELECT json_object_agg(type, provider_user_id)
+        FROM user_auth_providers
+        WHERE user_id = account_user_access.user_id
+    ) as provider_user_ids
 `
 
 type InsertAccountUserAccessParams struct {
@@ -339,10 +357,11 @@ type InsertAccountUserAccessParams struct {
 }
 
 type InsertAccountUserAccessRow struct {
-	UserID    int32          `json:"userID"`
-	RoleName  types.RoleName `json:"roleName"`
-	Accepted  bool           `json:"accepted"`
-	UserEmail string         `json:"userEmail"`
+	UserID          int32           `json:"userID"`
+	RoleName        types.RoleName  `json:"roleName"`
+	Accepted        bool            `json:"accepted"`
+	UserEmail       string          `json:"userEmail"`
+	ProviderUserIDs json.RawMessage `json:"providerUserIds"`
 }
 
 func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccountUserAccessParams) (InsertAccountUserAccessRow, error) {
@@ -360,14 +379,20 @@ func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccount
 		&i.RoleName,
 		&i.Accepted,
 		&i.UserEmail,
+		&i.ProviderUserIDs,
 	)
 	return i, err
 }
 
 const insertAccountUserAccessNoUser = `-- name: InsertAccountUserAccessNoUser :one
 WITH inserted_user AS (
-    INSERT INTO users (email, signed_up)
-    VALUES ($1, false)
+    INSERT INTO users (
+            email,
+            signed_up,
+            created_at,
+            updated_at
+        )
+    VALUES ($1, false, $4, $5)
     RETURNING id,
         email
 )
@@ -376,6 +401,7 @@ INSERT INTO account_user_access (
         user_id,
         role_name,
         accepted,
+        created_at,
         updated_at
     )
 VALUES (
@@ -386,7 +412,8 @@ VALUES (
         ),
         $3,
         false,
-        $4
+        $4,
+        $5
     )
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
@@ -401,6 +428,7 @@ type InsertAccountUserAccessNoUserParams struct {
 	Email     types.Email     `json:"email"`
 	AccountID types.AccountID `json:"accountID"`
 	RoleName  types.RoleName  `json:"roleName"`
+	CreatedAt time.Time       `json:"createdAt"`
 	UpdatedAt time.Time       `json:"updatedAt"`
 }
 
@@ -416,6 +444,7 @@ func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertA
 		arg.Email,
 		arg.AccountID,
 		arg.RoleName,
+		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
 	var i InsertAccountUserAccessNoUserRow
@@ -646,13 +675,30 @@ SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.par
     p.monthly_relay_limit,
     p.throughput_limit,
     p.application_limit,
-    json_agg(users.*) AS users,
+    json_agg(
+        json_build_object(
+            'user_id',
+            u.id,
+            'email',
+            u.email,
+            'role_name',
+            ur.role_name,
+            'accepted',
+            au.accepted,
+            'provider_user_ids',
+            (
+                SELECT json_object_agg(type, provider_user_id)
+                FROM user_auth_providers
+                WHERE user_id = u.id
+            )
+        )
+    ) AS users,
     -- legacy field
     p.daily_limit
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
     LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
-    LEFT JOIN users AS u ON au.user_email = u.email
+    LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
 WHERE (
         $1::BOOLEAN

@@ -31,7 +31,7 @@ var testPortalApplication = PortalApp{
 				RoleName: RoleOwner,
 				Accepted: true,
 				// TODO legacy field
-				ProviderUserIDs: []string{"user_id_123"},
+				ProviderUserIDs: map[AuthType]string{AuthTypeAuth0Username: "test_user_5736487d3c1975"},
 			},
 			2: {
 				UserID:   2,
@@ -39,7 +39,7 @@ var testPortalApplication = PortalApp{
 				RoleName: RoleMember,
 				Accepted: true,
 				// TODO legacy field
-				ProviderUserIDs: []string{"user_id_456"},
+				ProviderUserIDs: map[AuthType]string{AuthTypeAuth0Username: "test_user_4d89ede3e3135f"},
 			},
 		},
 		PartnerChainIDs:        map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},

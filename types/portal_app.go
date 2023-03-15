@@ -207,7 +207,9 @@ func (a *PortalApp) LegacyDailyLimit() int32 {
 func (a *PortalApp) LegacyUserID() string {
 	for _, user := range a.Account.Users {
 		if user.RoleName == RoleOwner {
-			return user.ProviderUserIDs[0]
+			for _, userID := range user.ProviderUserIDs {
+				return userID
+			}
 		}
 	}
 	return ""

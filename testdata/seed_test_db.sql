@@ -161,6 +161,12 @@ VALUES (
         false,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'bernard.marx@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO user_auth_providers (
         user_id,
@@ -244,6 +250,13 @@ VALUES (
         'auth0',
         'auth0_username',
         'auth0|tyrion_lannister',
+        false
+    ),
+    (
+        11,
+        'auth0',
+        'auth0_username',
+        'auth0|bernard_marx',
         false
     );
 -- Insert user_roles
@@ -370,7 +383,7 @@ VALUES (
     ),
     (
         4,
-        10,
+        4,
         'OWNER',
         true,
         '2022-11-11 11:11:11.000000',
