@@ -51,6 +51,8 @@ type (
 		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) error
 		/* WriteUserProviderSignedUp creates a new portal UserAuthProvider in the DB when a user accepts their team invite. */
 		WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error)
+		/* DeletePortalUser deletes a portal User from the DB. WARNING will do a full delete in the case of users. */
+		DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error)
 
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, account types.Account) error

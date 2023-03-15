@@ -5,14 +5,20 @@ gen_sql:
 gen_mocks:
 	mockery --name=Driver --filename=mock_driver.go --recursive --inpackage
 
-test: test_env_up run_driver_tests test_env_down
+test: test_env_up run_all_tests test_env_down
+test_driver: test_env_up run_driver_tests test_env_down
+test_unit:
+	-go test ./... -count=1 -short -v;
+
 test_env_up:
 	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build;
 	sleep 2;
 test_env_down:
 	docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans -v
 run_driver_tests:
-	-go test ./... -run Test_RunPGDriverSuite -count=1 -v;
+	-go test ./... -run Test_RunPGDriverSuite -count=1;
+run_all_tests:
+	-go test ./... -count=1;
 
 init-pre-commit:
 	wget https://github.com/pre-commit/pre-commit/releases/download/v2.20.0/pre-commit-2.20.0.pyz;

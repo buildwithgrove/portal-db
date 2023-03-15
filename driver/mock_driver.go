@@ -86,6 +86,27 @@ func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types
 	return r0
 }
 
+// DeletePortalUser provides a mock function with given fields: ctx, userID
+func (_m *MockDriver) DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 types.UserID
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID) types.UserID); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(types.UserID)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.UserID) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPortalUserIDFromProviderID provides a mock function with given fields: ctx, providerUserID
 func (_m *MockDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error) {
 	ret := _m.Called(ctx, providerUserID)

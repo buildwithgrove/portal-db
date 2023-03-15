@@ -32,7 +32,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 	3: {
 		UserID: 3,
 		PortalApps: map[PortalAppID]PortalAppPermissions{
-			"test_app_3487u329rfn23f": {
+			"test_app_3487u329rfn23f7": {
 				RoleName:    RoleOwner,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
@@ -50,19 +50,19 @@ func Test_UserPermissions_GetRole(t *testing.T) {
 		roleName    RoleName
 	}{
 		{
-			name:        "Should return the role for a given user and load balancer ID",
+			name:        "Should return the role for a given user and portal application ID",
 			userID:      1,
 			portalAppID: "test_app_6774900350d9c42",
 			roleName:    RoleOwner,
 		},
 		{
-			name:        "Should return the role for a given user and load balancer ID",
+			name:        "Should return the role for a given user and portal application ID",
 			userID:      2,
 			portalAppID: "test_app_be591c4dea8566a",
 			roleName:    RoleMember,
 		},
 		{
-			name:        "Should return an empty string if user does not have a role for a load balancer",
+			name:        "Should return an empty string if user does not have a role for a portal application",
 			userID:      1,
 			portalAppID: "not_an_actual_app",
 			roleName:    "",
@@ -70,10 +70,12 @@ func Test_UserPermissions_GetRole(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		userPermissions := testUserPermissions[test.userID]
+		t.Run(test.name, func(t *testing.T) {
+			userPermissions := testUserPermissions[test.userID]
 
-		roleName := userPermissions.GetRole(test.portalAppID)
-		c.Equal(test.roleName, roleName)
+			roleName := userPermissions.GetRole(test.portalAppID)
+			c.Equal(test.roleName, roleName)
+		})
 	}
 }
 
@@ -142,11 +144,13 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		userPermissions := testUserPermissions[test.userID]
+		t.Run(test.name, func(t *testing.T) {
+			userPermissions := testUserPermissions[test.userID]
 
-		updatedUserPermissions, err := userPermissions.UpsertPermissions(test.portalAppID, test.roleName)
-		c.Equal(test.err, err)
-		c.Equal(test.expectedPermissions, updatedUserPermissions)
+			updatedUserPermissions, err := userPermissions.UpsertPermissions(test.portalAppID, test.roleName)
+			c.Equal(test.err, err)
+			c.Equal(test.expectedPermissions, updatedUserPermissions)
+		})
 	}
 }
 
@@ -169,7 +173,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 			expectedPermissions: &UserPermissions{
 				UserID: 3,
 				PortalApps: map[PortalAppID]PortalAppPermissions{
-					"test_app_3487u329rfn23f": {
+					"test_app_3487u329rfn23f7": {
 						RoleName:    RoleOwner,
 						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
@@ -179,14 +183,16 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		userPermissions := testUserPermissions[test.userID]
+		t.Run(test.name, func(t *testing.T) {
+			userPermissions := testUserPermissions[test.userID]
 
-		updatedUserPermissions, err := userPermissions.UpsertPermissions(test.portalAppID, test.roleName)
-		c.Equal(test.err, err)
-		c.Len(updatedUserPermissions.PortalApps, 2)
+			updatedUserPermissions, err := userPermissions.UpsertPermissions(test.portalAppID, test.roleName)
+			c.Equal(test.err, err)
+			c.Len(updatedUserPermissions.PortalApps, 2)
 
-		deletedUserPermissions := userPermissions.DeletePermissions(test.portalAppID)
-		c.Equal(test.expectedPermissions, deletedUserPermissions)
+			deletedUserPermissions := userPermissions.DeletePermissions(test.portalAppID)
+			c.Equal(test.expectedPermissions, deletedUserPermissions)
+		})
 	}
 }
 
@@ -200,19 +206,19 @@ func Test_UserPermissions_HasPermission_Read(t *testing.T) {
 		hasReadPermission bool
 	}{
 		{
-			name:              "Should return a boolean indicating whether a given user has read permission for a given load balancer",
+			name:              "Should return a boolean indicating whether a given user has read permission for a given portal application",
 			userID:            1,
 			portalAppID:       "test_app_6774900350d9c42",
 			hasReadPermission: true,
 		},
 		{
-			name:              "Should return a boolean indicating whether a given user has read permission for a given load balancer",
+			name:              "Should return a boolean indicating whether a given user has read permission for a given portal application",
 			userID:            1,
 			portalAppID:       "test_app_3487u329rfn23f9",
 			hasReadPermission: false,
 		},
 		{
-			name:              "Should return a boolean indicating whether a given user has read permission for a given load balancer",
+			name:              "Should return a boolean indicating whether a given user has read permission for a given portal application",
 			userID:            2,
 			portalAppID:       "test_app_be591c4dea8566a",
 			hasReadPermission: true,
@@ -220,10 +226,12 @@ func Test_UserPermissions_HasPermission_Read(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		userPermissions := testUserPermissions[test.userID]
+		t.Run(test.name, func(t *testing.T) {
+			userPermissions := testUserPermissions[test.userID]
 
-		hasReadPermission := userPermissions.HasPermission(test.portalAppID, PermReadEndpoint)
-		c.Equal(test.hasReadPermission, hasReadPermission)
+			hasReadPermission := userPermissions.HasPermission(test.portalAppID, PermReadEndpoint)
+			c.Equal(test.hasReadPermission, hasReadPermission)
+		})
 	}
 }
 
@@ -231,36 +239,38 @@ func Test_UserPermissions_HasPermission_Write(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
-		name              string
-		userID            UserID
-		portalAppID       PortalAppID
-		hasReadPermission bool
+		name               string
+		userID             UserID
+		portalAppID        PortalAppID
+		hasWritePermission bool
 	}{
 		{
-			name:              "Should return a boolean indicating whether a given user has write permission for a given load balancer",
-			userID:            1,
-			portalAppID:       "test_app_6774900350d9c42",
-			hasReadPermission: true,
+			name:               "Should return a boolean indicating whether a given user has write permission for a given portal application",
+			userID:             1,
+			portalAppID:        "test_app_6774900350d9c42",
+			hasWritePermission: true,
 		},
 		{
-			name:              "Should return a boolean indicating whether a given user has write permission for a given load balancer",
-			userID:            1,
-			portalAppID:       "test_app_3487u329rfn23f9",
-			hasReadPermission: false,
+			name:               "Should return a boolean indicating whether a given user has write permission for a given portal application",
+			userID:             1,
+			portalAppID:        "test_app_3487u329rfn23f9",
+			hasWritePermission: false,
 		},
 		{
-			name:              "Should return a boolean indicating whether a given user has write permission for a given load balancer",
-			userID:            3,
-			portalAppID:       "test_app_3487u329rfn23f9",
-			hasReadPermission: true,
+			name:               "Should return a boolean indicating whether a given user has write permission for a given portal application",
+			userID:             3,
+			portalAppID:        "test_app_3487u329rfn23f7",
+			hasWritePermission: true,
 		},
 	}
 
 	for _, test := range tests {
-		userPermissions := testUserPermissions[test.userID]
+		t.Run(test.name, func(t *testing.T) {
+			userPermissions := testUserPermissions[test.userID]
 
-		hasReadPermission := userPermissions.HasPermission(test.portalAppID, PermWriteEndpoint)
-		c.Equal(test.hasReadPermission, hasReadPermission)
+			hasWritePermission := userPermissions.HasPermission(test.portalAppID, PermWriteEndpoint)
+			c.Equal(test.hasWritePermission, hasWritePermission)
+		})
 	}
 }
 
@@ -274,30 +284,32 @@ func Test_UserPermissions_HasPermission_Delete(t *testing.T) {
 		hasDeletePermission bool
 	}{
 		{
-			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
+			name:                "Should return a boolean indicating whether a given user has delete permission for a given portal application",
 			userID:              1,
 			portalAppID:         "test_app_6774900350d9c42",
 			hasDeletePermission: true,
 		},
 		{
-			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
+			name:                "Should return a boolean indicating whether a given user has delete permission for a given portal application",
 			userID:              1,
 			portalAppID:         "test_app_3487u329rfn23f9",
 			hasDeletePermission: false,
 		},
 		{
-			name:                "Should return a boolean indicating whether a given user has delete permission for a given load balancer",
+			name:                "Should return a boolean indicating whether a given user has delete permission for a given portal application",
 			userID:              3,
-			portalAppID:         "test_app_3487u329rfn23f9",
+			portalAppID:         "test_app_3487u329rfn23f7",
 			hasDeletePermission: true,
 		},
 	}
 
 	for _, test := range tests {
-		userPermissions := testUserPermissions[test.userID]
+		t.Run(test.name, func(t *testing.T) {
+			userPermissions := testUserPermissions[test.userID]
 
-		hasReadPermission := userPermissions.HasPermission(test.portalAppID, PermDeleteEndpoint)
-		c.Equal(test.hasDeletePermission, hasReadPermission)
+			hasReadPermission := userPermissions.HasPermission(test.portalAppID, PermDeleteEndpoint)
+			c.Equal(test.hasDeletePermission, hasReadPermission)
+		})
 	}
 }
 func Test_UserPermissions_HasPermission_Transfer(t *testing.T) {
@@ -310,29 +322,31 @@ func Test_UserPermissions_HasPermission_Transfer(t *testing.T) {
 		hasDeletePermission bool
 	}{
 		{
-			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
+			name:                "Should return a boolean indicating whether a given user has transfer permission for a given portal application",
 			userID:              1,
 			portalAppID:         "test_app_6774900350d9c42",
 			hasDeletePermission: true,
 		},
 		{
-			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
+			name:                "Should return a boolean indicating whether a given user has transfer permission for a given portal application",
 			userID:              1,
 			portalAppID:         "test_app_3487u329rfn23f9",
 			hasDeletePermission: false,
 		},
 		{
-			name:                "Should return a boolean indicating whether a given user has transfer permission for a given load balancer",
+			name:                "Should return a boolean indicating whether a given user has transfer permission for a given portal application",
 			userID:              3,
-			portalAppID:         "test_app_3487u329rfn23f9",
+			portalAppID:         "test_app_3487u329rfn23f7",
 			hasDeletePermission: true,
 		},
 	}
 
 	for _, test := range tests {
-		userPermissions := testUserPermissions[test.userID]
+		t.Run(test.name, func(t *testing.T) {
+			userPermissions := testUserPermissions[test.userID]
 
-		hasReadPermission := userPermissions.HasPermission(test.portalAppID, PermTransferEndpoint)
-		c.Equal(test.hasDeletePermission, hasReadPermission)
+			hasReadPermission := userPermissions.HasPermission(test.portalAppID, PermTransferEndpoint)
+			c.Equal(test.hasDeletePermission, hasReadPermission)
+		})
 	}
 }

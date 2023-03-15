@@ -246,7 +246,7 @@ VALUES (
         'auth0|tyrion_lannister',
         false
     );
-    -- Insert user_roles
+-- Insert user_roles
 INSERT INTO user_roles (
         role_name,
         permissions,

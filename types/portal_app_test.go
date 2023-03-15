@@ -143,8 +143,10 @@ func Test_PortalApp_IsOriginWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isOriginWhitelisted := test.portalApp.IsOriginWhitelisted(test.origin)
-		c.Equal(test.expectedResult, isOriginWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isOriginWhitelisted := test.portalApp.IsOriginWhitelisted(test.origin)
+			c.Equal(test.expectedResult, isOriginWhitelisted)
+		})
 	}
 }
 
@@ -178,8 +180,10 @@ func Test_PortalApp_IsUserAgentWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isUserAgentWhitelisted := test.portalApp.IsUserAgentWhitelisted(test.userAgent)
-		c.Equal(test.expectedResult, isUserAgentWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isUserAgentWhitelisted := test.portalApp.IsUserAgentWhitelisted(test.userAgent)
+			c.Equal(test.expectedResult, isUserAgentWhitelisted)
+		})
 	}
 }
 
@@ -213,8 +217,10 @@ func Test_PortalApp_IsBlockchainWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isBlockchainWhitelisted := test.portalApp.IsBlockchainWhitelisted(test.blockchain)
-		c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isBlockchainWhitelisted := test.portalApp.IsBlockchainWhitelisted(test.blockchain)
+			c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		})
 	}
 }
 
@@ -259,8 +265,10 @@ func Test_PortalApp_IsContractWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isBlockchainWhitelisted := test.portalApp.IsContractWhitelisted(test.blockchain, test.contract)
-		c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isBlockchainWhitelisted := test.portalApp.IsContractWhitelisted(test.blockchain, test.contract)
+			c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		})
 	}
 }
 
@@ -305,8 +313,10 @@ func Test_PortalApp_IsMethodWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isBlockchainWhitelisted := test.portalApp.IsMethodWhitelisted(test.blockchain, test.method)
-		c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isBlockchainWhitelisted := test.portalApp.IsMethodWhitelisted(test.blockchain, test.method)
+			c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		})
 	}
 }
 
@@ -450,14 +460,16 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		whitelistsObject := test.portalApp.GetWhitelistsObject()
-		c.Equal(test.expectedResult, whitelistsObject)
+		t.Run(test.name, func(t *testing.T) {
+			whitelistsObject := test.portalApp.GetWhitelistsObject()
+			c.Equal(test.expectedResult, whitelistsObject)
 
-		// check that JSON is equal as well
-		resultJSON, err := json.MarshalIndent(whitelistsObject, "", "  ")
-		c.NoError(err)
-		expectedJSON := strings.ReplaceAll(strings.ReplaceAll(test.expectedJSON, " ", ""), "\t", "")
-		actualJSON := strings.ReplaceAll(strings.ReplaceAll(string(resultJSON), " ", ""), "\t", "")
-		c.Equal(expectedJSON, actualJSON)
+			// check that JSON is equal as well
+			resultJSON, err := json.MarshalIndent(whitelistsObject, "", "  ")
+			c.NoError(err)
+			expectedJSON := strings.ReplaceAll(strings.ReplaceAll(test.expectedJSON, " ", ""), "\t", "")
+			actualJSON := strings.ReplaceAll(strings.ReplaceAll(string(resultJSON), " ", ""), "\t", "")
+			c.Equal(expectedJSON, actualJSON)
+		})
 	}
 }
