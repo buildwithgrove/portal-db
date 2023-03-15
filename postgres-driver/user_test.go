@@ -77,3 +77,65 @@ func (ts *PGDriverTestSuite) Test_ReadUserByUserID() {
 		})
 	}
 }
+
+func (ts *PGDriverTestSuite) Test_CreateNewUser() {
+	tests := []struct {
+		name       string
+		createUser types.CreateUser
+		user       *types.User
+		err        error
+	}{
+		{
+			name: "Should create a new portal User in the DB from a CreateUser input",
+			createUser: types.CreateUser{
+				Email:            "geralt.of.rivia623@example.com",
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|geralt_of_rivia",
+			},
+			user: &types.User{
+				ID:       11,
+				Email:    "geralt.of.rivia623@example.com",
+				SignedUp: true,
+				AuthProviders: map[types.AuthType]types.UserAuthProvider{
+					types.AuthTypeAuth0Username: {
+						ProviderUserID: "auth0|geralt_of_rivia",
+						Type:           types.AuthTypeAuth0Username,
+						Provider:       types.AuthProviderAuth0,
+						Federated:      false,
+					},
+				},
+				CreatedAt: testdata.MockTimestamp,
+				UpdatedAt: testdata.MockTimestamp,
+			},
+			err: nil,
+		},
+		{
+			name: "Should fail if an invalid email provided",
+			createUser: types.CreateUser{
+				Email: "jar.jar.binks3",
+			},
+			err: fmt.Errorf(errNotValidEmail.Error(), types.Email("jar.jar.binks3")),
+		},
+		{
+			name: "Should fail if an invalid auth provider type provided",
+			createUser: types.CreateUser{
+				Email:            "jar.jar.binks3@example.com",
+				AuthProviderType: types.AuthType("wrong_type"),
+			},
+			err: fmt.Errorf(errInvalidAuthProviderType.Error(), types.AuthType("wrong_type")),
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			userID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				user, err := ts.driver.ReadUserByUserID(context.Background(), userID)
+				ts.NoError(err)
+				ts.Equal(test.user, user)
+			}
+		})
+	}
+}

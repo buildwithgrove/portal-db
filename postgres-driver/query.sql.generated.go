@@ -28,10 +28,10 @@ func (q *Queries) CheckUserEmail(ctx context.Context, id types.UserID) (types.Em
 	return email, err
 }
 
-const createUserNewSignUp = `-- name: CreateUserNewSignUp :exec
+const createUserNewSignUp = `-- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
-    INSERT INTO users (email, signed_up)
-    VALUES ($1, true)
+    INSERT INTO users (email, signed_up, created_at, updated_at)
+    VALUES ($1, true, $2, $3)
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -46,30 +46,40 @@ VALUES (
             SELECT id
             FROM inserted_user
         ),
-        $2,
-        $3,
         $4,
-        $5
+        $5,
+        $6,
+        $7
     )
+RETURNING (
+        SELECT id
+        FROM inserted_user
+    ) as user_id
 `
 
 type CreateUserNewSignUpParams struct {
 	Email          types.Email        `json:"email"`
+	CreatedAt      time.Time          `json:"createdAt"`
+	UpdatedAt      time.Time          `json:"updatedAt"`
 	Type           types.AuthType     `json:"type"`
 	Provider       types.AuthProvider `json:"provider"`
 	ProviderUserID string             `json:"providerUserID"`
 	Federated      bool               `json:"federated"`
 }
 
-func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSignUpParams) error {
-	_, err := q.db.ExecContext(ctx, createUserNewSignUp,
+func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSignUpParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, createUserNewSignUp,
 		arg.Email,
+		arg.CreatedAt,
+		arg.UpdatedAt,
 		arg.Type,
 		arg.Provider,
 		arg.ProviderUserID,
 		arg.Federated,
 	)
-	return err
+	var user_id int32
+	err := row.Scan(&user_id)
+	return user_id, err
 }
 
 const createUserSignedUp = `-- name: CreateUserSignedUp :exec

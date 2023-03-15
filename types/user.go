@@ -36,21 +36,32 @@ const (
 	RoleMember RoleName = "MEMBER"
 )
 
-func (a AuthProvider) IsValid() bool {
-	switch a {
-	case AuthProviderAuth0:
-		return true
-	default:
-		return false
-	}
-}
-
 func (a AuthType) IsValid() bool {
 	switch a {
 	case AuthTypeAuth0Github, AuthTypeAuth0Username:
 		return true
 	default:
 		return false
+	}
+}
+
+func (a AuthType) IsFederated() bool {
+	switch a {
+	case AuthTypeAuth0Username:
+		return false
+	case AuthTypeAuth0Github:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a AuthType) Provider() AuthProvider {
+	switch a {
+	case AuthTypeAuth0Username, AuthTypeAuth0Github:
+		return AuthProviderAuth0
+	default:
+		return ""
 	}
 }
 
@@ -89,6 +100,12 @@ type (
 		Type           AuthType     `json:"type"`
 		Provider       AuthProvider `json:"provider"`
 		Federated      bool         `json:"federated"`
+	}
+
+	CreateUser struct {
+		Email            Email    `json:"email"`
+		AuthProviderType AuthType `json:"type"`
+		ProviderUserID   string   `json:"providerUserID"`
 	}
 )
 

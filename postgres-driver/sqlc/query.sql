@@ -334,10 +334,10 @@ RETURNING account_user_access.user_id,
         SELECT email
         FROM inserted_user
     ) AS user_email;
--- name: CreateUserNewSignUp :exec
+-- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
-    INSERT INTO users (email, signed_up)
-    VALUES ($1, true)
+    INSERT INTO users (email, signed_up, created_at, updated_at)
+    VALUES ($1, true, $2, $3)
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -352,11 +352,15 @@ VALUES (
             SELECT id
             FROM inserted_user
         ),
-        $2,
-        $3,
         $4,
-        $5
-    );
+        $5,
+        $6,
+        $7
+    )
+RETURNING (
+        SELECT id
+        FROM inserted_user
+    ) as user_id;
 -- name: CreateUserSignedUp :exec
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (

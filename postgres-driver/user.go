@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/pokt-foundation/portal-db/types"
 )
@@ -21,8 +22,10 @@ type (
 )
 
 var (
-	errUserIDDoesntExist = errors.New("error user ID does not exist for auth provider ID '%s'")
-	errUserDoesntExist   = errors.New("error user does not exist for portal ID '%d'")
+	errUserIDDoesntExist       = errors.New("error user ID does not exist for auth provider ID '%s'")
+	errUserDoesntExist         = errors.New("error user does not exist for portal ID '%d'")
+	errNotValidEmail           = errors.New("error email input is not a valid email address '%s'")
+	errInvalidAuthProviderType = errors.New("error invalid auth provider type '%s'")
 )
 
 // /* ----- postgresdriver Account Read Methods ----- */
@@ -89,137 +92,32 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 	}, nil
 }
 
-// // toAccountUsers converts users from DB rows to map-based Account.Users struct
-// func (a *SelectAccountsRow) toAccountUsers() (map[types.Email]types.AccountUserAccess, error) {
-// 	var users map[types.Email]types.AccountUserAccess
+/* ----- postgresdriver User Create Methods ----- */
 
-// 	var userRows []userAccessDBRow
-// 	if err := json.Unmarshal(a.Users, &userRows); err != nil {
-// 		return users, err
-// 	}
+// WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input when a new user signs up
+// Includes the user's auth method
+func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
+	if !user.Email.IsValid() {
+		return types.UserID(0), fmt.Errorf(errNotValidEmail.Error(), user.Email)
+	}
+	if !user.AuthProviderType.IsValid() {
+		return types.UserID(0), fmt.Errorf(errInvalidAuthProviderType.Error(), user.AuthProviderType)
+	}
 
-// 	users = make(map[types.Email]types.AccountUserAccess, len(userRows))
+	params := CreateUserNewSignUpParams{
+		Email:          user.Email,
+		ProviderUserID: user.ProviderUserID,
+		Type:           user.AuthProviderType,
+		Provider:       user.AuthProviderType.Provider(),
+		Federated:      user.AuthProviderType.IsFederated(),
+		CreatedAt:      createdAt,
+		UpdatedAt:      createdAt,
+	}
 
-// 	for _, user := range userRows {
-// 		users[types.Email(user.Email)] = types.AccountUserAccess{
-// 			UserID:   types.UserID(user.ID),
-// 			Email:    types.Email(user.Email),
-// 			RoleName: types.RoleName(user.RoleName),
-// 			Accepted: user.Accepted,
-// 		}
-// 	}
+	userID, err := pg.CreateUserNewSignUp(ctx, params)
+	if err != nil {
+		return types.UserID(0), err
+	}
 
-// 	return users, nil
-// }
-
-// // /* ----- postgresdriver Account Create Methods ----- */
-
-// // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
-// func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-// 	if account.Plan.Type == types.PayPlanType("") {
-// 		return nil, errAccountMustHavePlanTypeSet
-// 	}
-
-// 	tx, err := pg.db.Begin()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	qtx := pg.WithTx(tx)
-
-// 	userEmail, err := qtx.CheckUserEmail(ctx, creatorID)
-// 	if err != nil {
-// 		switch {
-// 		case strings.Contains(err.Error(), "no rows in result set"):
-// 			return nil, errUserDoesNotExist
-// 		default:
-// 			return nil, err
-// 		}
-// 	}
-
-// 	// Account created with only PlanType
-// 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
-// 		PlanType:  account.Plan.Type,
-// 		CreatedAt: createdAt,
-// 		UpdatedAt: createdAt,
-// 	})
-// 	if err != nil {
-// 		_ = tx.Rollback()
-// 		return nil, err
-// 	}
-
-// 	account.ID = createdAccount.ID
-// 	account.CreatedAt = createdAt
-// 	account.UpdatedAt = createdAt
-
-// 	// Account creator becomes Account OWNER
-// 	owner, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
-// 		AccountID: createdAccount.ID,
-// 		UserEmail: userEmail,
-// 		RoleName:  types.RoleOwner,
-// 		Accepted:  true,
-// 		CreatedAt: createdAt,
-// 		UpdatedAt: createdAt,
-// 	})
-// 	if err != nil {
-// 		_ = tx.Rollback()
-// 		return nil, err
-// 	}
-
-// 	err = tx.Commit()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Assign OWNER to returned Account struct
-// 	account.Users = map[types.Email]types.AccountUserAccess{
-// 		owner.UserEmail: {
-// 			UserID:   types.UserID(owner.UserID),
-// 			Email:    owner.UserEmail,
-// 			RoleName: owner.RoleName,
-// 			Accepted: owner.Accepted,
-// 		},
-// 	}
-
-// 	return &account, nil
-// }
-
-// /* ----- postgresdriver Account Delete Methods ----- */
-
-// // SetAccountDeleted updates a single Account in the database's Deleted field to true
-// func (pg *PostgresDriver) SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error {
-// 	params := DeleteAccountParams{ID: accountID, DeletedAt: newSQLNullTime(deletedAt)}
-
-// 	err := pg.DeleteAccount(ctx, params)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// /* ----- postgresdriver AccountUserAccess Write Methods ----- */
-
-// // WriteAccountUser saves a single input AccountUserAccess to the database.
-// func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, accountUser types.AccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
-// 	params := InsertAccountUserAccessParams{
-// 		AccountID: accountUser.AccountID,
-// 		UserEmail: accountUser.Email,
-// 		RoleName:  accountUser.RoleName,
-// 		Accepted:  false,
-// 		CreatedAt: createdAt,
-// 		UpdatedAt: createdAt,
-// 	}
-
-// 	user, err := pg.InsertAccountUserAccess(ctx, params)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &types.AccountUserAccess{
-// 		UserID:   types.UserID(user.UserID),
-// 		Email:    user.UserEmail,
-// 		RoleName: user.RoleName,
-// 		Accepted: user.Accepted,
-// 	}, nil
-// }
+	return types.UserID(userID), nil
+}

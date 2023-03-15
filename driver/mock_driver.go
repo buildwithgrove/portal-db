@@ -86,6 +86,27 @@ func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types
 	return r0
 }
 
+// GetPortalUserIDFromProviderID provides a mock function with given fields: ctx, providerUserID
+func (_m *MockDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error) {
+	ret := _m.Called(ctx, providerUserID)
+
+	var r0 types.UserID
+	if rf, ok := ret.Get(0).(func(context.Context, string) types.UserID); ok {
+		r0 = rf(ctx, providerUserID)
+	} else {
+		r0 = ret.Get(0).(types.UserID)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, providerUserID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NotificationChannel provides a mock function with given fields:
 func (_m *MockDriver) NotificationChannel() <-chan *types.Notification {
 	ret := _m.Called()
@@ -187,6 +208,29 @@ func (_m *MockDriver) ReadPortalApps(ctx context.Context, options types.DriverOp
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.DriverOptions) error); ok {
 		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReadUserByUserID provides a mock function with given fields: ctx, userID
+func (_m *MockDriver) ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 *types.User
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID) *types.User); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.UserID) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -382,6 +426,20 @@ func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp types.Portal
 	}
 
 	return r0, r1
+}
+
+// WriteUserNewSignUp provides a mock function with given fields: ctx, user, createdAt
+func (_m *MockDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) error {
+	ret := _m.Called(ctx, user, createdAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.CreateUser, time.Time) error); ok {
+		r0 = rf(ctx, user, createdAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 type mockConstructorTestingTNewMockDriver interface {

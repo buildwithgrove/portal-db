@@ -27,6 +27,11 @@ type (
 		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
 		ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error)
 
+		/* GetPortalUserIDFromProviderID returns a user's portal UserID */
+		GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error)
+		/* ReadUserByUserID returns a single user from a portal UserID */
+		ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error)
+
 		NotificationChannel() <-chan *types.Notification
 	}
 
@@ -41,6 +46,9 @@ type (
 		/* UpdatePortalAppsFirstDateSurpassed updates multiple PortalApps firstDateSurpassed field. */
 		// TODO legacy method - determine if still needed and remove if not when V2 migration completed
 		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
+
+		/* WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input*/
+		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) error
 
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, account types.Account) error
