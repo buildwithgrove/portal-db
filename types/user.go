@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 var (
@@ -13,17 +14,17 @@ var (
 
 /* Enums */
 type (
-	AuthProviders string
-	AuthSignIn    string
-	Permissions   string
-	RoleName      string
+	AuthProvider string
+	AuthType     string
+	Permissions  string
+	RoleName     string
 )
 
 const (
-	AuthProviderAuth0 AuthProviders = "auth0"
+	AuthProviderAuth0 AuthProvider = "auth0"
 
-	AuthSignInGitHub   AuthSignIn = "github"
-	AuthSignInUsername AuthSignIn = "username"
+	AuthTypeAuth0Github   AuthType = "auth0_github"
+	AuthTypeAuth0Username AuthType = "auth0_username"
 
 	PermReadEndpoint     Permissions = "read:endpoint"
 	PermWriteEndpoint    Permissions = "write:endpoint"
@@ -35,21 +36,32 @@ const (
 	RoleMember RoleName = "MEMBER"
 )
 
-func (a AuthProviders) IsValid() bool {
+func (a AuthType) IsValid() bool {
 	switch a {
-	case AuthProviderAuth0:
+	case AuthTypeAuth0Github, AuthTypeAuth0Username:
 		return true
 	default:
 		return false
 	}
 }
 
-func (a AuthSignIn) IsValid() bool {
+func (a AuthType) IsFederated() bool {
 	switch a {
-	case AuthSignInGitHub, AuthSignInUsername:
+	case AuthTypeAuth0Username:
+		return false
+	case AuthTypeAuth0Github:
 		return true
 	default:
 		return false
+	}
+}
+
+func (a AuthType) Provider() AuthProvider {
+	switch a {
+	case AuthTypeAuth0Username, AuthTypeAuth0Github:
+		return AuthProviderAuth0
+	default:
+		return ""
 	}
 }
 
@@ -75,46 +87,51 @@ func (r RoleName) IsValid() bool {
 type (
 	// User represents a single Portal user
 	User struct {
-		ID           UserID        `json:"id"`
-		Email        Email         `json:"email"`
-		AuthProvider AuthProviders `json:"authProvider"`
+		ID            UserID                        `json:"id"`
+		Email         Email                         `json:"email"`
+		SignedUp      bool                          `json:"signedUp"`
+		AuthProviders map[AuthType]UserAuthProvider `json:"authProviders"`
+		CreatedAt     time.Time                     `json:"createdAt"`
+		UpdatedAt     time.Time                     `json:"updatedAt"`
+	}
+	// UserAuthProvider represents a single auth provider for a user (eg. Auth0)
+	UserAuthProvider struct {
+		ProviderUserID string       `json:"providerUserID"`
+		Type           AuthType     `json:"type"`
+		Provider       AuthProvider `json:"provider"`
+		Federated      bool         `json:"federated"`
+	}
+
+	CreateUser struct {
+		Email            Email    `json:"email"`
+		AuthProviderType AuthType `json:"type"`
+		ProviderUserID   string   `json:"providerUserID"`
 	}
 )
 
-var (
-	ValidRoleNames = map[RoleName]bool{
-		RoleOwner:  true,
-		RoleAdmin:  true,
-		RoleMember: true,
-	}
+/* UserPermissions Struct Definition and Methods */
 
-	ValidPermissions = map[Permissions]bool{
-		PermReadEndpoint:  true,
-		PermWriteEndpoint: true,
-	}
-
-	permissionsList = map[RoleName][]Permissions{
-		RoleOwner:  {PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
-		RoleAdmin:  {PermReadEndpoint, PermWriteEndpoint},
-		RoleMember: {PermReadEndpoint},
-	}
-)
-
-// UserPermissions stores all load balancer read/write permissions for a given user
 type (
+	// UserPermissions stores all roles and read/write permissions for all PortalApps for a given user
 	UserPermissions struct {
 		UserID     UserID                               `json:"userID"`
 		PortalApps map[PortalAppID]PortalAppPermissions `json:"loadBalancers"`
 	}
-
+	// PortalAppPermissions stores user role and permissions for a given PortalApp
 	PortalAppPermissions struct {
 		RoleName    RoleName      `json:"roleName"`
 		Permissions []Permissions `json:"permissions"`
 	}
 )
 
+var permissionsList = map[RoleName][]Permissions{
+	RoleOwner:  {PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+	RoleAdmin:  {PermReadEndpoint, PermWriteEndpoint},
+	RoleMember: {PermReadEndpoint},
+}
+
 func (u *UserPermissions) IsEmpty() bool {
-	if u.UserID == UserID("") || len(u.PortalApps) == 0 {
+	if u.UserID == UserID(0) || len(u.PortalApps) == 0 {
 		return true
 	}
 	return false
@@ -133,7 +150,7 @@ func (u *UserPermissions) UpsertPermissions(appID PortalAppID, role RoleName) (*
 	if appID == "" {
 		return nil, ErrAppIDIsEmpty
 	}
-	if !ValidRoleNames[role] {
+	if !role.IsValid() {
 		return nil, ErrInvalidRole
 	}
 
@@ -166,12 +183,12 @@ func (u *UserPermissions) HasPermission(appID PortalAppID, permission Permission
 	return false
 }
 
-func (e *Permissions) Scan(src interface{}) error {
+func (p *Permissions) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = Permissions(s)
+		*p = Permissions(s)
 	case string:
-		*e = Permissions(s)
+		*p = Permissions(s)
 	default:
 		return fmt.Errorf("unsupported scan type for Permissions: %T", src)
 	}

@@ -24,18 +24,22 @@ var testPortalApplication = PortalApp{
 			ChainIDs:          map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 			LegacyDailyLimit:  250_000,
 		},
-		Users: map[Email]AccountUserAccess{
-			"test_owner@user.com": {
-				UserID:   "user_id_123",
+		Users: map[UserID]AccountUserAccess{
+			1: {
+				UserID:   1,
 				Email:    "test_owner@user.com",
 				RoleName: RoleOwner,
 				Accepted: true,
+				// TODO legacy field
+				ProviderUserIDs: []string{"user_id_123"},
 			},
-			"test_member@user.com": {
-				UserID:   "user_id_456",
+			2: {
+				UserID:   2,
 				Email:    "test_member@user.com",
 				RoleName: RoleMember,
 				Accepted: true,
+				// TODO legacy field
+				ProviderUserIDs: []string{"user_id_456"},
 			},
 		},
 		PartnerChainIDs:        map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
@@ -139,8 +143,10 @@ func Test_PortalApp_IsOriginWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isOriginWhitelisted := test.portalApp.IsOriginWhitelisted(test.origin)
-		c.Equal(test.expectedResult, isOriginWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isOriginWhitelisted := test.portalApp.IsOriginWhitelisted(test.origin)
+			c.Equal(test.expectedResult, isOriginWhitelisted)
+		})
 	}
 }
 
@@ -174,8 +180,10 @@ func Test_PortalApp_IsUserAgentWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isUserAgentWhitelisted := test.portalApp.IsUserAgentWhitelisted(test.userAgent)
-		c.Equal(test.expectedResult, isUserAgentWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isUserAgentWhitelisted := test.portalApp.IsUserAgentWhitelisted(test.userAgent)
+			c.Equal(test.expectedResult, isUserAgentWhitelisted)
+		})
 	}
 }
 
@@ -209,8 +217,10 @@ func Test_PortalApp_IsBlockchainWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isBlockchainWhitelisted := test.portalApp.IsBlockchainWhitelisted(test.blockchain)
-		c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isBlockchainWhitelisted := test.portalApp.IsBlockchainWhitelisted(test.blockchain)
+			c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		})
 	}
 }
 
@@ -255,8 +265,10 @@ func Test_PortalApp_IsContractWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isBlockchainWhitelisted := test.portalApp.IsContractWhitelisted(test.blockchain, test.contract)
-		c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isBlockchainWhitelisted := test.portalApp.IsContractWhitelisted(test.blockchain, test.contract)
+			c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		})
 	}
 }
 
@@ -301,8 +313,10 @@ func Test_PortalApp_IsMethodWhitelisted(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		isBlockchainWhitelisted := test.portalApp.IsMethodWhitelisted(test.blockchain, test.method)
-		c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		t.Run(test.name, func(t *testing.T) {
+			isBlockchainWhitelisted := test.portalApp.IsMethodWhitelisted(test.blockchain, test.method)
+			c.Equal(test.expectedResult, isBlockchainWhitelisted)
+		})
 	}
 }
 
@@ -446,14 +460,16 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		whitelistsObject := test.portalApp.GetWhitelistsObject()
-		c.Equal(test.expectedResult, whitelistsObject)
+		t.Run(test.name, func(t *testing.T) {
+			whitelistsObject := test.portalApp.GetWhitelistsObject()
+			c.Equal(test.expectedResult, whitelistsObject)
 
-		// check that JSON is equal as well
-		resultJSON, err := json.MarshalIndent(whitelistsObject, "", "  ")
-		c.NoError(err)
-		expectedJSON := strings.ReplaceAll(strings.ReplaceAll(test.expectedJSON, " ", ""), "\t", "")
-		actualJSON := strings.ReplaceAll(strings.ReplaceAll(string(resultJSON), " ", ""), "\t", "")
-		c.Equal(expectedJSON, actualJSON)
+			// check that JSON is equal as well
+			resultJSON, err := json.MarshalIndent(whitelistsObject, "", "  ")
+			c.NoError(err)
+			expectedJSON := strings.ReplaceAll(strings.ReplaceAll(test.expectedJSON, " ", ""), "\t", "")
+			actualJSON := strings.ReplaceAll(strings.ReplaceAll(string(resultJSON), " ", ""), "\t", "")
+			c.Equal(expectedJSON, actualJSON)
+		})
 	}
 }

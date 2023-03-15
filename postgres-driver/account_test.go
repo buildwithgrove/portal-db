@@ -101,21 +101,21 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 	}{
 		{
 			name:            "Should create a new Account in the database",
-			ownerID:         "test_user_a06ab0cf00a714",
+			ownerID:         1,
 			account:         *testdata.Accounts[types.AccountID(5)],
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
 		{
 			name:            "Should fail if input Account does not have a PayPlanType set",
-			ownerID:         "test_user_a06ab0cf00a714",
+			ownerID:         1,
 			account:         types.Account{Plan: types.Plan{Type: ""}},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             errAccountMustHavePlanTypeSet,
 		},
 		{
 			name:            "Should fail if input User does not exist in the db",
-			ownerID:         "sir_not_appearing_in_this_film",
+			ownerID:         451,
 			account:         *testdata.Accounts[types.AccountID(5)],
 			testCreatedTime: testdata.MockTimestamp,
 			err:             errUserDoesNotExist,
@@ -130,8 +130,8 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 			if test.err == nil {
 				testOwner := testdata.Users[test.ownerID]
 				test.account.ID = createdAccount.ID
-				test.account.Users = map[types.Email]types.AccountUserAccess{
-					testOwner.Email: {
+				test.account.Users = map[types.UserID]types.AccountUserAccess{
+					testOwner.ID: {
 						UserID:   test.ownerID,
 						Email:    testOwner.Email,
 						RoleName: types.RoleOwner,
@@ -153,19 +153,19 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 		name                    string
 		accountID               types.AccountID
 		accountUser             types.AccountUserAccess
-		accountUsersAfterCreate map[types.Email]types.AccountUserAccess
+		accountUsersAfterCreate map[types.UserID]types.AccountUserAccess
 		testCreatedTime         time.Time
 		err                     error
 	}{
 		{
 			name:        "Should create a new AccountUserAccess row in the database for an existing User",
 			accountID:   1,
-			accountUser: testdata.UserAccess["new_user@example.com"],
-			accountUsersAfterCreate: map[types.Email]types.AccountUserAccess{
-				"user1@example.com":    testdata.UserAccess["user1@example.com"],
-				"user2@example.com":    testdata.UserAccess["user2@example.com"],
-				"user8@example.com":    testdata.UserAccess["user8@example.com"],
-				"new_user@example.com": testdata.UserAccess["new_user@example.com"],
+			accountUser: testdata.AccountUserAccess[12],
+			accountUsersAfterCreate: map[types.UserID]types.AccountUserAccess{
+				1:  testdata.AccountUserAccess[1],
+				2:  testdata.AccountUserAccess[2],
+				8:  testdata.AccountUserAccess[8],
+				12: testdata.AccountUserAccess[12],
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
@@ -173,12 +173,13 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 		{
 			name:        "Should create a new AccountUserAccess row in the database for a user that hasn't signed up yet",
 			accountID:   2,
-			accountUser: testdata.UserAccess["not_signed_up@example.com"],
-			accountUsersAfterCreate: map[types.Email]types.AccountUserAccess{
-				"user3@example.com":         testdata.UserAccess["user3@example.com"],
-				"user4@example.com":         testdata.UserAccess["user4@example.com"],
-				"user9@example.com":         testdata.UserAccess["user9@example.com"],
-				"not_signed_up@example.com": testdata.UserAccess["not_signed_up@example.com"],
+			accountUser: testdata.AccountUserAccess[13],
+			accountUsersAfterCreate: map[types.UserID]types.AccountUserAccess{
+				3:  testdata.AccountUserAccess[3],
+				4:  testdata.AccountUserAccess[4],
+				9:  testdata.AccountUserAccess[9],
+				11: testdata.AccountUserAccess[11],
+				13: testdata.AccountUserAccess[13],
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
@@ -187,16 +188,14 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			test.accountUser.AccountID = test.accountID
-			accountUser, err := ts.driver.WriteAccountUser(context.Background(), test.accountUser, test.testCreatedTime)
+			accountUser, err := ts.driver.WriteAccountUser(context.Background(), test.accountID, test.accountUser, test.testCreatedTime)
 			ts.Equal(test.err, err)
-			accountUser.AccountID = test.accountID
 			ts.Equal(&test.accountUser, accountUser)
 
 			if test.err == nil {
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.Equal(test.err, err)
-				ts.Equal(test.accountUsersAfterCreate, accounts[test.accountUser.AccountID].Users)
+				ts.Equal(test.accountUsersAfterCreate, accounts[test.accountID].Users)
 			}
 		})
 	}

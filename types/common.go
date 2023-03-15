@@ -1,13 +1,22 @@
 package types
 
+import "regexp"
+
 /* String ID types */
 type (
 	AccountID   int32
+	UserID      int32
 	ChainID     string
-	Email       string
 	PortalAppID string
-	UserID      string
+	Email       string
 )
+
+// Validates that an Email fits a valid email format eg. test@example.com
+func (e Email) IsValid() bool {
+	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	regex := regexp.MustCompile(emailPattern)
+	return regex.MatchString(string(e))
+}
 
 /* Config Structs */
 

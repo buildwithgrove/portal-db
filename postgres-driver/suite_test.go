@@ -22,6 +22,10 @@ type (
 )
 
 func Test_RunPGDriverSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping end to end test")
+	}
+
 	testSuite := new(PGDriverTestSuite)
 	testSuite.connectionString = connectionString
 

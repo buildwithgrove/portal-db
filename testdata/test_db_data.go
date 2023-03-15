@@ -67,10 +67,10 @@ var (
 		1: {
 			ID:   1,
 			Plan: PayPlans["basic_plan"],
-			Users: map[types.Email]types.AccountUserAccess{
-				"user1@example.com": UserAccess["user1@example.com"],
-				"user2@example.com": UserAccess["user2@example.com"],
-				"user8@example.com": UserAccess["user8@example.com"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				1: AccountUserAccess[1],
+				2: AccountUserAccess[2],
+				8: AccountUserAccess[8],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
 			PartnerThroughputLimit: 2_000,
@@ -81,10 +81,11 @@ var (
 		2: {
 			ID:   2,
 			Plan: PayPlans["pro_plan"],
-			Users: map[types.Email]types.AccountUserAccess{
-				"user3@example.com": UserAccess["user3@example.com"],
-				"user4@example.com": UserAccess["user4@example.com"],
-				"user9@example.com": UserAccess["user9@example.com"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				3:  AccountUserAccess[3],
+				4:  AccountUserAccess[4],
+				9:  AccountUserAccess[9],
+				11: AccountUserAccess[11],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
@@ -95,11 +96,11 @@ var (
 		3: {
 			ID:   3,
 			Plan: PayPlans["startup_plan"],
-			Users: map[types.Email]types.AccountUserAccess{
-				"user5@example.com":  UserAccess["user5@example.com"],
-				"user6@example.com":  UserAccess["user6@example.com"],
-				"user7@example.com":  UserAccess["user7@example.com"],
-				"user10@example.com": UserAccess["user10@example.com"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				5:  AccountUserAccess[5],
+				6:  AccountUserAccess[6],
+				7:  AccountUserAccess[7],
+				10: AccountUserAccess[10],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
@@ -110,8 +111,8 @@ var (
 		4: {
 			ID:   4,
 			Plan: PayPlans["enterprise_plan"],
-			Users: map[types.Email]types.AccountUserAccess{
-				"user11@example.com": UserAccess["user11@example.com"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				10: AccountUserAccess[10],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}},
 			PartnerThroughputLimit: 1_000,
@@ -128,38 +129,188 @@ var (
 		},
 	}
 
-	UserAccess = map[types.Email]types.AccountUserAccess{
-		"user1@example.com":  {UserID: "test_user_a06ab0cf00a714", Email: "user1@example.com", RoleName: types.RoleOwner, Accepted: true},
-		"user2@example.com":  {UserID: "test_user_817516a5c3661b", Email: "user2@example.com", RoleName: types.RoleAdmin, Accepted: true},
-		"user3@example.com":  {UserID: "test_user_1e58b747ca4ea0", Email: "user3@example.com", RoleName: types.RoleOwner, Accepted: true},
-		"user4@example.com":  {UserID: "test_user_208ff0b4a1b9be", Email: "user4@example.com", RoleName: types.RoleMember, Accepted: true},
-		"user5@example.com":  {UserID: "test_user_12de743291e750", Email: "user5@example.com", RoleName: types.RoleOwner, Accepted: true},
-		"user6@example.com":  {UserID: "test_user_bf1ec64b1db1db", Email: "user6@example.com", RoleName: types.RoleAdmin, Accepted: true},
-		"user7@example.com":  {UserID: "test_user_4e4dc3b9440ffb", Email: "user7@example.com", RoleName: types.RoleMember, Accepted: true},
-		"user8@example.com":  {UserID: "test_user_4da2e080d893a2", Email: "user8@example.com", RoleName: types.RoleAdmin, Accepted: false},
-		"user9@example.com":  {UserID: "test_user_2dd0d5ad5cdaa9", Email: "user9@example.com", RoleName: types.RoleMember, Accepted: false},
-		"user10@example.com": {UserID: "test_user_e071178370b597", Email: "user10@example.com", RoleName: types.RoleMember, Accepted: false},
-		"user11@example.com": {UserID: "test_user_rjviejk7f93kdf", Email: "user11@example.com", RoleName: types.RoleOwner, Accepted: true},
-		// Used to create a new AccountUserAccess row
-		"new_user@example.com": {UserID: "test_user_create_77fhgke", Email: "new_user@example.com", RoleName: types.RoleAdmin, Accepted: false},
-		// Used to create a new AccountUserAccess row for a user that hasn't signed up yet
-		"not_signed_up@example.com": {UserID: "", Email: "not_signed_up@example.com", RoleName: types.RoleMember, Accepted: false},
+	AccountUserAccess = map[types.UserID]types.AccountUserAccess{
+		1: {UserID: 1, Email: "james.holden123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|james_holden", "github|james_holden"}},
+		2: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: []string{"auth0|paul_atreides", "github|paul_atreides"}},
+		3: {UserID: 3, Email: "ellen.ripley789@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|ellen_ripley"}},
+		4: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|ulfric_stormcloak"}},
+		5: {UserID: 5, Email: "aragorn456@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|aragorn"}},
+		6: {UserID: 6, Email: "amos.burton789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: []string{"auth0|amos_burton"}},
+		7: {UserID: 7, Email: "frodo.baggins123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|frodo_baggins"}},
+		8: {UserID: 8, Email: "rick.deckard456@test.com", RoleName: types.RoleAdmin, Accepted: false, ProviderUserIDs: []string{"auth0|rick_deckard"}},
+		9: {UserID: 9, Email: "tyrion.lannister789@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: []string{"auth0|tyrion_lannister"}},
+		// Daenerys is a member of Account 3 as well as the owner of Account 4
+		10: {UserID: 10, Email: "daenerys.targaryen123@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: []string{"auth0|daenerys_targaryen"}},
+		// Paul is a member of Account 2 as well as an admin of Account 2
+		11: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|paul_atreides", "github|paul_atreides"}},
+		// 12 is used to create a new AccountUserAccess row for an existing user
+		12: {UserID: 11, Email: "bernard.marx@test.com", RoleName: types.RoleMember, ProviderUserIDs: []string{"auth0|bernard_marx"}},
+		// 13 is used to create a new AccountUserAccess row for a user that hasn't signed up yet
+		13: {Email: "winston.smith@test.com", RoleName: types.RoleAdmin, ProviderUserIDs: []string{"auth0|winston_smith"}},
 	}
 
-	Users = map[types.UserID]types.User{
-		"test_user_a06ab0cf00a714": {ID: "test_user_a06ab0cf00a714", Email: "user1@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_817516a5c3661b": {ID: "test_user_817516a5c3661b", Email: "user2@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_1e58b747ca4ea0": {ID: "test_user_1e58b747ca4ea0", Email: "user3@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_208ff0b4a1b9be": {ID: "test_user_208ff0b4a1b9be", Email: "user4@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_12de743291e750": {ID: "test_user_12de743291e750", Email: "user5@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_bf1ec64b1db1db": {ID: "test_user_bf1ec64b1db1db", Email: "user6@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_4e4dc3b9440ffb": {ID: "test_user_4e4dc3b9440ffb", Email: "user7@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_4da2e080d893a2": {ID: "test_user_4da2e080d893a2", Email: "user8@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_2dd0d5ad5cdaa9": {ID: "test_user_2dd0d5ad5cdaa9", Email: "user9@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_e071178370b597": {ID: "test_user_e071178370b597", Email: "user10@example.com", AuthProvider: types.AuthProviderAuth0},
-		"test_user_rjviejk7f93kdf": {ID: "test_user_rjviejk7f93kdf", Email: "user11@example.com", AuthProvider: types.AuthProviderAuth0},
-		// Used to create a new AccountUserAccess row
-		"test_user_create_77fhgke": {ID: "test_user_create_77fhgke", Email: "new_user@example.com", AuthProvider: types.AuthProviderAuth0},
+	Users = map[types.UserID]*types.User{
+		1: {
+			ID:       1,
+			Email:    "james.holden123@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|james_holden",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+				types.AuthTypeAuth0Github: {
+					ProviderUserID: "github|james_holden",
+					Type:           types.AuthTypeAuth0Github,
+					Provider:       "auth0",
+					Federated:      true,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		2: {
+			ID:       2,
+			Email:    "paul.atreides456@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|paul_atreides",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+				types.AuthTypeAuth0Github: {
+					ProviderUserID: "github|paul_atreides",
+					Type:           types.AuthTypeAuth0Github,
+					Provider:       "auth0",
+					Federated:      true,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		3: {
+			ID:       3,
+			Email:    "ellen.ripley789@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|ellen_ripley",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		4: {
+			ID:       4,
+			Email:    "ulfric.stormcloak123@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|ulfric_stormcloak",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		5: {
+			ID:       5,
+			Email:    "aragorn456@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|aragorn",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		6: {
+			ID:       6,
+			Email:    "amos.burton789@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|amos_burton",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		7: {
+			ID:       7,
+			Email:    "frodo.baggins123@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|frodo_baggins",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		8: {
+			ID:       8,
+			Email:    "rick.deckard456@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|rick_deckard",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		9: {
+			ID:       9,
+			Email:    "tyrion.lannister789@test.com",
+			SignedUp: true,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|tyrion_lannister",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		10: {
+			ID:            10,
+			Email:         "daenerys.targaryen123@test.com",
+			SignedUp:      false,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{},
+			CreatedAt:     MockTimestamp,
+			UpdatedAt:     MockTimestamp,
+		},
+	}
+
+	TestCreateUser = types.CreateUser{
+		Email:            "commander.data@example.com",
+		AuthProviderType: types.AuthTypeAuth0Username,
+		ProviderUserID:   "auth0|commander_data",
 	}
 
 	PortalApps = map[types.PortalAppID]*types.PortalApp{
@@ -183,7 +334,7 @@ var (
 				SecretKeyRequired: true,
 			},
 			Whitelists: types.Whitelists{
-				Origins:     map[types.Origin]struct{}{"https://example.com": {}},
+				Origins:     map[types.Origin]struct{}{"https://test.com": {}},
 				UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)": {}},
 				Blockchains: map[types.ChainID]struct{}{"0053": {}},
 				Contracts: map[types.ChainID]map[types.Contract]struct{}{
@@ -242,7 +393,7 @@ var (
 				SecretKeyRequired: false,
 			},
 			Whitelists: types.Whitelists{
-				Origins:     map[types.Origin]struct{}{"https://test.com": {}},
+				Origins:     map[types.Origin]struct{}{"https://example.com": {}},
 				UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36": {}},
 				Blockchains: map[types.ChainID]struct{}{"0021": {}},
 				Contracts: map[types.ChainID]map[types.Contract]struct{}{
@@ -353,6 +504,7 @@ var (
 		"test_app_update_b03ca84c": {
 			ID:        "test_app_update_b03ca84c",
 			AccountID: 1,
+			Name:      "", // name set in test
 			Gigastake: true,
 			Staked:    false,
 			AAT: types.AAT{

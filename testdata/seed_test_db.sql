@@ -101,109 +101,150 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     );
 -- Insert users
-INSERT INTO users (
-        id,
-        email,
-        auth_provider,
-        sign_in_type,
-        created_at,
-        updated_at
+INSERT INTO users (email, signed_up, created_at, updated_at)
+VALUES (
+        'james.holden123@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'paul.atreides456@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'ellen.ripley789@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'ulfric.stormcloak123@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'aragorn456@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'amos.burton789@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'frodo.baggins123@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'rick.deckard456@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'tyrion.lannister789@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'daenerys.targaryen123@test.com',
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO user_auth_providers (
+        user_id,
+        provider,
+        type,
+        provider_user_id,
+        federated
     )
 VALUES (
-        'test_user_a06ab0cf00a714',
-        'user1@example.com',
+        1,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|james_holden',
+        false
     ),
     (
-        'test_user_817516a5c3661b',
-        'user2@example.com',
+        1,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_github',
+        'github|james_holden',
+        true
     ),
     (
-        'test_user_1e58b747ca4ea0',
-        'user3@example.com',
+        2,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|paul_atreides',
+        false
     ),
     (
-        'test_user_208ff0b4a1b9be',
-        'user4@example.com',
+        2,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_github',
+        'github|paul_atreides',
+        true
     ),
     (
-        'test_user_12de743291e750',
-        'user5@example.com',
+        3,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|ellen_ripley',
+        false
     ),
     (
-        'test_user_bf1ec64b1db1db',
-        'user6@example.com',
+        4,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|ulfric_stormcloak',
+        false
     ),
     (
-        'test_user_4e4dc3b9440ffb',
-        'user7@example.com',
+        5,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|aragorn',
+        false
     ),
     (
-        'test_user_4da2e080d893a2',
-        'user8@example.com',
+        6,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|amos_burton',
+        false
     ),
     (
-        'test_user_2dd0d5ad5cdaa9',
-        'user9@example.com',
+        7,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|frodo_baggins',
+        false
     ),
     (
-        'test_user_e071178370b597',
-        'user10@example.com',
+        8,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|rick_deckard',
+        false
     ),
     (
-        'test_user_rjviejk7f93kdf',
-        'user11@example.com',
+        9,
         'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'test_user_create_77fhgke',
-        'new_user@example.com',
-        'auth0',
-        'username',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        'auth0_username',
+        'auth0|tyrion_lannister',
+        false
     );
 -- Insert user_roles
 INSERT INTO user_roles (
@@ -233,7 +274,7 @@ VALUES (
 -- Insert account_user_access
 INSERT INTO account_user_access (
         account_id,
-        user_email,
+        user_id,
         role_name,
         accepted,
         created_at,
@@ -241,7 +282,7 @@ INSERT INTO account_user_access (
     )
 VALUES (
         1,
-        'user1@example.com',
+        1,
         'OWNER',
         true,
         '2022-11-11 11:11:11.000000',
@@ -249,55 +290,15 @@ VALUES (
     ),
     (
         1,
-        'user2@example.com',
-        'ADMIN',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
         2,
-        'user3@example.com',
-        'OWNER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        2,
-        'user4@example.com',
-        'MEMBER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        3,
-        'user5@example.com',
-        'OWNER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        3,
-        'user6@example.com',
         'ADMIN',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        3,
-        'user7@example.com',
-        'MEMBER',
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
         1,
-        'user8@example.com',
+        8,
         'ADMIN',
         false,
         '2022-11-11 11:11:11.000000',
@@ -305,15 +306,63 @@ VALUES (
     ),
     (
         2,
-        'user9@example.com',
+        3,
+        'OWNER',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        2,
+        4,
+        'MEMBER',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        2,
+        9,
         'MEMBER',
         false,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
+        2,
+        2,
+        'MEMBER',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
         3,
-        'user10@example.com',
+        5,
+        'OWNER',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        3,
+        6,
+        'ADMIN',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        3,
+        7,
+        'MEMBER',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        3,
+        10,
         'MEMBER',
         false,
         '2022-11-11 11:11:11.000000',
@@ -321,7 +370,7 @@ VALUES (
     ),
     (
         4,
-        'user11@example.com',
+        10,
         'OWNER',
         true,
         '2022-11-11 11:11:11.000000',
@@ -499,7 +548,7 @@ VALUES (
     (
         'test_app_3487u329rfn23f9',
         'origins',
-        'https://example.com',
+        'https://test.com',
         NULL,
         '2022-11-11 11:11:11.000000'
     ),
@@ -534,7 +583,7 @@ VALUES (
     (
         'test_app_2308rj09r23r9r2',
         'origins',
-        'https://test.com',
+        'https://example.com',
         NULL,
         '2022-11-11 11:11:11.000000'
     ),

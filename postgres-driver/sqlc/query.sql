@@ -247,20 +247,9 @@ SELECT a.*,
     p.monthly_relay_limit,
     p.throughput_limit,
     p.application_limit,
+    json_agg(users.*) AS users,
     -- legacy field
-    p.daily_limit,
-    json_agg(
-        json_build_object(
-            'user_id',
-            COALESCE(u.id, ''),
-            'email',
-            au.user_email,
-            'accepted',
-            au.accepted,
-            'role_name',
-            au.role_name
-        )
-    ) AS users
+    p.daily_limit
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
     LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
@@ -285,33 +274,149 @@ INSERT INTO accounts (
     )
 VALUES ($1, $2, $3)
 RETURNING *;
+-- name: DeleteAccount :exec
+UPDATE accounts
+SET deleted = true,
+    deleted_at = $2
+WHERE id = $1;
 -- name: CheckUserEmail :one
 SELECT email
 FROM users
 WHERE id = $1;
+-- name: CheckUserExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM users
+        WHERE id = $1
+    );
 -- name: InsertAccountUserAccess :one
 INSERT INTO account_user_access (
         account_id,
-        user_email,
+        user_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING account_user_access.user_email,
+RETURNING account_user_access.user_id,
     account_user_access.role_name,
     account_user_access.accepted,
     COALESCE(
         (
-            SELECT id
+            SELECT email
             FROM users
-            WHERE email = $2
+            WHERE user_id = $2
         ),
         ''
-    )::VARCHAR(320) AS user_id;
--- name: DeleteAccount :exec
-UPDATE accounts
-SET deleted = true,
-    deleted_at = $2
-WHERE id = $1;
+    )::VARCHAR(320) AS user_email;
+-- name: InsertAccountUserAccessNoUser :one
+WITH inserted_user AS (
+    INSERT INTO users (email, signed_up)
+    VALUES ($1, false)
+    RETURNING id,
+        email
+)
+INSERT INTO account_user_access (
+        account_id,
+        user_id,
+        role_name,
+        accepted,
+        updated_at
+    )
+VALUES (
+        $2,
+        (
+            SELECT id
+            FROM inserted_user
+        ),
+        $3,
+        false,
+        $4
+    )
+RETURNING account_user_access.user_id,
+    account_user_access.role_name,
+    account_user_access.accepted,
+    (
+        SELECT email
+        FROM inserted_user
+    ) AS user_email;
+-- name: CreateUserNewSignUp :one
+WITH inserted_user AS (
+    INSERT INTO users (email, signed_up, created_at, updated_at)
+    VALUES ($1, true, $2, $3)
+    RETURNING id
+)
+INSERT INTO user_auth_providers (
+        user_id,
+        type,
+        provider,
+        provider_user_id,
+        federated
+    )
+VALUES (
+        (
+            SELECT id
+            FROM inserted_user
+        ),
+        $4,
+        $5,
+        $6,
+        $7
+    )
+RETURNING (
+        SELECT id
+        FROM inserted_user
+    ) as user_id;
+-- name: CreateUserProviderSignedUp :one
+WITH inserted_provider AS (
+    INSERT INTO user_auth_providers (
+            user_id,
+            type,
+            provider,
+            provider_user_id,
+            federated
+        )
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING user_id
+),
+updated_access AS (
+    UPDATE account_user_access
+    SET accepted = true
+    WHERE user_id = (
+            SELECT user_id
+            FROM inserted_provider
+        )
+)
+UPDATE users
+SET signed_up = true
+WHERE id = (
+        SELECT user_id
+        FROM inserted_provider
+    )
+RETURNING (
+        SELECT user_id
+        FROM inserted_provider
+    ) as user_id;
+-- name: GetPortalUserID :one
+SELECT user_id
+FROM user_auth_providers
+WHERE provider_user_id = $1;
+-- name: GetUserDataFromPortalUserID :one
+SELECT users.*,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+WHERE users.id = $1
+GROUP BY users.id;
+-- name: GetUserDataFromAuthProviderUserID :one
+SELECT users.*,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+WHERE user_auth_providers.provider_user_id = $1
+GROUP BY users.id;
+-- name: DeleteUser :one
+DELETE FROM users
+WHERE id = $1
+RETURNING id;
