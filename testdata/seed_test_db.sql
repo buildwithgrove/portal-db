@@ -121,7 +121,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'jake.sully123@test.com',
+        'ulfric.stormcloak123@test.com',
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
@@ -133,7 +133,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'hermione.granger789@test.com',
+        'amos.burton789@test.com',
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
@@ -208,7 +208,7 @@ VALUES (
         4,
         'auth0',
         'auth0_username',
-        'auth0|jake_sully',
+        'auth0|ulfric_stormcloak',
         false
     ),
     (
@@ -222,7 +222,7 @@ VALUES (
         6,
         'auth0',
         'auth0_username',
-        'auth0|hermione_granger',
+        'auth0|amos_burton',
         false
     ),
     (

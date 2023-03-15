@@ -1,84 +1,93 @@
 package postgresdriver
 
-// type (
-// 	userAccessDBRow struct {
-// 		ID           string `json:"user_id"`
-// 		Email        string `json:"email"`
-// 		AuthProvider string `json:"auth_provider"`
-// 		RoleName     string `json:"role_name"`
-// 		Accepted     bool   `json:"accepted"`
-// 	}
-// )
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
 
-// var (
-// 	errAccountMustHavePlanTypeSet = errors.New("error account input does not have a plan type set")
-// 	errUserDoesNotExist           = errors.New("error account creator does not exist in the database")
-// )
+	"github.com/pokt-foundation/portal-db/types"
+)
+
+type (
+	authProviderDBRow struct {
+		UserID         types.UserID       `json:"user_id"`
+		Type           types.AuthType     `json:"type"`
+		Provider       types.AuthProvider `json:"provider"`
+		ProviderUserID string             `json:"provider_user_id"`
+		Federated      bool               `json:"federated"`
+	}
+)
+
+var (
+	errUserIDDoesntExist = errors.New("error user ID does not exist for auth provider ID '%s'")
+	errUserDoesntExist   = errors.New("error user does not exist for portal ID '%d'")
+)
 
 // /* ----- postgresdriver Account Read Methods ----- */
 
-// // ReadAccounts returns all Accounts in the database as Accounts structs
-// func (pg *PostgresDriver) ReadAccounts(ctx context.Context, options types.DriverOptions) (map[types.AccountID]*types.Account, error) {
-// 	dbAccounts, err := pg.SelectAccounts(ctx, options.IncludeDeleted)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+// GetPortalUserIDFromProviderID takes a user's auth provider ID and returns the Portal UserID
+func (pg *PostgresDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error) {
+	userID, err := pg.GetPortalUserID(ctx, providerUserID)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return types.UserID(0), fmt.Errorf(errUserIDDoesntExist.Error(), providerUserID)
+		default:
+			return types.UserID(0), err
+		}
+	}
 
-// 	accounts := make(map[types.AccountID]*types.Account, len(dbAccounts))
-// 	for _, dbAccount := range dbAccounts {
-// 		account, err := dbAccount.toAccount()
-// 		if err != nil {
-// 			return nil, err
-// 		}
+	return userID, nil
+}
 
-// 		accounts[dbAccount.ID] = account
-// 	}
+// ReadUserByUserID takes a portal UserID and returns a single user in the database as a User struct
+func (pg *PostgresDriver) ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error) {
+	userData, err := pg.GetUserDataFromPortalUserID(ctx, userID)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, fmt.Errorf(errUserDoesntExist.Error(), userID)
+		default:
+			return nil, err
+		}
+	}
 
-// 	return accounts, nil
-// }
+	user, err := userData.toUser()
+	if err != nil {
+		return nil, err
+	}
 
-// // toAccount converts Account SELECT output to Account struct
-// func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
-// 	var chainIDs map[types.ChainID]struct{}
-// 	if len(a.ChainIDs) != 0 {
-// 		chainIDs = make(map[types.ChainID]struct{}, len(a.ChainIDs))
-// 		for _, chainID := range a.ChainIDs {
-// 			chainIDs[types.ChainID(chainID)] = struct{}{}
-// 		}
-// 	}
+	return user, nil
+}
 
-// 	var partnerChainIDs map[types.ChainID]struct{}
-// 	if len(a.PartnerChainIDs) != 0 {
-// 		partnerChainIDs = make(map[types.ChainID]struct{}, len(a.PartnerChainIDs))
-// 		for _, chainID := range a.PartnerChainIDs {
-// 			partnerChainIDs[types.ChainID(chainID)] = struct{}{}
-// 		}
-// 	}
+// toUser converts User SELECT output to User struct
+func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
+	var providerRows []authProviderDBRow
+	if err := json.Unmarshal(u.AuthProviders, &providerRows); err != nil {
+		return nil, err
+	}
 
-// 	accountUsers, err := a.toAccountUsers()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("%s: %w", errUnmarshallingWhitelists, err)
-// 	}
+	authProviders := make(map[types.AuthType]types.UserAuthProvider, len(providerRows))
+	for _, provider := range providerRows {
+		authProviders[provider.Type] = types.UserAuthProvider{
+			ProviderUserID: provider.ProviderUserID,
+			Type:           provider.Type,
+			Provider:       provider.Provider,
+			Federated:      provider.Federated,
+		}
+	}
 
-// 	return &types.Account{
-// 		ID: a.ID,
-// 		Plan: types.Plan{
-// 			Type:              types.PayPlanType(a.PlanType),
-// 			ChainIDs:          chainIDs,
-// 			MonthlyRelayLimit: a.MonthlyRelayLimit.Int32,
-// 			ThroughputLimit:   a.ThroughputLimit.Int32,
-// 			AppLimit:          a.ApplicationLimit.Int32,
-// 			LegacyDailyLimit:  a.DailyLimit.Int32,
-// 		},
-// 		Users:                  accountUsers,
-// 		PartnerChainIDs:        partnerChainIDs,
-// 		PartnerThroughputLimit: a.PartnerThroughputLimit.Int32,
-// 		PartnerAppLimit:        a.PartnerApplicationLimit.Int32,
-// 		CreatedAt:              a.CreatedAt.UTC(),
-// 		UpdatedAt:              a.UpdatedAt.UTC(),
-// 		Deleted:                a.Deleted,
-// 	}, nil
-// }
+	return &types.User{
+		ID:            u.ID,
+		Email:         u.Email,
+		SignedUp:      u.SignedUp,
+		AuthProviders: authProviders,
+		CreatedAt:     u.CreatedAt.UTC(),
+		UpdatedAt:     u.UpdatedAt.UTC(),
+	}, nil
+}
 
 // // toAccountUsers converts users from DB rows to map-based Account.Users struct
 // func (a *SelectAccountsRow) toAccountUsers() (map[types.Email]types.AccountUserAccess, error) {

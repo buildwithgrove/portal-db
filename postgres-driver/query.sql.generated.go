@@ -252,7 +252,7 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 	err := row.Scan(
 		&i.ID,
 		&i.PlanType,
-		pq.Array(&i.PartnerBlockchainIds),
+		pq.Array(&i.PartnerChainIds),
 		&i.PartnerThroughputLimit,
 		&i.PartnerApplicationLimit,
 		&i.CreatedAt,
@@ -624,7 +624,7 @@ GROUP BY a.id,
 type SelectAccountsRow struct {
 	ID                      int32           `json:"id"`
 	PlanType                string          `json:"planType"`
-	PartnerBlockchainIds    []string        `json:"partnerBlockchainIds"`
+	PartnerChainIds         []string        `json:"partnerChainIds"`
 	PartnerThroughputLimit  sql.NullInt32   `json:"partnerThroughputLimit"`
 	PartnerApplicationLimit sql.NullInt32   `json:"partnerApplicationLimit"`
 	CreatedAt               time.Time       `json:"createdAt"`
@@ -651,7 +651,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]Se
 		if err := rows.Scan(
 			&i.ID,
 			&i.PlanType,
-			pq.Array(&i.PartnerBlockchainIds),
+			pq.Array(&i.PartnerChainIds),
 			&i.PartnerThroughputLimit,
 			&i.PartnerApplicationLimit,
 			&i.CreatedAt,

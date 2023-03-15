@@ -405,7 +405,7 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 type Account struct {
 	ID                      int32         `json:"id"`
 	PlanType                string        `json:"planType"`
-	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
+	PartnerChainIds         []string      `json:"partnerChainIds"`
 	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
 	PartnerApplicationLimit sql.NullInt32 `json:"partnerApplicationLimit"`
 	CreatedAt               time.Time     `json:"createdAt"`
@@ -420,6 +420,7 @@ type AccountUserAccess struct {
 	UserID    int32     `json:"userID"`
 	RoleName  string    `json:"roleName"`
 	Accepted  bool      `json:"accepted"`
+	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 

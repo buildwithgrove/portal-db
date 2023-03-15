@@ -133,9 +133,9 @@ var (
 		1: {UserID: 1, Email: "james.holden123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|james_holden", "github|james_holden"}},
 		2: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: []string{"auth0|paul_atreides", "github|paul_atreides"}},
 		3: {UserID: 3, Email: "ellen.ripley789@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|ellen_ripley"}},
-		4: {UserID: 4, Email: "jake.sully123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|jake_sully"}},
+		4: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|ulfric_stormcloak"}},
 		5: {UserID: 5, Email: "aragorn456@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|aragorn"}},
-		6: {UserID: 6, Email: "hermione.granger789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: []string{"auth0|hermione_granger"}},
+		6: {UserID: 6, Email: "amos.burton789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: []string{"auth0|amos_burton"}},
 		7: {UserID: 7, Email: "frodo.baggins123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|frodo_baggins"}},
 		8: {UserID: 8, Email: "rick.deckard456@test.com", RoleName: types.RoleAdmin, Accepted: false, ProviderUserIDs: []string{"auth0|rick_deckard"}},
 		9: {UserID: 9, Email: "tyrion.lannister789@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: []string{"auth0|tyrion_lannister"}},
@@ -149,20 +149,22 @@ var (
 		13: {Email: "winston.smith@test.com", RoleName: types.RoleAdmin, ProviderUserIDs: []string{"auth0|winston_smith"}},
 	}
 
-	Users = map[types.UserID]types.User{
+	Users = map[types.UserID]*types.User{
 		1: {
 			ID:       1,
 			Email:    "james.holden123@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
 					ProviderUserID: "auth0|james_holden",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 				types.AuthTypeAuth0Github: {
-					Provider:       "auth0_github",
-					ProviderUserID: "auth0|james_holden",
+					ProviderUserID: "github|james_holden",
+					Type:           types.AuthTypeAuth0Github,
+					Provider:       "auth0",
 					Federated:      true,
 				},
 			},
@@ -175,13 +177,15 @@ var (
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
 					ProviderUserID: "auth0|paul_atreides",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 				types.AuthTypeAuth0Github: {
-					Provider:       "auth0_github",
-					ProviderUserID: "auth0|paul_atreides",
+					ProviderUserID: "github|paul_atreides",
+					Type:           types.AuthTypeAuth0Github,
+					Provider:       "auth0",
 					Federated:      true,
 				},
 			},
@@ -194,8 +198,9 @@ var (
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
 					ProviderUserID: "auth0|ellen_ripley",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
@@ -204,12 +209,13 @@ var (
 		},
 		4: {
 			ID:       4,
-			Email:    "jake.sully123@test.com",
+			Email:    "ulfric.stormcloak123@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
-					ProviderUserID: "auth0|jake_sully",
+					ProviderUserID: "auth0|ulfric_stormcloak",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
@@ -222,8 +228,9 @@ var (
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
 					ProviderUserID: "auth0|aragorn",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
@@ -232,12 +239,13 @@ var (
 		},
 		6: {
 			ID:       6,
-			Email:    "hermione.granger789@test.com",
+			Email:    "amos.burton789@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
-					ProviderUserID: "auth0|hermione_granger",
+					ProviderUserID: "auth0|amos_burton",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
@@ -250,11 +258,14 @@ var (
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
-					ProviderUserID: "auth0|hermione_granger",
+					ProviderUserID: "auth0|frodo_baggins",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
 		},
 		8: {
 			ID:       8,
@@ -262,11 +273,14 @@ var (
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
 					ProviderUserID: "auth0|rick_deckard",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
 		},
 		9: {
 			ID:       9,
@@ -274,11 +288,14 @@ var (
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       "auth0_username",
 					ProviderUserID: "auth0|tyrion_lannister",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
 		},
 		10: {
 			ID:       10,
@@ -286,8 +303,9 @@ var (
 			SignedUp: false,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					Provider:       types.AuthProviderAuth0,
 					ProviderUserID: "auth0|daenerys_targaryen",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
 					Federated:      false,
 				},
 			},
