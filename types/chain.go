@@ -44,7 +44,7 @@ type (
 	Chain struct {
 		ID                ChainID                  `json:"id"`
 		Blockchain        string                   `json:"blockchain"`
-		ChainID           string                   `json:"chainID"`
+		BlockchainID      string                   `json:"blockchainID"`
 		Description       string                   `json:"description"`
 		EnforceResult     string                   `json:"enforceResult"`
 		Path              string                   `json:"path"`
@@ -61,22 +61,22 @@ type (
 		UpdatedAt         time.Time                `json:"updatedAt"`
 	}
 	Altruist struct {
-		ChainID  string        `json:"chainID,omitempty"`
+		ChainID  ChainID       `json:"chainID,omitempty"`
 		URL      string        `json:"url"`
 		Auth     string        `json:"auth"`
 		AuthType ChainAuthType `json:"authType"`
 	}
 	GigastakeRedirect struct {
-		ChainID       string `json:"chainID,omitempty"`
-		Alias         string `json:"alias"`
-		Domain        string `json:"domain"`
-		ProtocolAppID string `json:"loadBalancerID"`
+		ChainID   ChainID   `json:"chainID,omitempty"`
+		AccountID AccountID `json:"accountID"`
+		Alias     string    `json:"alias"`
+		Domain    string    `json:"domain"`
 	}
 	Check struct {
-		ChainID   string `json:"chainID,omitempty"`
-		Payload   string `json:"payload"`
-		ResultKey string `json:"resultKey"`
-		Allowance int    `json:"allowance"`
+		ChainID   ChainID `json:"chainID,omitempty"`
+		Payload   string  `json:"payload"`
+		ResultKey string  `json:"resultKey"`
+		Allowance int     `json:"allowance"`
 	}
 
 	// Represents global blocked addresses across the entire Portal

@@ -138,16 +138,17 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 	var redirects []Redirect
 	for _, chainRedirect := range c.Redirects {
 		redirects = append(redirects, Redirect{
-			Alias:          chainRedirect.Alias,
-			Domain:         chainRedirect.Domain,
-			LoadBalancerID: chainRedirect.ProtocolAppID,
+			Alias:  chainRedirect.Alias,
+			Domain: chainRedirect.Domain,
+			// TODO need to figure out how that is going to work (accounts->LBs not a straight mapping)
+			LoadBalancerID: string(chainRedirect.AccountID),
 		})
 	}
 
 	return Blockchain{
 		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
-		ChainID:           c.ChainID,
+		ChainID:           c.BlockchainID,
 		ChainIDCheck:      c.Checks[ChainCheckTypeChain].Payload,
 		Description:       c.Description,
 		EnforceResult:     c.EnforceResult,
@@ -346,7 +347,7 @@ func (b *Blockchain) ConvertToV2Chain() Chain {
 	return Chain{
 		ID:                ChainID(b.ID),
 		Blockchain:        b.Blockchain,
-		ChainID:           b.ChainID,
+		BlockchainID:      b.ChainID,
 		Description:       b.Description,
 		EnforceResult:     b.EnforceResult,
 		Path:              b.Path,
@@ -383,10 +384,12 @@ func (u *UpdateBlockchain) ConvertToV2UpdateChain() UpdateChain {
 }
 
 func (r *Redirect) ConvertToV2Redirect() GigastakeRedirect {
+
 	return GigastakeRedirect{
-		Alias:         r.Alias,
-		Domain:        r.Domain,
-		ProtocolAppID: r.LoadBalancerID,
+		Alias:  r.Alias,
+		Domain: r.Domain,
+		// TODO need to figure out how that is going to work (accounts->LBs not a straight mapping)
+		AccountID: 1,
 	}
 }
 

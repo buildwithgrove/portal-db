@@ -540,6 +540,131 @@ var (
 		},
 	}
 
+	Chains = map[types.ChainID]*types.Chain{
+		"0001": {
+			ID:                "0001",
+			Blockchain:        "mainnet",
+			Description:       "Pocket Network Mainnet",
+			EnforceResult:     "JSON",
+			Path:              "/v1/query/height",
+			Ticker:            "POKT",
+			BlockchainAliases: []string{"mainnet"},
+			Active:            true,
+			Altruists: []types.Altruist{
+				{
+					URL:  "https://altruist-0001.com:1234",
+					Auth: "test_pocket:auth123456", AuthType: types.ChainAuthTypeBasicAuth,
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0053": {
+			ID:                "0053",
+			Blockchain:        "optimism-mainnet",
+			BlockchainID:      "10",
+			Description:       "Optimism Mainnet",
+			EnforceResult:     "JSON",
+			Ticker:            "OP",
+			BlockchainAliases: []string{"optimism-mainnet"},
+			LogLimitBlocks:    100000,
+			RequestTimeout:    0,
+			Active:            true,
+			Altruists: []types.Altruist{
+				{
+					URL:  "https://altruist-0053.com:1234",
+					Auth: "test_pocket:auth123456", AuthType: types.ChainAuthTypeBasicAuth,
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 1, Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 2},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0021": {
+			ID:                "0021",
+			Blockchain:        "eth-mainnet",
+			BlockchainID:      "1",
+			Description:       "Ethereum Mainnet",
+			EnforceResult:     "JSON",
+			Ticker:            "ETH",
+			BlockchainAliases: []string{"eth-mainnet"},
+			LogLimitBlocks:    100000,
+			Active:            true,
+			Altruists: []types.Altruist{
+				{
+					URL:  "https://altruist-0021.com:1234",
+					Auth: "test_pocket:auth123456", AuthType: types.ChainAuthTypeBasicAuth,
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 2, Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 5},
+				types.ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`, ResultKey: "id"},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0064": {
+			ID:                "0064",
+			Blockchain:        "sui-testnet",
+			Description:       "Sui Testnet",
+			EnforceResult:     "JSON",
+			Ticker:            "SUI-TESTNET",
+			BlockchainAliases: []string{"sui-testnet"},
+			LogLimitBlocks:    100000,
+			RequestTimeout:    60000,
+			Active:            false,
+			Altruists: []types.Altruist{
+				{
+					URL:  "https://altruist-0064.com:1234",
+					Auth: "test_pocket:auth123456", AuthType: types.ChainAuthTypeBasicAuth,
+				},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"sui_blockNumber","params":[]}`, ResultKey: "result", Allowance: 7},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0040": {
+			ID:                "0040",
+			Blockchain:        "harmony-0",
+			BlockchainID:      "1",
+			Description:       "Harmony Shard 0",
+			EnforceResult:     "JSON",
+			Ticker:            "HMY",
+			BlockchainAliases: []string{"harmony-0"},
+			Active:            true,
+			Altruists: []types.Altruist{
+				{
+					URL:  "https://altruist-0040.com:1234",
+					Auth: "test_pocket:auth123456", AuthType: types.ChainAuthTypeBasicAuth,
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 3, Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}`, ResultKey: "result", Allowance: 8},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+	}
+
 	/* ----- Update Data ----- */
 
 	UpdatePortalAppName     = "portal-app-updated"

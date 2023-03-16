@@ -16,20 +16,6 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// UpdateAcceptAccountUser provides a mock function with given fields: ctx, acceptAccountUser, updatedAt
-func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error {
-	ret := _m.Called(ctx, acceptAccountUser, updatedAt)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAcceptAccountUser, time.Time) error); ok {
-		r0 = rf(ctx, acceptAccountUser, updatedAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // ActivateChain provides a mock function with given fields: ctx, chainID, active
 func (_m *MockDriver) ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error {
 	ret := _m.Called(ctx, chainID, active)
@@ -303,6 +289,20 @@ func (_m *MockDriver) SetPortalAppDeleted(ctx context.Context, portalAppID types
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.PortalAppID, time.Time) error); ok {
 		r0 = rf(ctx, portalAppID, deletedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateAcceptAccountUser provides a mock function with given fields: ctx, acceptAccountUser, updatedAt
+func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error {
+	ret := _m.Called(ctx, acceptAccountUser, updatedAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAcceptAccountUser, time.Time) error); ok {
+		r0 = rf(ctx, acceptAccountUser, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}

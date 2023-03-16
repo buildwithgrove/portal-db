@@ -36,8 +36,8 @@ var (
 	}
 
 	testRedirect = GigastakeRedirect{
-		Alias:         "mainnet",
-		Domain:        "pokt.test.com",
-		ProtocolAppID: "test_5416bb8d696386455b8",
+		Alias:     "mainnet",
+		Domain:    "pokt.test.com",
+		AccountID: 1,
 	}
 )
