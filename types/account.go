@@ -6,25 +6,26 @@ import "time"
 type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
-		ID                   AccountID                    `json:"id"`
-		Plan                 Plan                         `json:"payPlan"`
-		Users                map[UserID]AccountUserAccess `json:"users"`
-		PartnerBlockchainIDs map[ChainID]struct{}         `json:"partnerBlockchainIDs"`
+		ID              AccountID                    `json:"id"`
+		Plan            Plan                         `json:"payPlan"`
+		Users           map[UserID]AccountUserAccess `json:"users"`
+		PartnerChainIDs map[ChainID]struct{}         `json:"partnerBlockchainIDs"`
 		// PartnerThroughputLimit is the number of relays per second for an accounts partners
 		PartnerThroughputLimit int `json:"partnerThroughputLimit"`
 		// PartnerAppLimit is the number of apps for an accounts partners
-		PartnerAppLimit int `json:"partnerAppLimit"`
+		PartnerAppLimit int       `json:"partnerAppLimit"`
+		CreatedAt       time.Time `json:"createdAt"`
+		UpdatedAt       time.Time `json:"updatedAt"`
 	}
 
-	// AccountUserAccess represents a single Portal user's role for a single Portal application
+	// AccountUserAccess represents a single Portal user's role for a single Account
 	AccountUserAccess struct {
-		AppID     string    `json:"appID,omitempty"`
-		ID        string    `json:"id"`
-		User      User      `json:"userID"`
-		RoleName  RoleName  `json:"roleName"`
-		Accepted  bool      `json:"accepted"`
-		CreatedAt time.Time `json:"createdAt"`
-		UpdatedAt time.Time `json:"updatedAt"`
+		UserID   UserID   `json:"userID"`
+		Email    Email    `json:"email"`
+		RoleName RoleName `json:"roleName"`
+		Accepted bool     `json:"accepted"`
+		// TODO legacy field
+		ProviderUserIDs []string `json:"providerUserID"`
 	}
 )
 

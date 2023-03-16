@@ -13,87 +13,87 @@ import (
 	"github.com/pokt-foundation/portal-db/types"
 )
 
-type AuthProviders string
+type AuthProvider string
 
 const (
-	AuthProvidersAuth0 AuthProviders = "auth0"
+	AuthProviderAuth0 AuthProvider = "auth0"
 )
 
-func (e *AuthProviders) Scan(src interface{}) error {
+func (e *AuthProvider) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = AuthProviders(s)
+		*e = AuthProvider(s)
 	case string:
-		*e = AuthProviders(s)
+		*e = AuthProvider(s)
 	default:
-		return fmt.Errorf("unsupported scan type for AuthProviders: %T", src)
+		return fmt.Errorf("unsupported scan type for AuthProvider: %T", src)
 	}
 	return nil
 }
 
-type NullAuthProviders struct {
-	AuthProviders AuthProviders
-	Valid         bool // Valid is true if AuthProviders is not NULL
+type NullAuthProvider struct {
+	AuthProvider AuthProvider
+	Valid        bool // Valid is true if AuthProvider is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullAuthProviders) Scan(value interface{}) error {
+func (ns *NullAuthProvider) Scan(value interface{}) error {
 	if value == nil {
-		ns.AuthProviders, ns.Valid = "", false
+		ns.AuthProvider, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.AuthProviders.Scan(value)
+	return ns.AuthProvider.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullAuthProviders) Value() (driver.Value, error) {
+func (ns NullAuthProvider) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.AuthProviders), nil
+	return string(ns.AuthProvider), nil
 }
 
-type AuthSignIn string
+type AuthType string
 
 const (
-	AuthSignInGithub   AuthSignIn = "github"
-	AuthSignInUsername AuthSignIn = "username"
+	AuthTypeAuth0Github   AuthType = "auth0_github"
+	AuthTypeAuth0Username AuthType = "auth0_username"
 )
 
-func (e *AuthSignIn) Scan(src interface{}) error {
+func (e *AuthType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = AuthSignIn(s)
+		*e = AuthType(s)
 	case string:
-		*e = AuthSignIn(s)
+		*e = AuthType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for AuthSignIn: %T", src)
+		return fmt.Errorf("unsupported scan type for AuthType: %T", src)
 	}
 	return nil
 }
 
-type NullAuthSignIn struct {
-	AuthSignIn AuthSignIn
-	Valid      bool // Valid is true if AuthSignIn is not NULL
+type NullAuthType struct {
+	AuthType AuthType
+	Valid    bool // Valid is true if AuthType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullAuthSignIn) Scan(value interface{}) error {
+func (ns *NullAuthType) Scan(value interface{}) error {
 	if value == nil {
-		ns.AuthSignIn, ns.Valid = "", false
+		ns.AuthType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.AuthSignIn.Scan(value)
+	return ns.AuthType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullAuthSignIn) Value() (driver.Value, error) {
+func (ns NullAuthType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.AuthSignIn), nil
+	return string(ns.AuthType), nil
 }
 
 type ChainAuthType string
@@ -405,7 +405,7 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 type Account struct {
 	ID                      int32         `json:"id"`
 	PlanType                string        `json:"planType"`
-	PartnerBlockchainIds    []string      `json:"partnerBlockchainIds"`
+	PartnerChainIds         []string      `json:"partnerChainIds"`
 	PartnerThroughputLimit  sql.NullInt32 `json:"partnerThroughputLimit"`
 	PartnerApplicationLimit sql.NullInt32 `json:"partnerApplicationLimit"`
 	CreatedAt               time.Time     `json:"createdAt"`
@@ -417,9 +417,10 @@ type Account struct {
 type AccountUserAccess struct {
 	ID        int32     `json:"id"`
 	AccountID int32     `json:"accountID"`
-	UserID    string    `json:"userID"`
+	UserID    int32     `json:"userID"`
 	RoleName  string    `json:"roleName"`
 	Accepted  bool      `json:"accepted"`
+	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
@@ -465,8 +466,8 @@ type ChainCheck struct {
 
 type ChainGigastakeRedirect struct {
 	ID        int32     `json:"id"`
-	AccountID int32     `json:"accountID"`
 	ChainID   string    `json:"chainID"`
+	AccountID int32     `json:"accountID"`
 	Alias     string    `json:"alias"`
 	Domain    string    `json:"domain"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -482,7 +483,7 @@ type GlobalBlockedContract struct {
 
 type PayPlan struct {
 	PlanType          string        `json:"planType"`
-	BlockchainIds     []string      `json:"blockchainIds"`
+	ChainIDs          []string      `json:"chainIds"`
 	MonthlyRelayLimit int32         `json:"monthlyRelayLimit"`
 	ThroughputLimit   int32         `json:"throughputLimit"`
 	ApplicationLimit  int32         `json:"applicationLimit"`
@@ -560,12 +561,20 @@ type StickinessOption struct {
 }
 
 type User struct {
-	ID           string              `json:"id"`
-	Email        string              `json:"email"`
-	AuthProvider types.AuthProviders `json:"authProvider"`
-	SignInType   NullAuthSignIn      `json:"signInType"`
-	CreatedAt    time.Time           `json:"createdAt"`
-	UpdatedAt    time.Time           `json:"updatedAt"`
+	ID        types.UserID `json:"id"`
+	Email     types.Email  `json:"email"`
+	SignedUp  bool         `json:"signedUp"`
+	CreatedAt time.Time    `json:"createdAt"`
+	UpdatedAt time.Time    `json:"updatedAt"`
+}
+
+type UserAuthProvider struct {
+	ID             int32              `json:"id"`
+	UserID         types.UserID       `json:"userID"`
+	Type           types.AuthType     `json:"type"`
+	Provider       types.AuthProvider `json:"provider"`
+	ProviderUserID string             `json:"providerUserID"`
+	Federated      bool               `json:"federated"`
 }
 
 type UserRole struct {

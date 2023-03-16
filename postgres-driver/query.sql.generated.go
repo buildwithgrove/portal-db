@@ -15,6 +15,158 @@ import (
 	"github.com/pokt-foundation/portal-db/types"
 )
 
+const checkUserEmail = `-- name: CheckUserEmail :one
+SELECT email
+FROM users
+WHERE id = $1
+`
+
+func (q *Queries) CheckUserEmail(ctx context.Context, id types.UserID) (types.Email, error) {
+	row := q.db.QueryRowContext(ctx, checkUserEmail, id)
+	var email types.Email
+	err := row.Scan(&email)
+	return email, err
+}
+
+const checkUserExists = `-- name: CheckUserExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM users
+        WHERE id = $1
+    )
+`
+
+func (q *Queries) CheckUserExists(ctx context.Context, id types.UserID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUserExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const createUserNewSignUp = `-- name: CreateUserNewSignUp :one
+WITH inserted_user AS (
+    INSERT INTO users (email, signed_up, created_at, updated_at)
+    VALUES ($1, true, $2, $3)
+    RETURNING id
+)
+INSERT INTO user_auth_providers (
+        user_id,
+        type,
+        provider,
+        provider_user_id,
+        federated
+    )
+VALUES (
+        (
+            SELECT id
+            FROM inserted_user
+        ),
+        $4,
+        $5,
+        $6,
+        $7
+    )
+RETURNING (
+        SELECT id
+        FROM inserted_user
+    ) as user_id
+`
+
+type CreateUserNewSignUpParams struct {
+	Email          types.Email        `json:"email"`
+	CreatedAt      time.Time          `json:"createdAt"`
+	UpdatedAt      time.Time          `json:"updatedAt"`
+	Type           types.AuthType     `json:"type"`
+	Provider       types.AuthProvider `json:"provider"`
+	ProviderUserID string             `json:"providerUserID"`
+	Federated      bool               `json:"federated"`
+}
+
+func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSignUpParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, createUserNewSignUp,
+		arg.Email,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.Type,
+		arg.Provider,
+		arg.ProviderUserID,
+		arg.Federated,
+	)
+	var user_id int32
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const createUserProviderSignedUp = `-- name: CreateUserProviderSignedUp :one
+WITH inserted_provider AS (
+    INSERT INTO user_auth_providers (
+            user_id,
+            type,
+            provider,
+            provider_user_id,
+            federated
+        )
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING user_id
+),
+updated_access AS (
+    UPDATE account_user_access
+    SET accepted = true
+    WHERE user_id = (
+            SELECT user_id
+            FROM inserted_provider
+        )
+)
+UPDATE users
+SET signed_up = true
+WHERE id = (
+        SELECT user_id
+        FROM inserted_provider
+    )
+RETURNING (
+        SELECT user_id
+        FROM inserted_provider
+    ) as user_id
+`
+
+type CreateUserProviderSignedUpParams struct {
+	UserID         types.UserID       `json:"userID"`
+	Type           types.AuthType     `json:"type"`
+	Provider       types.AuthProvider `json:"provider"`
+	ProviderUserID string             `json:"providerUserID"`
+	Federated      bool               `json:"federated"`
+}
+
+func (q *Queries) CreateUserProviderSignedUp(ctx context.Context, arg CreateUserProviderSignedUpParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, createUserProviderSignedUp,
+		arg.UserID,
+		arg.Type,
+		arg.Provider,
+		arg.ProviderUserID,
+		arg.Federated,
+	)
+	var user_id int32
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const deleteAccount = `-- name: DeleteAccount :exec
+UPDATE accounts
+SET deleted = true,
+    deleted_at = $2
+WHERE id = $1
+`
+
+type DeleteAccountParams struct {
+	ID        int32        `json:"id"`
+	DeletedAt sql.NullTime `json:"deletedAt"`
+}
+
+func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAccount, arg.ID, arg.DeletedAt)
+	return err
+}
+
 const deletePortalApp = `-- name: DeletePortalApp :exec
 UPDATE portal_applications
 SET deleted = true,
@@ -30,6 +182,247 @@ type DeletePortalAppParams struct {
 func (q *Queries) DeletePortalApp(ctx context.Context, arg DeletePortalAppParams) error {
 	_, err := q.db.ExecContext(ctx, deletePortalApp, arg.ID, arg.DeletedAt)
 	return err
+}
+
+const deleteUser = `-- name: DeleteUser :one
+DELETE FROM users
+WHERE id = $1
+RETURNING id
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) (types.UserID, error) {
+	row := q.db.QueryRowContext(ctx, deleteUser, id)
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getPortalUserID = `-- name: GetPortalUserID :one
+SELECT user_id
+FROM user_auth_providers
+WHERE provider_user_id = $1
+`
+
+func (q *Queries) GetPortalUserID(ctx context.Context, providerUserID string) (types.UserID, error) {
+	row := q.db.QueryRowContext(ctx, getPortalUserID, providerUserID)
+	var user_id types.UserID
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const getUserDataFromAuthProviderUserID = `-- name: GetUserDataFromAuthProviderUserID :one
+SELECT users.id, users.email, users.signed_up, users.created_at, users.updated_at,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+WHERE user_auth_providers.provider_user_id = $1
+GROUP BY users.id
+`
+
+type GetUserDataFromAuthProviderUserIDRow struct {
+	ID            types.UserID    `json:"id"`
+	Email         types.Email     `json:"email"`
+	SignedUp      bool            `json:"signedUp"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+	AuthProviders json.RawMessage `json:"authProviders"`
+}
+
+func (q *Queries) GetUserDataFromAuthProviderUserID(ctx context.Context, providerUserID string) (GetUserDataFromAuthProviderUserIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserDataFromAuthProviderUserID, providerUserID)
+	var i GetUserDataFromAuthProviderUserIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.SignedUp,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AuthProviders,
+	)
+	return i, err
+}
+
+const getUserDataFromPortalUserID = `-- name: GetUserDataFromPortalUserID :one
+SELECT users.id, users.email, users.signed_up, users.created_at, users.updated_at,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+WHERE users.id = $1
+GROUP BY users.id
+`
+
+type GetUserDataFromPortalUserIDRow struct {
+	ID            types.UserID    `json:"id"`
+	Email         types.Email     `json:"email"`
+	SignedUp      bool            `json:"signedUp"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
+	AuthProviders json.RawMessage `json:"authProviders"`
+}
+
+func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.UserID) (GetUserDataFromPortalUserIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserDataFromPortalUserID, id)
+	var i GetUserDataFromPortalUserIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.SignedUp,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AuthProviders,
+	)
+	return i, err
+}
+
+const insertAccount = `-- name: InsertAccount :one
+INSERT INTO accounts (
+        plan_type,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3)
+RETURNING id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
+`
+
+type InsertAccountParams struct {
+	PlanType  string    `json:"planType"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, insertAccount, arg.PlanType, arg.CreatedAt, arg.UpdatedAt)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.PlanType,
+		pq.Array(&i.PartnerChainIds),
+		&i.PartnerThroughputLimit,
+		&i.PartnerApplicationLimit,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Deleted,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const insertAccountUserAccess = `-- name: InsertAccountUserAccess :one
+INSERT INTO account_user_access (
+        account_id,
+        user_id,
+        role_name,
+        accepted,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5)
+RETURNING account_user_access.user_id,
+    account_user_access.role_name,
+    account_user_access.accepted,
+    COALESCE(
+        (
+            SELECT email
+            FROM users
+            WHERE user_id = $2
+        ),
+        ''
+    )::VARCHAR(320) AS user_email
+`
+
+type InsertAccountUserAccessParams struct {
+	AccountID int32     `json:"accountID"`
+	UserID    int32     `json:"userID"`
+	RoleName  string    `json:"roleName"`
+	Accepted  bool      `json:"accepted"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type InsertAccountUserAccessRow struct {
+	UserID    int32  `json:"userID"`
+	RoleName  string `json:"roleName"`
+	Accepted  bool   `json:"accepted"`
+	UserEmail string `json:"userEmail"`
+}
+
+func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccountUserAccessParams) (InsertAccountUserAccessRow, error) {
+	row := q.db.QueryRowContext(ctx, insertAccountUserAccess,
+		arg.AccountID,
+		arg.UserID,
+		arg.RoleName,
+		arg.Accepted,
+		arg.UpdatedAt,
+	)
+	var i InsertAccountUserAccessRow
+	err := row.Scan(
+		&i.UserID,
+		&i.RoleName,
+		&i.Accepted,
+		&i.UserEmail,
+	)
+	return i, err
+}
+
+const insertAccountUserAccessNoUser = `-- name: InsertAccountUserAccessNoUser :one
+WITH inserted_user AS (
+    INSERT INTO users (email, signed_up)
+    VALUES ($1, false)
+    RETURNING id,
+        email
+)
+INSERT INTO account_user_access (
+        account_id,
+        user_id,
+        role_name,
+        accepted,
+        updated_at
+    )
+VALUES (
+        $2,
+        (
+            SELECT id
+            FROM inserted_user
+        ),
+        $3,
+        false,
+        $4
+    )
+RETURNING account_user_access.user_id,
+    account_user_access.role_name,
+    account_user_access.accepted,
+    (
+        SELECT email
+        FROM inserted_user
+    ) AS user_email
+`
+
+type InsertAccountUserAccessNoUserParams struct {
+	Email     types.Email `json:"email"`
+	AccountID int32       `json:"accountID"`
+	RoleName  string      `json:"roleName"`
+	UpdatedAt time.Time   `json:"updatedAt"`
+}
+
+type InsertAccountUserAccessNoUserRow struct {
+	UserID    int32          `json:"userID"`
+	RoleName  string         `json:"roleName"`
+	Accepted  bool           `json:"accepted"`
+	UserEmail sql.NullString `json:"userEmail"`
+}
+
+func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertAccountUserAccessNoUserParams) (InsertAccountUserAccessNoUserRow, error) {
+	row := q.db.QueryRowContext(ctx, insertAccountUserAccessNoUser,
+		arg.Email,
+		arg.AccountID,
+		arg.RoleName,
+		arg.UpdatedAt,
+	)
+	var i InsertAccountUserAccessNoUserRow
+	err := row.Scan(
+		&i.UserID,
+		&i.RoleName,
+		&i.Accepted,
+		&i.UserEmail,
+	)
+	return i, err
 }
 
 const insertPortalApplication = `-- name: InsertPortalApplication :one
@@ -242,6 +635,90 @@ func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickine
 		pq.Array(&i.Origins),
 	)
 	return i, err
+}
+
+const selectAccounts = `-- name: SelectAccounts :many
+SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+    p.chain_ids,
+    p.monthly_relay_limit,
+    p.throughput_limit,
+    p.application_limit,
+    json_agg(users.*) AS users,
+    -- legacy field
+    p.daily_limit
+FROM accounts AS a
+    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
+    LEFT JOIN users AS u ON au.user_email = u.email
+    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
+WHERE (
+        $1::BOOLEAN
+        OR a.deleted = false
+    )
+GROUP BY a.id,
+    p.plan_type,
+    p.chain_ids,
+    p.monthly_relay_limit,
+    p.throughput_limit,
+    p.application_limit,
+    p.daily_limit
+`
+
+type SelectAccountsRow struct {
+	ID                      int32           `json:"id"`
+	PlanType                string          `json:"planType"`
+	PartnerChainIds         []string        `json:"partnerChainIds"`
+	PartnerThroughputLimit  sql.NullInt32   `json:"partnerThroughputLimit"`
+	PartnerApplicationLimit sql.NullInt32   `json:"partnerApplicationLimit"`
+	CreatedAt               time.Time       `json:"createdAt"`
+	UpdatedAt               time.Time       `json:"updatedAt"`
+	Deleted                 bool            `json:"deleted"`
+	DeletedAt               sql.NullTime    `json:"deletedAt"`
+	ChainIDs                []string        `json:"chainIds"`
+	MonthlyRelayLimit       sql.NullInt32   `json:"monthlyRelayLimit"`
+	ThroughputLimit         sql.NullInt32   `json:"throughputLimit"`
+	ApplicationLimit        sql.NullInt32   `json:"applicationLimit"`
+	Users                   json.RawMessage `json:"users"`
+	DailyLimit              sql.NullInt32   `json:"dailyLimit"`
+}
+
+func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]SelectAccountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectAccounts, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectAccountsRow
+	for rows.Next() {
+		var i SelectAccountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlanType,
+			pq.Array(&i.PartnerChainIds),
+			&i.PartnerThroughputLimit,
+			&i.PartnerApplicationLimit,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Deleted,
+			&i.DeletedAt,
+			pq.Array(&i.ChainIDs),
+			&i.MonthlyRelayLimit,
+			&i.ThroughputLimit,
+			&i.ApplicationLimit,
+			&i.Users,
+			&i.DailyLimit,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
