@@ -127,7 +127,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'aragorn456@test.com',
+        'chrisjen.avasarala1@test.com',
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
@@ -221,7 +221,7 @@ VALUES (
         5,
         'auth0',
         'auth0_username',
-        'auth0|aragorn',
+        'auth0|chrisjen_avasarala',
         false
     ),
     (

@@ -296,6 +296,12 @@ UPDATE accounts
 SET deleted = true,
     deleted_at = $2
 WHERE id = $1;
+-- name: CheckPlanTypeExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM pay_plans
+        WHERE plan_type = $1
+    );
 -- name: CheckUserEmail :one
 SELECT email
 FROM users
@@ -304,6 +310,13 @@ WHERE id = $1;
 SELECT id
 FROM users
 WHERE email = $1;
+-- name: CheckAccountExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM accounts
+        WHERE id = $1
+            AND deleted = false
+    );
 -- name: CheckUserExists :one
 SELECT EXISTS(
         SELECT 1
@@ -317,6 +330,16 @@ SELECT EXISTS (
         WHERE user_id = $1
             AND account_id = $2
     );
+-- name: CheckAccountUserRole :one
+SELECT role_name
+FROM account_user_access
+WHERE user_id = $1
+    AND account_id = $2;
+-- name: CheckAccountUserAccepted :one
+SELECT accepted
+FROM account_user_access
+WHERE user_id = $1
+    AND account_id = $2;
 -- name: InsertAccountUserAccess :one
 INSERT INTO account_user_access (
         account_id,
@@ -425,7 +448,7 @@ RETURNING (
         SELECT id
         FROM inserted_user
     ) as user_id;
--- name: CreateUserProviderSignedUp :one
+-- name: UpdateUserAcceptedInvite :exec
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (
             user_id,
@@ -444,17 +467,18 @@ updated_access AS (
             SELECT user_id
             FROM inserted_provider
         )
+        AND account_id = $6
 )
 UPDATE users
 SET signed_up = true
 WHERE id = (
         SELECT user_id
         FROM inserted_provider
-    )
-RETURNING (
-        SELECT user_id
-        FROM inserted_provider
-    ) as user_id;
+    );
+-- name: DeleteAccountUser :exec
+DELETE FROM account_user_access
+WHERE account_id = $1
+    AND user_id = $2;
 -- name: GetPortalUserID :one
 SELECT user_id
 FROM user_auth_providers

@@ -49,9 +49,7 @@ type (
 
 		/* WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input. */
 		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) error
-		/* WriteUserProviderSignedUp creates a new portal UserAuthProvider in the DB when a user accepts their team invite. */
-		WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error)
-		/* DeletePortalUser deletes a portal User from the DB. WARNING will do a full delete in the case of users. */
+		/* DeletePortalUser deletes a portal User from the DB. WARNING will do a hard delete. */
 		DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error)
 
 		/* WriteAccount saves input Account to the database. */
@@ -61,12 +59,12 @@ type (
 
 		/* WriteAccountUser saves input AccountUserAccess to the database. */
 		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)
-		/* UpdateUserAccessRole updates the RoleName for an AccountUserAccess row. */
-		UpdateAccountUserRole(ctx context.Context, email types.Email, portalAppID types.PortalAppID, roleName types.RoleName) error
-		/* AcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
-		AcceptAccountUser(ctx context.Context, email types.Email, userID types.UserID, portalAppID string) error
-		/* DeleteAccountUser deletes a UserAccess row. */
-		DeleteAccountUser(ctx context.Context, email types.Email, portalAppID types.PortalAppID) error
+		/* SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin. */
+		SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error
+		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
+		UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error
+		/* RemoveAccountUser deletes a AccountUserAccess row for a given user and account ID. */
+		RemoveAccountUser(ctx context.Context, userID types.UserID, accountID types.AccountID) error
 
 		/* WriteChain saves input Chain struct to the database. */
 		WriteChain(ctx context.Context, blockchain *types.Chain) (*types.Chain, error)
