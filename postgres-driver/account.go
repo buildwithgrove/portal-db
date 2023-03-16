@@ -240,7 +240,7 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUse
 		switch err {
 
 		case sql.ErrNoRows:
-			// user with provided email does not exist in DB so create a new User and AccountUserAccess entry for existing user & account
+			// user with provided email does not exist in DB so create a new User and AccountUserAccess entry
 			accountUser, err := pg.writeAccountUserAccessNoUser(ctx, createAccountUser, createdAt)
 			if err != nil {
 				return nil, err
@@ -253,7 +253,7 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUse
 		}
 	}
 
-	// user with provided email already exists in DB so create a new AccountUserAccess entry for existing user & account
+	// user with provided email already exists in DB so create a new AccountUserAccess entry
 	accountUser, err := pg.writeAccountUserAccess(ctx, userID, createAccountUser, createdAt)
 	if err != nil {
 		return nil, err
@@ -262,7 +262,7 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUse
 	return accountUser, nil
 }
 
-// writeAccountUserAccessNoUser creates a new User in the database and then creates a new AccountUserAccess for that user & account
+// writeAccountUserAccessNoUser creates a new User in the database and then creates a new AccountUserAccess for that user
 // Called when a user is invited to a new team but does not yet have a Portal Account for the provided email
 func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 	ctx context.Context,
@@ -290,7 +290,7 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 	}, nil
 }
 
-// writeAccountUserAccessNoUser creates a new AccountUserAccess row for an existing user & account
+// writeAccountUserAccessNoUser creates a new AccountUserAccess row for an existing user
 // Called when an existing Portal user is invited to a new team
 func (pg *PostgresDriver) writeAccountUserAccess(
 	ctx context.Context,
