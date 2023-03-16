@@ -4,9 +4,12 @@ overrides:
     rename:
       application_ids: "ApplicationIDs"
       chain_ids: "ChainIDs"
+      account_ids: "AccountIDs"
       favorited_chain_ids: "FavoritedChainIDs"
       partner_chain_ids: "PartnerChainIDs"
       provider_user_ids: "ProviderUserIDs"
+      url: "URL"
+      urls: "URLs"
 
 sql:
   - schema: "schema.sql"
@@ -77,6 +80,20 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/types.AuthType"
           - column: "user_auth_providers.provider"
             go_type: "github.com/pokt-foundation/portal-db/types.AuthProvider"
+          - column: "chains.id"
+            go_type: "github.com/pokt-foundation/portal-db/types.ChainID"
+          - column: "chain_altruists.chain_id"
+            go_type: "github.com/pokt-foundation/portal-db/types.ChainID"
+          - column: "chain_altruists.url"
+            go_type: "github.com/pokt-foundation/portal-db/types.AltruistURL"
+          - column: "chain_gigastake_redirects.chain_id"
+            go_type: "github.com/pokt-foundation/portal-db/types.ChainID"
+          - column: "chain_checks.chain_id"
+            go_type: "github.com/pokt-foundation/portal-db/types.ChainID"
+          - column: "chain_gigastake_redirects.account_id"
+            go_type: "github.com/pokt-foundation/portal-db/types.AccountID"
+          - column: "chain_gigastake_redirects.domain"
+            go_type: "github.com/pokt-foundation/portal-db/types.RedirectDomain"
 
           # legacy table
           - column: "stickiness_options.lb_id"

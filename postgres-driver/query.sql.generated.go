@@ -90,6 +90,22 @@ func (q *Queries) CheckAccountUserRole(ctx context.Context, arg CheckAccountUser
 	return role_name, err
 }
 
+const checkChainExists = `-- name: CheckChainExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM chains
+        WHERE id = $1
+            AND deleted = false
+    )
+`
+
+func (q *Queries) CheckChainExists(ctx context.Context, id types.ChainID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkChainExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkPlanTypeExists = `-- name: CheckPlanTypeExists :one
 SELECT EXISTS(
         SELECT 1
@@ -247,6 +263,60 @@ type DeletePortalAppParams struct {
 
 func (q *Queries) DeletePortalApp(ctx context.Context, arg DeletePortalAppParams) error {
 	_, err := q.db.ExecContext(ctx, deletePortalApp, arg.ID, arg.DeletedAt)
+	return err
+}
+
+const deleteUnusedChainAltruists = `-- name: DeleteUnusedChainAltruists :exec
+DELETE FROM chain_altruists
+WHERE chain_id = $1
+    AND url NOT IN (
+        SELECT unnest($2::VARCHAR [])
+    )
+`
+
+type DeleteUnusedChainAltruistsParams struct {
+	ChainID types.ChainID `json:"chainID"`
+	URLs    []string      `json:"urls"`
+}
+
+func (q *Queries) DeleteUnusedChainAltruists(ctx context.Context, arg DeleteUnusedChainAltruistsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUnusedChainAltruists, arg.ChainID, pq.Array(arg.URLs))
+	return err
+}
+
+const deleteUnusedChainChecks = `-- name: DeleteUnusedChainChecks :exec
+DELETE FROM chain_checks
+WHERE chain_id = $1
+    AND type NOT IN (
+        SELECT unnest($2::chain_check_type [])
+    )
+`
+
+type DeleteUnusedChainChecksParams struct {
+	ChainID types.ChainID          `json:"chainID"`
+	Types   []types.ChainCheckType `json:"types"`
+}
+
+func (q *Queries) DeleteUnusedChainChecks(ctx context.Context, arg DeleteUnusedChainChecksParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUnusedChainChecks, arg.ChainID, pq.Array(arg.Types))
+	return err
+}
+
+const deleteUnusedChainGigastakeRedirects = `-- name: DeleteUnusedChainGigastakeRedirects :exec
+DELETE FROM chain_gigastake_redirects
+WHERE chain_id = $1
+    AND account_id NOT IN (
+        SELECT unnest($2::INTEGER [])
+    )
+`
+
+type DeleteUnusedChainGigastakeRedirectsParams struct {
+	ChainID    types.ChainID `json:"chainID"`
+	AccountIDs []int32       `json:"accountIds"`
+}
+
+func (q *Queries) DeleteUnusedChainGigastakeRedirects(ctx context.Context, arg DeleteUnusedChainGigastakeRedirectsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUnusedChainGigastakeRedirects, arg.ChainID, pq.Array(arg.AccountIDs))
 	return err
 }
 
@@ -823,6 +893,102 @@ func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]Se
 	return items, nil
 }
 
+const selectChains = `-- name: SelectChains :many
+SELECT c.id, c.blockchain, c.description, c.enforce_result, c.path, c.ticker, c.blockchain_id, c.request_timeout, c.log_limit_blocks, c.chain_aliases, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
+    COALESCE(
+        json_agg(DISTINCT ca) FILTER (
+            WHERE ca.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_altruists,
+    COALESCE(
+        json_agg(DISTINCT cgr) FILTER (
+            WHERE cgr.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_gigastake_redirects,
+    COALESCE(
+        json_agg(DISTINCT cc) FILTER (
+            WHERE cc.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_checks
+FROM chains c
+    LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
+    LEFT JOIN chain_gigastake_redirects cgr ON c.id = cgr.chain_id
+    LEFT JOIN chain_checks cc ON c.id = cc.chain_id
+WHERE (
+        $1::BOOLEAN
+        OR c.deleted = false
+    )
+GROUP BY c.id
+`
+
+type SelectChainsRow struct {
+	ID                      types.ChainID   `json:"id"`
+	Blockchain              string          `json:"blockchain"`
+	Description             string          `json:"description"`
+	EnforceResult           string          `json:"enforceResult"`
+	Path                    string          `json:"path"`
+	Ticker                  string          `json:"ticker"`
+	BlockchainID            sql.NullInt32   `json:"blockchainID"`
+	RequestTimeout          sql.NullInt32   `json:"requestTimeout"`
+	LogLimitBlocks          sql.NullInt32   `json:"logLimitBlocks"`
+	ChainAliases            []string        `json:"chainAliases"`
+	AllowedMethods          []string        `json:"allowedMethods"`
+	Active                  bool            `json:"active"`
+	CreatedAt               time.Time       `json:"createdAt"`
+	UpdatedAt               time.Time       `json:"updatedAt"`
+	Deleted                 sql.NullBool    `json:"deleted"`
+	DeletedAt               sql.NullTime    `json:"deletedAt"`
+	ChainAltruists          json.RawMessage `json:"chainAltruists"`
+	ChainGigastakeRedirects json.RawMessage `json:"chainGigastakeRedirects"`
+	ChainChecks             json.RawMessage `json:"chainChecks"`
+}
+
+func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]SelectChainsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectChains, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectChainsRow
+	for rows.Next() {
+		var i SelectChainsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Blockchain,
+			&i.Description,
+			&i.EnforceResult,
+			&i.Path,
+			&i.Ticker,
+			&i.BlockchainID,
+			&i.RequestTimeout,
+			&i.LogLimitBlocks,
+			pq.Array(&i.ChainAliases),
+			pq.Array(&i.AllowedMethods),
+			&i.Active,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Deleted,
+			&i.DeletedAt,
+			&i.ChainAltruists,
+			&i.ChainGigastakeRedirects,
+			&i.ChainChecks,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectPortalApplications = `-- name: SelectPortalApplications :many
 SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.application_ids, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
     paa.address,
@@ -1041,6 +1207,27 @@ func (q *Queries) UpdateAccountUserRole(ctx context.Context, arg UpdateAccountUs
 		arg.UpdatedAt,
 	)
 	return err
+}
+
+const updateChainActive = `-- name: UpdateChainActive :one
+UPDATE chains
+SET active = $2,
+    updated_at = $3
+WHERE id = $1
+RETURNING active
+`
+
+type UpdateChainActiveParams struct {
+	ID        types.ChainID `json:"id"`
+	Active    bool          `json:"active"`
+	UpdatedAt time.Time     `json:"updatedAt"`
+}
+
+func (q *Queries) UpdateChainActive(ctx context.Context, arg UpdateChainActiveParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, updateChainActive, arg.ID, arg.Active, arg.UpdatedAt)
+	var active bool
+	err := row.Scan(&active)
+	return active, err
 }
 
 const updateDeletePortalAppNotification = `-- name: UpdateDeletePortalAppNotification :exec
@@ -1304,6 +1491,222 @@ func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAc
 		arg.ProviderUserID,
 		arg.Federated,
 		arg.AccountID,
+	)
+	return err
+}
+
+const upsertChain = `-- name: UpsertChain :one
+INSERT INTO chains (
+        id,
+        blockchain,
+        description,
+        enforce_result,
+        path,
+        ticker,
+        blockchain_id,
+        request_timeout,
+        log_limit_blocks,
+        chain_aliases,
+        allowed_methods,
+        created_at,
+        updated_at
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11,
+        $12,
+        $13
+    ) ON CONFLICT (id) DO
+UPDATE
+SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
+    description = COALESCE(EXCLUDED.description, chains.description),
+    enforce_result = COALESCE(EXCLUDED.enforce_result, chains.enforce_result),
+    path = COALESCE(EXCLUDED.path, chains.path),
+    ticker = COALESCE(EXCLUDED.ticker, chains.ticker),
+    blockchain_id = COALESCE(EXCLUDED.blockchain_id, chains.blockchain_id),
+    request_timeout = COALESCE(EXCLUDED.request_timeout, chains.request_timeout),
+    log_limit_blocks = COALESCE(
+        EXCLUDED.log_limit_blocks,
+        chains.log_limit_blocks
+    ),
+    chain_aliases = COALESCE(EXCLUDED.chain_aliases, chains.chain_aliases),
+    allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
+    updated_at = EXCLUDED.updated_at
+RETURNING id
+`
+
+type UpsertChainParams struct {
+	ID             types.ChainID `json:"id"`
+	Blockchain     string        `json:"blockchain"`
+	Description    string        `json:"description"`
+	EnforceResult  string        `json:"enforceResult"`
+	Path           string        `json:"path"`
+	Ticker         string        `json:"ticker"`
+	BlockchainID   sql.NullInt32 `json:"blockchainID"`
+	RequestTimeout sql.NullInt32 `json:"requestTimeout"`
+	LogLimitBlocks sql.NullInt32 `json:"logLimitBlocks"`
+	ChainAliases   []string      `json:"chainAliases"`
+	AllowedMethods []string      `json:"allowedMethods"`
+	CreatedAt      time.Time     `json:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt"`
+}
+
+func (q *Queries) UpsertChain(ctx context.Context, arg UpsertChainParams) (types.ChainID, error) {
+	row := q.db.QueryRowContext(ctx, upsertChain,
+		arg.ID,
+		arg.Blockchain,
+		arg.Description,
+		arg.EnforceResult,
+		arg.Path,
+		arg.Ticker,
+		arg.BlockchainID,
+		arg.RequestTimeout,
+		arg.LogLimitBlocks,
+		pq.Array(arg.ChainAliases),
+		pq.Array(arg.AllowedMethods),
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var id types.ChainID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const upsertChainAltruist = `-- name: UpsertChainAltruist :exec
+INSERT INTO chain_altruists (
+        chain_id,
+        url,
+        auth,
+        auth_type,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (chain_id, url) DO
+UPDATE
+SET auth = COALESCE(EXCLUDED.auth, chain_altruists.auth),
+    auth_type = COALESCE(EXCLUDED.auth_type, chain_altruists.auth_type),
+    updated_at = EXCLUDED.updated_at
+`
+
+type UpsertChainAltruistParams struct {
+	ChainID   types.ChainID       `json:"chainID"`
+	URL       types.AltruistURL   `json:"url"`
+	Auth      sql.NullString      `json:"auth"`
+	AuthType  types.ChainAuthType `json:"authType"`
+	CreatedAt time.Time           `json:"createdAt"`
+	UpdatedAt time.Time           `json:"updatedAt"`
+}
+
+func (q *Queries) UpsertChainAltruist(ctx context.Context, arg UpsertChainAltruistParams) error {
+	_, err := q.db.ExecContext(ctx, upsertChainAltruist,
+		arg.ChainID,
+		arg.URL,
+		arg.Auth,
+		arg.AuthType,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
+const upsertChainCheck = `-- name: UpsertChainCheck :exec
+INSERT INTO chain_checks (
+        chain_id,
+        type,
+        payload,
+        result_key,
+        allowance,
+        created_at,
+        updated_at
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7
+    ) ON CONFLICT (chain_id, type) DO
+UPDATE
+SET payload = COALESCE(EXCLUDED.payload, chain_checks.payload),
+    result_key = COALESCE(EXCLUDED.result_key, chain_checks.result_key),
+    allowance = COALESCE(EXCLUDED.allowance, chain_checks.allowance),
+    updated_at = EXCLUDED.updated_at
+`
+
+type UpsertChainCheckParams struct {
+	ChainID   types.ChainID        `json:"chainID"`
+	Type      types.ChainCheckType `json:"type"`
+	Payload   string               `json:"payload"`
+	ResultKey sql.NullString       `json:"resultKey"`
+	Allowance sql.NullInt32        `json:"allowance"`
+	CreatedAt time.Time            `json:"createdAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
+}
+
+func (q *Queries) UpsertChainCheck(ctx context.Context, arg UpsertChainCheckParams) error {
+	_, err := q.db.ExecContext(ctx, upsertChainCheck,
+		arg.ChainID,
+		arg.Type,
+		arg.Payload,
+		arg.ResultKey,
+		arg.Allowance,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
+const upsertChainGigastakeRedirect = `-- name: UpsertChainGigastakeRedirect :exec
+INSERT INTO chain_gigastake_redirects (
+        chain_id,
+        account_id,
+        alias,
+        domain,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (account_id) DO
+UPDATE
+SET chain_id = COALESCE(
+        EXCLUDED.chain_id,
+        chain_gigastake_redirects.chain_id
+    ),
+    alias = COALESCE(EXCLUDED.alias, chain_gigastake_redirects.alias),
+    domain = COALESCE(
+        EXCLUDED.domain,
+        chain_gigastake_redirects.domain
+    ),
+    updated_at = EXCLUDED.updated_at
+`
+
+type UpsertChainGigastakeRedirectParams struct {
+	ChainID   types.ChainID        `json:"chainID"`
+	AccountID types.AccountID      `json:"accountID"`
+	Alias     string               `json:"alias"`
+	Domain    types.RedirectDomain `json:"domain"`
+	CreatedAt time.Time            `json:"createdAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
+}
+
+func (q *Queries) UpsertChainGigastakeRedirect(ctx context.Context, arg UpsertChainGigastakeRedirectParams) error {
+	_, err := q.db.ExecContext(ctx, upsertChainGigastakeRedirect,
+		arg.ChainID,
+		arg.AccountID,
+		arg.Alias,
+		arg.Domain,
+		arg.CreatedAt,
+		arg.UpdatedAt,
 	)
 	return err
 }

@@ -10,6 +10,7 @@ import (
 var (
 	trueBool, falseBool = true, false
 	allowanceInt        = 3
+	allowanceInt32      = int32(3)
 
 	testLegacyLoadBalancer = LoadBalancer{
 		ID:                "test_5416bb8d696386455b8",
@@ -106,6 +107,7 @@ var (
 		ID:                "0001",
 		Altruist:          "https://user:test_123@pokt-test.us-1.pokt.network:1234",
 		Blockchain:        "pokt-mainnet",
+		ChainID:           "123",
 		Description:       "POKT Network Mainnet",
 		ChainIDCheck:      `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`,
 		EnforceResult:     "JSON",
@@ -220,14 +222,14 @@ var (
 				{Type: WhitelistTypeBlockchains, Values: []string{"0001", "0002", "003E", "0056"}},
 			},
 			ChainWhitelists: [2]ChainWhitelists{
-				{Type: WhitelistTypeContracts, Values: []BlockchainIDWhitelists{
+				{Type: WhitelistTypeContracts, Values: []ChainIDWhitelists{
 					{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
 					{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
 					{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
 					{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 				},
 				},
-				{Type: WhitelistTypeMethods, Values: []BlockchainIDWhitelists{
+				{Type: WhitelistTypeMethods, Values: []ChainIDWhitelists{
 					{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
 					{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
 					{ChainID: "003E", Values: []string{"GET"}},
@@ -238,16 +240,17 @@ var (
 	}
 
 	testV2Chain = Chain{
-		ID:                "0001",
-		Blockchain:        "pokt-mainnet",
-		Description:       "POKT Network Mainnet",
-		EnforceResult:     "JSON",
-		Path:              "/wow/test",
-		Ticker:            "POKT",
-		BlockchainAliases: []string{"pokt-mainnet"},
-		LogLimitBlocks:    100_000,
-		Active:            true,
-		Altruists:         []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
+		ID:             "0001",
+		Blockchain:     "pokt-mainnet",
+		BlockchainID:   123,
+		Description:    "POKT Network Mainnet",
+		EnforceResult:  "JSON",
+		Path:           "/wow/test",
+		Ticker:         "POKT",
+		ChainAliases:   []string{"pokt-mainnet"},
+		LogLimitBlocks: 100_000,
+		Active:         true,
+		Altruists:      []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
 		Checks: map[ChainCheckType]Check{
 			ChainCheckTypeSync: {
 				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
@@ -259,19 +262,19 @@ var (
 	}
 
 	testV2UpdateChain = UpdateChain{
-		Blockchain:        "pokt-mainnet",
-		Description:       "POKT Network Mainnet",
-		EnforceResult:     "JSON",
-		Path:              "/wow/test",
-		Ticker:            "POKT",
-		BlockchainAliases: []string{"pokt-mainnet"},
-		LogLimitBlocks:    100_000,
-		Altruists:         []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
+		Blockchain:     "pokt-mainnet",
+		Description:    "POKT Network Mainnet",
+		EnforceResult:  "JSON",
+		Path:           "/wow/test",
+		Ticker:         "POKT",
+		ChainAliases:   []string{"pokt-mainnet"},
+		LogLimitBlocks: 100_000,
+		Altruists:      []Altruist{{URL: "https://user:test_123@pokt-test.us-1.pokt.network:1234"}},
 		Checks: map[ChainCheckType]UpdateCheck{
 			ChainCheckTypeSync: {
 				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
 				ResultKey: "testing",
-				Allowance: &allowanceInt,
+				Allowance: &allowanceInt32,
 			},
 			ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
 		},

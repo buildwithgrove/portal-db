@@ -221,8 +221,8 @@ func (pg *PostgresDriver) SetAccountDeleted(ctx context.Context, accountID types
 
 /* ----- postgresdriver AccountUserAccess Write Methods ----- */
 
-// WriteAccountUser saves a single input AccountUserAccess to the database.
-func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+// AddAccountUser saves a single input AccountUserAccess to the database.
+func (pg *PostgresDriver) AddAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
 	if !createAccountUser.Email.IsValid() {
 		return &types.AccountUserAccess{}, fmt.Errorf(errInvalidEmail.Error(), createAccountUser.Email)
 	}

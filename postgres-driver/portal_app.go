@@ -2,7 +2,6 @@ package postgresdriver
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -167,6 +166,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = tx.Rollback() }()
 
 	qtx := pg.WithTx(tx)
 
@@ -186,10 +186,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
 	})
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
-
 	_, err = qtx.InsertPortalApplicationAAT(ctx, InsertPortalApplicationAATParams{
 		ApplicationID:   portalApp.ID,
 		Address:         portalApp.AAT.Address,
@@ -200,10 +198,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		Version:         portalApp.AAT.Version,
 	})
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
-
 	_, err = qtx.InsertPortalApplicationSetting(ctx, InsertPortalApplicationSettingParams{
 		ApplicationID:     portalApp.ID,
 		Environment:       portalApp.Settings.Environment,
@@ -212,10 +208,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		MonthlyRelayLimit: portalApp.Settings.MonthlyRelayLimit,
 	})
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
-
 	// TODO remove legacy fields when migration to V2 schema complete
 	_, err = qtx.InsertStickinessOption(ctx, InsertStickinessOptionParams{
 		LbID:       portalApp.ID,
@@ -225,7 +219,6 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		Origins:    portalApp.LegacyFields.StickyOptions.StickyOrigins,
 	})
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 
@@ -245,6 +238,7 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 	if err != nil {
 		return err
 	}
+	defer func() { _ = tx.Rollback() }()
 
 	qtx := pg.WithTx(tx)
 
@@ -253,24 +247,23 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 			ID: update.AppID, Name: update.Name, UpdatedAt: updatedAt,
 		})
 		if err != nil {
-			_ = tx.Rollback()
 			return err
 		}
 	}
 	if update.Settings != nil {
-		err := pg.updateSettings(ctx, tx, qtx, update, updatedAt)
+		err := pg.updateSettings(ctx, qtx, update, updatedAt)
 		if err != nil {
 			return err
 		}
 	}
 	if update.Notifications != nil && len(update.Notifications) > 0 {
-		err := pg.updateNotifications(ctx, tx, qtx, update, updatedAt)
+		err := pg.updateNotifications(ctx, qtx, update, updatedAt)
 		if err != nil {
 			return err
 		}
 	}
 	if update.Whitelists != nil {
-		err := pg.updateWhitelists(ctx, tx, qtx, update, updatedAt)
+		err := pg.updateWhitelists(ctx, qtx, update, updatedAt)
 		if err != nil {
 			return err
 		}
@@ -285,7 +278,7 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 }
 
 // updateSettings updates the PortalApp's settings row in the portal_application_settings table
-func (pg *PostgresDriver) updateSettings(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
+func (pg *PostgresDriver) updateSettings(ctx context.Context, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
 	updateSettings := UpdatePortalAppSettingsParams{
 		ApplicationID:     update.AppID,
 		SecretKey:         update.Settings.SecretKey,
@@ -298,7 +291,6 @@ func (pg *PostgresDriver) updateSettings(ctx context.Context, tx *sql.Tx, qtx *Q
 
 	err := qtx.UpdatePortalAppSettings(ctx, updateSettings)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 
@@ -306,7 +298,7 @@ func (pg *PostgresDriver) updateSettings(ctx context.Context, tx *sql.Tx, qtx *Q
 }
 
 // updateNotifications updates the PortalApp's notifications rows in the portal_application_notifications table
-func (pg *PostgresDriver) updateNotifications(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
+func (pg *PostgresDriver) updateNotifications(ctx context.Context, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
 	for _, appNotification := range update.Notifications {
 		updateNotification := UpdateUpsertPortalAppNotificationParams{
 			ApplicationID: update.AppID,
@@ -321,7 +313,6 @@ func (pg *PostgresDriver) updateNotifications(ctx context.Context, tx *sql.Tx, q
 		// Upsert notification row for application_id & type if active: true in update struct
 		err := qtx.UpdateUpsertPortalAppNotification(ctx, updateNotification)
 		if err != nil {
-			_ = tx.Rollback()
 			return err
 		}
 
@@ -331,7 +322,6 @@ func (pg *PostgresDriver) updateNotifications(ctx context.Context, tx *sql.Tx, q
 				ApplicationID: update.AppID, Type: appNotification.NotificationType,
 			})
 			if err != nil {
-				_ = tx.Rollback()
 				return err
 			}
 		}
@@ -341,7 +331,7 @@ func (pg *PostgresDriver) updateNotifications(ctx context.Context, tx *sql.Tx, q
 }
 
 // updateWhitelists updates the PortalApp's whitelists rows in the portal_application_whitelists table
-func (pg *PostgresDriver) updateWhitelists(ctx context.Context, tx *sql.Tx, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
+func (pg *PostgresDriver) updateWhitelists(ctx context.Context, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
 	// Map all whitelist rows from update struct to insert query params
 	updateWhitelists := UpdateInsertWhitelistsParams{ApplicationID: update.AppID, CreatedAt: updatedAt}
 	for _, appWhitelist := range update.Whitelists.AppWhitelists {
@@ -364,7 +354,6 @@ func (pg *PostgresDriver) updateWhitelists(ctx context.Context, tx *sql.Tx, qtx 
 	// Insert all whitelist rows for application_id in update struct that are not in DB
 	err := qtx.UpdateInsertWhitelists(ctx, updateWhitelists)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 
@@ -376,7 +365,6 @@ func (pg *PostgresDriver) updateWhitelists(ctx context.Context, tx *sql.Tx, qtx 
 		ChainIDs:      updateWhitelists.ChainIDs,
 	})
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 

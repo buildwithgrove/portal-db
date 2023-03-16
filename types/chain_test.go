@@ -4,16 +4,17 @@ import "time"
 
 var (
 	testChain = Chain{
-		ID:                "0001",
-		Blockchain:        "pokt-mainnet",
-		Description:       "POKT Network Mainnet",
-		EnforceResult:     "JSON",
-		Path:              "/wow/test",
-		Ticker:            "POKT",
-		BlockchainAliases: []string{"pokt-mainnet"},
-		AllowedMethods:    []string{"GET", "POST", "PUT"},
-		LogLimitBlocks:    100_000,
-		Active:            true,
+		ID:             "0001",
+		Blockchain:     "pokt-mainnet",
+		BlockchainID:   123,
+		Description:    "POKT Network Mainnet",
+		EnforceResult:  "JSON",
+		Path:           "/wow/test",
+		Ticker:         "POKT",
+		ChainAliases:   []string{"pokt-mainnet"},
+		AllowedMethods: []string{"GET", "POST", "PUT"},
+		LogLimitBlocks: 100_000,
+		Active:         true,
 		Altruists: []Altruist{
 			{
 				URL:      "https://user:test_123@pokt-test.us-1.pokt.network:1234",

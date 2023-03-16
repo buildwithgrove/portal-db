@@ -1,6 +1,8 @@
 package types
 
 import (
+	"net/url"
+	"regexp"
 	"time"
 )
 
@@ -8,6 +10,9 @@ import (
 type (
 	ChainAuthType  string
 	ChainCheckType string
+
+	AltruistURL    string
+	RedirectDomain string
 )
 
 const (
@@ -39,44 +44,64 @@ func (c ChainCheckType) IsValid() bool {
 	}
 }
 
+func (a AltruistURL) IsValid() bool {
+	parsedURL, err := url.Parse(string(a))
+	if err != nil {
+		return false
+	}
+	if parsedURL.Scheme == "http" || parsedURL.Scheme == "https" {
+		return true
+	}
+	return false
+}
+
+func (r RedirectDomain) IsValid() bool {
+	pattern := `^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`
+	matched, err := regexp.MatchString(pattern, string(r))
+	if err != nil {
+		return false
+	}
+	return matched
+}
+
 /* Chain Struct and Methods */
 type (
 	Chain struct {
-		ID                ChainID                  `json:"id"`
-		Blockchain        string                   `json:"blockchain"`
-		BlockchainID      string                   `json:"blockchainID"`
-		Description       string                   `json:"description"`
-		EnforceResult     string                   `json:"enforceResult"`
-		Path              string                   `json:"path"`
-		Ticker            string                   `json:"ticker"`
-		BlockchainAliases []string                 `json:"blockchainAliases"`
-		AllowedMethods    []string                 `json:"allowedMethods"`
-		LogLimitBlocks    int                      `json:"logLimitBlocks"`
-		RequestTimeout    int                      `json:"requestTimeout"`
-		Active            bool                     `json:"active"`
-		Altruists         []Altruist               `json:"altruists"`
-		Redirects         []GigastakeRedirect      `json:"redirects"`
-		Checks            map[ChainCheckType]Check `json:"chainChecks"`
-		CreatedAt         time.Time                `json:"createdAt"`
-		UpdatedAt         time.Time                `json:"updatedAt"`
+		ID             ChainID                  `json:"id"`
+		Blockchain     string                   `json:"blockchain"`
+		Description    string                   `json:"description"`
+		EnforceResult  string                   `json:"enforceResult"`
+		Path           string                   `json:"path"`
+		Ticker         string                   `json:"ticker"`
+		ChainAliases   []string                 `json:"blockchainAliases"`
+		AllowedMethods []string                 `json:"allowedMethods"`
+		BlockchainID   int32                    `json:"blockchainID"`
+		LogLimitBlocks int32                    `json:"logLimitBlocks"`
+		RequestTimeout int32                    `json:"requestTimeout"`
+		Active         bool                     `json:"active"`
+		Altruists      []Altruist               `json:"altruists,omitempty"`
+		Redirects      []GigastakeRedirect      `json:"redirects,omitempty"`
+		Checks         map[ChainCheckType]Check `json:"chainChecks,omitempty"`
+		CreatedAt      time.Time                `json:"createdAt"`
+		UpdatedAt      time.Time                `json:"updatedAt"`
 	}
 	Altruist struct {
 		ChainID  ChainID       `json:"chainID,omitempty"`
-		URL      string        `json:"url"`
+		URL      AltruistURL   `json:"url"`
 		Auth     string        `json:"auth"`
 		AuthType ChainAuthType `json:"authType"`
 	}
 	GigastakeRedirect struct {
-		ChainID   ChainID   `json:"chainID,omitempty"`
-		AccountID AccountID `json:"accountID"`
-		Alias     string    `json:"alias"`
-		Domain    string    `json:"domain"`
+		ChainID   ChainID        `json:"chainID,omitempty"`
+		AccountID AccountID      `json:"accountID"`
+		Domain    RedirectDomain `json:"domain"`
+		Alias     string         `json:"alias"`
 	}
 	Check struct {
 		ChainID   ChainID `json:"chainID,omitempty"`
 		Payload   string  `json:"payload"`
 		ResultKey string  `json:"resultKey"`
-		Allowance int     `json:"allowance"`
+		Allowance int32   `json:"allowance"`
 	}
 
 	// Represents global blocked addresses across the entire Portal
@@ -88,15 +113,15 @@ type (
 
 	/* Update structs */
 	UpdateChain struct {
-		Blockchain        string     `json:"blockchain,omitempty"`
-		Description       string     `json:"description,omitempty"`
-		EnforceResult     string     `json:"enforceResult,omitempty"`
-		Path              string     `json:"path,omitempty"`
-		Ticker            string     `json:"ticker,omitempty"`
-		BlockchainAliases []string   `json:"blockchainAliases,omitempty"`
-		LogLimitBlocks    int        `json:"logLimitBlocks,omitempty"`
-		RequestTimeout    int        `json:"requestTimeout,omitempty"`
-		Altruists         []Altruist `json:"altruists,omitempty"`
+		Blockchain     string     `json:"blockchain,omitempty"`
+		Description    string     `json:"description,omitempty"`
+		EnforceResult  string     `json:"enforceResult,omitempty"`
+		Path           string     `json:"path,omitempty"`
+		Ticker         string     `json:"ticker,omitempty"`
+		ChainAliases   []string   `json:"blockchainAliases,omitempty"`
+		LogLimitBlocks int32      `json:"logLimitBlocks,omitempty"`
+		RequestTimeout int32      `json:"requestTimeout,omitempty"`
+		Altruists      []Altruist `json:"altruists,omitempty"`
 
 		Checks map[ChainCheckType]UpdateCheck `json:"chainChecks"`
 
@@ -106,7 +131,7 @@ type (
 		ChainID   string `json:"chainID,omitempty"`
 		Payload   string `json:"payload"`
 		ResultKey string `json:"resultKey"`
-		Allowance *int   `json:"allowance"` // must be able to set allowance to 0
+		Allowance *int32 `json:"allowance"` // must be able to set allowance to 0
 	}
 )
 
@@ -130,8 +155,8 @@ func (c *Chain) UpdateBlockchain(update *UpdateChain) *Chain {
 	if update.Ticker != "" {
 		c.Ticker = update.Ticker
 	}
-	if update.BlockchainAliases != nil {
-		c.BlockchainAliases = update.BlockchainAliases
+	if update.ChainAliases != nil {
+		c.ChainAliases = update.ChainAliases
 	}
 	if update.LogLimitBlocks != 0 {
 		c.LogLimitBlocks = update.LogLimitBlocks

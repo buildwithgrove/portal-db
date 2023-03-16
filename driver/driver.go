@@ -57,8 +57,8 @@ type (
 		/* DeleteAccount saves input Account to the database. */
 		DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error
 
-		/* WriteAccountUser saves input AccountUserAccess to the database. */
-		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)
+		/* AddAccountUser saves input AccountUserAccess to the database. */
+		AddAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)
 		/* SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin. */
 		SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error
 		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
@@ -67,14 +67,10 @@ type (
 		RemoveAccountUser(ctx context.Context, userID types.UserID, accountID types.AccountID) error
 
 		/* WriteChain saves input Chain struct to the database. */
-		WriteChain(ctx context.Context, blockchain *types.Chain) (*types.Chain, error)
-		/* WriteGigastakeRedirect saves input GigastakeRedirect struct to the database for a given Chain. */
-		WriteGigastakeRedirect(ctx context.Context, redirect *types.GigastakeRedirect) (*types.GigastakeRedirect, error)
+		WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error)
 		/* UpdateChain updates Chain and ChainCheck for a given Chain. */
-		UpdateChain(ctx context.Context, chainID types.ChainID, update *types.UpdateChain) error
+		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */
-		ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error
-		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
-		DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error
+		SetChainActiveStatus(ctx context.Context, chainID types.ChainID, active bool, updatedAt time.Time) (bool, error)
 	}
 )
