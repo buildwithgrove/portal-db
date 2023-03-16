@@ -16,20 +16,6 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// UpdateAcceptAccountUser provides a mock function with given fields: ctx, acceptAccountUser, updatedAt
-func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error {
-	ret := _m.Called(ctx, acceptAccountUser, updatedAt)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAcceptAccountUser, time.Time) error); ok {
-		r0 = rf(ctx, acceptAccountUser, updatedAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // ActivateChain provides a mock function with given fields: ctx, chainID, active
 func (_m *MockDriver) ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error {
 	ret := _m.Called(ctx, chainID, active)
@@ -310,6 +296,20 @@ func (_m *MockDriver) SetPortalAppDeleted(ctx context.Context, portalAppID types
 	return r0
 }
 
+// UpdateAcceptAccountUser provides a mock function with given fields: ctx, acceptAccountUser, updatedAt
+func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error {
+	ret := _m.Called(ctx, acceptAccountUser, updatedAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAcceptAccountUser, time.Time) error); ok {
+		r0 = rf(ctx, acceptAccountUser, updatedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateChain provides a mock function with given fields: ctx, chainID, update
 func (_m *MockDriver) UpdateChain(ctx context.Context, chainID types.ChainID, update *types.UpdateChain) error {
 	ret := _m.Called(ctx, chainID, update)
@@ -479,6 +479,27 @@ func (_m *MockDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateU
 	}
 
 	return r0
+}
+
+// WriteUserProviderSignedUp provides a mock function with given fields: ctx, userID, user, createdAt
+func (_m *MockDriver) WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
+	ret := _m.Called(ctx, userID, user, createdAt)
+
+	var r0 types.UserID
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.CreateUser, time.Time) types.UserID); ok {
+		r0 = rf(ctx, userID, user, createdAt)
+	} else {
+		r0 = ret.Get(0).(types.UserID)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.UserID, types.CreateUser, time.Time) error); ok {
+		r1 = rf(ctx, userID, user, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 type mockConstructorTestingTNewMockDriver interface {
