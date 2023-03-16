@@ -215,6 +215,17 @@ func (a *PortalApp) LegacyUserID() string {
 	return ""
 }
 
+// GetOwnerEmail returns the Email of the Application OWNER
+func (app *PortalApp) GetOwnerEmail() (Email, error) {
+	for _, userAccess := range app.Account.Users {
+		if userAccess.RoleName == RoleOwner {
+			return Email(userAccess.Email), nil
+		}
+	}
+
+	return "", ErrNoOwner
+}
+
 // UserID returns the UserID of the Application OWNER
 func (a *PortalApp) UserID() UserID {
 	for _, user := range a.Account.Users {
@@ -223,17 +234,6 @@ func (a *PortalApp) UserID() UserID {
 		}
 	}
 	return UserID(0)
-}
-
-// GetOwnerEmail returns the Email of the Application OWNER
-func (a *PortalApp) GetOwnerEmail() (Email, error) {
-	for _, userAccess := range a.Account.Users {
-		if userAccess.RoleName == RoleOwner {
-			return Email(userAccess.Email), nil
-		}
-	}
-
-	return "", ErrNoOwner
 }
 
 // Users returns all Users for the PortalApp's Account

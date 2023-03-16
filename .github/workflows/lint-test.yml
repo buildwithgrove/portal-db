@@ -5,10 +5,14 @@ on:
     branches:
       - main
       - staging
+      # temp until V2 merged
+      - version-2
   push:
     branches:
       - main
       - staging
+      # temp until V2 merged
+      - version-2
 
 jobs:
   lint:

@@ -451,6 +451,27 @@ func (_m *MockDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateU
 	return r0
 }
 
+// WriteUserProviderSignedUp provides a mock function with given fields: ctx, userID, user, createdAt
+func (_m *MockDriver) WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
+	ret := _m.Called(ctx, userID, user, createdAt)
+
+	var r0 types.UserID
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.CreateUser, time.Time) types.UserID); ok {
+		r0 = rf(ctx, userID, user, createdAt)
+	} else {
+		r0 = ret.Get(0).(types.UserID)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.UserID, types.CreateUser, time.Time) error); ok {
+		r1 = rf(ctx, userID, user, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewMockDriver interface {
 	mock.TestingT
 	Cleanup(func())
