@@ -28,7 +28,7 @@ var (
 	errInvalidAuthProviderType = errors.New("error invalid auth provider type '%s'")
 )
 
-// /* ----- postgresdriver Account Read Methods ----- */
+// /* ----- postgresdriver User Read Methods ----- */
 
 // GetPortalUserIDFromProviderID takes a user's auth provider ID and returns the Portal UserID
 func (pg *PostgresDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error) {
@@ -121,32 +121,9 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 	return types.UserID(createdUserID), nil
 }
 
-// WriteUserProviderSignedUp creates a new portal UserAuthProvider in the DB when a user accepts their team invite.
-// Also updates User.SignedUp and AccountUserAccess.Accepted fields to true.
-func (pg *PostgresDriver) WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
-	if !user.AuthProviderType.IsValid() {
-		return types.UserID(0), fmt.Errorf(errInvalidAuthProviderType.Error(), user.AuthProviderType)
-	}
-
-	params := CreateUserProviderSignedUpParams{
-		UserID:         userID,
-		ProviderUserID: user.ProviderUserID,
-		Type:           user.AuthProviderType,
-		Provider:       user.AuthProviderType.Provider(),
-		Federated:      user.AuthProviderType.IsFederated(),
-	}
-
-	createdUserID, err := pg.CreateUserProviderSignedUp(ctx, params)
-	if err != nil {
-		return types.UserID(0), err
-	}
-
-	return types.UserID(createdUserID), nil
-}
-
 /* ----- postgresdriver User Delete Methods ----- */
 
-// DeletePortalUser deletes a portal User from the DB. WARNING will do a full delete in the case of users.
+// DeletePortalUser deletes a portal User from the DB. WARNING will do a hard delete.
 // Will also delete the user's `account_user_access` and `user_auth_providers` rows.
 func (pg *PostgresDriver) DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error) {
 	userExists, err := pg.CheckUserExists(ctx, userID)

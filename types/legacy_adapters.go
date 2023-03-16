@@ -410,6 +410,13 @@ const (
 	Orphaned                AppStatus = "ORPHANED"
 	Ready                   AppStatus = "READY"
 	Swappable               AppStatus = "SWAPPABLE"
+
+	TestPlanV0   PayPlanType = "TEST_PLAN_V0"
+	TestPlan10K  PayPlanType = "TEST_PLAN_10K"
+	TestPlan90k  PayPlanType = "TEST_PLAN_90K"
+	FreetierV0   PayPlanType = "FREETIER_V0"
+	PayAsYouGoV0 PayPlanType = "PAY_AS_YOU_GO_V0"
+	Enterprise   PayPlanType = "ENTERPRISE"
 )
 
 var (

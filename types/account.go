@@ -41,6 +41,14 @@ type (
 		AccountID AccountID `json:"accountID"`
 		RoleName  RoleName  `json:"roleName"`
 	}
+
+	// UpdateAccountUserRole contains all fields required to update an Account User's Role
+	UpdateAcceptAccountUser struct {
+		AccountID        AccountID `json:"accountID"`
+		UserID           UserID    `json:"userID"`
+		AuthProviderType AuthType  `json:"type"`
+		ProviderUserID   string    `json:"providerUserID"`
+	}
 )
 
 func (a *Account) Table() Table {

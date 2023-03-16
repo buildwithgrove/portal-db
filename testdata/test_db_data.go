@@ -134,7 +134,7 @@ var (
 		2: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
 		3: {UserID: 3, Email: "ellen.ripley789@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ellen_ripley"}},
 		4: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
-		5: {UserID: 5, Email: "aragorn456@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|aragorn"}},
+		5: {UserID: 5, Email: "chrisjen.avasarala1@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|chrisjen_avasarala"}},
 		6: {UserID: 6, Email: "amos.burton789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|amos_burton"}},
 		7: {UserID: 7, Email: "frodo.baggins123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|frodo_baggins"}},
 		8: {UserID: 8, Email: "rick.deckard456@test.com", RoleName: types.RoleAdmin, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|rick_deckard"}},
@@ -148,7 +148,7 @@ var (
 		// Bernard is an existing user and is used to create a new AccountUserAccess row
 		13: {UserID: 11, Email: "bernard.marx@test.com", Accepted: false, RoleName: types.RoleMember, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|bernard_marx"}},
 		// Winston has not signed up yet and is used to create a new AccountUserAccess row
-		14: {UserID: 13, Email: "winston.smith@test.com", RoleName: types.RoleAdmin, Accepted: false},
+		14: {Email: "winston.smith@test.com", RoleName: types.RoleAdmin, Accepted: false},
 	}
 
 	Users = map[types.UserID]*types.User{
@@ -226,11 +226,11 @@ var (
 		},
 		5: {
 			ID:       5,
-			Email:    "aragorn456@test.com",
+			Email:    "chrisjen.avasarala1@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					ProviderUserID: "auth0|aragorn",
+					ProviderUserID: "auth0|chrisjen_avasarala",
 					Type:           types.AuthTypeAuth0Username,
 					Provider:       "auth0",
 					Federated:      false,

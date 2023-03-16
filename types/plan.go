@@ -3,28 +3,6 @@ package types
 /* Enums */
 type PayPlanType string
 
-const (
-	// TODO will be updating plan types
-	TestPlanV0   PayPlanType = "TEST_PLAN_V0"
-	TestPlan10K  PayPlanType = "TEST_PLAN_10K"
-	TestPlan90k  PayPlanType = "TEST_PLAN_90K"
-	FreetierV0   PayPlanType = "FREETIER_V0"
-	PayAsYouGoV0 PayPlanType = "PAY_AS_YOU_GO_V0"
-	Enterprise   PayPlanType = "ENTERPRISE"
-)
-
-var (
-	ValidPayPlanTypes = map[PayPlanType]bool{
-		"":           true, // needs to be allowed while the change for all apps to have plans is done
-		TestPlanV0:   true,
-		TestPlan10K:  true,
-		TestPlan90k:  true,
-		FreetierV0:   true,
-		PayAsYouGoV0: true,
-		Enterprise:   true,
-	}
-)
-
 /* Pay Plan Type and Methods */
 type (
 	Plan struct {

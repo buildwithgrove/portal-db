@@ -141,73 +141,33 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_WriteUserProviderSignedUp() {
-	// TODO add checks for updated AccountUserAccess
-	tests := []struct {
-		name       string
-		userID     types.UserID
-		createUser types.CreateUser
-		user       *types.User
-		err        error
-	}{
-		{
-			name:   "Should create a new UserAuthProvider for an existing user in the DB",
-			userID: 10,
-			createUser: types.CreateUser{
-				AuthProviderType: types.AuthTypeAuth0Username,
-				ProviderUserID:   "auth0|daenerys_targaryen",
-			},
-			user: &types.User{
-				ID:       10,
-				Email:    "daenerys.targaryen123@test.com",
-				SignedUp: true,
-				AuthProviders: map[types.AuthType]types.UserAuthProvider{
-					types.AuthTypeAuth0Username: {
-						ProviderUserID: "auth0|daenerys_targaryen",
-						Type:           types.AuthTypeAuth0Username,
-						Provider:       "auth0",
-						Federated:      false,
-					},
-				},
-				CreatedAt: testdata.MockTimestamp,
-				UpdatedAt: testdata.MockTimestamp,
-			},
-			err: nil,
-		},
-		{
-			name: "Should fail if an invalid auth provider type provided",
-			createUser: types.CreateUser{
-				Email:            "daenerys.targaryen123@example.com",
-				AuthProviderType: types.AuthType("wrong_type"),
-			},
-			err: fmt.Errorf(errInvalidAuthProviderType.Error(), types.AuthType("wrong_type")),
-		},
-	}
-
-	for _, test := range tests {
-		ts.Run(test.name, func() {
-			userID, err := ts.driver.WriteUserProviderSignedUp(context.Background(), test.userID, test.createUser, testdata.MockTimestamp)
-			ts.Equal(test.err, err)
-
-			if test.err == nil {
-				user, err := ts.driver.ReadUserByUserID(context.Background(), userID)
-				ts.NoError(err)
-				ts.Equal(test.user, user)
-			}
-		})
-	}
-}
-
 func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 	tests := []struct {
-		name        string
-		createUser  types.CreateUser
-		userID      types.UserID
-		expectedErr error
-		err         error
+		name                    string
+		createUser              types.CreateUser
+		accountID               types.AccountID
+		numUsersBeforeDelete    int
+		accountUsersAfterDelete map[types.UserID]types.AccountUserAccess
+		userID                  types.UserID
+		expectedErr             error
+		err                     error
 	}{
 		{
-			name:        "Should delete a portal User from the DB",
+			name:        "Should delete a portal User from the DB if they are not part of any accounts",
+			createUser:  testdata.TestCreateUser,
+			expectedErr: errUserDoesntExist,
+			err:         nil,
+		},
+		{
+			name:                 "Should delete a portal User from the DB including its account user and auth provider rows",
+			accountID:            2,
+			numUsersBeforeDelete: 5,
+			accountUsersAfterDelete: map[types.UserID]types.AccountUserAccess{
+				3: testdata.AccountUserAccess[3],
+				4: testdata.AccountUserAccess[4],
+				9: testdata.AccountUserAccess[9],
+				2: testdata.AccountUserAccess[10],
+			},
 			createUser:  testdata.TestCreateUser,
 			expectedErr: errUserDoesntExist,
 			err:         nil,
@@ -227,6 +187,17 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 				userID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
 				ts.Equal(test.err, err)
 				createdUserID = userID
+
+				if test.accountID != types.AccountID(0) {
+					// if accountID set in test case then test deleting a user with an account
+					_, err = ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
+						AccountID: test.accountID, Email: test.createUser.Email, RoleName: types.RoleMember,
+					}, testdata.MockTimestamp)
+					ts.Equal(test.err, err)
+					accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+					ts.NoError(err)
+					ts.Len(accounts[test.accountID].Users, test.numUsersBeforeDelete)
+				}
 			}
 
 			userID, err := ts.driver.DeletePortalUser(context.Background(), createdUserID)
@@ -235,6 +206,12 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 			if test.err == nil {
 				_, err := ts.driver.ReadUserByUserID(context.Background(), userID)
 				ts.Equal(fmt.Errorf(test.expectedErr.Error(), userID), err)
+
+				if test.accountID != types.AccountID(0) {
+					accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+					ts.NoError(err)
+					ts.Equal(test.accountUsersAfterDelete, accounts[test.accountID].Users)
+				}
 			}
 		})
 	}
