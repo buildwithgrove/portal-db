@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -35,6 +36,15 @@ const (
 	RoleAdmin  RoleName = "ADMIN"
 	RoleMember RoleName = "MEMBER"
 )
+
+func (u UserID) GetAuthType() AuthType {
+	switch {
+	case strings.Contains(string(u), "auth0"):
+		return AuthTypeAuth0Username
+	default:
+		return AuthTypeAuth0Github
+	}
+}
 
 func (a AuthType) IsValid() bool {
 	switch a {

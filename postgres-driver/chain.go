@@ -166,7 +166,7 @@ func (c *SelectChainsRow) toChecks() (map[types.ChainCheckType]types.Check, erro
 
 // WriteChain creates a single Chain in the database
 func (pg *PostgresDriver) WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error) {
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func (pg *PostgresDriver) WriteChain(ctx context.Context, chain types.Chain, cre
 
 // UpdateChain updates a single Chain in the database
 func (pg *PostgresDriver) UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error {
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}

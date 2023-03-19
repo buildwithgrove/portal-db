@@ -431,7 +431,7 @@ WHERE account_user_access.account_id = $1
 -- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)
-    VALUES ($1, true, $2, $3)
+    VALUES ($1, true, $2, $3) ON CONFLICT (email) DO NOTHING
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -443,18 +443,24 @@ INSERT INTO user_auth_providers (
     )
 VALUES (
         (
-            SELECT id
-            FROM inserted_user
+            SELECT COALESCE(
+                    (
+                        SELECT id
+                        FROM inserted_user
+                    ),
+                    (
+                        SELECT id
+                        FROM users
+                        WHERE users.email = $1
+                    )
+                )
         ),
         $4,
         $5,
         $6,
         $7
     )
-RETURNING (
-        SELECT id
-        FROM inserted_user
-    ) as user_id;
+RETURNING user_id;
 -- name: UpdateUserAcceptedInvite :exec
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (
