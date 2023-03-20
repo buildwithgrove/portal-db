@@ -15,6 +15,21 @@ import (
 	"github.com/pokt-foundation/portal-db/types"
 )
 
+const addGlobalBlockedContract = `-- name: AddGlobalBlockedContract :exec
+INSERT INTO global_blocked_contracts (blocked_address, created_at)
+VALUES ($1, $2)
+`
+
+type AddGlobalBlockedContractParams struct {
+	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
+	CreatedAt      time.Time            `json:"createdAt"`
+}
+
+func (q *Queries) AddGlobalBlockedContract(ctx context.Context, arg AddGlobalBlockedContractParams) error {
+	_, err := q.db.ExecContext(ctx, addGlobalBlockedContract, arg.BlockedAddress, arg.CreatedAt)
+	return err
+}
+
 const checkAccountExists = `-- name: CheckAccountExists :one
 SELECT EXISTS(
         SELECT 1
@@ -165,7 +180,7 @@ func (q *Queries) CheckUserIDFromEmail(ctx context.Context, email types.Email) (
 const createUserNewSignUp = `-- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)
-    VALUES ($1, true, $2, $3)
+    VALUES ($1, true, $2, $3) ON CONFLICT (email) DO NOTHING
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -177,18 +192,24 @@ INSERT INTO user_auth_providers (
     )
 VALUES (
         (
-            SELECT id
-            FROM inserted_user
+            SELECT COALESCE(
+                    (
+                        SELECT id
+                        FROM inserted_user
+                    ),
+                    (
+                        SELECT id
+                        FROM users
+                        WHERE users.email = $1
+                    )
+                )
         ),
         $4,
         $5,
         $6,
         $7
     )
-RETURNING (
-        SELECT id
-        FROM inserted_user
-    ) as user_id
+RETURNING user_id
 `
 
 type CreateUserNewSignUpParams struct {
@@ -201,7 +222,7 @@ type CreateUserNewSignUpParams struct {
 	Federated      bool               `json:"federated"`
 }
 
-func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSignUpParams) (int32, error) {
+func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSignUpParams) (types.UserID, error) {
 	row := q.db.QueryRowContext(ctx, createUserNewSignUp,
 		arg.Email,
 		arg.CreatedAt,
@@ -211,7 +232,7 @@ func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSign
 		arg.ProviderUserID,
 		arg.Federated,
 	)
-	var user_id int32
+	var user_id types.UserID
 	err := row.Scan(&user_id)
 	return user_id, err
 }
@@ -792,6 +813,19 @@ func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickine
 	return i, err
 }
 
+const removeGlobalBlockedContract = `-- name: RemoveGlobalBlockedContract :one
+DELETE FROM global_blocked_contracts
+WHERE blocked_address = $1
+	RETURNING id
+`
+
+func (q *Queries) RemoveGlobalBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress) (int32, error) {
+	row := q.db.QueryRowContext(ctx, removeGlobalBlockedContract, blockedAddress)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const selectAccounts = `-- name: SelectAccounts :many
 SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     p.chain_ids,
@@ -989,6 +1023,41 @@ func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]Sele
 	return items, nil
 }
 
+const selectGlobalBlockedContract = `-- name: SelectGlobalBlockedContract :many
+SELECT id,
+    blocked_address
+FROM global_blocked_contracts
+WHERE active = true
+`
+
+type SelectGlobalBlockedContractRow struct {
+	ID             int32                `json:"id"`
+	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
+}
+
+func (q *Queries) SelectGlobalBlockedContract(ctx context.Context) ([]SelectGlobalBlockedContractRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectGlobalBlockedContract)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectGlobalBlockedContractRow
+	for rows.Next() {
+		var i SelectGlobalBlockedContractRow
+		if err := rows.Scan(&i.ID, &i.BlockedAddress); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectPortalApplications = `-- name: SelectPortalApplications :many
 SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.application_ids, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
     paa.address,
@@ -1164,6 +1233,27 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, includeDeleted b
 		return nil, err
 	}
 	return items, nil
+}
+
+const setGlobalBlockedContractActive = `-- name: SetGlobalBlockedContractActive :one
+	UPDATE global_blocked_contracts
+	SET active = $2,
+	    updated_at = $3
+	WHERE blocked_address = $1
+	RETURNING id
+`
+
+type SetGlobalBlockedContractActiveParams struct {
+	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
+	Active         bool                 `json:"active"`
+	UpdatedAt      sql.NullTime         `json:"updatedAt"`
+}
+
+func (q *Queries) SetGlobalBlockedContractActive(ctx context.Context, arg SetGlobalBlockedContractActiveParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, setGlobalBlockedContractActive, arg.BlockedAddress, arg.Active, arg.UpdatedAt)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateAccountOwnerToAdmin = `-- name: UpdateAccountOwnerToAdmin :exec

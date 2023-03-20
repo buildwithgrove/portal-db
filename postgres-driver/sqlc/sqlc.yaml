@@ -94,6 +94,8 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/types.AccountID"
           - column: "chain_gigastake_redirects.domain"
             go_type: "github.com/pokt-foundation/portal-db/types.RedirectDomain"
+          - column: "global_blocked_contracts.blocked_address"
+            go_type: "github.com/pokt-foundation/portal-db/types.BlockedAddress"
 
           # legacy table
           - column: "stickiness_options.lb_id"

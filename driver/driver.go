@@ -32,6 +32,9 @@ type (
 		/* ReadUserByUserID returns a single user from a portal UserID */
 		ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error)
 
+		/* ReadBlockedContracts returns all GlobalBlockedContracts in the DB */
+		ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error)
+
 		NotificationChannel() <-chan *types.Notification
 	}
 
@@ -59,8 +62,8 @@ type (
 		/* DeleteAccount saves input Account to the database. */
 		DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error
 
-		/* AddAccountUser saves input AccountUserAccess to the database. */
-		AddAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)
+		/* WriteAccountUser saves input AccountUserAccess to the database. */
+		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)
 		/* SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin. */
 		SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error
 		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
@@ -74,5 +77,14 @@ type (
 		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */
 		SetChainActiveStatus(ctx context.Context, chainID types.ChainID, active bool, updatedAt time.Time) (bool, error)
+		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
+		DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error
+
+		/* WriteBlockedContract adds a new blocked address to the global blocked contracts table. */
+		WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error
+		/* UpdateBlockedContractActive activates or deactives a blocked address in the global blocked contracts table. */
+		UpdateBlockedContractActive(ctx context.Context, blockedAddress types.BlockedAddress, active bool, updatedAt time.Time) error
+		/* RemoveBlockedContract deletes a blocked address from the global blocked contracts table. */
+		RemoveBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress) error
 	}
 )

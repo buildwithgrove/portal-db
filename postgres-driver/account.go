@@ -123,7 +123,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -221,8 +221,8 @@ func (pg *PostgresDriver) SetAccountDeleted(ctx context.Context, accountID types
 
 /* ----- postgresdriver AccountUserAccess Write Methods ----- */
 
-// AddAccountUser saves a single input AccountUserAccess to the database.
-func (pg *PostgresDriver) AddAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+// WriteAccountUser saves a single input AccountUserAccess to the database.
+func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
 	if !createAccountUser.Email.IsValid() {
 		return &types.AccountUserAccess{}, fmt.Errorf(errInvalidEmail.Error(), createAccountUser.Email)
 	}
@@ -334,7 +334,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 		return errInvalidRoleName
 	}
 
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -353,7 +353,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 
 	if updateAccountUser.RoleName == types.RoleOwner {
 		acceptedParams := CheckAccountUserAcceptedParams{UserID: updateAccountUser.UserID, AccountID: updateAccountUser.AccountID}
-		userAccepted, err := pg.CheckAccountUserAccepted(ctx, acceptedParams)
+		userAccepted, err := qtx.CheckAccountUserAccepted(ctx, acceptedParams)
 		if err != nil {
 			return err
 		}
@@ -378,12 +378,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 
 	err = qtx.UpdateAccountUserRole(ctx, params)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return fmt.Errorf(errUserDoesntExist.Error(), updateAccountUser.UserID)
-		default:
-			return err
-		}
+		return err
 	}
 
 	err = tx.Commit()
@@ -401,7 +396,7 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 		return fmt.Errorf(errInvalidAuthProviderType.Error(), acceptAccountUser.AuthProviderType)
 	}
 
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}

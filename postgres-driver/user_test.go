@@ -190,7 +190,7 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 
 				if test.accountID != types.AccountID(0) {
 					// if accountID set in test case then test deleting a user with an account
-					_, err = ts.driver.AddAccountUser(context.Background(), types.CreateAccountUserAccess{
+					_, err = ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
 						AccountID: test.accountID, Email: test.createUser.Email, RoleName: types.RoleMember,
 					}, testdata.MockTimestamp)
 					ts.Equal(test.err, err)

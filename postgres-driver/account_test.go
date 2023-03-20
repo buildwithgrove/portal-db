@@ -175,7 +175,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			accountUser, err := ts.driver.AddAccountUser(context.Background(), test.createAccountUser, testdata.MockTimestamp)
+			accountUser, err := ts.driver.WriteAccountUser(context.Background(), test.createAccountUser, testdata.MockTimestamp)
 			if test.notSignedUp {
 				test.accountUser.UserID = accountUser.UserID
 				test.accountUsersAfterCreate[accountUser.UserID] = test.accountUser
@@ -500,7 +500,7 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 			if test.err == nil {
 				if test.userID == types.UserID(0) {
 					// create test User to delete
-					createdUser, err := ts.driver.AddAccountUser(context.Background(), types.CreateAccountUserAccess{
+					createdUser, err := ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
 						AccountID: test.accountID, Email: "hermaeus.mora@example.com", RoleName: types.RoleMember,
 					}, testdata.MockTimestamp)
 					ts.NoError(err)

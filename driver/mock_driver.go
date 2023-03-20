@@ -16,29 +16,6 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// AddAccountUser provides a mock function with given fields: ctx, createAccountUser, createdAt
-func (_m *MockDriver) AddAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
-	ret := _m.Called(ctx, createAccountUser, createdAt)
-
-	var r0 *types.AccountUserAccess
-	if rf, ok := ret.Get(0).(func(context.Context, types.CreateAccountUserAccess, time.Time) *types.AccountUserAccess); ok {
-		r0 = rf(ctx, createAccountUser, createdAt)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.AccountUserAccess)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.CreateAccountUserAccess, time.Time) error); ok {
-		r1 = rf(ctx, createAccountUser, createdAt)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DeleteAccount provides a mock function with given fields: ctx, account, deletedAt
 func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error {
 	ret := _m.Called(ctx, account, deletedAt)
@@ -46,6 +23,20 @@ func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account, 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.Account, time.Time) error); ok {
 		r0 = rf(ctx, account, deletedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteGigastakeRedirect provides a mock function with given fields: ctx, chainID, domain
+func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error {
+	ret := _m.Called(ctx, chainID, domain)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, string) error); ok {
+		r0 = rf(ctx, chainID, domain)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -127,6 +118,27 @@ func (_m *MockDriver) ReadAccounts(ctx context.Context, options types.DriverOpti
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.DriverOptions) error); ok {
 		r1 = rf(ctx, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReadBlockedContracts provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error) {
+	ret := _m.Called(ctx)
+
+	var r0 types.GlobalBlockedContracts
+	if rf, ok := ret.Get(0).(func(context.Context) types.GlobalBlockedContracts); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(types.GlobalBlockedContracts)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -263,6 +275,20 @@ func (_m *MockDriver) RemoveAccountUser(ctx context.Context, userID types.UserID
 	return r0
 }
 
+// RemoveBlockedContract provides a mock function with given fields: ctx, blockedAddress
+func (_m *MockDriver) RemoveBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress) error {
+	ret := _m.Called(ctx, blockedAddress)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.BlockedAddress) error); ok {
+		r0 = rf(ctx, blockedAddress)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SetAccountUserRole provides a mock function with given fields: ctx, updateAccountUser, updatedAt
 func (_m *MockDriver) SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error {
 	ret := _m.Called(ctx, updateAccountUser, updatedAt)
@@ -319,6 +345,20 @@ func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccount
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAcceptAccountUser, time.Time) error); ok {
 		r0 = rf(ctx, acceptAccountUser, updatedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateBlockedContractActive provides a mock function with given fields: ctx, blockedAddress, active, updatedAt
+func (_m *MockDriver) UpdateBlockedContractActive(ctx context.Context, blockedAddress types.BlockedAddress, active bool, updatedAt time.Time) error {
+	ret := _m.Called(ctx, blockedAddress, active, updatedAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.BlockedAddress, bool, time.Time) error); ok {
+		r0 = rf(ctx, blockedAddress, active, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -389,6 +429,43 @@ func (_m *MockDriver) WriteAccount(ctx context.Context, creatorID types.UserID, 
 	}
 
 	return r0, r1
+}
+
+// WriteAccountUser provides a mock function with given fields: ctx, createAccountUser, createdAt
+func (_m *MockDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+	ret := _m.Called(ctx, createAccountUser, createdAt)
+
+	var r0 *types.AccountUserAccess
+	if rf, ok := ret.Get(0).(func(context.Context, types.CreateAccountUserAccess, time.Time) *types.AccountUserAccess); ok {
+		r0 = rf(ctx, createAccountUser, createdAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.AccountUserAccess)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.CreateAccountUserAccess, time.Time) error); ok {
+		r1 = rf(ctx, createAccountUser, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// WriteBlockedContract provides a mock function with given fields: ctx, blockedAddress, createdAt
+func (_m *MockDriver) WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error {
+	ret := _m.Called(ctx, blockedAddress, createdAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.BlockedAddress, time.Time) error); ok {
+		r0 = rf(ctx, blockedAddress, createdAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // WriteChain provides a mock function with given fields: ctx, chain, createdAt

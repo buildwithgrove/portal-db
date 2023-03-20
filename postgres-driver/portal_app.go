@@ -162,7 +162,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	portalApp.CreatedAt = createdAt
 	portalApp.UpdatedAt = createdAt
 
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 // UpdatePortalApp updates a single PortalApp in the database: Name field and its Notifications, Whitelists and Settings
 func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.UpdatePortalApp, updatedAt time.Time) error {
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}

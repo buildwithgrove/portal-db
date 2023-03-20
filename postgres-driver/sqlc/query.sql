@@ -431,7 +431,7 @@ WHERE account_user_access.account_id = $1
 -- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)
-    VALUES ($1, true, $2, $3)
+    VALUES ($1, true, $2, $3) ON CONFLICT (email) DO NOTHING
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -443,18 +443,24 @@ INSERT INTO user_auth_providers (
     )
 VALUES (
         (
-            SELECT id
-            FROM inserted_user
+            SELECT COALESCE(
+                    (
+                        SELECT id
+                        FROM inserted_user
+                    ),
+                    (
+                        SELECT id
+                        FROM users
+                        WHERE users.email = $1
+                    )
+                )
         ),
         $4,
         $5,
         $6,
         $7
     )
-RETURNING (
-        SELECT id
-        FROM inserted_user
-    ) as user_id;
+RETURNING user_id;
 -- name: UpdateUserAcceptedInvite :exec
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (
@@ -667,3 +673,21 @@ SET active = $2,
     updated_at = $3
 WHERE id = $1
 RETURNING active;
+-- name: SelectGlobalBlockedContract :many
+SELECT id,
+    blocked_address
+FROM global_blocked_contracts
+WHERE active = true;
+-- name: AddGlobalBlockedContract :exec
+INSERT INTO global_blocked_contracts (blocked_address, created_at)
+VALUES ($1, $2);
+-- name: SetGlobalBlockedContractActive :one
+	UPDATE global_blocked_contracts
+	SET active = $2,
+	    updated_at = $3
+	WHERE blocked_address = $1
+	RETURNING id;
+-- name: RemoveGlobalBlockedContract :one
+DELETE FROM global_blocked_contracts
+WHERE blocked_address = $1
+	RETURNING id;

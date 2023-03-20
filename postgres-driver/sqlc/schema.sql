@@ -227,9 +227,10 @@ WHERE chain_id IS NULL;
 -- Blocked Contracts Tables
 CREATE TABLE global_blocked_contracts (
     id SERIAL PRIMARY KEY,
-    blocked_address VARCHAR(255) UNIQUE,
-    active BOOLEAN DEFAULT true,
-    updated_at TIMESTAMPTZ NOT NULL
+    blocked_address VARCHAR(255) NOT NULL UNIQUE,
+    active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ
 );
 -- Listener Notification Function
 CREATE OR REPLACE FUNCTION notify_event() RETURNS TRIGGER AS $$
