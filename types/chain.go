@@ -79,13 +79,6 @@ type (
 		Allowance int    `json:"allowance"`
 	}
 
-	// Represents global blocked addresses across the entire Portal
-	// TODO should this be in a separate file?
-	GlobalBlockedContracts struct {
-		ID               string   `json:"id"`
-		BlockedAddresses []string `json:"blockedAddresses"`
-	}
-
 	/* Update structs */
 	UpdateChain struct {
 		Blockchain        string     `json:"blockchain,omitempty"`

@@ -4,11 +4,12 @@ import "regexp"
 
 /* String ID types */
 type (
-	AccountID   int32
-	UserID      int32
-	ChainID     string
-	PortalAppID string
-	Email       string
+	AccountID      int32
+	UserID         int32
+	ChainID        string
+	PortalAppID    string
+	Email          string
+	BlockedAddress string
 )
 
 // Validates that an Email fits a valid email format eg. test@example.com

@@ -538,6 +538,16 @@ var (
 		},
 	}
 
+	GlobalBlockedContracts = types.GlobalBlockedContracts{
+		BlockedAddresses: map[types.BlockedAddress]struct{}{
+			"0xtest_6789abcdef0123456789abcdef01234567":   {},
+			"0xtest_f0123456789abcdef0123456789abcdef01":  {},
+			"0xtest_cdef0123456789abcdef0123456789abcdef": {},
+			"0xtest_56789abcdef0123456789abcdef01234567":  {},
+			"0xtest_789abcdef0123456789abcdef0123456789":  {},
+		},
+	}
+
 	/* ----- Update Data ----- */
 
 	UpdatePortalAppName     = "portal-app-updated"

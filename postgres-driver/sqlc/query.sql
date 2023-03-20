@@ -419,3 +419,21 @@ GROUP BY users.id;
 DELETE FROM users
 WHERE id = $1
 RETURNING id;
+-- name: SelectGlobalBlockedContract :many
+SELECT id,
+    blocked_address
+FROM global_blocked_contracts
+WHERE active = true;
+-- name: AddGlobalBlockedContract :exec
+INSERT INTO global_blocked_contracts (blocked_address, created_at)
+VALUES ($1, $2);
+-- name: SetGlobalBlockedContractActive :one
+	UPDATE global_blocked_contracts
+	SET active = $2,
+	    updated_at = $3
+	WHERE blocked_address = $1
+	RETURNING id;
+-- name: RemoveGlobalBlockedContract :one
+DELETE FROM global_blocked_contracts
+WHERE blocked_address = $1
+	RETURNING id;
