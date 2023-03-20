@@ -618,3 +618,24 @@ VALUES (
         'trigger456',
         ARRAY ['full'::notification_event,'half'::notification_event]
     );
+INSERT INTO global_blocked_contracts (blocked_address, created_at)
+VALUES (
+        '0xtest_6789abcdef0123456789abcdef01234567',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_f0123456789abcdef0123456789abcdef01',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_cdef0123456789abcdef0123456789abcdef',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_56789abcdef0123456789abcdef01234567',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_789abcdef0123456789abcdef0123456789',
+        '2022-11-11 11:11:11.000000'
+    );
