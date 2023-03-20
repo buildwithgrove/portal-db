@@ -203,8 +203,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	_, err = qtx.InsertPortalApplicationSetting(ctx, InsertPortalApplicationSettingParams{
 		ApplicationID:     portalApp.ID,
 		Environment:       portalApp.Settings.Environment,
-		SecretKey:         portalApp.Settings.SecretKey,
-		SecretKeyRequired: portalApp.Settings.SecretKeyRequired,
+		SecretKey:         newSQLNullString(portalApp.Settings.SecretKey),
+		SecretKeyRequired: newSQLNullBool(&portalApp.Settings.SecretKeyRequired),
 		MonthlyRelayLimit: portalApp.Settings.MonthlyRelayLimit,
 	})
 	if err != nil {
@@ -281,12 +281,12 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 func (pg *PostgresDriver) updateSettings(ctx context.Context, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
 	updateSettings := UpdatePortalAppSettingsParams{
 		ApplicationID:     update.AppID,
-		SecretKey:         update.Settings.SecretKey,
-		SecretKeyRequired: update.Settings.SecretKeyRequired,
+		SecretKey:         newSQLNullString(update.Settings.SecretKey),
+		SecretKeyRequired: newSQLNullBool(&update.Settings.SecretKeyRequired),
 		MonthlyRelayLimit: update.Settings.MonthlyRelayLimit,
 		Environment:       update.Settings.Environment,
 		FavoritedChainIDs: update.Settings.FavoritedChainIDs,
-		UpdatedAt:         newSQLNullTime(updatedAt),
+		UpdatedAt:         updatedAt,
 	}
 
 	err := qtx.UpdatePortalAppSettings(ctx, updateSettings)
@@ -307,7 +307,7 @@ func (pg *PostgresDriver) updateNotifications(ctx context.Context, qtx *Queries,
 			Destination:   appNotification.Destination,
 			Trigger:       appNotification.Trigger,
 			Events:        appNotification.Events,
-			UpdatedAt:     newSQLNullTime(updatedAt),
+			UpdatedAt:     updatedAt,
 		}
 
 		// Upsert notification row for application_id & type if active: true in update struct
