@@ -141,63 +141,6 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_WriteUserProviderSignedUp() {
-	// TODO add checks for updated AccountUserAccess
-	tests := []struct {
-		name       string
-		userID     types.UserID
-		createUser types.CreateUser
-		user       *types.User
-		err        error
-	}{
-		{
-			name:   "Should create a new UserAuthProvider for an existing user in the DB",
-			userID: 10,
-			createUser: types.CreateUser{
-				AuthProviderType: types.AuthTypeAuth0Username,
-				ProviderUserID:   "auth0|daenerys_targaryen",
-			},
-			user: &types.User{
-				ID:       10,
-				Email:    "daenerys.targaryen123@test.com",
-				SignedUp: true,
-				AuthProviders: map[types.AuthType]types.UserAuthProvider{
-					types.AuthTypeAuth0Username: {
-						ProviderUserID: "auth0|daenerys_targaryen",
-						Type:           types.AuthTypeAuth0Username,
-						Provider:       "auth0",
-						Federated:      false,
-					},
-				},
-				CreatedAt: testdata.MockTimestamp,
-				UpdatedAt: testdata.MockTimestamp,
-			},
-			err: nil,
-		},
-		{
-			name: "Should fail if an invalid auth provider type provided",
-			createUser: types.CreateUser{
-				Email:            "daenerys.targaryen123@example.com",
-				AuthProviderType: types.AuthType("wrong_type"),
-			},
-			err: fmt.Errorf(errInvalidAuthProviderType.Error(), types.AuthType("wrong_type")),
-		},
-	}
-
-	for _, test := range tests {
-		ts.Run(test.name, func() {
-			userID, err := ts.driver.WriteUserProviderSignedUp(context.Background(), test.userID, test.createUser, testdata.MockTimestamp)
-			ts.Equal(test.err, err)
-
-			if test.err == nil {
-				user, err := ts.driver.ReadUserByUserID(context.Background(), userID)
-				ts.NoError(err)
-				ts.Equal(test.user, user)
-			}
-		})
-	}
-}
-
 func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 	tests := []struct {
 		name        string

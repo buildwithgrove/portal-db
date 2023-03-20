@@ -247,13 +247,30 @@ SELECT a.*,
     p.monthly_relay_limit,
     p.throughput_limit,
     p.application_limit,
-    json_agg(users.*) AS users,
+    json_agg(
+        json_build_object(
+            'user_id',
+            u.id,
+            'email',
+            u.email,
+            'role_name',
+            ur.role_name,
+            'accepted',
+            au.accepted,
+            'provider_user_ids',
+            (
+                SELECT json_object_agg(type, provider_user_id)
+                FROM user_auth_providers
+                WHERE user_id = u.id
+            )
+        )
+    ) AS users,
     -- legacy field
     p.daily_limit
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
     LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
-    LEFT JOIN users AS u ON au.user_email = u.email
+    LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
 WHERE (
         @include_deleted::BOOLEAN
@@ -279,25 +296,60 @@ UPDATE accounts
 SET deleted = true,
     deleted_at = $2
 WHERE id = $1;
+-- name: CheckPlanTypeExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM pay_plans
+        WHERE plan_type = $1
+    );
 -- name: CheckUserEmail :one
 SELECT email
 FROM users
 WHERE id = $1;
+-- name: CheckUserIDFromEmail :one
+SELECT id
+FROM users
+WHERE email = $1;
+-- name: CheckAccountExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM accounts
+        WHERE id = $1
+            AND deleted = false
+    );
 -- name: CheckUserExists :one
 SELECT EXISTS(
         SELECT 1
         FROM users
         WHERE id = $1
     );
+-- name: CheckAccountUserExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM account_user_access
+        WHERE user_id = $1
+            AND account_id = $2
+    );
+-- name: CheckAccountUserRole :one
+SELECT role_name
+FROM account_user_access
+WHERE user_id = $1
+    AND account_id = $2;
+-- name: CheckAccountUserAccepted :one
+SELECT accepted
+FROM account_user_access
+WHERE user_id = $1
+    AND account_id = $2;
 -- name: InsertAccountUserAccess :one
 INSERT INTO account_user_access (
         account_id,
         user_id,
         role_name,
         accepted,
+        created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
     account_user_access.accepted,
@@ -305,14 +357,24 @@ RETURNING account_user_access.user_id,
         (
             SELECT email
             FROM users
-            WHERE user_id = $2
+            WHERE id = $2
         ),
         ''
-    )::VARCHAR(320) AS user_email;
+    )::VARCHAR(320) AS user_email,
+    (
+        SELECT json_object_agg(type, provider_user_id)
+        FROM user_auth_providers
+        WHERE user_id = account_user_access.user_id
+    ) as provider_user_ids;
 -- name: InsertAccountUserAccessNoUser :one
 WITH inserted_user AS (
-    INSERT INTO users (email, signed_up)
-    VALUES ($1, false)
+    INSERT INTO users (
+            email,
+            signed_up,
+            created_at,
+            updated_at
+        )
+    VALUES ($1, false, $4, $5)
     RETURNING id,
         email
 )
@@ -321,6 +383,7 @@ INSERT INTO account_user_access (
         user_id,
         role_name,
         accepted,
+        created_at,
         updated_at
     )
 VALUES (
@@ -331,7 +394,8 @@ VALUES (
         ),
         $3,
         false,
-        $4
+        $4,
+        $5
     )
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
@@ -340,6 +404,23 @@ RETURNING account_user_access.user_id,
         SELECT email
         FROM inserted_user
     ) AS user_email;
+-- name: UpdateAccountUserRole :exec
+UPDATE account_user_access
+SET role_name = $3,
+    updated_at = $4
+WHERE account_id = $1
+    AND user_id = $2;
+-- name: UpdateAccountOwnerToAdmin :exec
+UPDATE account_user_access
+SET role_name = 'ADMIN'
+WHERE account_user_access.account_id = $1
+    AND role_name = 'OWNER'
+    AND user_id = (
+        SELECT user_id
+        FROM account_user_access
+        WHERE account_id = $1
+            AND role_name = 'OWNER'
+    );
 -- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)
@@ -367,7 +448,7 @@ RETURNING (
         SELECT id
         FROM inserted_user
     ) as user_id;
--- name: CreateUserProviderSignedUp :one
+-- name: UpdateUserAcceptedInvite :exec
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (
             user_id,
@@ -386,17 +467,18 @@ updated_access AS (
             SELECT user_id
             FROM inserted_provider
         )
+        AND account_id = $6
 )
 UPDATE users
 SET signed_up = true
 WHERE id = (
         SELECT user_id
         FROM inserted_provider
-    )
-RETURNING (
-        SELECT user_id
-        FROM inserted_provider
-    ) as user_id;
+    );
+-- name: DeleteAccountUser :exec
+DELETE FROM account_user_access
+WHERE account_id = $1
+    AND user_id = $2;
 -- name: GetPortalUserID :one
 SELECT user_id
 FROM user_auth_providers

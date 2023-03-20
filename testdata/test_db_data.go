@@ -82,10 +82,10 @@ var (
 			ID:   2,
 			Plan: PayPlans["pro_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
-				3:  AccountUserAccess[3],
-				4:  AccountUserAccess[4],
-				9:  AccountUserAccess[9],
-				11: AccountUserAccess[11],
+				3: AccountUserAccess[3],
+				4: AccountUserAccess[4],
+				9: AccountUserAccess[9],
+				2: AccountUserAccess[10],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
@@ -100,7 +100,7 @@ var (
 				5:  AccountUserAccess[5],
 				6:  AccountUserAccess[6],
 				7:  AccountUserAccess[7],
-				10: AccountUserAccess[10],
+				10: AccountUserAccess[12],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
@@ -112,7 +112,7 @@ var (
 			ID:   4,
 			Plan: PayPlans["enterprise_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
-				10: AccountUserAccess[10],
+				4: AccountUserAccess[11],
 			},
 			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}},
 			PartnerThroughputLimit: 1_000,
@@ -130,23 +130,25 @@ var (
 	}
 
 	AccountUserAccess = map[types.UserID]types.AccountUserAccess{
-		1: {UserID: 1, Email: "james.holden123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|james_holden", "github|james_holden"}},
-		2: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: []string{"auth0|paul_atreides", "github|paul_atreides"}},
-		3: {UserID: 3, Email: "ellen.ripley789@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|ellen_ripley"}},
-		4: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|ulfric_stormcloak"}},
-		5: {UserID: 5, Email: "aragorn456@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: []string{"auth0|aragorn"}},
-		6: {UserID: 6, Email: "amos.burton789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: []string{"auth0|amos_burton"}},
-		7: {UserID: 7, Email: "frodo.baggins123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|frodo_baggins"}},
-		8: {UserID: 8, Email: "rick.deckard456@test.com", RoleName: types.RoleAdmin, Accepted: false, ProviderUserIDs: []string{"auth0|rick_deckard"}},
-		9: {UserID: 9, Email: "tyrion.lannister789@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: []string{"auth0|tyrion_lannister"}},
-		// Daenerys is a member of Account 3 as well as the owner of Account 4
-		10: {UserID: 10, Email: "daenerys.targaryen123@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: []string{"auth0|daenerys_targaryen"}},
-		// Paul is a member of Account 2 as well as an admin of Account 2
-		11: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: []string{"auth0|paul_atreides", "github|paul_atreides"}},
-		// 12 is used to create a new AccountUserAccess row for an existing user
-		12: {UserID: 11, Email: "bernard.marx@test.com", RoleName: types.RoleMember, ProviderUserIDs: []string{"auth0|bernard_marx"}},
-		// 13 is used to create a new AccountUserAccess row for a user that hasn't signed up yet
-		13: {Email: "winston.smith@test.com", RoleName: types.RoleAdmin, ProviderUserIDs: []string{"auth0|winston_smith"}},
+		1: {UserID: 1, Email: "james.holden123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|james_holden", types.AuthTypeAuth0Github: "github|james_holden"}},
+		2: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
+		3: {UserID: 3, Email: "ellen.ripley789@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ellen_ripley"}},
+		4: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
+		5: {UserID: 5, Email: "chrisjen.avasarala1@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|chrisjen_avasarala"}},
+		6: {UserID: 6, Email: "amos.burton789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|amos_burton"}},
+		7: {UserID: 7, Email: "frodo.baggins123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|frodo_baggins"}},
+		8: {UserID: 8, Email: "rick.deckard456@test.com", RoleName: types.RoleAdmin, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|rick_deckard"}},
+		9: {UserID: 9, Email: "tyrion.lannister789@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|tyrion_lannister"}},
+		// Paul is an admin of Account 1 as well as a member of Account 2
+		10: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
+		// Ulfric is an admin of Account 2 as well as the owner of Account 4
+		11: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
+		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
+		12: {UserID: 10, Email: "daenerys.targaryen123@test.com", RoleName: types.RoleMember, Accepted: false},
+		// Bernard is an existing user and is used to create a new AccountUserAccess row
+		13: {UserID: 11, Email: "bernard.marx@test.com", Accepted: false, RoleName: types.RoleMember, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|bernard_marx"}},
+		// Winston has not signed up yet and is used to create a new AccountUserAccess row
+		14: {Email: "winston.smith@test.com", RoleName: types.RoleAdmin, Accepted: false},
 	}
 
 	Users = map[types.UserID]*types.User{
@@ -224,11 +226,11 @@ var (
 		},
 		5: {
 			ID:       5,
-			Email:    "aragorn456@test.com",
+			Email:    "chrisjen.avasarala1@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
-					ProviderUserID: "auth0|aragorn",
+					ProviderUserID: "auth0|chrisjen_avasarala",
 					Type:           types.AuthTypeAuth0Username,
 					Provider:       "auth0",
 					Federated:      false,

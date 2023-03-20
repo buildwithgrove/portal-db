@@ -16,20 +16,6 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// AcceptAccountUser provides a mock function with given fields: ctx, email, userID, portalAppID
-func (_m *MockDriver) AcceptAccountUser(ctx context.Context, email types.Email, userID types.UserID, portalAppID string) error {
-	ret := _m.Called(ctx, email, userID, portalAppID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Email, types.UserID, string) error); ok {
-		r0 = rf(ctx, email, userID, portalAppID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // ActivateChain provides a mock function with given fields: ctx, chainID, active
 func (_m *MockDriver) ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error {
 	ret := _m.Called(ctx, chainID, active)
@@ -44,27 +30,13 @@ func (_m *MockDriver) ActivateChain(ctx context.Context, chainID types.ChainID, 
 	return r0
 }
 
-// DeleteAccount provides a mock function with given fields: ctx, account
-func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account) error {
-	ret := _m.Called(ctx, account)
+// DeleteAccount provides a mock function with given fields: ctx, account, deletedAt
+func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error {
+	ret := _m.Called(ctx, account, deletedAt)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Account) error); ok {
-		r0 = rf(ctx, account)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DeleteAccountUser provides a mock function with given fields: ctx, email, portalAppID
-func (_m *MockDriver) DeleteAccountUser(ctx context.Context, email types.Email, portalAppID types.PortalAppID) error {
-	ret := _m.Called(ctx, email, portalAppID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Email, types.PortalAppID) error); ok {
-		r0 = rf(ctx, email, portalAppID)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Account, time.Time) error); ok {
+		r0 = rf(ctx, account, deletedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -303,6 +275,20 @@ func (_m *MockDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID
 	return r0, r1
 }
 
+// RemoveAccountUser provides a mock function with given fields: ctx, userID, accountID
+func (_m *MockDriver) RemoveAccountUser(ctx context.Context, userID types.UserID, accountID types.AccountID) error {
+	ret := _m.Called(ctx, userID, accountID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.AccountID) error); ok {
+		r0 = rf(ctx, userID, accountID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RemoveBlockedContract provides a mock function with given fields: ctx, blockedAddress
 func (_m *MockDriver) RemoveBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress) error {
 	ret := _m.Called(ctx, blockedAddress)
@@ -310,6 +296,20 @@ func (_m *MockDriver) RemoveBlockedContract(ctx context.Context, blockedAddress 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.BlockedAddress) error); ok {
 		r0 = rf(ctx, blockedAddress)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SetAccountUserRole provides a mock function with given fields: ctx, updateAccountUser, updatedAt
+func (_m *MockDriver) SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error {
+	ret := _m.Called(ctx, updateAccountUser, updatedAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAccountUserRole, time.Time) error); ok {
+		r0 = rf(ctx, updateAccountUser, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -331,13 +331,13 @@ func (_m *MockDriver) SetPortalAppDeleted(ctx context.Context, portalAppID types
 	return r0
 }
 
-// UpdateAccountUserRole provides a mock function with given fields: ctx, email, portalAppID, roleName
-func (_m *MockDriver) UpdateAccountUserRole(ctx context.Context, email types.Email, portalAppID types.PortalAppID, roleName types.RoleName) error {
-	ret := _m.Called(ctx, email, portalAppID, roleName)
+// UpdateAcceptAccountUser provides a mock function with given fields: ctx, acceptAccountUser, updatedAt
+func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error {
+	ret := _m.Called(ctx, acceptAccountUser, updatedAt)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Email, types.PortalAppID, types.RoleName) error); ok {
-		r0 = rf(ctx, email, portalAppID, roleName)
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAcceptAccountUser, time.Time) error); ok {
+		r0 = rf(ctx, acceptAccountUser, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -401,32 +401,50 @@ func (_m *MockDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, up
 	return r0
 }
 
-// WriteAccount provides a mock function with given fields: ctx, account
-func (_m *MockDriver) WriteAccount(ctx context.Context, account types.Account) error {
-	ret := _m.Called(ctx, account)
+// WriteAccount provides a mock function with given fields: ctx, creatorID, account, createdAt
+func (_m *MockDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
+	ret := _m.Called(ctx, creatorID, account, createdAt)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Account) error); ok {
-		r0 = rf(ctx, account)
+	var r0 *types.Account
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.Account, time.Time) *types.Account); ok {
+		r0 = rf(ctx, creatorID, account, createdAt)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Account)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.UserID, types.Account, time.Time) error); ok {
+		r1 = rf(ctx, creatorID, account, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// WriteAccountUser provides a mock function with given fields: ctx, portalAppID, accountUser
-func (_m *MockDriver) WriteAccountUser(ctx context.Context, portalAppID types.PortalAppID, accountUser types.AccountUserAccess) error {
-	ret := _m.Called(ctx, portalAppID, accountUser)
+// WriteAccountUser provides a mock function with given fields: ctx, createAccountUser, createdAt
+func (_m *MockDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+	ret := _m.Called(ctx, createAccountUser, createdAt)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.PortalAppID, types.AccountUserAccess) error); ok {
-		r0 = rf(ctx, portalAppID, accountUser)
+	var r0 *types.AccountUserAccess
+	if rf, ok := ret.Get(0).(func(context.Context, types.CreateAccountUserAccess, time.Time) *types.AccountUserAccess); ok {
+		r0 = rf(ctx, createAccountUser, createdAt)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.AccountUserAccess)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.CreateAccountUserAccess, time.Time) error); ok {
+		r1 = rf(ctx, createAccountUser, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // WriteBlockedContract provides a mock function with given fields: ctx, blockedAddress, createdAt

@@ -127,7 +127,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'aragorn456@test.com',
+        'chrisjen.avasarala1@test.com',
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
@@ -159,6 +159,12 @@ VALUES (
     (
         'daenerys.targaryen123@test.com',
         false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'bernard.marx@test.com',
+        true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
@@ -215,7 +221,7 @@ VALUES (
         5,
         'auth0',
         'auth0_username',
-        'auth0|aragorn',
+        'auth0|chrisjen_avasarala',
         false
     ),
     (
@@ -244,6 +250,13 @@ VALUES (
         'auth0',
         'auth0_username',
         'auth0|tyrion_lannister',
+        false
+    ),
+    (
+        11,
+        'auth0',
+        'auth0_username',
+        'auth0|bernard_marx',
         false
     );
 -- Insert user_roles
@@ -370,7 +383,7 @@ VALUES (
     ),
     (
         4,
-        10,
+        4,
         'OWNER',
         true,
         '2022-11-11 11:11:11.000000',
