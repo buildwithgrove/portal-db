@@ -475,10 +475,11 @@ type ChainGigastakeRedirect struct {
 }
 
 type GlobalBlockedContract struct {
-	ID             int32          `json:"id"`
-	BlockedAddress sql.NullString `json:"blockedAddress"`
-	Active         sql.NullBool   `json:"active"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	ID             int32                `json:"id"`
+	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
+	Active         bool                 `json:"active"`
+	CreatedAt      time.Time            `json:"createdAt"`
+	UpdatedAt      sql.NullTime         `json:"updatedAt"`
 }
 
 type PayPlan struct {

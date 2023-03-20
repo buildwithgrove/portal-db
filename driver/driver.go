@@ -32,6 +32,9 @@ type (
 		/* ReadUserByUserID returns a single user from a portal UserID */
 		ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error)
 
+		/* ReadBlockedContracts returns all GlobalBlockedContracts in the DB */
+		ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error)
+
 		NotificationChannel() <-chan *types.Notification
 	}
 
@@ -78,5 +81,12 @@ type (
 		ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error
 		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
 		DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error
+
+		/* WriteBlockedContract adds a new blocked address to the global blocked contracts table. */
+		WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error
+		/* UpdateBlockedContractActive activates or deactives a blocked address in the global blocked contracts table. */
+		UpdateBlockedContractActive(ctx context.Context, blockedAddress types.BlockedAddress, active bool, updatedAt time.Time) error
+		/* RemoveBlockedContract deletes a blocked address from the global blocked contracts table. */
+		RemoveBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress) error
 	}
 )

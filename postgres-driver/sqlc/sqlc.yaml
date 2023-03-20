@@ -77,6 +77,8 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/types.AuthType"
           - column: "user_auth_providers.provider"
             go_type: "github.com/pokt-foundation/portal-db/types.AuthProvider"
+          - column: "global_blocked_contracts.blocked_address"
+            go_type: "github.com/pokt-foundation/portal-db/types.BlockedAddress"
 
           # legacy table
           - column: "stickiness_options.lb_id"
