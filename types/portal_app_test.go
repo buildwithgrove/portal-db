@@ -339,14 +339,14 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 					{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},
 				},
 				ChainWhitelists: [2]ChainWhitelists{
-					{Type: "contracts", Values: []BlockchainIDWhitelists{
+					{Type: "contracts", Values: []ChainIDWhitelists{
 						{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
 						{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
 						{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
 						{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 					},
 					},
-					{Type: "methods", Values: []BlockchainIDWhitelists{
+					{Type: "methods", Values: []ChainIDWhitelists{
 						{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
 						{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
 						{ChainID: "003E", Values: []string{"GET"}},

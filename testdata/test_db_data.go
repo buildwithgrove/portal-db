@@ -120,9 +120,21 @@ var (
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
+		5: {
+			ID:   5,
+			Plan: PayPlans["basic_plan"],
+			Users: map[types.UserID]types.AccountUserAccess{
+				4: AccountUserAccess[11],
+			},
+			PartnerChainIDs:        map[types.ChainID]struct{}{"0006": {}, "0040": {}},
+			PartnerThroughputLimit: 6_000,
+			PartnerAppLimit:        1,
+			CreatedAt:              MockTimestamp,
+			UpdatedAt:              MockTimestamp,
+		},
 
 		// This account used to test creation of Accounts
-		5: {
+		6: {
 			Plan:      PayPlans["developer_plan"],
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -141,7 +153,7 @@ var (
 		9: {UserID: 9, Email: "tyrion.lannister789@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|tyrion_lannister"}},
 		// Paul is an admin of Account 1 as well as a member of Account 2
 		10: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
-		// Ulfric is an admin of Account 2 as well as the owner of Account 4
+		// Ulfric is an admin of Account 2 as well as the owner of Accounts 4 and 5
 		11: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
 		12: {UserID: 10, Email: "daenerys.targaryen123@test.com", RoleName: types.RoleMember, Accepted: false},
@@ -540,6 +552,168 @@ var (
 		},
 	}
 
+	Chains = map[types.ChainID]*types.Chain{
+		"0001": {
+			ID:            "0001",
+			Blockchain:    "mainnet",
+			Description:   "Pocket Network Mainnet",
+			EnforceResult: "JSON",
+			Path:          "/v1/query/height",
+			Ticker:        "POKT",
+			ChainAliases:  []string{"mainnet"},
+			Active:        true,
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://altruist-0001.com:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_pocket:auth123456",
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0053": {
+			ID:             "0053",
+			Blockchain:     "optimism-mainnet",
+			BlockchainID:   10,
+			Description:    "Optimism Mainnet",
+			EnforceResult:  "JSON",
+			Ticker:         "OP",
+			ChainAliases:   []string{"optimism-mainnet"},
+			LogLimitBlocks: 100000,
+			RequestTimeout: 0,
+			Active:         true,
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://altruist-0053.com:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_pocket:auth123456",
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 2, Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 2},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0021": {
+			ID:             "0021",
+			Blockchain:     "eth-mainnet",
+			BlockchainID:   1,
+			Description:    "Ethereum Mainnet",
+			EnforceResult:  "JSON",
+			Ticker:         "ETH",
+			ChainAliases:   []string{"eth-mainnet"},
+			LogLimitBlocks: 100000,
+			Active:         true,
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://altruist-0021.com:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_pocket:auth123456",
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 3, Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 5},
+				types.ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`, ResultKey: "id"},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0064": {
+			ID:             "0064",
+			Blockchain:     "sui-testnet",
+			Description:    "Sui Testnet",
+			EnforceResult:  "JSON",
+			Ticker:         "SUI-TESTNET",
+			ChainAliases:   []string{"sui-testnet"},
+			LogLimitBlocks: 100000,
+			RequestTimeout: 60000,
+			Active:         false,
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://altruist-0064.com:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_pocket:auth123456",
+				},
+			},
+			Redirects: []types.GigastakeRedirect{},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"sui_blockNumber","params":[]}`, ResultKey: "result", Allowance: 7},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"0040": {
+			ID:            "0040",
+			Blockchain:    "harmony-0",
+			BlockchainID:  1,
+			Description:   "Harmony Shard 0",
+			EnforceResult: "JSON",
+			Ticker:        "HMY",
+			ChainAliases:  []string{"harmony-0"},
+			Active:        true,
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://altruist-0040.com:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_pocket:auth123456",
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 4, Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}`, ResultKey: "result", Allowance: 8},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+
+		// This chain used to test creation of Chains
+		"0006": {
+			ID:            "0006",
+			Blockchain:    "solana-mainnet",
+			Description:   "Solana",
+			EnforceResult: "JSON",
+			Ticker:        "SOL",
+			ChainAliases:  []string{"solana-mainnet"},
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://test-rpc.solana-1.io:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_pocket:auth123456",
+				},
+				{
+					URL:      "https://test-rpc.solana-2.io:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_pocket:auth123456",
+				},
+			},
+			Redirects: []types.GigastakeRedirect{
+				{AccountID: 5, Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network"},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"getSync"}`, ResultKey: "sync", Allowance: 2},
+				types.ChainCheckTypeChain: {Payload: `{"id":1,"jsonrpc":"2.0","method":"getChain"}`, ResultKey: "chain"},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+	}
+
 	GlobalBlockedContracts = types.GlobalBlockedContracts{
 		BlockedAddresses: map[types.BlockedAddress]struct{}{
 			"0xtest_6789abcdef0123456789abcdef01234567":   {},
@@ -593,14 +767,14 @@ var (
 			{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},
 		},
 		ChainWhitelists: [2]types.ChainWhitelists{
-			{Type: "contracts", Values: []types.BlockchainIDWhitelists{
+			{Type: "contracts", Values: []types.ChainIDWhitelists{
 				{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
 				{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
 				{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
 				{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 			},
 			},
-			{Type: "methods", Values: []types.BlockchainIDWhitelists{
+			{Type: "methods", Values: []types.ChainIDWhitelists{
 				{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
 				{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
 				{ChainID: "003E", Values: []string{"GET"}},
@@ -609,4 +783,82 @@ var (
 			},
 		},
 	}
+
+	UpdateChainOne = types.Chain{
+		ID:            "0001",
+		Blockchain:    "mainnet-NEW",
+		Description:   "Pocket Network Mainnet Update",
+		EnforceResult: "JSON",
+		Path:          "/v1/query/height/wow",
+		Ticker:        "POKT-123",
+		ChainAliases:  []string{"mainnet"},
+		Active:        true,
+		Altruists: []types.Altruist{
+			{
+				URL:      "https://altruist-0001.com:1234",
+				AuthType: types.ChainAuthTypeBasicAuth,
+				Auth:     "test_pocket:auth123456",
+			},
+			{
+				URL:      "https://altruist-0001-2.com:1234",
+				AuthType: types.ChainAuthTypeBasicAuth,
+				Auth:     "test_pocket:auth123456",
+			},
+			{
+				URL:      "https://altruist-0001-3.com:1234",
+				AuthType: types.ChainAuthTypeBasicAuth,
+				Auth:     "test_pocket:auth123456",
+			},
+		},
+		Redirects: []types.GigastakeRedirect{
+			{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+		},
+		Checks: map[types.ChainCheckType]types.Check{
+			types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
+			types.ChainCheckTypeChain: {Payload: `{"id":1,"jsonrpc":"2.0","method":"chain"}`, ResultKey: "result.sync_info"},
+			types.ChainCheckTypeMerge: {Payload: `{"id":1,"jsonrpc":"2.0","method":"merge"}`, ResultKey: "result.sync_info"},
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+	}
+	UpdateChainTwo = types.Chain{
+		ID:            "0001",
+		Blockchain:    "mainnet-ULTRA",
+		Description:   "Pocket Network Mainnet Original",
+		EnforceResult: "JSON",
+		Path:          "/v1/query/height/wow",
+		Ticker:        "POKT-456",
+		ChainAliases:  []string{"mainnet-again"},
+		Active:        true,
+		Altruists: []types.Altruist{
+			{
+				URL:      "https://altruist-0001-3.com:1234",
+				AuthType: types.ChainAuthTypeBasicAuth,
+				Auth:     "test_pocket:auth123456",
+			},
+		},
+		Redirects: []types.GigastakeRedirect{
+			{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+		},
+		Checks: map[types.ChainCheckType]types.Check{
+			types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+	}
+	UpdateChainThree = types.Chain{
+		ID:            "0001",
+		Blockchain:    "mainnet-ULTRA",
+		Description:   "Pocket Network Mainnet Original",
+		EnforceResult: "JSON",
+		Path:          "/v1/query/height/wow",
+		Ticker:        "POKT-456",
+		ChainAliases:  []string{"mainnet-again"},
+		Active:        true,
+		CreatedAt:     MockTimestamp,
+		UpdatedAt:     MockTimestamp,
+	}
+
+	// UpdateChainNotExists used to test updating a Chain that doesn't exist
+	UpdateChainNotExists = types.Chain{ID: "0073"}
 )

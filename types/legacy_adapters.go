@@ -2,6 +2,7 @@ package types
 
 import (
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -138,30 +139,31 @@ func (c *Chain) ConvertToLegacyBlockchain() Blockchain {
 	var redirects []Redirect
 	for _, chainRedirect := range c.Redirects {
 		redirects = append(redirects, Redirect{
-			Alias:          chainRedirect.Alias,
-			Domain:         chainRedirect.Domain,
-			LoadBalancerID: chainRedirect.ProtocolAppID,
+			Alias:  chainRedirect.Alias,
+			Domain: string(chainRedirect.Domain),
+			// TODO need to figure out how that is going to work (accounts->LBs not a straight mapping)
+			LoadBalancerID: "test_5416bb8d696386455b8",
 		})
 	}
 
 	return Blockchain{
 		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
-		ChainID:           c.ChainID,
+		ChainID:           strconv.Itoa(int(c.BlockchainID)),
 		ChainIDCheck:      c.Checks[ChainCheckTypeChain].Payload,
 		Description:       c.Description,
 		EnforceResult:     c.EnforceResult,
 		Path:              c.Path,
 		Ticker:            c.Ticker,
-		BlockchainAliases: c.BlockchainAliases,
-		LogLimitBlocks:    c.LogLimitBlocks,
-		RequestTimeout:    c.RequestTimeout,
+		BlockchainAliases: c.ChainAliases,
+		LogLimitBlocks:    int(c.LogLimitBlocks),
+		RequestTimeout:    int(c.RequestTimeout),
 		Active:            c.Active,
-		Altruist:          c.Altruists[0].URL,
+		Altruist:          string(c.Altruists[0].URL),
 		SyncCheckOptions: SyncCheckOptions{
 			Body:      c.Checks[ChainCheckTypeSync].Payload,
 			ResultKey: c.Checks[ChainCheckTypeSync].ResultKey,
-			Allowance: c.Checks[ChainCheckTypeSync].Allowance,
+			Allowance: int(c.Checks[ChainCheckTypeSync].Allowance),
 		},
 		Redirects: redirects,
 		CreatedAt: c.CreatedAt,
@@ -233,7 +235,7 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 		settings                             *UpdateAppSettings
 		notifications                        []UpdateAppNotifications
 		whitelists                           *WhitelistsObject
-		contractWhitelists, methodWhitelists []BlockchainIDWhitelists
+		contractWhitelists, methodWhitelists []ChainIDWhitelists
 	)
 
 	if u.NotificationSettings != nil {
@@ -269,14 +271,14 @@ func (u *UpdateApplication) ConvertToV2UpdatePortalApp(loadBalancerID string) Up
 		for _, chainContracts := range u.GatewaySettings.WhitelistContracts {
 			contracts := []string{}
 			contracts = append(contracts, chainContracts.Contracts...)
-			contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{
+			contractWhitelists = append(contractWhitelists, ChainIDWhitelists{
 				ChainID: chainContracts.ChainID, Values: contracts,
 			})
 		}
 		for _, chainMethods := range u.GatewaySettings.WhitelistMethods {
 			methods := []string{}
 			methods = append(methods, chainMethods.Methods...)
-			methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{
+			methodWhitelists = append(methodWhitelists, ChainIDWhitelists{
 				ChainID: chainMethods.ChainID, Values: methods,
 			})
 		}
@@ -336,57 +338,63 @@ func (b *Blockchain) ConvertToV2Chain() Chain {
 		ChainCheckTypeSync: {
 			Payload:   b.SyncCheckOptions.Body,
 			ResultKey: b.SyncCheckOptions.ResultKey,
-			Allowance: b.SyncCheckOptions.Allowance,
+			Allowance: int32(b.SyncCheckOptions.Allowance),
 		},
 	}
 	if b.ChainIDCheck != "" {
 		checks[ChainCheckTypeChain] = Check{Payload: b.ChainIDCheck}
 	}
 
+	blockchainID, _ := strconv.Atoi(b.ChainID)
+
 	return Chain{
-		ID:                ChainID(b.ID),
-		Blockchain:        b.Blockchain,
-		ChainID:           b.ChainID,
-		Description:       b.Description,
-		EnforceResult:     b.EnforceResult,
-		Path:              b.Path,
-		Ticker:            b.Ticker,
-		BlockchainAliases: b.BlockchainAliases,
-		LogLimitBlocks:    b.LogLimitBlocks,
-		RequestTimeout:    b.RequestTimeout,
-		Active:            b.Active,
-		Altruists:         []Altruist{{URL: b.Altruist}},
-		Checks:            checks,
+		ID:             ChainID(b.ID),
+		Blockchain:     b.Blockchain,
+		BlockchainID:   int32(blockchainID),
+		Description:    b.Description,
+		EnforceResult:  b.EnforceResult,
+		Path:           b.Path,
+		Ticker:         b.Ticker,
+		ChainAliases:   b.BlockchainAliases,
+		LogLimitBlocks: int32(b.LogLimitBlocks),
+		RequestTimeout: int32(b.RequestTimeout),
+		Active:         b.Active,
+		Altruists:      []Altruist{{URL: AltruistURL(b.Altruist)}},
+		Checks:         checks,
 	}
 }
 
 func (u *UpdateBlockchain) ConvertToV2UpdateChain() UpdateChain {
+	allowance := *u.Allowance
+	allowance32 := int32(allowance)
 	checks := map[ChainCheckType]UpdateCheck{
-		ChainCheckTypeSync: {Payload: u.Body, ResultKey: u.ResultKey, Allowance: u.Allowance},
+		ChainCheckTypeSync: {Payload: u.Body, ResultKey: u.ResultKey, Allowance: &allowance32},
 	}
 	if u.ChainIDCheck != "" {
 		checks[ChainCheckTypeChain] = UpdateCheck{Payload: u.ChainIDCheck}
 	}
 
 	return UpdateChain{
-		Blockchain:        u.Blockchain,
-		Description:       u.Description,
-		EnforceResult:     u.EnforceResult,
-		Path:              u.Path,
-		Ticker:            u.Ticker,
-		BlockchainAliases: u.BlockchainAliases,
-		LogLimitBlocks:    u.LogLimitBlocks,
-		RequestTimeout:    u.RequestTimeout,
-		Altruists:         []Altruist{{URL: u.Altruist}},
-		Checks:            checks,
+		Blockchain:     u.Blockchain,
+		Description:    u.Description,
+		EnforceResult:  u.EnforceResult,
+		Path:           u.Path,
+		Ticker:         u.Ticker,
+		ChainAliases:   u.BlockchainAliases,
+		LogLimitBlocks: int32(u.LogLimitBlocks),
+		RequestTimeout: int32(u.RequestTimeout),
+		Altruists:      []Altruist{{URL: AltruistURL(u.Altruist)}},
+		Checks:         checks,
 	}
 }
 
 func (r *Redirect) ConvertToV2Redirect() GigastakeRedirect {
+
 	return GigastakeRedirect{
-		Alias:         r.Alias,
-		Domain:        r.Domain,
-		ProtocolAppID: r.LoadBalancerID,
+		Alias:  r.Alias,
+		Domain: RedirectDomain(r.Domain),
+		// TODO need to figure out how that is going to work (accounts->LBs not a straight mapping)
+		AccountID: 1,
 	}
 }
 

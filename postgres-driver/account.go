@@ -123,7 +123,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 		return errInvalidRoleName
 	}
 
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -396,7 +396,7 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 		return fmt.Errorf(errInvalidAuthProviderType.Error(), acceptAccountUser.AuthProviderType)
 	}
 
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}

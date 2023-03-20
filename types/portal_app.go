@@ -152,10 +152,10 @@ type (
 		Values []string      `json:"values"`
 	}
 	ChainWhitelists struct {
-		Type   WhitelistType            `json:"type"`
-		Values []BlockchainIDWhitelists `json:"values"`
+		Type   WhitelistType       `json:"type"`
+		Values []ChainIDWhitelists `json:"values"`
 	}
-	BlockchainIDWhitelists struct {
+	ChainIDWhitelists struct {
 		ChainID string   `json:"chainID"`
 		Values  []string `json:"values"`
 	}
@@ -303,7 +303,7 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	}
 	sort.Strings(blockchains)
 
-	var contractWhitelists, methodWhitelists []BlockchainIDWhitelists // Chain whitelists
+	var contractWhitelists, methodWhitelists []ChainIDWhitelists // Chain whitelists
 
 	for chainID, chainContracts := range a.Whitelists.Contracts {
 		contracts := []string{}
@@ -311,7 +311,7 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 			contracts = append(contracts, string(contract))
 		}
 		sort.Strings(contracts)
-		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{ChainID: string(chainID), Values: contracts})
+		contractWhitelists = append(contractWhitelists, ChainIDWhitelists{ChainID: string(chainID), Values: contracts})
 	}
 	sort.Slice(contractWhitelists, func(i, j int) bool {
 		return contractWhitelists[i].ChainID < contractWhitelists[j].ChainID
@@ -323,7 +323,7 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 			methods = append(methods, string(method))
 		}
 		sort.Strings(methods)
-		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{ChainID: string(chainID), Values: methods})
+		methodWhitelists = append(methodWhitelists, ChainIDWhitelists{ChainID: string(chainID), Values: methods})
 	}
 	sort.Slice(methodWhitelists, func(i, j int) bool {
 		return methodWhitelists[i].ChainID < methodWhitelists[j].ChainID

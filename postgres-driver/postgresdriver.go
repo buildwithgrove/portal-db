@@ -28,7 +28,7 @@ var (
 // The PostgresDriver struct satisfies the Driver interface which defines all database driver methods
 type PostgresDriver struct {
 	*Queries
-	db           *sql.DB
+	DB           *sql.DB
 	notification chan *types.Notification
 	listener     Listener
 }
@@ -42,7 +42,7 @@ func NewPostgresDriver(connectionString string, listener Listener) (*PostgresDri
 
 	driver := &PostgresDriver{
 		Queries:      New(db),
-		db:           db,
+		DB:           db,
 		notification: make(chan *types.Notification, 32),
 		listener:     listener,
 	}
@@ -62,6 +62,7 @@ func NewPostgresDriver(connectionString string, listener Listener) (*PostgresDri
 func NewPostgresDriverFromDBInstance(db *sql.DB, listener Listener) *PostgresDriver {
 	driver := &PostgresDriver{
 		Queries:      New(db),
+		DB:           db,
 		notification: make(chan *types.Notification, 32),
 		listener:     listener,
 	}
