@@ -62,6 +62,7 @@ CREATE TABLE user_roles (
 -- Accounts Tables
 CREATE TABLE accounts (
     id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
     plan_type VARCHAR(25) NOT NULL REFERENCES pay_plans(plan_type),
     partner_chain_ids VARCHAR(4) ARRAY,
     partner_throughput_limit INT,
@@ -69,7 +70,9 @@ CREATE TABLE accounts (
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
     deleted BOOLEAN NOT NULL DEFAULT false,
-    deleted_at TIMESTAMPTZ NULL
+    deleted_at TIMESTAMPTZ NULL,
+    -- legacy field
+    lb_id VARCHAR NOT NULL
 );
 CREATE TABLE account_user_access (
     id SERIAL PRIMARY KEY,
@@ -113,11 +116,14 @@ CREATE TABLE chain_altruists (
 CREATE TABLE chain_gigastake_redirects (
     id SERIAL PRIMARY KEY,
     chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
-    account_id SERIAL NOT NULL UNIQUE REFERENCES accounts(id),
+    account_id SERIAL NOT NULL REFERENCES accounts(id),
     alias VARCHAR(100) NOT NULL,
     domain VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL
+    updated_at TIMESTAMPTZ NOT NULL,
+    UNIQUE (chain_id, account_id, domain),
+    -- legacy field
+    lb_id VARCHAR NOT NULL
 );
 CREATE TABLE chain_checks (
     id SERIAL PRIMARY KEY,

@@ -72,13 +72,11 @@ type (
 		RemoveAccountUser(ctx context.Context, userID types.UserID, accountID types.AccountID) error
 
 		/* WriteChain saves input Chain struct to the database. */
-		WriteChain(ctx context.Context, blockchain *types.Chain) (*types.Chain, error)
-		/* WriteGigastakeRedirect saves input GigastakeRedirect struct to the database for a given Chain. */
-		WriteGigastakeRedirect(ctx context.Context, redirect *types.GigastakeRedirect) (*types.GigastakeRedirect, error)
+		WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error)
 		/* UpdateChain updates Chain and ChainCheck for a given Chain. */
-		UpdateChain(ctx context.Context, chainID types.ChainID, update *types.UpdateChain) error
+		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */
-		ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error
+		SetChainActiveStatus(ctx context.Context, chainID types.ChainID, active bool, updatedAt time.Time) (bool, error)
 		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
 		DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error
 

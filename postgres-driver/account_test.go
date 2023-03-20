@@ -23,6 +23,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccounts() {
 				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
 				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
 				types.AccountID(4): testdata.Accounts[types.AccountID(4)],
+				types.AccountID(5): testdata.Accounts[types.AccountID(5)],
 			},
 			options: types.DriverOptions{},
 			err:     nil,
@@ -50,7 +51,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 		{
 			name:            "Should create a new Account in the database",
 			ownerID:         1,
-			account:         *testdata.Accounts[types.AccountID(5)],
+			account:         *testdata.Accounts[types.AccountID(6)],
 			testCreatedTime: testdata.MockTimestamp,
 			users: map[types.UserID]types.AccountUserAccess{
 				1: {
@@ -404,19 +405,20 @@ func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
 	}{
 		{
 			name:                    "Should set a Account's deleted field to true, causing it to not appear in the ReadAccounts query",
-			numAccountsBeforeDelete: 5,
+			numAccountsBeforeDelete: 6,
 			accountsAfterDelete: map[types.AccountID]*types.Account{
 				types.AccountID(1): testdata.Accounts[types.AccountID(1)],
 				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
 				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
 				types.AccountID(4): testdata.Accounts[types.AccountID(4)],
+				types.AccountID(5): testdata.Accounts[types.AccountID(5)],
 			},
 			err: nil,
 		},
 		{
 			name:                    "Should fail if account does not exist",
 			accountID:               347,
-			numAccountsBeforeDelete: 4,
+			numAccountsBeforeDelete: 5,
 			err:                     fmt.Errorf(errAccountDoesntExist.Error(), 347),
 		},
 	}
@@ -470,7 +472,7 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 		{
 			name:                    "Should delete a single AccountUserAccess row",
 			accountID:               1,
-			numAccountsBeforeDelete: 4,
+			numAccountsBeforeDelete: 5,
 			accountUsersAfterDelete: map[types.UserID]types.AccountUserAccess{
 				1: testdata.AccountUserAccess[1],
 				2: testdata.AccountUserAccess[2],
@@ -482,7 +484,7 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 			name:                    "Should fail if provided a UserID that doesn't exist for the Account",
 			userID:                  789,
 			accountID:               3,
-			numAccountsBeforeDelete: 4,
+			numAccountsBeforeDelete: 5,
 			err:                     fmt.Errorf(errAccountUserDoesntExist.Error(), 789, 3),
 		},
 		{

@@ -285,17 +285,27 @@ GROUP BY a.id,
     p.daily_limit;
 -- name: InsertAccount :one
 INSERT INTO accounts (
+        name,
         plan_type,
         created_at,
-        updated_at
+        updated_at,
+        -- legacy field
+        lb_id
     )
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 -- name: DeleteAccount :exec
 UPDATE accounts
 SET deleted = true,
     deleted_at = $2
 WHERE id = $1;
+-- name: CheckChainExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM chains
+        WHERE id = $1
+            AND deleted = false
+    );
 -- name: CheckPlanTypeExists :one
 SELECT EXISTS(
         SELECT 1
@@ -424,7 +434,7 @@ WHERE account_user_access.account_id = $1
 -- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (email, signed_up, created_at, updated_at)
-    VALUES ($1, true, $2, $3)
+    VALUES ($1, true, $2, $3) ON CONFLICT (email) DO NOTHING
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -436,18 +446,24 @@ INSERT INTO user_auth_providers (
     )
 VALUES (
         (
-            SELECT id
-            FROM inserted_user
+            SELECT COALESCE(
+                    (
+                        SELECT id
+                        FROM inserted_user
+                    ),
+                    (
+                        SELECT id
+                        FROM users
+                        WHERE users.email = $1
+                    )
+                )
         ),
         $4,
         $5,
         $6,
         $7
     )
-RETURNING (
-        SELECT id
-        FROM inserted_user
-    ) as user_id;
+RETURNING user_id;
 -- name: UpdateUserAcceptedInvite :exec
 WITH inserted_provider AS (
     INSERT INTO user_auth_providers (
@@ -501,6 +517,169 @@ GROUP BY users.id;
 DELETE FROM users
 WHERE id = $1
 RETURNING id;
+-- name: SelectChains :many
+SELECT c.*,
+    COALESCE(
+        json_agg(DISTINCT ca) FILTER (
+            WHERE ca.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_altruists,
+    COALESCE(
+        json_agg(DISTINCT cgr) FILTER (
+            WHERE cgr.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_gigastake_redirects,
+    COALESCE(
+        json_agg(DISTINCT cc) FILTER (
+            WHERE cc.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_checks
+FROM chains c
+    LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
+    LEFT JOIN chain_gigastake_redirects cgr ON c.id = cgr.chain_id
+    LEFT JOIN chain_checks cc ON c.id = cc.chain_id
+WHERE (
+        @include_deleted::BOOLEAN
+        OR c.deleted = false
+    )
+GROUP BY c.id;
+-- name: UpsertChain :one
+INSERT INTO chains (
+        id,
+        blockchain,
+        description,
+        enforce_result,
+        path,
+        ticker,
+        blockchain_id,
+        request_timeout,
+        log_limit_blocks,
+        chain_aliases,
+        allowed_methods,
+        created_at,
+        updated_at
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11,
+        $12,
+        $13
+    ) ON CONFLICT (id) DO
+UPDATE
+SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
+    description = COALESCE(EXCLUDED.description, chains.description),
+    enforce_result = COALESCE(EXCLUDED.enforce_result, chains.enforce_result),
+    path = COALESCE(EXCLUDED.path, chains.path),
+    ticker = COALESCE(EXCLUDED.ticker, chains.ticker),
+    blockchain_id = COALESCE(EXCLUDED.blockchain_id, chains.blockchain_id),
+    request_timeout = COALESCE(EXCLUDED.request_timeout, chains.request_timeout),
+    log_limit_blocks = COALESCE(
+        EXCLUDED.log_limit_blocks,
+        chains.log_limit_blocks
+    ),
+    chain_aliases = COALESCE(EXCLUDED.chain_aliases, chains.chain_aliases),
+    allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
+    updated_at = EXCLUDED.updated_at
+RETURNING id;
+-- name: UpsertChainAltruist :exec
+INSERT INTO chain_altruists (
+        chain_id,
+        url,
+        auth,
+        auth_type,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (chain_id, url) DO
+UPDATE
+SET auth = COALESCE(EXCLUDED.auth, chain_altruists.auth),
+    auth_type = COALESCE(EXCLUDED.auth_type, chain_altruists.auth_type),
+    updated_at = EXCLUDED.updated_at;
+-- name: DeleteUnusedChainAltruists :exec
+DELETE FROM chain_altruists
+WHERE chain_id = $1
+    AND url NOT IN (
+        SELECT unnest(@urls::VARCHAR [])
+    );
+-- name: UpsertChainGigastakeRedirect :exec
+INSERT INTO chain_gigastake_redirects (
+        chain_id,
+        account_id,
+        alias,
+        domain,
+        created_at,
+        updated_at,
+        -- legacy field
+        lb_id
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, account_id, domain) DO
+UPDATE
+SET chain_id = COALESCE(
+        EXCLUDED.chain_id,
+        chain_gigastake_redirects.chain_id
+    ),
+    alias = COALESCE(EXCLUDED.alias, chain_gigastake_redirects.alias),
+    domain = COALESCE(
+        EXCLUDED.domain,
+        chain_gigastake_redirects.domain
+    ),
+    updated_at = EXCLUDED.updated_at,
+    -- legacy field
+    lb_id = EXCLUDED.lb_id;
+-- name: DeleteUnusedChainGigastakeRedirects :exec
+DELETE FROM chain_gigastake_redirects
+WHERE chain_id = $1
+    AND account_id NOT IN (
+        SELECT unnest(@account_ids::INTEGER [])
+    );
+-- name: UpsertChainCheck :exec
+INSERT INTO chain_checks (
+        chain_id,
+        type,
+        payload,
+        result_key,
+        allowance,
+        created_at,
+        updated_at
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7
+    ) ON CONFLICT (chain_id, type) DO
+UPDATE
+SET payload = COALESCE(EXCLUDED.payload, chain_checks.payload),
+    result_key = COALESCE(EXCLUDED.result_key, chain_checks.result_key),
+    allowance = COALESCE(EXCLUDED.allowance, chain_checks.allowance),
+    updated_at = EXCLUDED.updated_at;
+-- name: DeleteUnusedChainChecks :exec
+DELETE FROM chain_checks
+WHERE chain_id = $1
+    AND type NOT IN (
+        SELECT unnest(@types::chain_check_type [])
+    );
+-- name: UpdateChainActive :one
+UPDATE chains
+SET active = $2,
+    updated_at = $3
+WHERE id = $1
+RETURNING active;
 -- name: SelectGlobalBlockedContract :many
 SELECT id,
     blocked_address
@@ -510,12 +689,12 @@ WHERE active = true;
 INSERT INTO global_blocked_contracts (blocked_address, created_at)
 VALUES ($1, $2);
 -- name: SetGlobalBlockedContractActive :one
-	UPDATE global_blocked_contracts
-	SET active = $2,
-	    updated_at = $3
-	WHERE blocked_address = $1
-	RETURNING id;
+UPDATE global_blocked_contracts
+SET active = $2,
+    updated_at = $3
+WHERE blocked_address = $1
+RETURNING id;
 -- name: RemoveGlobalBlockedContract :one
 DELETE FROM global_blocked_contracts
 WHERE blocked_address = $1
-	RETURNING id;
+RETURNING id;

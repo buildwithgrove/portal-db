@@ -61,44 +61,70 @@ VALUES (
     );
 -- Insert accounts
 INSERT INTO accounts (
+        name,
         plan_type,
         partner_chain_ids,
         partner_throughput_limit,
         partner_application_limit,
         created_at,
-        updated_at
+        updated_at,
+        -- legacy field
+        lb_id
     )
 VALUES (
+        'test_account_1',
         'basic_plan',
         ARRAY ['0001', '0053'],
         2000,
         1,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_5c6f50bc30b530a8'
     ),
     (
+        'test_account_2',
         'pro_plan',
         ARRAY ['0001', '0053','0021', '0064'],
         5000,
         3,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_d2c7361fd9c5dff7'
     ),
     (
+        'test_account_3',
         'startup_plan',
         ARRAY ['0001', '0053', '0064', '0034'],
         1000,
         2,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_4b874c457f73c4e9'
     ),
     (
+        'test_account_4',
         'enterprise_plan',
         ARRAY ['0001'],
         1000,
         2,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_746e04231640556a'
+    ),
+    (
+        'test_account_5',
+        'basic_plan',
+        ARRAY ['0006', '0040'],
+        6000,
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_f5ee77c7c58025231'
     );
 -- Insert users
 INSERT INTO users (email, signed_up, created_at, updated_at)
@@ -388,6 +414,14 @@ VALUES (
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        5,
+        4,
+        'OWNER',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO portal_applications (
         id,
@@ -630,6 +664,257 @@ VALUES (
         'email@pokt.network',
         'trigger456',
         ARRAY ['full'::notification_event,'half'::notification_event]
+    );
+INSERT INTO chains (
+        id,
+        blockchain,
+        blockchain_id,
+        description,
+        enforce_result,
+        path,
+        ticker,
+        chain_aliases,
+        log_limit_blocks,
+        request_timeout,
+        active,
+        created_at,
+        updated_at
+    )
+VALUES (
+        '0001',
+        'mainnet',
+        NULL,
+        'Pocket Network Mainnet',
+        'JSON',
+        '/v1/query/height',
+        'POKT',
+        ARRAY ['mainnet'],
+        0,
+        0,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'optimism-mainnet',
+        10,
+        'Optimism Mainnet',
+        'JSON',
+        '',
+        'OP',
+        ARRAY ['optimism-mainnet'],
+        100000,
+        0,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'eth-mainnet',
+        1,
+        'Ethereum Mainnet',
+        'JSON',
+        '',
+        'ETH',
+        ARRAY ['eth-mainnet'],
+        100000,
+        0,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'sui-testnet',
+        NULL,
+        'Sui Testnet',
+        'JSON',
+        '',
+        'SUI-TESTNET',
+        ARRAY ['sui-testnet'],
+        100000,
+        60000,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0040',
+        'harmony-0',
+        1,
+        'Harmony Shard 0',
+        'JSON',
+        '',
+        'HMY',
+        ARRAY ['harmony-0'],
+        0,
+        0,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO chain_altruists (
+        chain_id,
+        url,
+        auth,
+        auth_type,
+        created_at,
+        updated_at
+    )
+VALUES (
+        '0001',
+        'https://altruist-0001.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'https://altruist-0053.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'https://altruist-0021.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'https://altruist-0064.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2023-01-23T23:52:00.176019Z'
+    ),
+    (
+        '0040',
+        'https://altruist-0040.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO chain_gigastake_redirects (
+        chain_id,
+        account_id,
+        alias,
+        domain,
+        created_at,
+        updated_at,
+        -- legacy field
+        lb_id
+    )
+VALUES (
+        '0001',
+        1,
+        'altruist-0001',
+        'pokt-rpc.gateway.pokt.network',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_5c6f50bc30b530a8'
+    ),
+    (
+        '0053',
+        2,
+        'altruist-0053',
+        'op-rpc.gateway.pokt.network',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_d2c7361fd9c5dff7'
+    ),
+    (
+        '0021',
+        3,
+        'altruist-0021',
+        'eth-rpc.gateway.pokt.network',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_4b874c457f73c4e9'
+    ),
+    (
+        '0040',
+        4,
+        'altruist-0040',
+        'hmy-rpc.gateway.pokt.network',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        -- legacy field
+        'test_lb_746e04231640556a'
+    );
+INSERT INTO chain_checks (
+        chain_id,
+        type,
+        payload,
+        result_key,
+        allowance,
+        created_at,
+        updated_at
+    )
+VALUES (
+        '0001',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"query"}',
+        'result.sync_info',
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}',
+        'result',
+        2,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}',
+        'result',
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'chain',
+        '{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}',
+        'id',
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"sui_blockNumber","params":[]}',
+        'result',
+        7,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0040',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}',
+        'result',
+        8,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO global_blocked_contracts (blocked_address, created_at)
 VALUES (

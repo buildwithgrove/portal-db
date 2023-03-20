@@ -1,43 +1,66 @@
 package types
 
-import "time"
+import (
+	"testing"
 
-var (
-	testChain = Chain{
-		ID:                "0001",
-		Blockchain:        "pokt-mainnet",
-		Description:       "POKT Network Mainnet",
-		EnforceResult:     "JSON",
-		Path:              "/wow/test",
-		Ticker:            "POKT",
-		BlockchainAliases: []string{"pokt-mainnet"},
-		AllowedMethods:    []string{"GET", "POST", "PUT"},
-		LogLimitBlocks:    100_000,
-		Active:            true,
-		Altruists: []Altruist{
-			{
-				URL:      "https://user:test_123@pokt-test.us-1.pokt.network:1234",
-				Auth:     "auth_123",
-				AuthType: ChainAuthTypeBearerToken,
-			},
-		},
-		Redirects: []GigastakeRedirect{testRedirect},
-		Checks: map[ChainCheckType]Check{
-			ChainCheckTypeSync: {
-				Payload:   `{"method":"eth_blockNumber","id":1,"jsonrpc":"2.0"}`,
-				ResultKey: "testing",
-				Allowance: 1,
-			},
-			ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`},
-		},
-
-		CreatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
-		UpdatedAt: time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
-	}
-
-	testRedirect = GigastakeRedirect{
-		Alias:         "mainnet",
-		Domain:        "pokt.test.com",
-		ProtocolAppID: "test_5416bb8d696386455b8",
-	}
+	"github.com/stretchr/testify/assert"
 )
+
+func TestUpdateBlockchain(t *testing.T) {
+	tests := []struct {
+		name     string
+		chain    Chain
+		update   UpdateChain
+		expected Chain
+	}{
+		{
+			name: "Should update blockchain description",
+			chain: Chain{
+				Description: "Old Description",
+			},
+			update: UpdateChain{
+				Description: "New Description",
+			},
+			expected: Chain{
+				Description: "New Description",
+			},
+		},
+		{
+			name:     "Should update multiple fields",
+			chain:    Chain{Blockchain: "Old Blockchain", Description: "Old Description"},
+			update:   UpdateChain{Blockchain: "New Blockchain", Description: "New Description"},
+			expected: Chain{Blockchain: "New Blockchain", Description: "New Description"},
+		},
+		{
+			name: "Should update chain checks",
+			chain: Chain{
+				Checks: map[ChainCheckType]Check{
+					ChainCheckTypeChain: {Payload: "Old Payload"},
+				},
+			},
+			update: UpdateChain{
+				Checks: map[ChainCheckType]UpdateCheck{
+					ChainCheckTypeChain: {Payload: "New Payload"},
+				},
+			},
+			expected: Chain{
+				Checks: map[ChainCheckType]Check{
+					ChainCheckTypeChain: {Payload: "New Payload"},
+				},
+			},
+		},
+		{
+			name:     "Should not update with empty update",
+			chain:    Chain{Blockchain: "Old Blockchain", Description: "Old Description"},
+			update:   UpdateChain{},
+			expected: Chain{Blockchain: "Old Blockchain", Description: "Old Description"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			updatedChain := test.chain.UpdateBlockchain(&test.update)
+			assert.Equal(t, test.expected, *updatedChain)
+		})
+	}
+}

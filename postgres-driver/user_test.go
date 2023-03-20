@@ -143,14 +143,31 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 
 func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 	tests := []struct {
-		name        string
-		createUser  types.CreateUser
-		userID      types.UserID
-		expectedErr error
-		err         error
+		name                    string
+		createUser              types.CreateUser
+		accountID               types.AccountID
+		numUsersBeforeDelete    int
+		accountUsersAfterDelete map[types.UserID]types.AccountUserAccess
+		userID                  types.UserID
+		expectedErr             error
+		err                     error
 	}{
 		{
-			name:        "Should delete a portal User from the DB",
+			name:        "Should delete a portal User from the DB if they are not part of any accounts",
+			createUser:  testdata.TestCreateUser,
+			expectedErr: errUserDoesntExist,
+			err:         nil,
+		},
+		{
+			name:                 "Should delete a portal User from the DB including its account user and auth provider rows",
+			accountID:            2,
+			numUsersBeforeDelete: 5,
+			accountUsersAfterDelete: map[types.UserID]types.AccountUserAccess{
+				3: testdata.AccountUserAccess[3],
+				4: testdata.AccountUserAccess[4],
+				9: testdata.AccountUserAccess[9],
+				2: testdata.AccountUserAccess[10],
+			},
 			createUser:  testdata.TestCreateUser,
 			expectedErr: errUserDoesntExist,
 			err:         nil,
@@ -170,6 +187,17 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 				userID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
 				ts.Equal(test.err, err)
 				createdUserID = userID
+
+				if test.accountID != types.AccountID(0) {
+					// if accountID set in test case then test deleting a user with an account
+					_, err = ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
+						AccountID: test.accountID, Email: test.createUser.Email, RoleName: types.RoleMember,
+					}, testdata.MockTimestamp)
+					ts.Equal(test.err, err)
+					accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+					ts.NoError(err)
+					ts.Len(accounts[test.accountID].Users, test.numUsersBeforeDelete)
+				}
 			}
 
 			userID, err := ts.driver.DeletePortalUser(context.Background(), createdUserID)
@@ -178,6 +206,12 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 			if test.err == nil {
 				_, err := ts.driver.ReadUserByUserID(context.Background(), userID)
 				ts.Equal(fmt.Errorf(test.expectedErr.Error(), userID), err)
+
+				if test.accountID != types.AccountID(0) {
+					accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+					ts.NoError(err)
+					ts.Equal(test.accountUsersAfterDelete, accounts[test.accountID].Users)
+				}
 			}
 		})
 	}

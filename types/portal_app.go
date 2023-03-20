@@ -79,7 +79,6 @@ type (
 		Gigastake     bool                                 `json:"gigastake"`
 		Staked        bool                                 `json:"staked"`
 		AccountID     AccountID                            `json:"accountID"`
-		Account       *Account                             `json:"account"`
 		AAT           AAT                                  `json:"aat"`
 		Settings      Settings                             `json:"settings"`
 		Whitelists    Whitelists                           `json:"whitelists"`
@@ -95,12 +94,20 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		ApplicationIDs     []string      `json:"applicationID"`
 		CustomLimit        int32         `json:"customLimit"`
 		RequestTimeout     int32         `json:"requestTimeout"`
 		GigastakeRedirect  bool          `json:"gigastakeRedirect"`
 		FirstDateSurpassed time.Time     `json:"firstDateSurpassed"`
 		StickyOptions      StickyOptions `json:"stickyOptions"`
+	}
+	// TODO - remove when v2 migration finished
+	// Fields required for compatibility with the old Portal API and Services (temporary)
+	StickyOptions struct {
+		ID            string   `json:"id,omitempty"`
+		Duration      string   `json:"duration"`
+		StickyOrigins []string `json:"stickyOrigins"`
+		StickyMax     int      `json:"stickyMax"`
+		Stickiness    bool     `json:"stickiness"`
 	}
 
 	AAT struct {
@@ -152,10 +159,10 @@ type (
 		Values []string      `json:"values"`
 	}
 	ChainWhitelists struct {
-		Type   WhitelistType            `json:"type"`
-		Values []BlockchainIDWhitelists `json:"values"`
+		Type   WhitelistType       `json:"type"`
+		Values []ChainIDWhitelists `json:"values"`
 	}
-	BlockchainIDWhitelists struct {
+	ChainIDWhitelists struct {
 		ChainID string   `json:"chainID"`
 		Values  []string `json:"values"`
 	}
@@ -197,49 +204,6 @@ type (
 	Method    string
 	Contract  string
 )
-
-// LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
-func (a *PortalApp) LegacyDailyLimit() int32 {
-	return a.Account.Plan.LegacyDailyLimit
-}
-
-// LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
-func (a *PortalApp) LegacyUserID() string {
-	for _, user := range a.Account.Users {
-		if user.RoleName == RoleOwner {
-			for _, userID := range user.ProviderUserIDs {
-				return userID
-			}
-		}
-	}
-	return ""
-}
-
-// GetOwnerEmail returns the Email of the Application OWNER
-func (app *PortalApp) GetOwnerEmail() (Email, error) {
-	for _, userAccess := range app.Account.Users {
-		if userAccess.RoleName == RoleOwner {
-			return Email(userAccess.Email), nil
-		}
-	}
-
-	return "", ErrNoOwner
-}
-
-// UserID returns the UserID of the Application OWNER
-func (a *PortalApp) UserID() UserID {
-	for _, user := range a.Account.Users {
-		if user.RoleName == RoleOwner {
-			return user.UserID
-		}
-	}
-	return UserID(0)
-}
-
-// Users returns all Users for the PortalApp's Account
-func (a *PortalApp) Users() map[UserID]AccountUserAccess {
-	return a.Account.Users
-}
 
 // MonthlyLimit returns the monthly relay limit for a given application
 func (a *PortalApp) MonthlyLimit() int32 {
@@ -303,7 +267,7 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	}
 	sort.Strings(blockchains)
 
-	var contractWhitelists, methodWhitelists []BlockchainIDWhitelists // Chain whitelists
+	var contractWhitelists, methodWhitelists []ChainIDWhitelists // Chain whitelists
 
 	for chainID, chainContracts := range a.Whitelists.Contracts {
 		contracts := []string{}
@@ -311,7 +275,7 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 			contracts = append(contracts, string(contract))
 		}
 		sort.Strings(contracts)
-		contractWhitelists = append(contractWhitelists, BlockchainIDWhitelists{ChainID: string(chainID), Values: contracts})
+		contractWhitelists = append(contractWhitelists, ChainIDWhitelists{ChainID: string(chainID), Values: contracts})
 	}
 	sort.Slice(contractWhitelists, func(i, j int) bool {
 		return contractWhitelists[i].ChainID < contractWhitelists[j].ChainID
@@ -323,7 +287,7 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 			methods = append(methods, string(method))
 		}
 		sort.Strings(methods)
-		methodWhitelists = append(methodWhitelists, BlockchainIDWhitelists{ChainID: string(chainID), Values: methods})
+		methodWhitelists = append(methodWhitelists, ChainIDWhitelists{ChainID: string(chainID), Values: methods})
 	}
 	sort.Slice(methodWhitelists, func(i, j int) bool {
 		return methodWhitelists[i].ChainID < methodWhitelists[j].ChainID

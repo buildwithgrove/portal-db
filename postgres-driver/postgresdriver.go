@@ -12,10 +12,7 @@ import (
 	"github.com/pokt-foundation/portal-db/types"
 )
 
-const (
-	// psqlDateLayout = "2006-01-02T15:04:05.999999"
-	idLength = 24
-)
+const idLength = 24
 
 var (
 	ErrMissingID     = errors.New("missing id")
@@ -28,7 +25,7 @@ var (
 // The PostgresDriver struct satisfies the Driver interface which defines all database driver methods
 type PostgresDriver struct {
 	*Queries
-	db           *sql.DB
+	DB           *sql.DB
 	notification chan *types.Notification
 	listener     Listener
 }
@@ -42,7 +39,7 @@ func NewPostgresDriver(connectionString string, listener Listener) (*PostgresDri
 
 	driver := &PostgresDriver{
 		Queries:      New(db),
-		db:           db,
+		DB:           db,
 		notification: make(chan *types.Notification, 32),
 		listener:     listener,
 	}
@@ -62,6 +59,7 @@ func NewPostgresDriver(connectionString string, listener Listener) (*PostgresDri
 func NewPostgresDriverFromDBInstance(db *sql.DB, listener Listener) *PostgresDriver {
 	driver := &PostgresDriver{
 		Queries:      New(db),
+		DB:           db,
 		notification: make(chan *types.Notification, 32),
 		listener:     listener,
 	}
@@ -81,13 +79,10 @@ func (d *PostgresDriver) NotificationChannel() <-chan *types.Notification {
 	return d.notification
 }
 
-func generateRandomID() (string, error) {
+func generatePortalAppID() string {
 	bytes := make([]byte, idLength/2)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-
-	return hex.EncodeToString(bytes), nil
+	_, _ = rand.Read(bytes)
+	return hex.EncodeToString(bytes)
 }
 
 func newSQLNullString(value string) sql.NullString {
@@ -133,20 +128,3 @@ func newSQLNullTime(value time.Time) sql.NullTime {
 		Valid: true,
 	}
 }
-
-// func psqlDateToTime(rawDate string) time.Time {
-// 	date, _ := time.Parse(psqlDateLayout, rawDate)
-// 	return date
-// }
-
-// func boolPointer(value bool) *bool {
-// 	return &value
-// }
-
-// // Typeguard for a derived field from Postgres that must be either nil or a string
-// func toString(v interface{}) string {
-// 	if v == nil {
-// 		return ""
-// 	}
-// 	return v.(string)
-// }

@@ -16,20 +16,6 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// ActivateChain provides a mock function with given fields: ctx, chainID, active
-func (_m *MockDriver) ActivateChain(ctx context.Context, chainID types.ChainID, active bool) error {
-	ret := _m.Called(ctx, chainID, active)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, bool) error); ok {
-		r0 = rf(ctx, chainID, active)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteAccount provides a mock function with given fields: ctx, account, deletedAt
 func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error {
 	ret := _m.Called(ctx, account, deletedAt)
@@ -317,6 +303,27 @@ func (_m *MockDriver) SetAccountUserRole(ctx context.Context, updateAccountUser 
 	return r0
 }
 
+// SetChainActiveStatus provides a mock function with given fields: ctx, chainID, active, updatedAt
+func (_m *MockDriver) SetChainActiveStatus(ctx context.Context, chainID types.ChainID, active bool, updatedAt time.Time) (bool, error) {
+	ret := _m.Called(ctx, chainID, active, updatedAt)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, bool, time.Time) bool); ok {
+		r0 = rf(ctx, chainID, active, updatedAt)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.ChainID, bool, time.Time) error); ok {
+		r1 = rf(ctx, chainID, active, updatedAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SetPortalAppDeleted provides a mock function with given fields: ctx, portalAppID, deletedAt
 func (_m *MockDriver) SetPortalAppDeleted(ctx context.Context, portalAppID types.PortalAppID, deletedAt time.Time) error {
 	ret := _m.Called(ctx, portalAppID, deletedAt)
@@ -359,13 +366,13 @@ func (_m *MockDriver) UpdateBlockedContractActive(ctx context.Context, blockedAd
 	return r0
 }
 
-// UpdateChain provides a mock function with given fields: ctx, chainID, update
-func (_m *MockDriver) UpdateChain(ctx context.Context, chainID types.ChainID, update *types.UpdateChain) error {
-	ret := _m.Called(ctx, chainID, update)
+// UpdateChain provides a mock function with given fields: ctx, chain, updatedAt
+func (_m *MockDriver) UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error {
+	ret := _m.Called(ctx, chain, updatedAt)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, *types.UpdateChain) error); ok {
-		r0 = rf(ctx, chainID, update)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Chain, time.Time) error); ok {
+		r0 = rf(ctx, chain, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -461,13 +468,13 @@ func (_m *MockDriver) WriteBlockedContract(ctx context.Context, blockedAddress t
 	return r0
 }
 
-// WriteChain provides a mock function with given fields: ctx, blockchain
-func (_m *MockDriver) WriteChain(ctx context.Context, blockchain *types.Chain) (*types.Chain, error) {
-	ret := _m.Called(ctx, blockchain)
+// WriteChain provides a mock function with given fields: ctx, chain, createdAt
+func (_m *MockDriver) WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error) {
+	ret := _m.Called(ctx, chain, createdAt)
 
 	var r0 *types.Chain
-	if rf, ok := ret.Get(0).(func(context.Context, *types.Chain) *types.Chain); ok {
-		r0 = rf(ctx, blockchain)
+	if rf, ok := ret.Get(0).(func(context.Context, types.Chain, time.Time) *types.Chain); ok {
+		r0 = rf(ctx, chain, createdAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*types.Chain)
@@ -475,31 +482,8 @@ func (_m *MockDriver) WriteChain(ctx context.Context, blockchain *types.Chain) (
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *types.Chain) error); ok {
-		r1 = rf(ctx, blockchain)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// WriteGigastakeRedirect provides a mock function with given fields: ctx, redirect
-func (_m *MockDriver) WriteGigastakeRedirect(ctx context.Context, redirect *types.GigastakeRedirect) (*types.GigastakeRedirect, error) {
-	ret := _m.Called(ctx, redirect)
-
-	var r0 *types.GigastakeRedirect
-	if rf, ok := ret.Get(0).(func(context.Context, *types.GigastakeRedirect) *types.GigastakeRedirect); ok {
-		r0 = rf(ctx, redirect)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*types.GigastakeRedirect)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *types.GigastakeRedirect) error); ok {
-		r1 = rf(ctx, redirect)
+	if rf, ok := ret.Get(1).(func(context.Context, types.Chain, time.Time) error); ok {
+		r1 = rf(ctx, chain, createdAt)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -404,6 +404,7 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 
 type Account struct {
 	ID                      types.AccountID   `json:"id"`
+	Name                    string            `json:"name"`
 	PlanType                types.PayPlanType `json:"planType"`
 	PartnerChainIDs         []string          `json:"partnerChainIds"`
 	PartnerThroughputLimit  sql.NullInt32     `json:"partnerThroughputLimit"`
@@ -412,6 +413,7 @@ type Account struct {
 	UpdatedAt               time.Time         `json:"updatedAt"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deletedAt"`
+	LbID                    string            `json:"lbID"`
 }
 
 type AccountUserAccess struct {
@@ -425,7 +427,7 @@ type AccountUserAccess struct {
 }
 
 type Chain struct {
-	ID             string        `json:"id"`
+	ID             types.ChainID `json:"id"`
 	Blockchain     string        `json:"blockchain"`
 	Description    string        `json:"description"`
 	EnforceResult  string        `json:"enforceResult"`
@@ -445,8 +447,8 @@ type Chain struct {
 
 type ChainAltruist struct {
 	ID        int32               `json:"id"`
-	ChainID   string              `json:"chainID"`
-	Url       string              `json:"url"`
+	ChainID   types.ChainID       `json:"chainID"`
+	URL       types.AltruistURL   `json:"url"`
 	Auth      sql.NullString      `json:"auth"`
 	AuthType  types.ChainAuthType `json:"authType"`
 	CreatedAt time.Time           `json:"createdAt"`
@@ -455,7 +457,7 @@ type ChainAltruist struct {
 
 type ChainCheck struct {
 	ID        int32                `json:"id"`
-	ChainID   string               `json:"chainID"`
+	ChainID   types.ChainID        `json:"chainID"`
 	Type      types.ChainCheckType `json:"type"`
 	Payload   string               `json:"payload"`
 	ResultKey sql.NullString       `json:"resultKey"`
@@ -465,13 +467,14 @@ type ChainCheck struct {
 }
 
 type ChainGigastakeRedirect struct {
-	ID        int32     `json:"id"`
-	ChainID   string    `json:"chainID"`
-	AccountID int32     `json:"accountID"`
-	Alias     string    `json:"alias"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID        int32                `json:"id"`
+	ChainID   types.ChainID        `json:"chainID"`
+	AccountID types.AccountID      `json:"accountID"`
+	Alias     string               `json:"alias"`
+	Domain    types.RedirectDomain `json:"domain"`
+	CreatedAt time.Time            `json:"createdAt"`
+	UpdatedAt time.Time            `json:"updatedAt"`
+	LbID      string               `json:"lbID"`
 }
 
 type GlobalBlockedContract struct {

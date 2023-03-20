@@ -76,7 +76,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 	}
 
 	return &types.Account{
-		ID: a.ID,
+		ID:   a.ID,
+		Name: a.Name,
 		Plan: types.Plan{
 			Type:              types.PayPlanType(a.PlanType),
 			ChainIDs:          chainIDs,
@@ -92,6 +93,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		CreatedAt:              a.CreatedAt.UTC(),
 		UpdatedAt:              a.UpdatedAt.UTC(),
 		Deleted:                a.Deleted,
+		// TODO - remove when v2 migration finished
+		LegacyLoadBalancerID: a.LbID,
 	}, nil
 }
 
@@ -123,7 +126,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -148,9 +151,12 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	}
 
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
+		Name:      account.Name,
 		PlanType:  account.Plan.Type,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
+		// TODO - remove when v2 migration finished
+		LbID: account.LegacyLoadBalancerID,
 	})
 	if err != nil {
 		return nil, err
@@ -334,7 +340,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 		return errInvalidRoleName
 	}
 
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -396,7 +402,7 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 		return fmt.Errorf(errInvalidAuthProviderType.Error(), acceptAccountUser.AuthProviderType)
 	}
 
-	tx, err := pg.db.Begin()
+	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
 	}

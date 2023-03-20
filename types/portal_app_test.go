@@ -10,42 +10,10 @@ import (
 )
 
 var testPortalApplication = PortalApp{
-	ID:        "test_5416bb8d696386455b8",
+	ID:        "test_app_3487u329rfn23f9",
 	Name:      "test_portal_app_123",
 	Gigastake: true,
 	AccountID: 1,
-	Account: &Account{
-		ID: 1,
-		Plan: Plan{
-			Type:              FreetierV0,
-			MonthlyRelayLimit: 2_500_000,
-			ThroughputLimit:   2_000,
-			AppLimit:          2,
-			ChainIDs:          map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
-			LegacyDailyLimit:  250_000,
-		},
-		Users: map[UserID]AccountUserAccess{
-			1: {
-				UserID:   1,
-				Email:    "test_owner@user.com",
-				RoleName: RoleOwner,
-				Accepted: true,
-				// TODO legacy field
-				ProviderUserIDs: map[AuthType]string{AuthTypeAuth0Username: "test_user_5736487d3c1975"},
-			},
-			2: {
-				UserID:   2,
-				Email:    "test_member@user.com",
-				RoleName: RoleMember,
-				Accepted: true,
-				// TODO legacy field
-				ProviderUserIDs: map[AuthType]string{AuthTypeAuth0Username: "test_user_4d89ede3e3135f"},
-			},
-		},
-		PartnerChainIDs:        map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
-		PartnerThroughputLimit: 2_000,
-		PartnerAppLimit:        2,
-	},
 	AAT: AAT{
 		Address:         "test_34715cae753e67c75fbb340442e7de8e",
 		PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
@@ -99,7 +67,6 @@ var testPortalApplication = PortalApp{
 	UpdatedAt: time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
 
 	LegacyFields: LegacyFields{
-		ApplicationIDs:     []string{"test_475jf893f9j2f30jd230e"},
 		CustomLimit:        0,
 		RequestTimeout:     5_000,
 		GigastakeRedirect:  true,
@@ -339,14 +306,14 @@ func Test_PortalApp_GetWhitelistsObject(t *testing.T) {
 					{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},
 				},
 				ChainWhitelists: [2]ChainWhitelists{
-					{Type: "contracts", Values: []BlockchainIDWhitelists{
+					{Type: "contracts", Values: []ChainIDWhitelists{
 						{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
 						{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
 						{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
 						{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 					},
 					},
-					{Type: "methods", Values: []BlockchainIDWhitelists{
+					{Type: "methods", Values: []ChainIDWhitelists{
 						{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
 						{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
 						{ChainID: "003E", Values: []string{"GET"}},
