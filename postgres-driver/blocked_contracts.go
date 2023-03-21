@@ -77,7 +77,7 @@ func (pg *PostgresDriver) UpdateBlockedContractActive(ctx context.Context, block
 	params := SetGlobalBlockedContractActiveParams{
 		BlockedAddress: blockedAddress,
 		Active:         active,
-		UpdatedAt:      newSQLNullTime(updatedAt),
+		UpdatedAt:      updatedAt,
 	}
 
 	_, err := pg.SetGlobalBlockedContractActive(ctx, params)
