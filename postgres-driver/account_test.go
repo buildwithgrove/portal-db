@@ -181,9 +181,10 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 				test.accountUsersAfterCreate[accountUser.UserID] = test.accountUser
 			}
 			ts.Equal(test.err, err)
-			ts.Equal(&test.accountUser, accountUser)
 
 			if test.err == nil {
+				ts.Equal(&test.accountUser, accountUser)
+
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
 				ts.Equal(test.accountUsersAfterCreate, accounts[test.createAccountUser.AccountID].Users)
