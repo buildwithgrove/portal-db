@@ -17,7 +17,7 @@ var (
 	errContractAlreadyBlocked = errors.New("error blockchain address %s is already blocked")
 )
 
-// /* ----- postgresdriver GlobalBlockedContracts Read Methods ----- */
+/* ----- postgresdriver GlobalBlockedContracts Read Methods ----- */
 
 // ReadBlockedContracts returns all GlobalBlockedContracts in the DB
 func (pg *PostgresDriver) ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error) {
