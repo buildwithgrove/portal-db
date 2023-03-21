@@ -16,17 +16,18 @@ import (
 )
 
 const addGlobalBlockedContract = `-- name: AddGlobalBlockedContract :exec
-INSERT INTO global_blocked_contracts (blocked_address, created_at)
-VALUES ($1, $2)
+INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
+VALUES ($1, $2, $3)
 `
 
 type AddGlobalBlockedContractParams struct {
 	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
 	CreatedAt      time.Time            `json:"createdAt"`
+	UpdatedAt      time.Time            `json:"updatedAt"`
 }
 
 func (q *Queries) AddGlobalBlockedContract(ctx context.Context, arg AddGlobalBlockedContractParams) error {
-	_, err := q.db.ExecContext(ctx, addGlobalBlockedContract, arg.BlockedAddress, arg.CreatedAt)
+	_, err := q.db.ExecContext(ctx, addGlobalBlockedContract, arg.BlockedAddress, arg.CreatedAt, arg.UpdatedAt)
 	return err
 }
 
@@ -707,7 +708,7 @@ INSERT INTO portal_application_aats (
         version
     )
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, application_id, address, public_key, private_key, client_public_key, signature, version
+RETURNING id, application_id, address, public_key, client_public_key, private_key, signature, version
 `
 
 type InsertPortalApplicationAATParams struct {
@@ -736,8 +737,8 @@ func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPort
 		&i.ApplicationID,
 		&i.Address,
 		&i.PublicKey,
-		&i.PrivateKey,
 		&i.ClientPublicKey,
+		&i.PrivateKey,
 		&i.Signature,
 		&i.Version,
 	)
@@ -753,13 +754,13 @@ INSERT INTO portal_application_settings (
         environment
     )
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, application_id, secret_key, secret_key_required, monthly_relay_limit, environment, favorited_chain_ids, updated_at
+RETURNING id, application_id, monthly_relay_limit, environment, favorited_chain_ids, secret_key, secret_key_required, updated_at
 `
 
 type InsertPortalApplicationSettingParams struct {
 	ApplicationID     types.PortalAppID `json:"applicationID"`
-	SecretKey         string            `json:"secretKey"`
-	SecretKeyRequired bool              `json:"secretKeyRequired"`
+	SecretKey         sql.NullString    `json:"secretKey"`
+	SecretKeyRequired sql.NullBool      `json:"secretKeyRequired"`
 	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
 	Environment       types.Environment `json:"environment"`
 }
@@ -776,11 +777,11 @@ func (q *Queries) InsertPortalApplicationSetting(ctx context.Context, arg Insert
 	err := row.Scan(
 		&i.ID,
 		&i.ApplicationID,
-		&i.SecretKey,
-		&i.SecretKeyRequired,
 		&i.MonthlyRelayLimit,
 		&i.Environment,
 		pq.Array(&i.FavoritedChainIDs),
+		&i.SecretKey,
+		&i.SecretKeyRequired,
 		&i.UpdatedAt,
 	)
 	return i, err
@@ -945,7 +946,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]Se
 }
 
 const selectChains = `-- name: SelectChains :many
-SELECT c.id, c.blockchain, c.description, c.enforce_result, c.path, c.ticker, c.blockchain_id, c.request_timeout, c.log_limit_blocks, c.chain_aliases, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
+SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.blockchain_id, c.request_timeout, c.log_limit_blocks, c.chain_aliases, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
     COALESCE(
         json_agg(DISTINCT ca) FILTER (
             WHERE ca.id IS NOT NULL
@@ -980,8 +981,8 @@ type SelectChainsRow struct {
 	Blockchain              string          `json:"blockchain"`
 	Description             string          `json:"description"`
 	EnforceResult           string          `json:"enforceResult"`
-	Path                    string          `json:"path"`
 	Ticker                  string          `json:"ticker"`
+	Path                    sql.NullString  `json:"path"`
 	BlockchainID            sql.NullInt32   `json:"blockchainID"`
 	RequestTimeout          sql.NullInt32   `json:"requestTimeout"`
 	LogLimitBlocks          sql.NullInt32   `json:"logLimitBlocks"`
@@ -1011,8 +1012,8 @@ func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]Sele
 			&i.Blockchain,
 			&i.Description,
 			&i.EnforceResult,
-			&i.Path,
 			&i.Ticker,
+			&i.Path,
 			&i.BlockchainID,
 			&i.RequestTimeout,
 			&i.LogLimitBlocks,
@@ -1263,7 +1264,7 @@ RETURNING id
 type SetGlobalBlockedContractActiveParams struct {
 	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
 	Active         bool                 `json:"active"`
-	UpdatedAt      sql.NullTime         `json:"updatedAt"`
+	UpdatedAt      time.Time            `json:"updatedAt"`
 }
 
 func (q *Queries) SetGlobalBlockedContractActive(ctx context.Context, arg SetGlobalBlockedContractActiveParams) (int32, error) {
@@ -1481,12 +1482,12 @@ WHERE application_id = $1
 
 type UpdatePortalAppSettingsParams struct {
 	ApplicationID     types.PortalAppID `json:"applicationID"`
-	SecretKey         string            `json:"secretKey"`
-	SecretKeyRequired bool              `json:"secretKeyRequired"`
+	SecretKey         sql.NullString    `json:"secretKey"`
+	SecretKeyRequired sql.NullBool      `json:"secretKeyRequired"`
 	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
 	Environment       types.Environment `json:"environment"`
 	FavoritedChainIDs []string          `json:"favoritedChainIds"`
-	UpdatedAt         sql.NullTime      `json:"updatedAt"`
+	UpdatedAt         time.Time         `json:"updatedAt"`
 }
 
 func (q *Queries) UpdatePortalAppSettings(ctx context.Context, arg UpdatePortalAppSettingsParams) error {
@@ -1531,7 +1532,7 @@ WHERE EXCLUDED.active IS true
 
 type UpdateUpsertPortalAppNotificationParams struct {
 	ApplicationID types.PortalAppID         `json:"applicationID"`
-	UpdatedAt     sql.NullTime              `json:"updatedAt"`
+	UpdatedAt     time.Time                 `json:"updatedAt"`
 	Type          types.NotificationType    `json:"type"`
 	Active        bool                      `json:"active"`
 	Destination   string                    `json:"destination"`
@@ -1652,19 +1653,19 @@ RETURNING id
 `
 
 type UpsertChainParams struct {
-	ID             types.ChainID `json:"id"`
-	Blockchain     string        `json:"blockchain"`
-	Description    string        `json:"description"`
-	EnforceResult  string        `json:"enforceResult"`
-	Path           string        `json:"path"`
-	Ticker         string        `json:"ticker"`
-	BlockchainID   sql.NullInt32 `json:"blockchainID"`
-	RequestTimeout sql.NullInt32 `json:"requestTimeout"`
-	LogLimitBlocks sql.NullInt32 `json:"logLimitBlocks"`
-	ChainAliases   []string      `json:"chainAliases"`
-	AllowedMethods []string      `json:"allowedMethods"`
-	CreatedAt      time.Time     `json:"createdAt"`
-	UpdatedAt      time.Time     `json:"updatedAt"`
+	ID             types.ChainID  `json:"id"`
+	Blockchain     string         `json:"blockchain"`
+	Description    string         `json:"description"`
+	EnforceResult  string         `json:"enforceResult"`
+	Path           sql.NullString `json:"path"`
+	Ticker         string         `json:"ticker"`
+	BlockchainID   sql.NullInt32  `json:"blockchainID"`
+	RequestTimeout sql.NullInt32  `json:"requestTimeout"`
+	LogLimitBlocks sql.NullInt32  `json:"logLimitBlocks"`
+	ChainAliases   []string       `json:"chainAliases"`
+	AllowedMethods []string       `json:"allowedMethods"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 func (q *Queries) UpsertChain(ctx context.Context, arg UpsertChainParams) (types.ChainID, error) {
@@ -1754,7 +1755,7 @@ SET payload = COALESCE(EXCLUDED.payload, chain_checks.payload),
 type UpsertChainCheckParams struct {
 	ChainID   types.ChainID        `json:"chainID"`
 	Type      types.ChainCheckType `json:"type"`
-	Payload   string               `json:"payload"`
+	Payload   sql.NullString       `json:"payload"`
 	ResultKey sql.NullString       `json:"resultKey"`
 	Allowance sql.NullInt32        `json:"allowance"`
 	CreatedAt time.Time            `json:"createdAt"`

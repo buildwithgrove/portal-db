@@ -32,8 +32,8 @@ CREATE TABLE pay_plans (
     monthly_relay_limit INT NOT NULL,
     throughput_limit INT NOT NULL,
     application_limit INT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- legacy field
     daily_limit INT
 );
@@ -42,8 +42,8 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) NULL UNIQUE,
     signed_up BOOLEAN NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE TABLE user_auth_providers (
     id SERIAL PRIMARY KEY,
@@ -51,13 +51,14 @@ CREATE TABLE user_auth_providers (
     type auth_type NOT NULL,
     provider auth_provider NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
-    federated BOOLEAN NOT NULL
+    federated BOOLEAN NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE TABLE user_roles (
     role_name VARCHAR(25) PRIMARY KEY,
     permissions permissions ARRAY NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 -- Accounts Tables
 CREATE TABLE accounts (
@@ -67,8 +68,8 @@ CREATE TABLE accounts (
     partner_chain_ids VARCHAR(4) ARRAY,
     partner_throughput_limit INT,
     partner_application_limit INT,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
     deleted_at TIMESTAMPTZ NULL,
     -- legacy field
@@ -80,8 +81,8 @@ CREATE TABLE account_user_access (
     user_id SERIAL NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role_name VARCHAR(25) NOT NULL REFERENCES user_roles(role_name),
     accepted BOOLEAN NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (account_id, user_id)
 );
 -- Chains Tables
@@ -90,16 +91,16 @@ CREATE TABLE chains (
     blockchain VARCHAR(100) NOT NULL,
     description VARCHAR(100) NOT NULL,
     enforce_result VARCHAR(4) NOT NULL,
-    path VARCHAR(100) NOT NULL,
     ticker VARCHAR(20) NOT NULL,
+    path VARCHAR(100),
     blockchain_id INT,
     request_timeout INT,
     log_limit_blocks INT,
     chain_aliases VARCHAR(100) ARRAY,
     allowed_methods VARCHAR(10) ARRAY,
     active BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN DEFAULT false,
     deleted_at TIMESTAMPTZ NULL
 );
@@ -109,8 +110,8 @@ CREATE TABLE chain_altruists (
     url VARCHAR(255) NOT NULL,
     auth VARCHAR(100),
     auth_type chain_auth_type NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (chain_id, url)
 );
 CREATE TABLE chain_gigastake_redirects (
@@ -119,8 +120,8 @@ CREATE TABLE chain_gigastake_redirects (
     account_id SERIAL NOT NULL REFERENCES accounts(id),
     alias VARCHAR(100) NOT NULL,
     domain VARCHAR(100) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (chain_id, account_id, domain),
     -- legacy field
     lb_id VARCHAR NOT NULL
@@ -129,11 +130,11 @@ CREATE TABLE chain_checks (
     id SERIAL PRIMARY KEY,
     chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
     type chain_check_type NOT NULL,
-    payload VARCHAR(255) NOT NULL,
+    payload VARCHAR(255),
     result_key VARCHAR(100),
     allowance INT,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (chain_id, type),
     CONSTRAINT sync_allowance_check CHECK (
         (
@@ -153,8 +154,8 @@ CREATE TABLE portal_applications (
     name VARCHAR(255) NOT NULL,
     gigastake BOOLEAN NOT NULL,
     staked BOOLEAN NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
     deleted_at TIMESTAMPTZ NULL,
     -- legacy field
@@ -183,20 +184,20 @@ CREATE TABLE portal_application_aats (
     application_id VARCHAR(24) NOT NULL UNIQUE REFERENCES portal_applications(id) ON DELETE CASCADE,
     address VARCHAR(40) NOT NULL,
     public_key VARCHAR(64) NOT NULL,
-    private_key VARCHAR(400) NOT NULL,
     client_public_key VARCHAR(64) NOT NULL,
+    private_key VARCHAR(400) NOT NULL,
     signature VARCHAR(128) NOT NULL,
     version VARCHAR(10) NOT NULL
 );
 CREATE TABLE portal_application_settings (
     id SERIAL PRIMARY KEY,
     application_id VARCHAR(24) NOT NULL UNIQUE REFERENCES portal_applications(id) ON DELETE CASCADE,
-    secret_key VARCHAR(64) NOT NULL,
-    secret_key_required BOOLEAN NOT NULL,
     monthly_relay_limit INT NOT NULL,
     environment environment NOT NULL,
     favorited_chain_ids VARCHAR(4) ARRAY,
-    updated_at TIMESTAMPTZ
+    secret_key VARCHAR(64),
+    secret_key_required BOOLEAN,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE TABLE portal_application_notifications (
     id SERIAL PRIMARY KEY,
@@ -206,7 +207,7 @@ CREATE TABLE portal_application_notifications (
     destination VARCHAR(255),
     trigger VARCHAR(255),
     events notification_event ARRAY,
-    updated_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (application_id, type)
 );
 CREATE TABLE portal_application_whitelists (
@@ -215,7 +216,7 @@ CREATE TABLE portal_application_whitelists (
     type whitelist_type NOT NULL,
     value VARCHAR(255) NOT NULL,
     chain_id VARCHAR(4),
-    created_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (application_id, value, type, chain_id),
     CONSTRAINT check_blockchain_id_for_methods_contracts CHECK (
         (
@@ -235,8 +236,8 @@ CREATE TABLE global_blocked_contracts (
     id SERIAL PRIMARY KEY,
     blocked_address VARCHAR(255) NOT NULL UNIQUE,
     active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 -- Listener Notification Function
 CREATE OR REPLACE FUNCTION notify_event() RETURNS TRIGGER AS $$

@@ -17,7 +17,7 @@ var (
 	errContractAlreadyBlocked = errors.New("error blockchain address %s is already blocked")
 )
 
-// /* ----- postgresdriver GlobalBlockedContracts Read Methods ----- */
+/* ----- postgresdriver GlobalBlockedContracts Read Methods ----- */
 
 // ReadBlockedContracts returns all GlobalBlockedContracts in the DB
 func (pg *PostgresDriver) ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error) {
@@ -53,6 +53,7 @@ func (pg *PostgresDriver) WriteBlockedContract(ctx context.Context, blockedAddre
 	params := AddGlobalBlockedContractParams{
 		BlockedAddress: blockedAddress,
 		CreatedAt:      createdAt,
+		UpdatedAt:      createdAt,
 	}
 
 	err := pg.AddGlobalBlockedContract(ctx, params)
@@ -77,7 +78,7 @@ func (pg *PostgresDriver) UpdateBlockedContractActive(ctx context.Context, block
 	params := SetGlobalBlockedContractActiveParams{
 		BlockedAddress: blockedAddress,
 		Active:         active,
-		UpdatedAt:      newSQLNullTime(updatedAt),
+		UpdatedAt:      updatedAt,
 	}
 
 	_, err := pg.SetGlobalBlockedContractActive(ctx, params)

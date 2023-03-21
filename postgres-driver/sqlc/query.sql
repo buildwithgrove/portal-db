@@ -686,8 +686,8 @@ SELECT id,
 FROM global_blocked_contracts
 WHERE active = true;
 -- name: AddGlobalBlockedContract :exec
-INSERT INTO global_blocked_contracts (blocked_address, created_at)
-VALUES ($1, $2);
+INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
+VALUES ($1, $2, $3);
 -- name: SetGlobalBlockedContractActive :one
 UPDATE global_blocked_contracts
 SET active = $2,

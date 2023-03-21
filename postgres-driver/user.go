@@ -96,11 +96,9 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 
 // WriteUserNewSignUp creates a new portal User and UserAuthProviderin the DB from a CreateUser input when a new user signs up.
 func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
-	if !user.Email.IsValid() {
-		return types.UserID(0), fmt.Errorf(errInvalidEmail.Error(), user.Email)
-	}
-	if !user.AuthProviderType.IsValid() {
-		return types.UserID(0), fmt.Errorf(errInvalidAuthProviderType.Error(), user.AuthProviderType)
+	err := pg.validateWriteUserNewSignUpInput(ctx, user)
+	if err != nil {
+		return types.UserID(0), err
 	}
 
 	params := CreateUserNewSignUpParams{
@@ -121,17 +119,26 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 	return types.UserID(createdUserID), nil
 }
 
+// validateWriteUserNewSignUpInput validates the input to create a new User and User Auth Provider
+func (pg *PostgresDriver) validateWriteUserNewSignUpInput(ctx context.Context, user types.CreateUser) error {
+	if !user.Email.IsValid() {
+		return fmt.Errorf(errInvalidEmail.Error(), user.Email)
+	}
+	if !user.AuthProviderType.IsValid() {
+		return fmt.Errorf(errInvalidAuthProviderType.Error(), user.AuthProviderType)
+	}
+
+	return nil
+}
+
 /* ----- postgresdriver User Delete Methods ----- */
 
 // DeletePortalUser deletes a portal User from the DB. WARNING will do a hard delete.
 // Will also delete the user's `account_user_access` and `user_auth_providers` rows.
 func (pg *PostgresDriver) DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error) {
-	userExists, err := pg.CheckUserExists(ctx, userID)
+	err := pg.validateDeletePortalUserInput(ctx, userID)
 	if err != nil {
 		return types.UserID(0), err
-	}
-	if !userExists {
-		return types.UserID(0), fmt.Errorf(errUserDoesntExist.Error(), userID)
 	}
 
 	deletedUserID, err := pg.DeleteUser(ctx, userID)
@@ -140,4 +147,17 @@ func (pg *PostgresDriver) DeletePortalUser(ctx context.Context, userID types.Use
 	}
 
 	return types.UserID(deletedUserID), nil
+}
+
+// validateDeletePortalUserInput validates the input to delete a User
+func (pg *PostgresDriver) validateDeletePortalUserInput(ctx context.Context, userID types.UserID) error {
+	userExists, err := pg.CheckUserExists(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !userExists {
+		return fmt.Errorf(errUserDoesntExist.Error(), userID)
+	}
+
+	return nil
 }

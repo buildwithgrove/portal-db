@@ -199,91 +199,104 @@ INSERT INTO user_auth_providers (
         provider,
         type,
         provider_user_id,
-        federated
+        federated,
+        created_at
     )
 VALUES (
         1,
         'auth0',
         'auth0_username',
         'auth0|james_holden',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         1,
         'auth0',
         'auth0_github',
         'github|james_holden',
-        true
+        true,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         2,
         'auth0',
         'auth0_username',
         'auth0|paul_atreides',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         2,
         'auth0',
         'auth0_github',
         'github|paul_atreides',
-        true
+        true,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         3,
         'auth0',
         'auth0_username',
         'auth0|ellen_ripley',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         4,
         'auth0',
         'auth0_username',
         'auth0|ulfric_stormcloak',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         5,
         'auth0',
         'auth0_username',
         'auth0|chrisjen_avasarala',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         6,
         'auth0',
         'auth0_username',
         'auth0|amos_burton',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         7,
         'auth0',
         'auth0_username',
         'auth0|frodo_baggins',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         8,
         'auth0',
         'auth0_username',
         'auth0|rick_deckard',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         9,
         'auth0',
         'auth0_username',
         'auth0|tyrion_lannister',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     ),
     (
         11,
         'auth0',
         'auth0_username',
         'auth0|bernard_marx',
-        false
+        false,
+        '2022-11-11 11:11:11.000000'
     );
 -- Insert user_roles
 INSERT INTO user_roles (
@@ -538,7 +551,8 @@ INSERT INTO portal_application_settings (
         secret_key_required,
         monthly_relay_limit,
         environment,
-        favorited_chain_ids
+        favorited_chain_ids,
+        updated_at
     )
 VALUES (
         'test_app_3487u329rfn23f9',
@@ -546,7 +560,8 @@ VALUES (
         true,
         2500000,
         'production',
-        ARRAY ['0001', '0053']
+        ARRAY ['0001', '0053'],
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'test_app_2308rj09r23r9r2',
@@ -554,7 +569,8 @@ VALUES (
         false,
         1500000,
         'production',
-        ARRAY ['0021', '0064']
+        ARRAY ['0021', '0064'],
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'test_app_47fhs7j4hs7fj24',
@@ -562,7 +578,8 @@ VALUES (
         false,
         4500000,
         'production',
-        ARRAY ['0001', '0034']
+        ARRAY ['0001', '0034'],
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO portal_application_whitelists (
         application_id,
@@ -647,7 +664,8 @@ INSERT INTO portal_application_notifications (
         type,
         destination,
         trigger,
-        events
+        events,
+        updated_at
     )
 VALUES (
         'test_app_3487u329rfn23f9',
@@ -655,7 +673,8 @@ VALUES (
         'email',
         'test@test.com',
         'trigger123',
-        ARRAY ['quarter'::notification_event,'threeQuarters'::notification_event,'full'::notification_event]
+        ARRAY ['quarter'::notification_event,'threeQuarters'::notification_event,'full'::notification_event],
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'test_app_2308rj09r23r9r2',
@@ -663,7 +682,8 @@ VALUES (
         'email',
         'email@pokt.network',
         'trigger456',
-        ARRAY ['full'::notification_event,'half'::notification_event]
+        ARRAY ['full'::notification_event,'half'::notification_event],
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO chains (
         id,
@@ -916,24 +936,29 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
-INSERT INTO global_blocked_contracts (blocked_address, created_at)
+INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
 VALUES (
         '0xtest_6789abcdef0123456789abcdef01234567',
+        '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
         '0xtest_f0123456789abcdef0123456789abcdef01',
+        '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
         '0xtest_cdef0123456789abcdef0123456789abcdef',
+        '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
         '0xtest_56789abcdef0123456789abcdef01234567',
+        '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
         '0xtest_789abcdef0123456789abcdef0123456789',
+        '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
