@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 var (

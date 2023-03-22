@@ -85,7 +85,7 @@ jobs:
 
       - name: Go List
         if: steps.semantic.outputs.new-release-published == 'true'
-        run: GOPROXY=proxy.golang.org go list -m github.com/pokt-foundation/portal-db@v${{ steps.semantic.outputs.release-version }}
+        run: GOPROXY=proxy.golang.org go list -m github.com/pokt-foundation/portal-db/v2/v2@v${{ steps.semantic.outputs.release-version }}
 
   docker:
     if: needs.release.outputs.version

@@ -1,4 +1,4 @@
-module github.com/pokt-foundation/portal-db
+module github.com/pokt-foundation/portal-db/v2
 
 go 1.18
 

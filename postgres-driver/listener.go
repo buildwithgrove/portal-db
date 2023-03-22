@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/lib/pq"
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 type Listener interface {
