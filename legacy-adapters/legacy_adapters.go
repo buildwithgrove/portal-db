@@ -1,4 +1,4 @@
-package legacyadaptors
+package legacyadapters
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 /* V2 Struct to Legacy Struct Adaptors */

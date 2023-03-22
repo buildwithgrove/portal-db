@@ -85,6 +85,8 @@ CREATE TABLE account_user_access (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (account_id, user_id)
 );
+CREATE UNIQUE INDEX idx_account_owner_constraint ON account_user_access (account_id)
+WHERE role_name = 'OWNER';
 -- Chains Tables
 CREATE TABLE chains (
     id VARCHAR(4) PRIMARY KEY,

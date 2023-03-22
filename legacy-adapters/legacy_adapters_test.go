@@ -1,12 +1,12 @@
-package legacyadaptors
+package legacyadapters
 
 import (
 	"crypto/rand"
 	"encoding/hex"
 	"testing"
 
-	"github.com/pokt-foundation/portal-db/testdata"
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/portal-db/v2/testdata"
+	"github.com/pokt-foundation/portal-db/v2/types"
 	"github.com/stretchr/testify/require"
 )
 
