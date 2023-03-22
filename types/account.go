@@ -61,13 +61,20 @@ type (
 	}
 )
 
-// LegacyDailyLimit returns the legacy daily relay limit for a given application (temporary)
+// LegacyUserID returns the legacy user ID for an Account
 func (a *Account) LegacyUserID() string {
 	for _, user := range a.Users {
 		if user.RoleName == RoleOwner {
-			for _, userID := range user.ProviderUserIDs {
-				return strings.Split(userID, "|")[1]
+			var userID string
+			// in case user has two auth providers, default to using their Auth0 Username/PW ID
+			switch {
+			case user.ProviderUserIDs[AuthTypeAuth0Username] != "":
+				userID = user.ProviderUserIDs[AuthTypeAuth0Username]
+			default:
+				userID = user.ProviderUserIDs[AuthTypeAuth0Github]
 			}
+			// user ID will be stored as `auth0|userid123` or `github|userid123`
+			return strings.Split(userID, "|")[1]
 		}
 	}
 	return ""
