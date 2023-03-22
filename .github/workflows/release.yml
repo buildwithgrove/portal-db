@@ -3,7 +3,10 @@ name: Tag & Go List
 on:
   workflow_run:
     workflows: ["Lint & Test"]
-    branches: [main]
+    branches:
+      - main
+        # version-2 temp until V2 merged
+      - version-2
     types:
       - completed
 
@@ -34,7 +37,14 @@ jobs:
         id: semantic
         with:
           branches: |
-            ['main']
+            [
+              'main',
+              {
+                name: 'version-2',
+                prerelease: true
+              },
+            ]
+          # version-2 temp until V2 merged
           tag_format: "v${version}"
           additional_packages: |
             ['@semantic-release/commit-analyzer']
