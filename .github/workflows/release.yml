@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-go@v3
 
       - name: Set up cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -47,12 +47,7 @@ jobs:
           additional_packages: |
             ['@semantic-release/commit-analyzer']
           plugins: |
-            ['["@semantic-release/commit-analyzer", {
-              "preset": "angular",
-              "releaseRules": [
-                { "type": "major", "release": "major" }
-              ]
-            }]']
+            ['@semantic-release/commit-analyzer']
 
       - name: Go List
         if: steps.semantic.outputs.new-release-published == 'true'
