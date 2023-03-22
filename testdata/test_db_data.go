@@ -66,6 +66,7 @@ var (
 	Accounts = map[types.AccountID]*types.Account{
 		1: {
 			ID:   1,
+			Name: "test_account_1",
 			Plan: PayPlans["basic_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
 				1: AccountUserAccess[1],
@@ -77,9 +78,12 @@ var (
 			PartnerAppLimit:        1,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
+			// TODO - remove when v2 migration finished
+			LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		},
 		2: {
 			ID:   2,
+			Name: "test_account_2",
 			Plan: PayPlans["pro_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
 				3: AccountUserAccess[3],
@@ -92,9 +96,12 @@ var (
 			PartnerAppLimit:        3,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
+			// TODO - remove when v2 migration finished
+			LegacyLoadBalancerID: "test_lb_d2c7361fd9c5dff7",
 		},
 		3: {
 			ID:   3,
+			Name: "test_account_3",
 			Plan: PayPlans["startup_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
 				5:  AccountUserAccess[5],
@@ -107,9 +114,12 @@ var (
 			PartnerAppLimit:        2,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
+			// TODO - remove when v2 migration finished
+			LegacyLoadBalancerID: "test_lb_4b874c457f73c4e9",
 		},
 		4: {
 			ID:   4,
+			Name: "test_account_4",
 			Plan: PayPlans["enterprise_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
 				4: AccountUserAccess[11],
@@ -119,9 +129,12 @@ var (
 			PartnerAppLimit:        2,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
+			// TODO - remove when v2 migration finished
+			LegacyLoadBalancerID: "test_lb_746e04231640556a",
 		},
 		5: {
 			ID:   5,
+			Name: "test_account_5",
 			Plan: PayPlans["basic_plan"],
 			Users: map[types.UserID]types.AccountUserAccess{
 				4: AccountUserAccess[11],
@@ -131,13 +144,18 @@ var (
 			PartnerAppLimit:        1,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
+			// TODO - remove when v2 migration finished
+			LegacyLoadBalancerID: "test_lb_f5ee77c7c58025231",
 		},
 
 		// This account used to test creation of Accounts
 		6: {
+			Name:      "test_create_account_1",
 			Plan:      PayPlans["developer_plan"],
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
+			// TODO - remove when v2 migration finished
+			LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
 		},
 	}
 
@@ -374,7 +392,6 @@ var (
 			UpdatedAt: MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				ApplicationIDs:     []string{"test_app_47hfnths73j2se7"},
 				CustomLimit:        0,
 				RequestTimeout:     5_000,
 				GigastakeRedirect:  true,
@@ -432,7 +449,6 @@ var (
 			UpdatedAt: MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				ApplicationIDs:     []string{"test_app_43jr9304urj30fj"},
 				CustomLimit:        0,
 				RequestTimeout:     10_000,
 				GigastakeRedirect:  false,
@@ -468,7 +484,6 @@ var (
 			UpdatedAt: MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				ApplicationIDs:     []string{"test_app_43jr947fh23dfg4"},
 				CustomLimit:        0,
 				RequestTimeout:     10_000,
 				GigastakeRedirect:  false,
@@ -500,7 +515,6 @@ var (
 			UpdatedAt: MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				ApplicationIDs:     []string{"test_app_30fj43jr94j9304"},
 				CustomLimit:        750_000,
 				RequestTimeout:     15_000,
 				GigastakeRedirect:  true,
@@ -537,7 +551,6 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 			LegacyFields: types.LegacyFields{
-				ApplicationIDs:     []string{"test_app_bb162dd67c99615"},
 				CustomLimit:        0,
 				RequestTimeout:     5_000,
 				GigastakeRedirect:  true,
@@ -570,7 +583,11 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+				{
+					AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
+					// TODO - remove when v2 migration finished
+					LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
+				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
@@ -597,7 +614,11 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{AccountID: 2, Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network"},
+				{
+					AccountID: 2, Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network",
+					// TODO - remove when v2 migration finished
+					LegacyLoadBalancerID: "test_lb_d2c7361fd9c5dff7",
+				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 2},
@@ -623,7 +644,11 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{AccountID: 3, Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network"},
+				{
+					AccountID: 3, Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network",
+					// TODO - remove when v2 migration finished
+					LegacyLoadBalancerID: "test_lb_4b874c457f73c4e9",
+				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 5},
@@ -673,7 +698,11 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{AccountID: 4, Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network"},
+				{
+					AccountID: 4, Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network",
+					// TODO - remove when v2 migration finished
+					LegacyLoadBalancerID: "test_lb_746e04231640556a",
+				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}`, ResultKey: "result", Allowance: 8},
@@ -703,7 +732,11 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{AccountID: 5, Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network"},
+				{
+					AccountID: 5, Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network",
+					// TODO - remove when v2 migration finished
+					LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
+				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"getSync"}`, ResultKey: "sync", Allowance: 2},
@@ -811,7 +844,11 @@ var (
 			},
 		},
 		Redirects: []types.GigastakeRedirect{
-			{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+			{
+				AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
+				// TODO - remove when v2 migration finished
+				LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
+			},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
@@ -861,4 +898,283 @@ var (
 
 	// UpdateChainNotExists used to test updating a Chain that doesn't exist
 	UpdateChainNotExists = types.Chain{ID: "0073"}
+
+	/* ----- Legacy Data ----- */
+
+	V2Account = &types.Account{
+		ID:                   1,
+		Name:                 "test_legacy_lb_1",
+		LegacyLoadBalancerID: "test_lb_3127flsdhfoi323f",
+		Plan:                 PayPlans["basic_plan"],
+		Users: map[types.UserID]types.AccountUserAccess{
+			1: AccountUserAccess[1],
+			2: AccountUserAccess[2],
+			8: AccountUserAccess[8],
+		},
+		PortalApps: map[types.PortalAppID]*types.PortalApp{
+			"test_app_3487u329rfn23f9": PortalApps["test_app_3487u329rfn23f9"],
+		},
+		PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
+		PartnerThroughputLimit: 2_000,
+		PartnerAppLimit:        1,
+		CreatedAt:              MockTimestamp,
+		UpdatedAt:              MockTimestamp,
+	}
+
+	LegacyLoadBalancer = types.LoadBalancer{
+		ID:                "test_lb_3127flsdhfoi323f",
+		Name:              "test_legacy_lb_1",
+		UserID:            "james_holden",
+		ApplicationIDs:    []string(nil),
+		RequestTimeout:    5000,
+		Gigastake:         true,
+		GigastakeRedirect: true,
+		StickyOptions: types.StickyOptions{
+			Duration:      "60",
+			StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
+			StickyMax:     300,
+			Stickiness:    true,
+		},
+		Applications: []*types.Application{LegacyApplication},
+		Users: []types.UserAccess{
+			{
+				UserID:   "james_holden",
+				RoleName: "OWNER",
+				Email:    "james.holden123@test.com",
+				Accepted: true,
+			},
+			{
+				UserID:   "paul_atreides",
+				RoleName: "ADMIN",
+				Email:    "paul.atreides456@test.com",
+				Accepted: true,
+			},
+			{
+				UserID:   "rick_deckard",
+				RoleName: "ADMIN",
+				Email:    "rick.deckard456@test.com",
+				Accepted: false,
+			},
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+	}
+
+	LegacyApplication = &types.Application{
+		ID:                 "test_app_3487u329rfn23f9",
+		UserID:             "james_holden",
+		Name:               "pokt_app_123",
+		FirstDateSurpassed: MockTimestamp,
+		GatewayAAT: types.GatewayAAT{
+			Address:              "test_34715cae753e67c75fbb340442e7de8e",
+			ApplicationPublicKey: "test_34715cae753e67c75fbb340442e7de8e",
+			ApplicationSignature: "test_1dc39a2e5a84a35bf030969a0b3231f7",
+			ClientPublicKey:      "test_89a3af6a587aec02cfade6f5000424c2",
+			PrivateKey:           "test_11b8d394ca331d7c7a71ca1896d630f6",
+			Version:              "0.0.1",
+		},
+		GatewaySettings: types.GatewaySettings{
+			SecretKey:            "test_40f482d91a5ef2300ebb4e2308c",
+			SecretKeyRequired:    true,
+			WhitelistOrigins:     []string{"https://test.com"},
+			WhitelistUserAgents:  []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+			WhitelistBlockchains: []string{"0053"},
+			WhitelistContracts:   []types.WhitelistContracts{{ChainID: "0001", Contracts: []string{"0x1234567890abcdef"}}},
+			WhitelistMethods:     []types.WhitelistMethods{{ChainID: "0001", Methods: []string{"GET"}}},
+		},
+		Limit: types.AppLimit{
+			Plan:        types.PayPlan{Type: "basic_plan", Limit: 1_000},
+			CustomLimit: 0,
+		},
+		NotificationSettings: types.NotificationSettings{
+			SignedUp:      false,
+			Quarter:       true,
+			Half:          false,
+			ThreeQuarters: true,
+			Full:          true,
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+	}
+
+	LegacyBlockchain = types.Blockchain{
+		ID:                "0001",
+		Altruist:          "https://test_pocket:auth123456@altruist-0001.com:1234", // pragma: allowlist secret
+		Blockchain:        "mainnet",
+		ChainID:           "0",
+		Description:       "Pocket Network Mainnet",
+		EnforceResult:     "JSON",
+		Path:              "/v1/query/height",
+		Ticker:            "POKT",
+		BlockchainAliases: []string{"mainnet"},
+		Active:            true,
+		Redirects: []types.Redirect{
+			{
+				Alias:          "altruist-0001",
+				Domain:         "pokt-rpc.gateway.pokt.network",
+				LoadBalancerID: "test_lb_5c6f50bc30b530a8",
+			},
+		},
+		SyncCheckOptions: types.SyncCheckOptions{
+			Body:      "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"query\"}",
+			ResultKey: "result.sync_info",
+			Allowance: 1,
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+	}
+
+	LegacyUpdateApplication = types.UpdateApplication{
+		Name: "test_portal_app_123",
+		GatewaySettings: &types.UpdateGatewaySettings{
+			SecretKey:            "test_90210ac4bdd3423e24877d1ff92",
+			SecretKeyRequired:    boolToPointer(false),
+			WhitelistOrigins:     []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"},
+			WhitelistBlockchains: []string{"0001", "0002", "003E", "0056"},
+			WhitelistUserAgents:  []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"},
+			WhitelistContracts: []types.WhitelistContracts{
+				{ChainID: "0001", Contracts: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
+				{ChainID: "0002", Contracts: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
+				{ChainID: "003E", Contracts: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
+				{ChainID: "0056", Contracts: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
+			},
+			WhitelistMethods: []types.WhitelistMethods{
+				{ChainID: "0001", Methods: []string{"GET", "POST", "PUT"}},
+				{ChainID: "0002", Methods: []string{"DELETE", "GET", "POST", "PUT"}},
+				{ChainID: "003E", Methods: []string{"GET"}},
+				{ChainID: "0056", Methods: []string{"GET", "POST"}},
+			},
+		},
+		Limit:                &types.AppLimit{Plan: types.PayPlan{Type: types.FreetierV0, Limit: 250_000}, CustomLimit: 0},
+		NotificationSettings: &types.UpdateNotificationSettings{SignedUp: boolToPointer(true), Quarter: boolToPointer(true), Half: boolToPointer(false), ThreeQuarters: boolToPointer(true), Full: boolToPointer(false)},
+	}
+
+	V2CreateAccount = types.Account{
+		Name: "test_legacy_lb_1",
+		Plan: types.Plan{
+			Type: "basic_plan",
+		},
+	}
+
+	V2CreatePortalApp = types.PortalApp{
+		Name:      "test_legacy_lb_1",
+		Gigastake: true,
+		Staked:    false,
+		AccountID: 0,
+		AAT: types.AAT{
+			Address:         "test_34715cae753e67c75fbb340442e7de8e",
+			PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
+			ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
+			PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
+			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+			Version:         "0.0.1",
+		},
+		Settings: types.Settings{
+			Environment:       "production",
+			SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
+			SecretKeyRequired: false,
+		},
+		Notifications: map[types.NotificationType]types.AppNotification{
+			types.NotificationTypeEmail: {
+				Active:      true,
+				Destination: "james.holden123@test.com",
+				Events: map[types.NotificationEvent]bool{
+					types.NotificationEventFull:          true,
+					types.NotificationEventHalf:          false,
+					types.NotificationEventQuarter:       true,
+					types.NotificationEventSignedUp:      false,
+					types.NotificationEventThreeQuarters: true,
+				},
+			},
+		},
+		LegacyFields: types.LegacyFields{
+			RequestTimeout:    5000,
+			GigastakeRedirect: true,
+			StickyOptions: types.StickyOptions{
+				Duration:      "60",
+				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
+				StickyMax:     300,
+				Stickiness:    true,
+			},
+		},
+	}
+
+	V2UpdatePortalApp = types.UpdatePortalApp{
+		AppID:    "test_app_3487u329rfn23f9",
+		Name:     "test_portal_app_123",
+		Settings: &types.UpdateAppSettings{SecretKey: "test_90210ac4bdd3423e24877d1ff92"},
+		Notifications: []types.UpdateAppNotifications{
+			{
+				NotificationType: types.NotificationTypeEmail,
+				Events:           []types.NotificationEvent{"signedUp", "quarter", "threeQuarters"},
+			},
+		},
+		Whitelists: &types.WhitelistsObject{
+			AppWhitelists: [3]types.ApplicationWhitelists{
+				{Type: "origins", Values: []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"}},
+				{Type: "userAgents", Values: []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"}},
+				{Type: "blockchains", Values: []string{"0001", "0002", "003E", "0056"}},
+			},
+			ChainWhitelists: [2]types.ChainWhitelists{
+				{
+					Type: "contracts",
+					Values: []types.ChainIDWhitelists{
+						{ChainID: "0001", Values: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
+						{ChainID: "0002", Values: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
+						{ChainID: "003E", Values: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
+						{ChainID: "0056", Values: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
+					},
+				},
+				{
+					Type: "methods",
+					Values: []types.ChainIDWhitelists{
+						{ChainID: "0001", Values: []string{"GET", "POST", "PUT"}},
+						{ChainID: "0002", Values: []string{"DELETE", "GET", "POST", "PUT"}},
+						{ChainID: "003E", Values: []string{"GET"}},
+						{ChainID: "0056", Values: []string{"GET", "POST"}},
+					},
+				},
+			},
+		},
+	}
+
+	LegacyUpdateBlockchain = types.UpdateBlockchain{
+		Blockchain:        "mainnet-ULTRA",
+		Description:       "Pocket Network Mainnet Original",
+		EnforceResult:     "JSON",
+		Path:              "/v1/query/height/wow",
+		Ticker:            "POKT-456",
+		BlockchainAliases: []string{"mainnet-again"},
+		Body:              `{"id":1,"jsonrpc":"2.0","method":"query"}`,
+		ResultKey:         "result.sync_info",
+		Allowance:         intToPointer(1),
+		Altruist:          "https://test_pocket:auth123456@altruist-0001-3.com:1234", // pragma: allowlist secret
+	}
+
+	LegacyRedirect = &types.Redirect{
+		LoadBalancerID: "test_lb_5c6f50bc30b530a8",
+		Domain:         "pokt-rpc.gateway.pokt.network",
+		Alias:          "altruist-0001",
+	}
+
+	LegacyUserAccess = &types.UserAccess{
+		Email:    "james.holden123@test.com",
+		RoleName: "OWNER",
+		Accepted: true,
+		UserID:   "james_holden_push_button",
+	}
+
+	LegacyUpdateUserAccess = types.UpdateUserAccess{
+		UserID:   "test_user_c66f399519ba23",
+		RoleName: types.RoleAdmin,
+		Email:    "test_admin@user.com",
+	}
 )
+
+func boolToPointer(boolVar bool) *bool {
+	return &boolVar
+}
+
+func intToPointer(intVar int) *int {
+	return &intVar
+}

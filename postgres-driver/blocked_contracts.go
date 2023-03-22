@@ -53,6 +53,7 @@ func (pg *PostgresDriver) WriteBlockedContract(ctx context.Context, blockedAddre
 	params := AddGlobalBlockedContractParams{
 		BlockedAddress: blockedAddress,
 		CreatedAt:      createdAt,
+		UpdatedAt:      createdAt,
 	}
 
 	err := pg.AddGlobalBlockedContract(ctx, params)

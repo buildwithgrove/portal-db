@@ -76,7 +76,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 	}
 
 	return &types.Account{
-		ID: a.ID,
+		ID:   a.ID,
+		Name: a.Name,
 		Plan: types.Plan{
 			Type:              types.PayPlanType(a.PlanType),
 			ChainIDs:          chainIDs,
@@ -92,6 +93,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		CreatedAt:              a.CreatedAt.UTC(),
 		UpdatedAt:              a.UpdatedAt.UTC(),
 		Deleted:                a.Deleted,
+		// TODO - remove when v2 migration finished
+		LegacyLoadBalancerID: a.LbID,
 	}, nil
 }
 
@@ -137,9 +140,12 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	}
 
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
+		Name:      account.Name,
 		PlanType:  account.Plan.Type,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
+		// TODO - remove when v2 migration finished
+		LbID: account.LegacyLoadBalancerID,
 	})
 	if err != nil {
 		return nil, err

@@ -1,10 +1,6 @@
-name: Tag & Go List
+name: Test & Release
 
 on:
-  pull_request:
-    branches:
-      - main
-      - beta
   push:
     branches:
       - main
@@ -21,7 +17,7 @@ jobs:
       - name: Run Golang ci Action
         uses: golangci/golangci-lint-action@v3
 
-  build:
+  test:
     name: Test
     runs-on: ubuntu-22.04
     steps:

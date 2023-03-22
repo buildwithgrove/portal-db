@@ -404,6 +404,7 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 
 type Account struct {
 	ID                      types.AccountID   `json:"id"`
+	Name                    string            `json:"name"`
 	PlanType                types.PayPlanType `json:"planType"`
 	PartnerChainIDs         []string          `json:"partnerChainIds"`
 	PartnerThroughputLimit  sql.NullInt32     `json:"partnerThroughputLimit"`
@@ -412,6 +413,7 @@ type Account struct {
 	UpdatedAt               time.Time         `json:"updatedAt"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deletedAt"`
+	LbID                    string            `json:"lbID"`
 }
 
 type AccountUserAccess struct {
@@ -472,6 +474,7 @@ type ChainGigastakeRedirect struct {
 	Domain    types.RedirectDomain `json:"domain"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
+	LbID      string               `json:"lbID"`
 }
 
 type GlobalBlockedContract struct {

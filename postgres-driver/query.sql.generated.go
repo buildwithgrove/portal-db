@@ -16,17 +16,18 @@ import (
 )
 
 const addGlobalBlockedContract = `-- name: AddGlobalBlockedContract :exec
-INSERT INTO global_blocked_contracts (blocked_address, created_at)
-VALUES ($1, $2)
+INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
+VALUES ($1, $2, $3)
 `
 
 type AddGlobalBlockedContractParams struct {
 	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
 	CreatedAt      time.Time            `json:"createdAt"`
+	UpdatedAt      time.Time            `json:"updatedAt"`
 }
 
 func (q *Queries) AddGlobalBlockedContract(ctx context.Context, arg AddGlobalBlockedContractParams) error {
-	_, err := q.db.ExecContext(ctx, addGlobalBlockedContract, arg.BlockedAddress, arg.CreatedAt)
+	_, err := q.db.ExecContext(ctx, addGlobalBlockedContract, arg.BlockedAddress, arg.CreatedAt, arg.UpdatedAt)
 	return err
 }
 
@@ -432,25 +433,37 @@ func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.User
 
 const insertAccount = `-- name: InsertAccount :one
 INSERT INTO accounts (
+        name,
         plan_type,
         created_at,
-        updated_at
+        updated_at,
+        -- legacy field
+        lb_id
     )
-VALUES ($1, $2, $3)
-RETURNING id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, name, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at, lb_id
 `
 
 type InsertAccountParams struct {
+	Name      string            `json:"name"`
 	PlanType  types.PayPlanType `json:"planType"`
 	CreatedAt time.Time         `json:"createdAt"`
 	UpdatedAt time.Time         `json:"updatedAt"`
+	LbID      string            `json:"lbID"`
 }
 
 func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (Account, error) {
-	row := q.db.QueryRowContext(ctx, insertAccount, arg.PlanType, arg.CreatedAt, arg.UpdatedAt)
+	row := q.db.QueryRowContext(ctx, insertAccount,
+		arg.Name,
+		arg.PlanType,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.LbID,
+	)
 	var i Account
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
 		&i.PlanType,
 		pq.Array(&i.PartnerChainIDs),
 		&i.PartnerThroughputLimit,
@@ -459,6 +472,7 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 		&i.UpdatedAt,
 		&i.Deleted,
 		&i.DeletedAt,
+		&i.LbID,
 	)
 	return i, err
 }
@@ -816,7 +830,7 @@ func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickine
 const removeGlobalBlockedContract = `-- name: RemoveGlobalBlockedContract :one
 DELETE FROM global_blocked_contracts
 WHERE blocked_address = $1
-	RETURNING id
+RETURNING id
 `
 
 func (q *Queries) RemoveGlobalBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress) (int32, error) {
@@ -827,7 +841,7 @@ func (q *Queries) RemoveGlobalBlockedContract(ctx context.Context, blockedAddres
 }
 
 const selectAccounts = `-- name: SelectAccounts :many
-SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+SELECT a.id, a.name, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at, a.lb_id,
     p.chain_ids,
     p.monthly_relay_limit,
     p.throughput_limit,
@@ -872,6 +886,7 @@ GROUP BY a.id,
 
 type SelectAccountsRow struct {
 	ID                      types.AccountID   `json:"id"`
+	Name                    string            `json:"name"`
 	PlanType                types.PayPlanType `json:"planType"`
 	PartnerChainIDs         []string          `json:"partnerChainIds"`
 	PartnerThroughputLimit  sql.NullInt32     `json:"partnerThroughputLimit"`
@@ -880,6 +895,7 @@ type SelectAccountsRow struct {
 	UpdatedAt               time.Time         `json:"updatedAt"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deletedAt"`
+	LbID                    string            `json:"lbID"`
 	ChainIDs                []string          `json:"chainIds"`
 	MonthlyRelayLimit       sql.NullInt32     `json:"monthlyRelayLimit"`
 	ThroughputLimit         sql.NullInt32     `json:"throughputLimit"`
@@ -899,6 +915,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]Se
 		var i SelectAccountsRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Name,
 			&i.PlanType,
 			pq.Array(&i.PartnerChainIDs),
 			&i.PartnerThroughputLimit,
@@ -907,6 +924,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]Se
 			&i.UpdatedAt,
 			&i.Deleted,
 			&i.DeletedAt,
+			&i.LbID,
 			pq.Array(&i.ChainIDs),
 			&i.MonthlyRelayLimit,
 			&i.ThroughputLimit,
@@ -1236,11 +1254,11 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, includeDeleted b
 }
 
 const setGlobalBlockedContractActive = `-- name: SetGlobalBlockedContractActive :one
-	UPDATE global_blocked_contracts
-	SET active = $2,
-	    updated_at = $3
-	WHERE blocked_address = $1
-	RETURNING id
+UPDATE global_blocked_contracts
+SET active = $2,
+    updated_at = $3
+WHERE blocked_address = $1
+RETURNING id
 `
 
 type SetGlobalBlockedContractActiveParams struct {
@@ -1764,9 +1782,11 @@ INSERT INTO chain_gigastake_redirects (
         alias,
         domain,
         created_at,
-        updated_at
+        updated_at,
+        -- legacy field
+        lb_id
     )
-VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (account_id) DO
+VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, account_id, domain) DO
 UPDATE
 SET chain_id = COALESCE(
         EXCLUDED.chain_id,
@@ -1777,7 +1797,9 @@ SET chain_id = COALESCE(
         EXCLUDED.domain,
         chain_gigastake_redirects.domain
     ),
-    updated_at = EXCLUDED.updated_at
+    updated_at = EXCLUDED.updated_at,
+    -- legacy field
+    lb_id = EXCLUDED.lb_id
 `
 
 type UpsertChainGigastakeRedirectParams struct {
@@ -1787,6 +1809,7 @@ type UpsertChainGigastakeRedirectParams struct {
 	Domain    types.RedirectDomain `json:"domain"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
+	LbID      string               `json:"lbID"`
 }
 
 func (q *Queries) UpsertChainGigastakeRedirect(ctx context.Context, arg UpsertChainGigastakeRedirectParams) error {
@@ -1797,6 +1820,7 @@ func (q *Queries) UpsertChainGigastakeRedirect(ctx context.Context, arg UpsertCh
 		arg.Domain,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.LbID,
 	)
 	return err
 }
