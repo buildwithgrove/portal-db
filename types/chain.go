@@ -96,6 +96,10 @@ type (
 		AccountID AccountID      `json:"accountID"`
 		Domain    RedirectDomain `json:"domain"`
 		Alias     string         `json:"alias"`
+
+		// TODO - remove when v2 migration finished
+		// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
+		LegacyLoadBalancerID string `json:"legacyLoadBalancerID"`
 	}
 	Check struct {
 		ChainID   ChainID `json:"chainID,omitempty"`

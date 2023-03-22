@@ -12,10 +12,7 @@ import (
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
-const (
-	// psqlDateLayout = "2006-01-02T15:04:05.999999"
-	idLength = 24
-)
+const idLength = 24
 
 var (
 	ErrMissingID     = errors.New("missing id")
@@ -82,13 +79,10 @@ func (d *PostgresDriver) NotificationChannel() <-chan *types.Notification {
 	return d.notification
 }
 
-func generateRandomID() (string, error) {
+func generatePortalAppID() string {
 	bytes := make([]byte, idLength/2)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-
-	return hex.EncodeToString(bytes), nil
+	_, _ = rand.Read(bytes)
+	return hex.EncodeToString(bytes)
 }
 
 func newSQLNullString(value string) sql.NullString {
@@ -134,20 +128,3 @@ func newSQLNullTime(value time.Time) sql.NullTime {
 		Valid: true,
 	}
 }
-
-// func psqlDateToTime(rawDate string) time.Time {
-// 	date, _ := time.Parse(psqlDateLayout, rawDate)
-// 	return date
-// }
-
-// func boolPointer(value bool) *bool {
-// 	return &value
-// }
-
-// // Typeguard for a derived field from Postgres that must be either nil or a string
-// func toString(v interface{}) string {
-// 	if v == nil {
-// 		return ""
-// 	}
-// 	return v.(string)
-// }

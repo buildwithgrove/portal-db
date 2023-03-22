@@ -285,11 +285,14 @@ GROUP BY a.id,
     p.daily_limit;
 -- name: InsertAccount :one
 INSERT INTO accounts (
+        name,
         plan_type,
         created_at,
-        updated_at
+        updated_at,
+        -- legacy field
+        lb_id
     )
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 -- name: DeleteAccount :exec
 UPDATE accounts
@@ -617,9 +620,11 @@ INSERT INTO chain_gigastake_redirects (
         alias,
         domain,
         created_at,
-        updated_at
+        updated_at,
+        -- legacy field
+        lb_id
     )
-VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (account_id) DO
+VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, account_id, domain) DO
 UPDATE
 SET chain_id = COALESCE(
         EXCLUDED.chain_id,
@@ -630,7 +635,9 @@ SET chain_id = COALESCE(
         EXCLUDED.domain,
         chain_gigastake_redirects.domain
     ),
-    updated_at = EXCLUDED.updated_at;
+    updated_at = EXCLUDED.updated_at,
+    -- legacy field
+    lb_id = EXCLUDED.lb_id;
 -- name: DeleteUnusedChainGigastakeRedirects :exec
 DELETE FROM chain_gigastake_redirects
 WHERE chain_id = $1
@@ -679,15 +686,15 @@ SELECT id,
 FROM global_blocked_contracts
 WHERE active = true;
 -- name: AddGlobalBlockedContract :exec
-INSERT INTO global_blocked_contracts (blocked_address, created_at)
-VALUES ($1, $2);
+INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
+VALUES ($1, $2, $3);
 -- name: SetGlobalBlockedContractActive :one
-	UPDATE global_blocked_contracts
-	SET active = $2,
-	    updated_at = $3
-	WHERE blocked_address = $1
-	RETURNING id;
+UPDATE global_blocked_contracts
+SET active = $2,
+    updated_at = $3
+WHERE blocked_address = $1
+RETURNING id;
 -- name: RemoveGlobalBlockedContract :one
 DELETE FROM global_blocked_contracts
 WHERE blocked_address = $1
-	RETURNING id;
+RETURNING id;

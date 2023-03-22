@@ -19,10 +19,11 @@ type (
 	}
 
 	gigastakeRedirectDBRow struct {
-		ChainID   string `json:"chain_id"`
-		AccountID int32  `json:"account_id"`
-		Alias     string `json:"alias"`
-		Domain    string `json:"domain"`
+		ChainID              string `json:"chain_id"`
+		AccountID            int32  `json:"account_id"`
+		Alias                string `json:"alias"`
+		Domain               string `json:"domain"`
+		LegacyLoadBalancerID string `json:"lb_id"`
 	}
 
 	checkDBRow struct {
@@ -135,6 +136,10 @@ func (c *SelectChainsRow) toGigastakeRedirects() ([]types.GigastakeRedirect, err
 			AccountID: types.AccountID(redirectRow.AccountID),
 			Domain:    types.RedirectDomain(redirectRow.Domain),
 			Alias:     redirectRow.Alias,
+
+			// TODO - remove when v2 migration finished
+			// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
+			LegacyLoadBalancerID: redirectRow.LegacyLoadBalancerID,
 		}
 	}
 
@@ -258,7 +263,6 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 		if err != nil {
 			return err
 		}
-
 	}
 	for _, redirect := range chain.Redirects {
 		err = qtx.UpsertChainGigastakeRedirect(ctx, UpsertChainGigastakeRedirectParams{
@@ -268,6 +272,8 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 			Domain:    redirect.Domain,
 			CreatedAt: chain.CreatedAt,
 			UpdatedAt: chain.CreatedAt,
+			// TODO remove legacy fields when migration to V2 schema complete
+			LbID: redirect.LegacyLoadBalancerID,
 		})
 		if err != nil {
 			return err

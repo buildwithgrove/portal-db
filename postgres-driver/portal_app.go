@@ -65,7 +65,6 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 
 	// TODO remove legacy fields when migration to V2 schema complete
 	legacyFields := types.LegacyFields{
-		ApplicationIDs:     a.ApplicationIDs,
 		CustomLimit:        a.CustomLimit.Int32,
 		RequestTimeout:     a.RequestTimeout.Int32,
 		GigastakeRedirect:  a.GigastakeRedirect.Bool,
@@ -153,12 +152,7 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 // WritePortalApp creates a single PortalApp in the database, including its AAT and Settings rows
 // TEMP - also create its legacy StickinessOptions table (TODO remove when V2 migration completed)
 func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, createdAt time.Time) (*types.PortalApp, error) {
-	id, err := generateRandomID()
-	if err != nil {
-		return nil, err
-	}
-
-	portalApp.ID = types.PortalAppID(id)
+	portalApp.ID = types.PortalAppID(generatePortalAppID())
 	portalApp.CreatedAt = createdAt
 	portalApp.UpdatedAt = createdAt
 
@@ -179,7 +173,6 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		CreatedAt: portalApp.CreatedAt,
 		UpdatedAt: portalApp.UpdatedAt,
 		// TODO remove legacy fields when migration to V2 schema complete
-		ApplicationIDs:     (portalApp.LegacyFields.ApplicationIDs),
 		RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
 		CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
 		GigastakeRedirect:  newSQLNullBool(&portalApp.LegacyFields.GigastakeRedirect),
