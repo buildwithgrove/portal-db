@@ -5,8 +5,7 @@ on:
     workflows: ["Lint & Test"]
     branches:
       - main
-        # version-2 temp until V2 merged
-      - version-2
+      - beta
     types:
       - completed
 
@@ -40,16 +39,20 @@ jobs:
             [
               'main',
               {
-                name: 'version-2',
+                name: 'beta',
                 prerelease: true
               },
             ]
-          # version-2 temp until V2 merged
           tag_format: "v${version}"
           additional_packages: |
             ['@semantic-release/commit-analyzer']
           plugins: |
-            ['@semantic-release/commit-analyzer']
+            ['["@semantic-release/commit-analyzer", {
+              "preset": "angular",
+              "releaseRules": [
+                { "type": "major", "release": "major" }
+              ]
+            }]']
 
       - name: Go List
         if: steps.semantic.outputs.new-release-published == 'true'
