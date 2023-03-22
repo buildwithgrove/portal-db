@@ -2,16 +2,14 @@ name: Tag & Go List
 
 on:
   workflow_run:
-    workflows: ["Lint & Test"]
-    branches:
-      - main
-      - beta
-    types:
-      - completed
+    workflows: [Lint & Test]
+    branches: [main, beta]
+    types: [completed]
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
@@ -58,7 +56,7 @@ jobs:
     name: Docker Build & Push
     needs: [release]
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     environment: CI
 
     steps:
