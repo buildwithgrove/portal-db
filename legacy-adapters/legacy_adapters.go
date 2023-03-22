@@ -16,7 +16,7 @@ func ConvertToLegacyLoadBalancer(a *types.Account) types.LoadBalancer {
 
 	for _, accountUser := range a.Users {
 		var userID string
-		// in case user has two auth method, default to using their Auth0 Username/PW ID
+		// in case user has two auth providers, default to using their Auth0 Username/PW ID
 		switch {
 		case accountUser.ProviderUserIDs[types.AuthTypeAuth0Username] != "":
 			userID = accountUser.ProviderUserIDs[types.AuthTypeAuth0Username]
@@ -24,6 +24,7 @@ func ConvertToLegacyLoadBalancer(a *types.Account) types.LoadBalancer {
 			userID = accountUser.ProviderUserIDs[types.AuthTypeAuth0Github]
 		}
 
+		// user ID will be stored as `auth0|userid123` or `github|userid123`
 		userID = strings.Split(userID, "|")[1]
 
 		users = append(users, types.UserAccess{
@@ -158,6 +159,7 @@ func ConvertToLegacyBlockchain(c *types.Chain) types.Blockchain {
 		})
 	}
 
+	// for now we can assume each chain has only one altruist
 	altruistURL := formatAltruistURL(c.Altruists[0])
 
 	return types.Blockchain{
@@ -188,6 +190,7 @@ func ConvertToLegacyBlockchain(c *types.Chain) types.Blockchain {
 func formatAltruistURL(altruist types.Altruist) string {
 	formattedURL := string(altruist.URL)
 
+	// insert the basic auth into the altruist URL
 	if altruist.AuthType == types.ChainAuthTypeBasicAuth {
 		formattedURL = strings.Replace(formattedURL, "https://", "", 1)
 		formattedURL = fmt.Sprintf("https://%s@%s", altruist.Auth, formattedURL)
