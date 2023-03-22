@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pokt-foundation/portal-db/testdata"
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/portal-db/v2/testdata"
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 func (ts *PGDriverTestSuite) Test_GetPortalUserIDFromProviderID() {

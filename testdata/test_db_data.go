@@ -3,7 +3,7 @@ package testdata
 import (
 	"time"
 
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 /*
