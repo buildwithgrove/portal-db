@@ -9,7 +9,7 @@ import (
 
 	// PQ import is required
 	_ "github.com/lib/pq"
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 const idLength = 24
