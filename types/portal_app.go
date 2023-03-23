@@ -333,3 +333,7 @@ func (a *Whitelist) Table() Table {
 func (a *AppNotification) Table() Table {
 	return TableAppNotifications
 }
+
+func (a *StickyOptions) Table() Table {
+	return TableStickinessOptions
+}

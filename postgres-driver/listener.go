@@ -198,6 +198,19 @@ func (n notification) parseGlobalBlockedContractNotification() *types.Notificati
 	}
 }
 
+// TODO - remove when v2 migration finished
+func (n notification) parseStickinessOptionsNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbStickinessOptions StickinessOption
+	_ = json.Unmarshal(rawData, &dbStickinessOptions)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbStickinessOptions.toOutput(),
+	}
+}
+
 func (n notification) parseNotification() *types.Notification {
 	switch n.Table {
 	case types.TablePortalApps:
@@ -235,6 +248,10 @@ func (n notification) parseNotification() *types.Notification {
 
 	case types.TableGlobalBlockedContracts:
 		return n.parseGlobalBlockedContractNotification()
+
+	// TODO - remove when v2 migration finished
+	case types.TableStickinessOptions:
+		return n.parseStickinessOptionsNotification()
 
 	default:
 		return nil

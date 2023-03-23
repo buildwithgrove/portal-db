@@ -468,3 +468,15 @@ func (json PortalApplicationNotification) mapEvents() map[types.NotificationEven
 	}
 	return events
 }
+
+// TODO - remove when v2 migration finished
+// Fields required for compatibility with the old Portal API and Services (temporary)
+func (json StickinessOption) toOutput() *types.StickyOptions {
+	return &types.StickyOptions{
+		ID:            string(json.LbID),
+		Duration:      json.Duration.String,
+		StickyOrigins: json.Origins,
+		StickyMax:     int(json.StickyMax.Int32),
+		Stickiness:    json.Stickiness.Bool,
+	}
+}

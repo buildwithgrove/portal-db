@@ -13,7 +13,7 @@ test_unit:
 test_env_up:
 	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build
 	@echo "⏳ Waiting for test DB to be ready ..."
-	until pg_isready -h localhost -p 5432 -U postgres -d mydatabase >/dev/null 2>&1; do sleep 0.01; done
+	until pg_isready -h localhost -p 5432 -U postgres -d postgres >/dev/null 2>&1; do sleep 0.01; done
 	@echo "🚀 Test environment is up ..."
 test_env_down:
 	docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans -v
