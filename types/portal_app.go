@@ -148,7 +148,7 @@ type (
 	}
 
 	AppNotification struct {
-		AppID       string                     `json:"appID,omitempty"`
+		AppID       PortalAppID                `json:"appID,omitempty"`
 		Type        NotificationType           `json:"type"`
 		Active      bool                       `json:"active"`
 		Destination string                     `json:"destination"`

@@ -2,7 +2,7 @@ package postgresdriver
 
 import "github.com/pokt-foundation/portal-db/v2/types"
 
-/* Used by Listener */
+/* ----- Used by Listener ----- */
 func (json PayPlan) toOutput() *types.Plan {
 	chainIDs := make(map[types.ChainID]struct{})
 	for _, id := range json.ChainIDs {

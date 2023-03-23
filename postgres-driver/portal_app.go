@@ -394,7 +394,7 @@ func (pg *PostgresDriver) SetPortalAppDeleted(ctx context.Context, portalAppID t
 	return nil
 }
 
-/* Used by Listener */
+/* ----- Used by Listener ----- */
 func (json PortalApplication) toOutput() *types.PortalApp {
 	return &types.PortalApp{
 		ID:        json.ID,
@@ -453,7 +453,7 @@ func (json PortalApplicationWhitelist) toOutput() *types.Whitelist {
 
 func (json PortalApplicationNotification) toOutput() *types.AppNotification {
 	return &types.AppNotification{
-		AppID:       string(json.ApplicationID),
+		AppID:       json.ApplicationID,
 		Type:        json.Type,
 		Active:      json.Active,
 		Destination: json.Destination.String,

@@ -394,7 +394,7 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 	return activeStatus, nil
 }
 
-/* Used by Listener */
+/* ----- Used by Listener ----- */
 func (json Chain) toOutput() *types.Chain {
 	return &types.Chain{
 		ID:             json.ID,

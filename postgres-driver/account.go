@@ -55,9 +55,9 @@ func (pg *PostgresDriver) ReadAccounts(ctx context.Context, options types.Driver
 // toAccount converts Account SELECT output to Account struct
 func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 	var chainIDs map[types.ChainID]struct{}
-	if len(a.ChainIDs) != 0 {
-		chainIDs = make(map[types.ChainID]struct{}, len(a.ChainIDs))
-		for _, chainID := range a.ChainIDs {
+	if len(a.PartnerChainIDs) != 0 {
+		chainIDs = make(map[types.ChainID]struct{}, len(a.PartnerChainIDs))
+		for _, chainID := range a.PartnerChainIDs {
 			chainIDs[types.ChainID(chainID)] = struct{}{}
 		}
 	}
@@ -524,7 +524,7 @@ func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, us
 	return nil
 }
 
-/* Used by Listener */
+/* ----- Used by Listener ----- */
 func (json Account) toOutput() *types.Account {
 	partnerChainIDs := make(map[types.ChainID]struct{})
 	for _, chainID := range json.PartnerChainIDs {

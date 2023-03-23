@@ -837,10 +837,6 @@ func (q *Queries) RemoveGlobalBlockedContract(ctx context.Context, blockedAddres
 
 const selectAccounts = `-- name: SelectAccounts :many
 SELECT a.id, a.name, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at, a.lb_id,
-    p.chain_ids,
-    p.monthly_relay_limit,
-    p.throughput_limit,
-    p.application_limit,
     json_agg(
         json_build_object(
             'user_id',
@@ -858,25 +854,16 @@ SELECT a.id, a.name, a.plan_type, a.partner_chain_ids, a.partner_throughput_limi
                 WHERE user_id = u.id
             )
         )
-    ) AS users,
-    -- legacy field
-    p.daily_limit
+    ) AS users
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
-    LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
 WHERE (
         $1::BOOLEAN
         OR a.deleted = false
     )
-GROUP BY a.id,
-    p.plan_type,
-    p.chain_ids,
-    p.monthly_relay_limit,
-    p.throughput_limit,
-    p.application_limit,
-    p.daily_limit
+GROUP BY a.id
 `
 
 type SelectAccountsRow struct {
@@ -891,12 +878,7 @@ type SelectAccountsRow struct {
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deleted_at"`
 	LbID                    string            `json:"lb_id"`
-	ChainIDs                []string          `json:"chain_ids"`
-	MonthlyRelayLimit       sql.NullInt32     `json:"monthly_relay_limit"`
-	ThroughputLimit         sql.NullInt32     `json:"throughput_limit"`
-	ApplicationLimit        sql.NullInt32     `json:"application_limit"`
 	Users                   json.RawMessage   `json:"users"`
-	DailyLimit              sql.NullInt32     `json:"daily_limit"`
 }
 
 func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]SelectAccountsRow, error) {
@@ -920,12 +902,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]Se
 			&i.Deleted,
 			&i.DeletedAt,
 			&i.LbID,
-			pq.Array(&i.ChainIDs),
-			&i.MonthlyRelayLimit,
-			&i.ThroughputLimit,
-			&i.ApplicationLimit,
 			&i.Users,
-			&i.DailyLimit,
 		); err != nil {
 			return nil, err
 		}
