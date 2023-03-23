@@ -444,16 +444,17 @@ func (json PortalApplicationSetting) toOutput() *types.Settings {
 
 func (json PortalApplicationWhitelist) toOutput() *types.Whitelist {
 	return &types.Whitelist{
-		ApplicationID: json.ApplicationID,
-		Type:          json.Type,
-		Value:         json.Value,
-		ChainID:       types.ChainID(json.ChainID.String),
+		AppID:   json.ApplicationID,
+		Type:    json.Type,
+		Value:   json.Value,
+		ChainID: types.ChainID(json.ChainID.String),
 	}
 }
 
 func (json PortalApplicationNotification) toOutput() *types.AppNotification {
 	return &types.AppNotification{
 		AppID:       string(json.ApplicationID),
+		Type:        json.Type,
 		Active:      json.Active,
 		Destination: json.Destination.String,
 		Trigger:     json.Trigger.String,

@@ -20,41 +20,41 @@ var (
 
 	/* ----- Read Data ----- */
 
-	PayPlans = map[types.PayPlanType]types.Plan{
-		"basic_plan": {
-			Type:              "basic_plan",
+	PayPlans = map[types.PayPlanType]*types.Plan{
+		types.PayPlanType("basic_plan"): {
+			Type:              types.PayPlanType("basic_plan"),
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 5_000_000,
 			ThroughputLimit:   5_000,
 			AppLimit:          2,
 			LegacyDailyLimit:  1_000,
 		},
-		"pro_plan": {
-			Type:              "pro_plan",
+		types.PayPlanType("pro_plan"): {
+			Type:              types.PayPlanType("pro_plan"),
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
 			AppLimit:          5,
 			LegacyDailyLimit:  5_000,
 		},
-		"enterprise_plan": {
-			Type:              "enterprise_plan",
+		types.PayPlanType("enterprise_plan"): {
+			Type:              types.PayPlanType("enterprise_plan"),
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}, "0034": {}},
 			MonthlyRelayLimit: 20_000_000,
 			ThroughputLimit:   20_000,
 			AppLimit:          10,
 			LegacyDailyLimit:  10_000,
 		},
-		"developer_plan": {
-			Type:              "developer_plan",
+		types.PayPlanType("developer_plan"): {
+			Type:              types.PayPlanType("developer_plan"),
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0034": {}},
 			MonthlyRelayLimit: 500_000,
 			ThroughputLimit:   500,
 			AppLimit:          1,
 			LegacyDailyLimit:  100,
 		},
-		"startup_plan": {
-			Type:              "startup_plan",
+		types.PayPlanType("startup_plan"): {
+			Type:              types.PayPlanType("startup_plan"),
 			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			MonthlyRelayLimit: 1_000_000,
 			ThroughputLimit:   1_000,
@@ -65,9 +65,9 @@ var (
 
 	Accounts = map[types.AccountID]*types.Account{
 		1: {
-			ID:   1,
-			Name: "test_account_1",
-			Plan: PayPlans["basic_plan"],
+			ID:       1,
+			Name:     "test_account_1",
+			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				1: AccountUserAccess[1],
 				2: AccountUserAccess[2],
@@ -82,9 +82,9 @@ var (
 			LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		},
 		2: {
-			ID:   2,
-			Name: "test_account_2",
-			Plan: PayPlans["pro_plan"],
+			ID:       2,
+			Name:     "test_account_2",
+			PlanType: types.PayPlanType("pro_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				3: AccountUserAccess[3],
 				4: AccountUserAccess[4],
@@ -100,9 +100,9 @@ var (
 			LegacyLoadBalancerID: "test_lb_d2c7361fd9c5dff7",
 		},
 		3: {
-			ID:   3,
-			Name: "test_account_3",
-			Plan: PayPlans["startup_plan"],
+			ID:       3,
+			Name:     "test_account_3",
+			PlanType: types.PayPlanType("startup_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				5:  AccountUserAccess[5],
 				6:  AccountUserAccess[6],
@@ -118,9 +118,9 @@ var (
 			LegacyLoadBalancerID: "test_lb_4b874c457f73c4e9",
 		},
 		4: {
-			ID:   4,
-			Name: "test_account_4",
-			Plan: PayPlans["enterprise_plan"],
+			ID:       4,
+			Name:     "test_account_4",
+			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				4: AccountUserAccess[11],
 			},
@@ -133,9 +133,9 @@ var (
 			LegacyLoadBalancerID: "test_lb_746e04231640556a",
 		},
 		5: {
-			ID:   5,
-			Name: "test_account_5",
-			Plan: PayPlans["basic_plan"],
+			ID:       5,
+			Name:     "test_account_5",
+			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				4: AccountUserAccess[11],
 			},
@@ -151,7 +151,7 @@ var (
 		// This account used to test creation of Accounts
 		6: {
 			Name:      "test_create_account_1",
-			Plan:      PayPlans["developer_plan"],
+			PlanType:  types.PayPlanType("developer_plan"),
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 			// TODO - remove when v2 migration finished
@@ -905,20 +905,23 @@ var (
 		ID:                   1,
 		Name:                 "test_legacy_lb_1",
 		LegacyLoadBalancerID: "test_lb_3127flsdhfoi323f",
-		Plan:                 PayPlans["basic_plan"],
+		PlanType:             types.PayPlanType("basic_plan"),
 		Users: map[types.UserID]types.AccountUserAccess{
 			1: AccountUserAccess[1],
 			2: AccountUserAccess[2],
 			8: AccountUserAccess[8],
-		},
-		PortalApps: map[types.PortalAppID]*types.PortalApp{
-			"test_app_3487u329rfn23f9": PortalApps["test_app_3487u329rfn23f9"],
 		},
 		PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
 		PartnerThroughputLimit: 2_000,
 		PartnerAppLimit:        1,
 		CreatedAt:              MockTimestamp,
 		UpdatedAt:              MockTimestamp,
+
+		// Assume Plan and PortalApps have been set in PHD
+		Plan: PayPlans["basic_plan"],
+		PortalApps: map[types.PortalAppID]*types.PortalApp{
+			"test_app_3487u329rfn23f9": PortalApps["test_app_3487u329rfn23f9"],
+		},
 	}
 
 	LegacyLoadBalancer = types.LoadBalancer{
@@ -1050,10 +1053,8 @@ var (
 	}
 
 	V2CreateAccount = types.Account{
-		Name: "test_legacy_lb_1",
-		Plan: types.Plan{
-			Type: "basic_plan",
-		},
+		Name:     "test_legacy_lb_1",
+		PlanType: types.PayPlanType("basic_plan"),
 	}
 
 	V2CreatePortalApp = types.PortalApp{

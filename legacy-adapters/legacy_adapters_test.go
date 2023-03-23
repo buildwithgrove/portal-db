@@ -101,7 +101,7 @@ func Test_LegacyAdapators_ConvertToLegacyPayPlan(t *testing.T) {
 	}{
 		{
 			name:                  "Should convert a V2 Plan struct to a legacy PayPlan struct",
-			plan:                  testdata.PayPlans["enterprise_plan"],
+			plan:                  *testdata.PayPlans["enterprise_plan"],
 			expectedLegacyPayPlan: types.PayPlan{Type: "enterprise_plan", Limit: 10_000},
 		},
 	}

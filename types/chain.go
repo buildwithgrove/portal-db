@@ -102,10 +102,11 @@ type (
 		LegacyLoadBalancerID string `json:"legacyLoadBalancerID"`
 	}
 	Check struct {
-		ChainID   ChainID `json:"chainID,omitempty"`
-		Payload   string  `json:"payload"`
-		ResultKey string  `json:"resultKey"`
-		Allowance int32   `json:"allowance"`
+		ChainID   ChainID        `json:"chainID,omitempty"`
+		Type      ChainCheckType `json:"type"`
+		Payload   string         `json:"payload"`
+		ResultKey string         `json:"resultKey"`
+		Allowance int32          `json:"allowance"`
 	}
 
 	/* Update structs */
@@ -136,7 +137,7 @@ func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
 	return c.Checks[checkType]
 }
 
-func (c *Chain) UpdateBlockchain(update *UpdateChain) *Chain {
+func (c *Chain) UpdateBlockchain(update *UpdateChain) {
 	if update.Blockchain != "" {
 		c.Blockchain = update.Blockchain
 	}
@@ -167,7 +168,6 @@ func (c *Chain) UpdateBlockchain(update *UpdateChain) *Chain {
 	if len(update.Checks) > 0 {
 		c.updateChainChecks(update)
 	}
-	return c
 }
 
 func (c *Chain) updateChainChecks(update *UpdateChain) {

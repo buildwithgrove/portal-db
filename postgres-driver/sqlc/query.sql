@@ -241,10 +241,6 @@ SET deleted = true,
 WHERE id = $1;
 -- name: SelectAccounts :many
 SELECT a.*,
-    p.chain_ids,
-    p.monthly_relay_limit,
-    p.throughput_limit,
-    p.application_limit,
     json_agg(
         json_build_object(
             'user_id',
@@ -262,25 +258,16 @@ SELECT a.*,
                 WHERE user_id = u.id
             )
         )
-    ) AS users,
-    -- legacy field
-    p.daily_limit
+    ) AS users
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
-    LEFT JOIN pay_plans AS p ON a.plan_type = p.plan_type
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
 WHERE (
         @include_deleted::BOOLEAN
         OR a.deleted = false
     )
-GROUP BY a.id,
-    p.plan_type,
-    p.chain_ids,
-    p.monthly_relay_limit,
-    p.throughput_limit,
-    p.application_limit,
-    p.daily_limit;
+GROUP BY a.id;
 -- name: InsertAccount :one
 INSERT INTO accounts (
         name,

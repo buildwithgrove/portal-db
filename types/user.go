@@ -7,9 +7,8 @@ import (
 )
 
 var (
-	ErrAppIDIsEmpty error = errors.New("load balancer ID is empty")
-	ErrNoOwner      error = errors.New("load balancer does not have an owner")
-	ErrInvalidRole  error = errors.New("invalid role provided")
+	errAccountIDIsEmpty error = errors.New("account ID is empty")
+	errInvalidRole      error = errors.New("invalid role provided")
 )
 
 /* Enums */
@@ -112,13 +111,13 @@ type (
 /* UserPermissions Struct Definition and Methods */
 
 type (
-	// UserPermissions stores all roles and read/write permissions for all PortalApps for a given user
+	// UserPermissions stores all roles and read/write permissions for all Accounts for a given user
 	UserPermissions struct {
-		UserID     UserID                               `json:"userID"`
-		PortalApps map[PortalAppID]PortalAppPermissions `json:"loadBalancers"`
+		UserID   UserID                           `json:"userID"`
+		Accounts map[AccountID]AccountPermissions `json:"loadBalancers"`
 	}
-	// PortalAppPermissions stores user role and permissions for a given PortalApp
-	PortalAppPermissions struct {
+	// AccountPermissions stores user role and permissions for a given PortalApp
+	AccountPermissions struct {
 		RoleName    RoleName      `json:"roleName"`
 		Permissions []Permissions `json:"permissions"`
 	}
@@ -131,14 +130,14 @@ var permissionsList = map[RoleName][]Permissions{
 }
 
 func (u *UserPermissions) IsEmpty() bool {
-	if u.UserID == UserID(0) || len(u.PortalApps) == 0 {
+	if u.UserID == UserID(0) || len(u.Accounts) == 0 {
 		return true
 	}
 	return false
 }
 
-func (u *UserPermissions) GetRole(appID PortalAppID) RoleName {
-	app, ok := u.PortalApps[appID]
+func (u *UserPermissions) GetRole(accountID AccountID) RoleName {
+	app, ok := u.Accounts[accountID]
 	if !ok {
 		return RoleName("")
 	}
@@ -146,15 +145,15 @@ func (u *UserPermissions) GetRole(appID PortalAppID) RoleName {
 	return app.RoleName
 }
 
-func (u *UserPermissions) UpsertPermissions(appID PortalAppID, role RoleName) (*UserPermissions, error) {
-	if appID == "" {
-		return nil, ErrAppIDIsEmpty
+func (u *UserPermissions) UpsertPermissions(accountID AccountID, role RoleName) (*UserPermissions, error) {
+	if accountID == 0 {
+		return nil, errAccountIDIsEmpty
 	}
 	if !role.IsValid() {
-		return nil, ErrInvalidRole
+		return nil, errInvalidRole
 	}
 
-	u.PortalApps[appID] = PortalAppPermissions{
+	u.Accounts[accountID] = AccountPermissions{
 		RoleName:    role,
 		Permissions: permissionsList[role],
 	}
@@ -162,14 +161,14 @@ func (u *UserPermissions) UpsertPermissions(appID PortalAppID, role RoleName) (*
 	return u, nil
 }
 
-func (u *UserPermissions) DeletePermissions(appID PortalAppID) *UserPermissions {
-	delete(u.PortalApps, appID)
+func (u *UserPermissions) DeletePermissions(accountID AccountID) *UserPermissions {
+	delete(u.Accounts, accountID)
 
 	return u
 }
 
-func (u *UserPermissions) HasPermission(appID PortalAppID, permission Permissions) bool {
-	app, ok := u.PortalApps[appID]
+func (u *UserPermissions) HasPermission(accountID AccountID, permission Permissions) bool {
+	app, ok := u.Accounts[accountID]
 	if !ok {
 		return false
 	}

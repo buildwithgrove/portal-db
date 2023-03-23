@@ -132,7 +132,6 @@ type (
 	}
 
 	Whitelists struct {
-		AppID       PortalAppID                       `json:"appID,omitempty"`
 		Origins     map[Origin]struct{}               `json:"origins"`
 		UserAgents  map[UserAgent]struct{}            `json:"userAgents"`
 		Blockchains map[ChainID]struct{}              `json:"blockchains"`
@@ -142,14 +141,15 @@ type (
 
 	// Whitelist (singular) is used by the listener in PHD to receive a single whitelist row
 	Whitelist struct {
-		ApplicationID PortalAppID   `json:"applicationID"`
-		Type          WhitelistType `json:"type"`
-		Value         string        `json:"value"`
-		ChainID       ChainID       `json:"chain_id"`
+		AppID   PortalAppID   `json:"applicationID"`
+		Type    WhitelistType `json:"type"`
+		Value   string        `json:"value"`
+		ChainID ChainID       `json:"chain_id"`
 	}
 
 	AppNotification struct {
 		AppID       string                     `json:"appID,omitempty"`
+		Type        NotificationType           `json:"type"`
 		Active      bool                       `json:"active"`
 		Destination string                     `json:"destination"`
 		Trigger     string                     `json:"trigger"`
@@ -194,7 +194,7 @@ type (
 	}
 
 	UpdateAppNotifications struct {
-		AppID            string              `json:"appID,omitempty"`
+		AppID            PortalAppID         `json:"appID,omitempty"`
 		NotificationType NotificationType    `json:"notificationType"`
 		Active           bool                `json:"active"`
 		Destination      string              `json:"destination"`
@@ -216,6 +216,54 @@ type (
 // MonthlyLimit returns the monthly relay limit for a given application
 func (a *PortalApp) MonthlyLimit() int32 {
 	return a.Settings.MonthlyRelayLimit
+}
+
+// AddWhitelist adds a whitelist to the PortalApp pointer's Whitelists field
+func (a *PortalApp) AddWhitelist(whitelist Whitelist) {
+	switch whitelist.Type {
+	case WhitelistTypeOrigins:
+		a.Whitelists.Origins[Origin(whitelist.Value)] = struct{}{}
+	case WhitelistTypeBlockchains:
+		a.Whitelists.Blockchains[ChainID(whitelist.Value)] = struct{}{}
+	case WhitelistTypeUserAgents:
+		a.Whitelists.UserAgents[UserAgent(whitelist.Value)] = struct{}{}
+	case WhitelistTypeContracts:
+		if _, ok := a.Whitelists.Contracts[whitelist.ChainID]; !ok {
+			a.Whitelists.Contracts[whitelist.ChainID] = make(map[Contract]struct{})
+		}
+		a.Whitelists.Contracts[whitelist.ChainID][Contract(whitelist.Value)] = struct{}{}
+	case WhitelistTypeMethods:
+		if _, ok := a.Whitelists.Methods[whitelist.ChainID]; !ok {
+			a.Whitelists.Methods[whitelist.ChainID] = make(map[Method]struct{})
+		}
+		a.Whitelists.Methods[whitelist.ChainID][Method(whitelist.Value)] = struct{}{}
+	}
+}
+
+// DeleteWhitelist deletes a whitelist from the PortalApp pointer's Whitelists field
+func (a *PortalApp) DeleteWhitelist(whitelist Whitelist) {
+	switch whitelist.Type {
+	case WhitelistTypeOrigins:
+		delete(a.Whitelists.Origins, Origin(whitelist.Value))
+	case WhitelistTypeBlockchains:
+		delete(a.Whitelists.Blockchains, ChainID(whitelist.Value))
+	case WhitelistTypeUserAgents:
+		delete(a.Whitelists.UserAgents, UserAgent(whitelist.Value))
+	case WhitelistTypeContracts:
+		if contracts, ok := a.Whitelists.Contracts[whitelist.ChainID]; ok {
+			delete(contracts, Contract(whitelist.Value))
+			if len(contracts) == 0 {
+				delete(a.Whitelists.Contracts, whitelist.ChainID)
+			}
+		}
+	case WhitelistTypeMethods:
+		if methods, ok := a.Whitelists.Methods[whitelist.ChainID]; ok {
+			delete(methods, Method(whitelist.Value))
+			if len(methods) == 0 {
+				delete(a.Whitelists.Methods, whitelist.ChainID)
+			}
+		}
+	}
 }
 
 // IsOriginWhitelisted returns a boolean indicating whether the given ORIGIN is whitelisted for an application

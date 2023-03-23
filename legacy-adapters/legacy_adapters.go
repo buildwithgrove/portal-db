@@ -217,7 +217,7 @@ func ConvertToV2AccountAndPortalApp(lb *types.LoadBalancer, lbID string) (types.
 
 	account := types.Account{
 		Name:                 lb.Name,
-		Plan:                 types.Plan{Type: types.PayPlanType(lb.Applications[0].Limit.Plan.Type)},
+		PlanType:             types.PayPlanType(lb.Applications[0].Limit.Plan.Type),
 		LegacyLoadBalancerID: lbID,
 	}
 

@@ -1,9 +1,12 @@
 package types
 
 import (
+	"errors"
 	"strings"
 	"time"
 )
+
+var errNoOwner error = errors.New("account does not have an owner")
 
 /* Account Struct Definition and Methods */
 type (
@@ -11,15 +14,18 @@ type (
 	Account struct {
 		ID                     AccountID                    `json:"id"`
 		Name                   string                       `json:"name"`
-		Plan                   Plan                         `json:"payPlan"`
+		PlanType               PayPlanType                  `json:"planType"`
 		Users                  map[UserID]AccountUserAccess `json:"users"`
-		PortalApps             map[PortalAppID]*PortalApp   `json:"portalApps"`
 		PartnerChainIDs        map[ChainID]struct{}         `json:"partnerBlockchainIDs"`
 		PartnerThroughputLimit int32                        `json:"partnerThroughputLimit"`
 		PartnerAppLimit        int32                        `json:"partnerAppLimit"`
 		CreatedAt              time.Time                    `json:"createdAt"`
 		UpdatedAt              time.Time                    `json:"updatedAt"`
 		Deleted                bool                         `json:"deleted"`
+
+		// PortalApps and Plan are set inside PHD
+		PortalApps map[PortalAppID]*PortalApp `json:"portalApps"`
+		Plan       *Plan                      `json:"payPlan"`
 
 		// TODO - remove when v2 migration finished
 		// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
@@ -28,6 +34,7 @@ type (
 
 	// AccountUserAccess represents a single Portal user's role for a single Account
 	AccountUserAccess struct {
+		AccountID       AccountID           `json:"accountID,omitempty"`
 		UserID          UserID              `json:"userID"`
 		Email           Email               `json:"email"`
 		RoleName        RoleName            `json:"roleName"`
@@ -88,7 +95,7 @@ func (a *Account) GetOwner() (AccountUserAccess, error) {
 		}
 	}
 
-	return AccountUserAccess{}, ErrNoOwner
+	return AccountUserAccess{}, errNoOwner
 }
 
 func (a *Account) Table() Table {

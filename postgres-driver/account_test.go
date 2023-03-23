@@ -70,14 +70,14 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 		{
 			name:            "Should fail if input Account does not have a PayPlanType set",
 			ownerID:         1,
-			account:         types.Account{Plan: types.Plan{Type: ""}},
+			account:         types.Account{PlanType: ""},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errPayPlanDoesntExist.Error(), ""),
 		},
 		{
 			name:            "Should fail if input Account has an invalid plan type",
 			ownerID:         1,
-			account:         types.Account{Plan: types.Plan{Type: types.PayPlanType("turbo_ultra_mega_plan")}},
+			account:         types.Account{PlanType: types.PayPlanType("turbo_ultra_mega_plan")},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errPayPlanDoesntExist.Error(), types.PayPlanType("turbo_ultra_mega_plan")),
 		},
@@ -428,7 +428,12 @@ func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
 		ts.Run(test.name, func() {
 			if test.accountID == types.AccountID(0) {
 				// Create test Account to delete
-				createdAccount, err := ts.driver.WriteAccount(context.Background(), 1, types.Account{Plan: testdata.PayPlans["developer_plan"]}, testdata.MockTimestamp)
+				createdAccount, err := ts.driver.WriteAccount(
+					context.Background(),
+					1,
+					types.Account{PlanType: types.PayPlanType("developer_plan")},
+					testdata.MockTimestamp,
+				)
 				ts.NoError(err)
 				test.accountID = createdAccount.ID
 			}

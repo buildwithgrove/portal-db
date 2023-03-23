@@ -64,6 +64,7 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	var partnerChainIDs map[types.ChainID]struct{}
 	if len(a.PartnerChainIDs) != 0 {
+
 		partnerChainIDs = make(map[types.ChainID]struct{}, len(a.PartnerChainIDs))
 		for _, chainID := range a.PartnerChainIDs {
 			partnerChainIDs[types.ChainID(chainID)] = struct{}{}
@@ -76,16 +77,9 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 	}
 
 	return &types.Account{
-		ID:   a.ID,
-		Name: a.Name,
-		Plan: types.Plan{
-			Type:              types.PayPlanType(a.PlanType),
-			ChainIDs:          chainIDs,
-			MonthlyRelayLimit: a.MonthlyRelayLimit.Int32,
-			ThroughputLimit:   a.ThroughputLimit.Int32,
-			AppLimit:          a.ApplicationLimit.Int32,
-			LegacyDailyLimit:  a.DailyLimit.Int32,
-		},
+		ID:                     a.ID,
+		Name:                   a.Name,
+		PlanType:               a.PlanType,
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: a.PartnerThroughputLimit.Int32,
@@ -141,7 +135,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		Name:      account.Name,
-		PlanType:  account.Plan.Type,
+		PlanType:  account.PlanType,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
 		// TODO - remove when v2 migration finished
@@ -194,12 +188,12 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 // validateWriteAccountInput validates the input to create a new Account
 func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, qtx *Queries, creatorID types.UserID, account types.Account) error {
-	planExists, err := qtx.CheckPlanTypeExists(ctx, account.Plan.Type)
+	planExists, err := qtx.CheckPlanTypeExists(ctx, account.PlanType)
 	if err != nil {
 		return err
 	}
 	if !planExists {
-		return fmt.Errorf(errPayPlanDoesntExist.Error(), account.Plan.Type)
+		return fmt.Errorf(errPayPlanDoesntExist.Error(), account.PlanType)
 	}
 
 	userExists, err := qtx.CheckUserExists(ctx, creatorID)
@@ -552,8 +546,9 @@ func (json Account) toOutput() *types.Account {
 
 func (json AccountUserAccess) toOutput() *types.AccountUserAccess {
 	return &types.AccountUserAccess{
-		UserID:   json.UserID,
-		RoleName: json.RoleName,
-		Accepted: json.Accepted,
+		AccountID: json.AccountID,
+		UserID:    json.UserID,
+		RoleName:  json.RoleName,
+		Accepted:  json.Accepted,
 	}
 }

@@ -59,8 +59,8 @@ func TestUpdateBlockchain(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			updatedChain := test.chain.UpdateBlockchain(&test.update)
-			assert.Equal(t, test.expected, *updatedChain)
+			test.chain.UpdateBlockchain(&test.update)
+			assert.Equal(t, test.expected, test.chain)
 		})
 	}
 }

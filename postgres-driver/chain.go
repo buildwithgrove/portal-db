@@ -426,6 +426,7 @@ func (json ChainAltruist) toOutput() *types.Altruist {
 func (json ChainCheck) toOutput() *types.Check {
 	return &types.Check{
 		ChainID:   json.ChainID,
+		Type:      json.Type,
 		Payload:   json.Payload.String,
 		ResultKey: json.ResultKey.String,
 		Allowance: json.Allowance.Int32,
