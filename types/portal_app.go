@@ -140,6 +140,14 @@ type (
 		Methods     map[ChainID]map[Method]struct{}   `json:"methods"`
 	}
 
+	// Whitelist (singular) is used by the listener in PHD to receive a single whitelist row
+	Whitelist struct {
+		ApplicationID PortalAppID   `json:"applicationID"`
+		Type          WhitelistType `json:"type"`
+		Value         string        `json:"value"`
+		ChainID       ChainID       `json:"chain_id"`
+	}
+
 	AppNotification struct {
 		AppID       string                     `json:"appID,omitempty"`
 		Active      bool                       `json:"active"`
@@ -318,7 +326,7 @@ func (a *Settings) Table() Table {
 	return TableAppSettings
 }
 
-func (a *Whitelists) Table() Table {
+func (a *Whitelist) Table() Table {
 	return TableAppWhitelists
 }
 

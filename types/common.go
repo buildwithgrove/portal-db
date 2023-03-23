@@ -48,15 +48,15 @@ const (
 	TableAccounts          Table = "accounts"
 	TableAccountUserAccess Table = "account_user_access"
 
-	TableUsers     Table = "users"
-	TableUserRoles Table = "user_roles"
+	TableUsers             Table = "users"
+	TableUserAuthProviders Table = "user_auth_providers"
 
 	TablePayPlans Table = "pay_plans"
 
-	TableBlockchains              Table = "chains"
-	TableChainAltruists           Table = "chain_altruists"
-	TableChainGigastakesRedirects Table = "chain_gigastake_redirects"
-	TableChainChecks              Table = "chain_checks"
+	TableChains                  Table = "chains"
+	TableChainAltruists          Table = "chain_altruists"
+	TableChainGigastakeRedirects Table = "chain_gigastake_redirects"
+	TableChainChecks             Table = "chain_checks"
 
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 

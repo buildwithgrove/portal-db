@@ -11,10 +11,13 @@ test_unit:
 	-go test ./... -count=1 -short -v;
 
 test_env_up:
-	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build;
-	sleep 2;
+	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build
+	@echo "⏳ Waiting for test DB to be ready ..."
+	until pg_isready -h localhost -p 5432 -U postgres -d mydatabase >/dev/null 2>&1; do sleep 0.01; done
+	@echo "🚀 Test environment is up ..."
 test_env_down:
 	docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans -v
+	@echo "✅ Test environment is down."
 run_driver_tests:
 	-go test ./... -run Test_RunPGDriverSuite -count=1;
 run_all_tests:

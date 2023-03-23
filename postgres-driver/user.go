@@ -161,3 +161,23 @@ func (pg *PostgresDriver) validateDeletePortalUserInput(ctx context.Context, use
 
 	return nil
 }
+
+/* Used by Listener */
+func (json User) toOutput() *types.User {
+	return &types.User{
+		ID:        json.ID,
+		Email:     json.Email,
+		SignedUp:  json.SignedUp,
+		CreatedAt: json.CreatedAt,
+		UpdatedAt: json.UpdatedAt,
+	}
+}
+
+func (json UserAuthProvider) toOutput() *types.UserAuthProvider {
+	return &types.UserAuthProvider{
+		ProviderUserID: json.ProviderUserID,
+		Type:           json.Type,
+		Provider:       json.Provider,
+		Federated:      json.Federated,
+	}
+}

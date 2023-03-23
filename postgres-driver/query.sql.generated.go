@@ -21,9 +21,9 @@ VALUES ($1, $2, $3)
 `
 
 type AddGlobalBlockedContractParams struct {
-	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
-	CreatedAt      time.Time            `json:"createdAt"`
-	UpdatedAt      time.Time            `json:"updatedAt"`
+	BlockedAddress types.BlockedAddress `json:"blocked_address"`
+	CreatedAt      time.Time            `json:"created_at"`
+	UpdatedAt      time.Time            `json:"updated_at"`
 }
 
 func (q *Queries) AddGlobalBlockedContract(ctx context.Context, arg AddGlobalBlockedContractParams) error {
@@ -55,8 +55,8 @@ WHERE user_id = $1
 `
 
 type CheckAccountUserAcceptedParams struct {
-	UserID    types.UserID    `json:"userID"`
-	AccountID types.AccountID `json:"accountID"`
+	UserID    types.UserID    `json:"user_id"`
+	AccountID types.AccountID `json:"account_id"`
 }
 
 func (q *Queries) CheckAccountUserAccepted(ctx context.Context, arg CheckAccountUserAcceptedParams) (bool, error) {
@@ -76,8 +76,8 @@ SELECT EXISTS (
 `
 
 type CheckAccountUserExistsParams struct {
-	UserID    types.UserID    `json:"userID"`
-	AccountID types.AccountID `json:"accountID"`
+	UserID    types.UserID    `json:"user_id"`
+	AccountID types.AccountID `json:"account_id"`
 }
 
 func (q *Queries) CheckAccountUserExists(ctx context.Context, arg CheckAccountUserExistsParams) (bool, error) {
@@ -95,8 +95,8 @@ WHERE user_id = $1
 `
 
 type CheckAccountUserRoleParams struct {
-	UserID    types.UserID    `json:"userID"`
-	AccountID types.AccountID `json:"accountID"`
+	UserID    types.UserID    `json:"user_id"`
+	AccountID types.AccountID `json:"account_id"`
 }
 
 func (q *Queries) CheckAccountUserRole(ctx context.Context, arg CheckAccountUserRoleParams) (types.RoleName, error) {
@@ -215,11 +215,11 @@ RETURNING user_id
 
 type CreateUserNewSignUpParams struct {
 	Email          types.Email        `json:"email"`
-	CreatedAt      time.Time          `json:"createdAt"`
-	UpdatedAt      time.Time          `json:"updatedAt"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
 	Type           types.AuthType     `json:"type"`
 	Provider       types.AuthProvider `json:"provider"`
-	ProviderUserID string             `json:"providerUserID"`
+	ProviderUserID string             `json:"provider_user_id"`
 	Federated      bool               `json:"federated"`
 }
 
@@ -247,7 +247,7 @@ WHERE id = $1
 
 type DeleteAccountParams struct {
 	ID        types.AccountID `json:"id"`
-	DeletedAt sql.NullTime    `json:"deletedAt"`
+	DeletedAt sql.NullTime    `json:"deleted_at"`
 }
 
 func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) error {
@@ -262,8 +262,8 @@ WHERE account_id = $1
 `
 
 type DeleteAccountUserParams struct {
-	AccountID types.AccountID `json:"accountID"`
-	UserID    types.UserID    `json:"userID"`
+	AccountID types.AccountID `json:"account_id"`
+	UserID    types.UserID    `json:"user_id"`
 }
 
 func (q *Queries) DeleteAccountUser(ctx context.Context, arg DeleteAccountUserParams) error {
@@ -280,7 +280,7 @@ WHERE id = $1
 
 type DeletePortalAppParams struct {
 	ID        types.PortalAppID `json:"id"`
-	DeletedAt sql.NullTime      `json:"deletedAt"`
+	DeletedAt sql.NullTime      `json:"deleted_at"`
 }
 
 func (q *Queries) DeletePortalApp(ctx context.Context, arg DeletePortalAppParams) error {
@@ -297,7 +297,7 @@ WHERE chain_id = $1
 `
 
 type DeleteUnusedChainAltruistsParams struct {
-	ChainID types.ChainID `json:"chainID"`
+	ChainID types.ChainID `json:"chain_id"`
 	URLs    []string      `json:"urls"`
 }
 
@@ -315,7 +315,7 @@ WHERE chain_id = $1
 `
 
 type DeleteUnusedChainChecksParams struct {
-	ChainID types.ChainID          `json:"chainID"`
+	ChainID types.ChainID          `json:"chain_id"`
 	Types   []types.ChainCheckType `json:"types"`
 }
 
@@ -333,8 +333,8 @@ WHERE chain_id = $1
 `
 
 type DeleteUnusedChainGigastakeRedirectsParams struct {
-	ChainID    types.ChainID `json:"chainID"`
-	AccountIDs []int32       `json:"accountIds"`
+	ChainID    types.ChainID `json:"chain_id"`
+	AccountIDs []int32       `json:"account_ids"`
 }
 
 func (q *Queries) DeleteUnusedChainGigastakeRedirects(ctx context.Context, arg DeleteUnusedChainGigastakeRedirectsParams) error {
@@ -379,10 +379,10 @@ GROUP BY users.id
 type GetUserDataFromAuthProviderUserIDRow struct {
 	ID            types.UserID    `json:"id"`
 	Email         types.Email     `json:"email"`
-	SignedUp      bool            `json:"signedUp"`
-	CreatedAt     time.Time       `json:"createdAt"`
-	UpdatedAt     time.Time       `json:"updatedAt"`
-	AuthProviders json.RawMessage `json:"authProviders"`
+	SignedUp      bool            `json:"signed_up"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+	AuthProviders json.RawMessage `json:"auth_providers"`
 }
 
 func (q *Queries) GetUserDataFromAuthProviderUserID(ctx context.Context, providerUserID string) (GetUserDataFromAuthProviderUserIDRow, error) {
@@ -411,10 +411,10 @@ GROUP BY users.id
 type GetUserDataFromPortalUserIDRow struct {
 	ID            types.UserID    `json:"id"`
 	Email         types.Email     `json:"email"`
-	SignedUp      bool            `json:"signedUp"`
-	CreatedAt     time.Time       `json:"createdAt"`
-	UpdatedAt     time.Time       `json:"updatedAt"`
-	AuthProviders json.RawMessage `json:"authProviders"`
+	SignedUp      bool            `json:"signed_up"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+	AuthProviders json.RawMessage `json:"auth_providers"`
 }
 
 func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.UserID) (GetUserDataFromPortalUserIDRow, error) {
@@ -446,10 +446,10 @@ RETURNING id, name, plan_type, partner_chain_ids, partner_throughput_limit, part
 
 type InsertAccountParams struct {
 	Name      string            `json:"name"`
-	PlanType  types.PayPlanType `json:"planType"`
-	CreatedAt time.Time         `json:"createdAt"`
-	UpdatedAt time.Time         `json:"updatedAt"`
-	LbID      string            `json:"lbID"`
+	PlanType  types.PayPlanType `json:"plan_type"`
+	CreatedAt time.Time         `json:"created_at"`
+	UpdatedAt time.Time         `json:"updated_at"`
+	LbID      string            `json:"lb_id"`
 }
 
 func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (Account, error) {
@@ -506,20 +506,20 @@ RETURNING account_user_access.user_id,
 `
 
 type InsertAccountUserAccessParams struct {
-	AccountID types.AccountID `json:"accountID"`
-	UserID    types.UserID    `json:"userID"`
-	RoleName  types.RoleName  `json:"roleName"`
+	AccountID types.AccountID `json:"account_id"`
+	UserID    types.UserID    `json:"user_id"`
+	RoleName  types.RoleName  `json:"role_name"`
 	Accepted  bool            `json:"accepted"`
-	CreatedAt time.Time       `json:"createdAt"`
-	UpdatedAt time.Time       `json:"updatedAt"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }
 
 type InsertAccountUserAccessRow struct {
-	UserID          types.UserID    `json:"userID"`
-	RoleName        types.RoleName  `json:"roleName"`
+	UserID          types.UserID    `json:"user_id"`
+	RoleName        types.RoleName  `json:"role_name"`
 	Accepted        bool            `json:"accepted"`
-	UserEmail       string          `json:"userEmail"`
-	ProviderUserIDs json.RawMessage `json:"providerUserIds"`
+	UserEmail       string          `json:"user_email"`
+	ProviderUserIDs json.RawMessage `json:"provider_user_ids"`
 }
 
 func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccountUserAccessParams) (InsertAccountUserAccessRow, error) {
@@ -584,17 +584,17 @@ RETURNING account_user_access.user_id,
 
 type InsertAccountUserAccessNoUserParams struct {
 	Email     types.Email     `json:"email"`
-	AccountID types.AccountID `json:"accountID"`
-	RoleName  types.RoleName  `json:"roleName"`
-	CreatedAt time.Time       `json:"createdAt"`
-	UpdatedAt time.Time       `json:"updatedAt"`
+	AccountID types.AccountID `json:"account_id"`
+	RoleName  types.RoleName  `json:"role_name"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }
 
 type InsertAccountUserAccessNoUserRow struct {
-	UserID    types.UserID   `json:"userID"`
-	RoleName  types.RoleName `json:"roleName"`
+	UserID    types.UserID   `json:"user_id"`
+	RoleName  types.RoleName `json:"role_name"`
 	Accepted  bool           `json:"accepted"`
-	UserEmail sql.NullString `json:"userEmail"`
+	UserEmail sql.NullString `json:"user_email"`
 }
 
 func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertAccountUserAccessNoUserParams) (InsertAccountUserAccessNoUserRow, error) {
@@ -624,7 +624,6 @@ INSERT INTO portal_applications (
         staked,
         created_at,
         updated_at,
-        application_ids,
         request_timeout,
         gigastake_redirect,
         first_date_surpassed,
@@ -641,25 +640,23 @@ VALUES (
         $8,
         $9,
         $10,
-        $11,
-        $12
+        $11
     )
-RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, deleted, deleted_at, application_ids, request_timeout, gigastake_redirect, first_date_surpassed, custom_limit
+RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, deleted, deleted_at, request_timeout, gigastake_redirect, first_date_surpassed, custom_limit
 `
 
 type InsertPortalApplicationParams struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int32             `json:"accountID"`
+	AccountID          int32             `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
-	CreatedAt          time.Time         `json:"createdAt"`
-	UpdatedAt          time.Time         `json:"updatedAt"`
-	ApplicationIDs     []string          `json:"applicationIds"`
-	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
-	GigastakeRedirect  sql.NullBool      `json:"gigastakeRedirect"`
-	FirstDateSurpassed sql.NullTime      `json:"firstDateSurpassed"`
-	CustomLimit        sql.NullInt32     `json:"customLimit"`
+	CreatedAt          time.Time         `json:"created_at"`
+	UpdatedAt          time.Time         `json:"updated_at"`
+	RequestTimeout     sql.NullInt32     `json:"request_timeout"`
+	GigastakeRedirect  sql.NullBool      `json:"gigastake_redirect"`
+	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
+	CustomLimit        sql.NullInt32     `json:"custom_limit"`
 }
 
 func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalApplicationParams) (PortalApplication, error) {
@@ -671,7 +668,6 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 		arg.Staked,
 		arg.CreatedAt,
 		arg.UpdatedAt,
-		pq.Array(arg.ApplicationIDs),
 		arg.RequestTimeout,
 		arg.GigastakeRedirect,
 		arg.FirstDateSurpassed,
@@ -688,7 +684,6 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 		&i.UpdatedAt,
 		&i.Deleted,
 		&i.DeletedAt,
-		pq.Array(&i.ApplicationIDs),
 		&i.RequestTimeout,
 		&i.GigastakeRedirect,
 		&i.FirstDateSurpassed,
@@ -712,11 +707,11 @@ RETURNING id, application_id, address, public_key, client_public_key, private_ke
 `
 
 type InsertPortalApplicationAATParams struct {
-	ApplicationID   types.PortalAppID `json:"applicationID"`
+	ApplicationID   types.PortalAppID `json:"application_id"`
 	Address         string            `json:"address"`
-	PublicKey       string            `json:"publicKey"`
-	PrivateKey      string            `json:"privateKey"`
-	ClientPublicKey string            `json:"clientPublicKey"`
+	PublicKey       string            `json:"public_key"`
+	PrivateKey      string            `json:"private_key"`
+	ClientPublicKey string            `json:"client_public_key"`
 	Signature       string            `json:"signature"`
 	Version         string            `json:"version"`
 }
@@ -758,10 +753,10 @@ RETURNING id, application_id, monthly_relay_limit, environment, favorited_chain_
 `
 
 type InsertPortalApplicationSettingParams struct {
-	ApplicationID     types.PortalAppID `json:"applicationID"`
-	SecretKey         sql.NullString    `json:"secretKey"`
-	SecretKeyRequired sql.NullBool      `json:"secretKeyRequired"`
-	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
+	ApplicationID     types.PortalAppID `json:"application_id"`
+	SecretKey         sql.NullString    `json:"secret_key"`
+	SecretKeyRequired sql.NullBool      `json:"secret_key_required"`
+	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
 	Environment       types.Environment `json:"environment"`
 }
 
@@ -800,9 +795,9 @@ RETURNING id, lb_id, duration, sticky_max, stickiness, origins
 `
 
 type InsertStickinessOptionParams struct {
-	LbID       types.PortalAppID `json:"lbID"`
+	LbID       types.PortalAppID `json:"lb_id"`
 	Duration   sql.NullString    `json:"duration"`
-	StickyMax  sql.NullInt32     `json:"stickyMax"`
+	StickyMax  sql.NullInt32     `json:"sticky_max"`
 	Stickiness sql.NullBool      `json:"stickiness"`
 	Origins    []string          `json:"origins"`
 }
@@ -887,21 +882,21 @@ GROUP BY a.id,
 type SelectAccountsRow struct {
 	ID                      types.AccountID   `json:"id"`
 	Name                    string            `json:"name"`
-	PlanType                types.PayPlanType `json:"planType"`
-	PartnerChainIDs         []string          `json:"partnerChainIds"`
-	PartnerThroughputLimit  sql.NullInt32     `json:"partnerThroughputLimit"`
-	PartnerApplicationLimit sql.NullInt32     `json:"partnerApplicationLimit"`
-	CreatedAt               time.Time         `json:"createdAt"`
-	UpdatedAt               time.Time         `json:"updatedAt"`
+	PlanType                types.PayPlanType `json:"plan_type"`
+	PartnerChainIDs         []string          `json:"partner_chain_ids"`
+	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
+	PartnerApplicationLimit sql.NullInt32     `json:"partner_application_limit"`
+	CreatedAt               time.Time         `json:"created_at"`
+	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
-	DeletedAt               sql.NullTime      `json:"deletedAt"`
-	LbID                    string            `json:"lbID"`
-	ChainIDs                []string          `json:"chainIds"`
-	MonthlyRelayLimit       sql.NullInt32     `json:"monthlyRelayLimit"`
-	ThroughputLimit         sql.NullInt32     `json:"throughputLimit"`
-	ApplicationLimit        sql.NullInt32     `json:"applicationLimit"`
+	DeletedAt               sql.NullTime      `json:"deleted_at"`
+	LbID                    string            `json:"lb_id"`
+	ChainIDs                []string          `json:"chain_ids"`
+	MonthlyRelayLimit       sql.NullInt32     `json:"monthly_relay_limit"`
+	ThroughputLimit         sql.NullInt32     `json:"throughput_limit"`
+	ApplicationLimit        sql.NullInt32     `json:"application_limit"`
 	Users                   json.RawMessage   `json:"users"`
-	DailyLimit              sql.NullInt32     `json:"dailyLimit"`
+	DailyLimit              sql.NullInt32     `json:"daily_limit"`
 }
 
 func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]SelectAccountsRow, error) {
@@ -980,22 +975,22 @@ type SelectChainsRow struct {
 	ID                      types.ChainID   `json:"id"`
 	Blockchain              string          `json:"blockchain"`
 	Description             string          `json:"description"`
-	EnforceResult           string          `json:"enforceResult"`
+	EnforceResult           string          `json:"enforce_result"`
 	Ticker                  string          `json:"ticker"`
 	Path                    sql.NullString  `json:"path"`
-	BlockchainID            sql.NullInt32   `json:"blockchainID"`
-	RequestTimeout          sql.NullInt32   `json:"requestTimeout"`
-	LogLimitBlocks          sql.NullInt32   `json:"logLimitBlocks"`
-	ChainAliases            []string        `json:"chainAliases"`
-	AllowedMethods          []string        `json:"allowedMethods"`
+	BlockchainID            sql.NullInt32   `json:"blockchain_id"`
+	RequestTimeout          sql.NullInt32   `json:"request_timeout"`
+	LogLimitBlocks          sql.NullInt32   `json:"log_limit_blocks"`
+	ChainAliases            []string        `json:"chain_aliases"`
+	AllowedMethods          []string        `json:"allowed_methods"`
 	Active                  bool            `json:"active"`
-	CreatedAt               time.Time       `json:"createdAt"`
-	UpdatedAt               time.Time       `json:"updatedAt"`
+	CreatedAt               time.Time       `json:"created_at"`
+	UpdatedAt               time.Time       `json:"updated_at"`
 	Deleted                 sql.NullBool    `json:"deleted"`
-	DeletedAt               sql.NullTime    `json:"deletedAt"`
-	ChainAltruists          json.RawMessage `json:"chainAltruists"`
-	ChainGigastakeRedirects json.RawMessage `json:"chainGigastakeRedirects"`
-	ChainChecks             json.RawMessage `json:"chainChecks"`
+	DeletedAt               sql.NullTime    `json:"deleted_at"`
+	ChainAltruists          json.RawMessage `json:"chain_altruists"`
+	ChainGigastakeRedirects json.RawMessage `json:"chain_gigastake_redirects"`
+	ChainChecks             json.RawMessage `json:"chain_checks"`
 }
 
 func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]SelectChainsRow, error) {
@@ -1050,7 +1045,7 @@ WHERE active = true
 
 type SelectGlobalBlockedContractRow struct {
 	ID             int32                `json:"id"`
-	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
+	BlockedAddress types.BlockedAddress `json:"blocked_address"`
 }
 
 func (q *Queries) SelectGlobalBlockedContract(ctx context.Context) ([]SelectGlobalBlockedContractRow, error) {
@@ -1077,7 +1072,7 @@ func (q *Queries) SelectGlobalBlockedContract(ctx context.Context) ([]SelectGlob
 }
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
-SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.application_ids, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
+SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
     paa.address,
     paa.public_key,
     paa.private_key,
@@ -1168,31 +1163,30 @@ GROUP BY p.id,
 
 type SelectPortalApplicationsRow struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int32             `json:"accountID"`
+	AccountID          int32             `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
-	CreatedAt          time.Time         `json:"createdAt"`
-	UpdatedAt          time.Time         `json:"updatedAt"`
+	CreatedAt          time.Time         `json:"created_at"`
+	UpdatedAt          time.Time         `json:"updated_at"`
 	Deleted            bool              `json:"deleted"`
-	DeletedAt          sql.NullTime      `json:"deletedAt"`
-	ApplicationIDs     []string          `json:"applicationIds"`
-	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
-	GigastakeRedirect  sql.NullBool      `json:"gigastakeRedirect"`
-	FirstDateSurpassed sql.NullTime      `json:"firstDateSurpassed"`
-	CustomLimit        sql.NullInt32     `json:"customLimit"`
+	DeletedAt          sql.NullTime      `json:"deleted_at"`
+	RequestTimeout     sql.NullInt32     `json:"request_timeout"`
+	GigastakeRedirect  sql.NullBool      `json:"gigastake_redirect"`
+	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
+	CustomLimit        sql.NullInt32     `json:"custom_limit"`
 	Address            sql.NullString    `json:"address"`
-	PublicKey          sql.NullString    `json:"publicKey"`
-	PrivateKey         sql.NullString    `json:"privateKey"`
-	ClientPublicKey    sql.NullString    `json:"clientPublicKey"`
+	PublicKey          sql.NullString    `json:"public_key"`
+	PrivateKey         sql.NullString    `json:"private_key"`
+	ClientPublicKey    sql.NullString    `json:"client_public_key"`
 	Signature          sql.NullString    `json:"signature"`
 	Version            sql.NullString    `json:"version"`
-	SecretKey          sql.NullString    `json:"secretKey"`
-	SecretKeyRequired  sql.NullBool      `json:"secretKeyRequired"`
-	MonthlyRelayLimit  sql.NullInt32     `json:"monthlyRelayLimit"`
+	SecretKey          sql.NullString    `json:"secret_key"`
+	SecretKeyRequired  sql.NullBool      `json:"secret_key_required"`
+	MonthlyRelayLimit  sql.NullInt32     `json:"monthly_relay_limit"`
 	Environment        NullEnvironment   `json:"environment"`
 	Duration           sql.NullString    `json:"duration"`
-	StickyMax          sql.NullInt32     `json:"stickyMax"`
+	StickyMax          sql.NullInt32     `json:"sticky_max"`
 	Stickiness         sql.NullBool      `json:"stickiness"`
 	Origins            []string          `json:"origins"`
 	Notifications      json.RawMessage   `json:"notifications"`
@@ -1218,7 +1212,6 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, includeDeleted b
 			&i.UpdatedAt,
 			&i.Deleted,
 			&i.DeletedAt,
-			pq.Array(&i.ApplicationIDs),
 			&i.RequestTimeout,
 			&i.GigastakeRedirect,
 			&i.FirstDateSurpassed,
@@ -1262,9 +1255,9 @@ RETURNING id
 `
 
 type SetGlobalBlockedContractActiveParams struct {
-	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
+	BlockedAddress types.BlockedAddress `json:"blocked_address"`
 	Active         bool                 `json:"active"`
-	UpdatedAt      time.Time            `json:"updatedAt"`
+	UpdatedAt      time.Time            `json:"updated_at"`
 }
 
 func (q *Queries) SetGlobalBlockedContractActive(ctx context.Context, arg SetGlobalBlockedContractActiveParams) (int32, error) {
@@ -1301,10 +1294,10 @@ WHERE account_id = $1
 `
 
 type UpdateAccountUserRoleParams struct {
-	AccountID types.AccountID `json:"accountID"`
-	UserID    types.UserID    `json:"userID"`
-	RoleName  types.RoleName  `json:"roleName"`
-	UpdatedAt time.Time       `json:"updatedAt"`
+	AccountID types.AccountID `json:"account_id"`
+	UserID    types.UserID    `json:"user_id"`
+	RoleName  types.RoleName  `json:"role_name"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }
 
 func (q *Queries) UpdateAccountUserRole(ctx context.Context, arg UpdateAccountUserRoleParams) error {
@@ -1328,7 +1321,7 @@ RETURNING active
 type UpdateChainActiveParams struct {
 	ID        types.ChainID `json:"id"`
 	Active    bool          `json:"active"`
-	UpdatedAt time.Time     `json:"updatedAt"`
+	UpdatedAt time.Time     `json:"updated_at"`
 }
 
 func (q *Queries) UpdateChainActive(ctx context.Context, arg UpdateChainActiveParams) (bool, error) {
@@ -1345,7 +1338,7 @@ WHERE application_id = $1
 `
 
 type UpdateDeletePortalAppNotificationParams struct {
-	ApplicationID types.PortalAppID      `json:"applicationID"`
+	ApplicationID types.PortalAppID      `json:"application_id"`
 	Type          types.NotificationType `json:"type"`
 }
 
@@ -1383,10 +1376,10 @@ WHERE (
 `
 
 type UpdateDeleteWhitelistsParams struct {
-	ApplicationID types.PortalAppID     `json:"applicationID"`
+	ApplicationID types.PortalAppID     `json:"application_id"`
 	Types         []types.WhitelistType `json:"types"`
 	Values        []string              `json:"values"`
-	ChainIDs      []string              `json:"chainIds"`
+	ChainIDs      []string              `json:"chain_ids"`
 }
 
 func (q *Queries) UpdateDeleteWhitelists(ctx context.Context, arg UpdateDeleteWhitelistsParams) error {
@@ -1406,8 +1399,8 @@ WHERE id = ANY ($2::VARCHAR [])
 `
 
 type UpdateFirstDatesSurpassedParams struct {
-	FirstDateSurpassed sql.NullTime `json:"firstDateSurpassed"`
-	ApplicationIDs     []string     `json:"applicationIds"`
+	FirstDateSurpassed sql.NullTime `json:"first_date_surpassed"`
+	ApplicationIDs     []string     `json:"application_ids"`
 }
 
 func (q *Queries) UpdateFirstDatesSurpassed(ctx context.Context, arg UpdateFirstDatesSurpassedParams) error {
@@ -1433,11 +1426,11 @@ VALUES(
 `
 
 type UpdateInsertWhitelistsParams struct {
-	ApplicationID types.PortalAppID     `json:"applicationID"`
+	ApplicationID types.PortalAppID     `json:"application_id"`
 	Types         []types.WhitelistType `json:"types"`
-	ChainIDs      []string              `json:"chainIds"`
+	ChainIDs      []string              `json:"chain_ids"`
 	Values        []string              `json:"values"`
-	CreatedAt     time.Time             `json:"createdAt"`
+	CreatedAt     time.Time             `json:"created_at"`
 }
 
 func (q *Queries) UpdateInsertWhitelists(ctx context.Context, arg UpdateInsertWhitelistsParams) error {
@@ -1461,7 +1454,7 @@ WHERE id = $1
 type UpdatePortalAppNameParams struct {
 	ID        types.PortalAppID `json:"id"`
 	Name      string            `json:"name"`
-	UpdatedAt time.Time         `json:"updatedAt"`
+	UpdatedAt time.Time         `json:"updated_at"`
 }
 
 func (q *Queries) UpdatePortalAppName(ctx context.Context, arg UpdatePortalAppNameParams) error {
@@ -1481,13 +1474,13 @@ WHERE application_id = $1
 `
 
 type UpdatePortalAppSettingsParams struct {
-	ApplicationID     types.PortalAppID `json:"applicationID"`
-	SecretKey         sql.NullString    `json:"secretKey"`
-	SecretKeyRequired sql.NullBool      `json:"secretKeyRequired"`
-	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
+	ApplicationID     types.PortalAppID `json:"application_id"`
+	SecretKey         sql.NullString    `json:"secret_key"`
+	SecretKeyRequired sql.NullBool      `json:"secret_key_required"`
+	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
 	Environment       types.Environment `json:"environment"`
-	FavoritedChainIDs []string          `json:"favoritedChainIds"`
-	UpdatedAt         time.Time         `json:"updatedAt"`
+	FavoritedChainIDs []string          `json:"favorited_chain_ids"`
+	UpdatedAt         time.Time         `json:"updated_at"`
 }
 
 func (q *Queries) UpdatePortalAppSettings(ctx context.Context, arg UpdatePortalAppSettingsParams) error {
@@ -1531,8 +1524,8 @@ WHERE EXCLUDED.active IS true
 `
 
 type UpdateUpsertPortalAppNotificationParams struct {
-	ApplicationID types.PortalAppID         `json:"applicationID"`
-	UpdatedAt     time.Time                 `json:"updatedAt"`
+	ApplicationID types.PortalAppID         `json:"application_id"`
+	UpdatedAt     time.Time                 `json:"updated_at"`
 	Type          types.NotificationType    `json:"type"`
 	Active        bool                      `json:"active"`
 	Destination   string                    `json:"destination"`
@@ -1583,12 +1576,12 @@ WHERE id = (
 `
 
 type UpdateUserAcceptedInviteParams struct {
-	UserID         types.UserID       `json:"userID"`
+	UserID         types.UserID       `json:"user_id"`
 	Type           types.AuthType     `json:"type"`
 	Provider       types.AuthProvider `json:"provider"`
-	ProviderUserID string             `json:"providerUserID"`
+	ProviderUserID string             `json:"provider_user_id"`
 	Federated      bool               `json:"federated"`
-	AccountID      types.AccountID    `json:"accountID"`
+	AccountID      types.AccountID    `json:"account_id"`
 }
 
 func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAcceptedInviteParams) error {
@@ -1656,16 +1649,16 @@ type UpsertChainParams struct {
 	ID             types.ChainID  `json:"id"`
 	Blockchain     string         `json:"blockchain"`
 	Description    string         `json:"description"`
-	EnforceResult  string         `json:"enforceResult"`
+	EnforceResult  string         `json:"enforce_result"`
 	Path           sql.NullString `json:"path"`
 	Ticker         string         `json:"ticker"`
-	BlockchainID   sql.NullInt32  `json:"blockchainID"`
-	RequestTimeout sql.NullInt32  `json:"requestTimeout"`
-	LogLimitBlocks sql.NullInt32  `json:"logLimitBlocks"`
-	ChainAliases   []string       `json:"chainAliases"`
-	AllowedMethods []string       `json:"allowedMethods"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	BlockchainID   sql.NullInt32  `json:"blockchain_id"`
+	RequestTimeout sql.NullInt32  `json:"request_timeout"`
+	LogLimitBlocks sql.NullInt32  `json:"log_limit_blocks"`
+	ChainAliases   []string       `json:"chain_aliases"`
+	AllowedMethods []string       `json:"allowed_methods"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 func (q *Queries) UpsertChain(ctx context.Context, arg UpsertChainParams) (types.ChainID, error) {
@@ -1706,12 +1699,12 @@ SET auth = COALESCE(EXCLUDED.auth, chain_altruists.auth),
 `
 
 type UpsertChainAltruistParams struct {
-	ChainID   types.ChainID       `json:"chainID"`
+	ChainID   types.ChainID       `json:"chain_id"`
 	URL       types.AltruistURL   `json:"url"`
 	Auth      sql.NullString      `json:"auth"`
-	AuthType  types.ChainAuthType `json:"authType"`
-	CreatedAt time.Time           `json:"createdAt"`
-	UpdatedAt time.Time           `json:"updatedAt"`
+	AuthType  types.ChainAuthType `json:"auth_type"`
+	CreatedAt time.Time           `json:"created_at"`
+	UpdatedAt time.Time           `json:"updated_at"`
 }
 
 func (q *Queries) UpsertChainAltruist(ctx context.Context, arg UpsertChainAltruistParams) error {
@@ -1753,13 +1746,13 @@ SET payload = COALESCE(EXCLUDED.payload, chain_checks.payload),
 `
 
 type UpsertChainCheckParams struct {
-	ChainID   types.ChainID        `json:"chainID"`
+	ChainID   types.ChainID        `json:"chain_id"`
 	Type      types.ChainCheckType `json:"type"`
 	Payload   sql.NullString       `json:"payload"`
-	ResultKey sql.NullString       `json:"resultKey"`
+	ResultKey sql.NullString       `json:"result_key"`
 	Allowance sql.NullInt32        `json:"allowance"`
-	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt"`
+	CreatedAt time.Time            `json:"created_at"`
+	UpdatedAt time.Time            `json:"updated_at"`
 }
 
 func (q *Queries) UpsertChainCheck(ctx context.Context, arg UpsertChainCheckParams) error {
@@ -1803,13 +1796,13 @@ SET chain_id = COALESCE(
 `
 
 type UpsertChainGigastakeRedirectParams struct {
-	ChainID   types.ChainID        `json:"chainID"`
-	AccountID types.AccountID      `json:"accountID"`
+	ChainID   types.ChainID        `json:"chain_id"`
+	AccountID types.AccountID      `json:"account_id"`
 	Alias     string               `json:"alias"`
 	Domain    types.RedirectDomain `json:"domain"`
-	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt"`
-	LbID      string               `json:"lbID"`
+	CreatedAt time.Time            `json:"created_at"`
+	UpdatedAt time.Time            `json:"updated_at"`
+	LbID      string               `json:"lb_id"`
 }
 
 func (q *Queries) UpsertChainGigastakeRedirect(ctx context.Context, arg UpsertChainGigastakeRedirectParams) error {
