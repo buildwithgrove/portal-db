@@ -198,3 +198,7 @@ func (p *Permissions) Scan(src interface{}) error {
 func (u *User) Table() Table {
 	return TableUsers
 }
+
+func (u *UserAuthProvider) Table() Table {
+	return TableUserAuthProviders
+}

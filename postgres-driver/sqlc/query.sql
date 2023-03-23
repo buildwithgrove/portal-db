@@ -95,7 +95,6 @@ INSERT INTO portal_applications (
         staked,
         created_at,
         updated_at,
-        application_ids,
         request_timeout,
         gigastake_redirect,
         first_date_surpassed,
@@ -112,8 +111,7 @@ VALUES (
         $8,
         $9,
         $10,
-        $11,
-        $12
+        $11
     )
 RETURNING *;
 -- name: InsertStickinessOption :one

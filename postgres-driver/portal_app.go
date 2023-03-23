@@ -393,3 +393,78 @@ func (pg *PostgresDriver) SetPortalAppDeleted(ctx context.Context, portalAppID t
 
 	return nil
 }
+
+/* Used by Listener */
+func (json PortalApplication) toOutput() *types.PortalApp {
+	return &types.PortalApp{
+		ID:        json.ID,
+		AccountID: types.AccountID(json.AccountID),
+		Name:      json.Name,
+		Gigastake: json.Gigastake,
+		Staked:    json.Staked,
+		CreatedAt: json.CreatedAt,
+		UpdatedAt: json.UpdatedAt,
+		Deleted:   json.Deleted,
+		LegacyFields: types.LegacyFields{
+			RequestTimeout:     json.RequestTimeout.Int32,
+			GigastakeRedirect:  json.GigastakeRedirect.Bool,
+			FirstDateSurpassed: json.FirstDateSurpassed.Time,
+			CustomLimit:        json.CustomLimit.Int32,
+		},
+	}
+}
+
+func (json PortalApplicationAat) toOutput() *types.AAT {
+	return &types.AAT{
+		AppID:           types.PortalAppID(json.ID),
+		Address:         json.Address,
+		PublicKey:       json.PublicKey,
+		ClientPublicKey: json.ClientPublicKey,
+		PrivateKey:      json.PrivateKey,
+		Signature:       json.Signature,
+		Version:         json.Version,
+	}
+}
+
+func (json PortalApplicationSetting) toOutput() *types.Settings {
+	favoritedChainIDs := make(map[types.ChainID]struct{})
+	for _, chainID := range json.FavoritedChainIDs {
+		favoritedChainIDs[types.ChainID(chainID)] = struct{}{}
+	}
+
+	return &types.Settings{
+		AppID:             types.PortalAppID(json.ID),
+		Environment:       types.Environment(json.Environment),
+		SecretKey:         json.SecretKey.String,
+		SecretKeyRequired: json.SecretKeyRequired.Bool,
+		FavoritedChainIDs: favoritedChainIDs,
+		MonthlyRelayLimit: json.MonthlyRelayLimit,
+	}
+}
+
+func (json PortalApplicationWhitelist) toOutput() *types.Whitelist {
+	return &types.Whitelist{
+		ApplicationID: json.ApplicationID,
+		Type:          json.Type,
+		Value:         json.Value,
+		ChainID:       types.ChainID(json.ChainID.String),
+	}
+}
+
+func (json PortalApplicationNotification) toOutput() *types.AppNotification {
+	return &types.AppNotification{
+		AppID:       string(json.ApplicationID),
+		Active:      json.Active,
+		Destination: json.Destination.String,
+		Trigger:     json.Trigger.String,
+		Events:      json.mapEvents(),
+	}
+}
+
+func (json PortalApplicationNotification) mapEvents() map[types.NotificationEvent]bool {
+	events := make(map[types.NotificationEvent]bool)
+	for _, event := range json.Events {
+		events[event] = true
+	}
+	return events
+}

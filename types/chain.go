@@ -185,3 +185,19 @@ func (c *Chain) updateChainChecks(update *UpdateChain) {
 		}
 	}
 }
+
+func (c *Chain) Table() Table {
+	return TableChains
+}
+
+func (c *Altruist) Table() Table {
+	return TableChainAltruists
+}
+
+func (c *GigastakeRedirect) Table() Table {
+	return TableChainGigastakeRedirects
+}
+
+func (c *Check) Table() Table {
+	return TableChainChecks
+}

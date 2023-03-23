@@ -161,8 +161,6 @@ CREATE TABLE portal_applications (
     deleted BOOLEAN NOT NULL DEFAULT false,
     deleted_at TIMESTAMPTZ NULL,
     -- legacy field
-    application_ids VARCHAR(24) ARRAY,
-    -- legacy field
     request_timeout INT,
     -- legacy field
     gigastake_redirect BOOLEAN,

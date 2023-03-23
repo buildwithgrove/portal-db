@@ -529,3 +529,31 @@ func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, us
 	}
 	return nil
 }
+
+/* Used by Listener */
+func (json Account) toOutput() *types.Account {
+	partnerChainIDs := make(map[types.ChainID]struct{})
+	for _, chainID := range json.PartnerChainIDs {
+		partnerChainIDs[types.ChainID(chainID)] = struct{}{}
+	}
+
+	return &types.Account{
+		ID:                     json.ID,
+		Name:                   json.Name,
+		PartnerChainIDs:        partnerChainIDs,
+		PartnerThroughputLimit: json.PartnerThroughputLimit.Int32,
+		PartnerAppLimit:        json.PartnerApplicationLimit.Int32,
+		CreatedAt:              json.CreatedAt,
+		UpdatedAt:              json.UpdatedAt,
+		Deleted:                json.Deleted,
+		LegacyLoadBalancerID:   json.LbID,
+	}
+}
+
+func (json AccountUserAccess) toOutput() *types.AccountUserAccess {
+	return &types.AccountUserAccess{
+		UserID:   json.UserID,
+		RoleName: json.RoleName,
+		Accepted: json.Accepted,
+	}
+}

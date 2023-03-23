@@ -405,161 +405,160 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 type Account struct {
 	ID                      types.AccountID   `json:"id"`
 	Name                    string            `json:"name"`
-	PlanType                types.PayPlanType `json:"planType"`
-	PartnerChainIDs         []string          `json:"partnerChainIds"`
-	PartnerThroughputLimit  sql.NullInt32     `json:"partnerThroughputLimit"`
-	PartnerApplicationLimit sql.NullInt32     `json:"partnerApplicationLimit"`
-	CreatedAt               time.Time         `json:"createdAt"`
-	UpdatedAt               time.Time         `json:"updatedAt"`
+	PlanType                types.PayPlanType `json:"plan_type"`
+	PartnerChainIDs         []string          `json:"partner_chain_ids"`
+	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
+	PartnerApplicationLimit sql.NullInt32     `json:"partner_application_limit"`
+	CreatedAt               time.Time         `json:"created_at"`
+	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
-	DeletedAt               sql.NullTime      `json:"deletedAt"`
-	LbID                    string            `json:"lbID"`
+	DeletedAt               sql.NullTime      `json:"deleted_at"`
+	LbID                    string            `json:"lb_id"`
 }
 
 type AccountUserAccess struct {
 	ID        int32           `json:"id"`
-	AccountID types.AccountID `json:"accountID"`
-	UserID    types.UserID    `json:"userID"`
-	RoleName  types.RoleName  `json:"roleName"`
+	AccountID types.AccountID `json:"account_id"`
+	UserID    types.UserID    `json:"user_id"`
+	RoleName  types.RoleName  `json:"role_name"`
 	Accepted  bool            `json:"accepted"`
-	CreatedAt time.Time       `json:"createdAt"`
-	UpdatedAt time.Time       `json:"updatedAt"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }
 
 type Chain struct {
 	ID             types.ChainID  `json:"id"`
 	Blockchain     string         `json:"blockchain"`
 	Description    string         `json:"description"`
-	EnforceResult  string         `json:"enforceResult"`
+	EnforceResult  string         `json:"enforce_result"`
 	Ticker         string         `json:"ticker"`
 	Path           sql.NullString `json:"path"`
-	BlockchainID   sql.NullInt32  `json:"blockchainID"`
-	RequestTimeout sql.NullInt32  `json:"requestTimeout"`
-	LogLimitBlocks sql.NullInt32  `json:"logLimitBlocks"`
-	ChainAliases   []string       `json:"chainAliases"`
-	AllowedMethods []string       `json:"allowedMethods"`
+	BlockchainID   sql.NullInt32  `json:"blockchain_id"`
+	RequestTimeout sql.NullInt32  `json:"request_timeout"`
+	LogLimitBlocks sql.NullInt32  `json:"log_limit_blocks"`
+	ChainAliases   []string       `json:"chain_aliases"`
+	AllowedMethods []string       `json:"allowed_methods"`
 	Active         bool           `json:"active"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 	Deleted        sql.NullBool   `json:"deleted"`
-	DeletedAt      sql.NullTime   `json:"deletedAt"`
+	DeletedAt      sql.NullTime   `json:"deleted_at"`
 }
 
 type ChainAltruist struct {
 	ID        int32               `json:"id"`
-	ChainID   types.ChainID       `json:"chainID"`
+	ChainID   types.ChainID       `json:"chain_id"`
 	URL       types.AltruistURL   `json:"url"`
 	Auth      sql.NullString      `json:"auth"`
-	AuthType  types.ChainAuthType `json:"authType"`
-	CreatedAt time.Time           `json:"createdAt"`
-	UpdatedAt time.Time           `json:"updatedAt"`
+	AuthType  types.ChainAuthType `json:"auth_type"`
+	CreatedAt time.Time           `json:"created_at"`
+	UpdatedAt time.Time           `json:"updated_at"`
 }
 
 type ChainCheck struct {
 	ID        int32                `json:"id"`
-	ChainID   types.ChainID        `json:"chainID"`
+	ChainID   types.ChainID        `json:"chain_id"`
 	Type      types.ChainCheckType `json:"type"`
 	Payload   sql.NullString       `json:"payload"`
-	ResultKey sql.NullString       `json:"resultKey"`
+	ResultKey sql.NullString       `json:"result_key"`
 	Allowance sql.NullInt32        `json:"allowance"`
-	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt"`
+	CreatedAt time.Time            `json:"created_at"`
+	UpdatedAt time.Time            `json:"updated_at"`
 }
 
 type ChainGigastakeRedirect struct {
 	ID        int32                `json:"id"`
-	ChainID   types.ChainID        `json:"chainID"`
-	AccountID types.AccountID      `json:"accountID"`
+	ChainID   types.ChainID        `json:"chain_id"`
+	AccountID types.AccountID      `json:"account_id"`
 	Alias     string               `json:"alias"`
 	Domain    types.RedirectDomain `json:"domain"`
-	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt"`
-	LbID      string               `json:"lbID"`
+	CreatedAt time.Time            `json:"created_at"`
+	UpdatedAt time.Time            `json:"updated_at"`
+	LbID      string               `json:"lb_id"`
 }
 
 type GlobalBlockedContract struct {
 	ID             int32                `json:"id"`
-	BlockedAddress types.BlockedAddress `json:"blockedAddress"`
+	BlockedAddress types.BlockedAddress `json:"blocked_address"`
 	Active         bool                 `json:"active"`
-	CreatedAt      time.Time            `json:"createdAt"`
-	UpdatedAt      time.Time            `json:"updatedAt"`
+	CreatedAt      time.Time            `json:"created_at"`
+	UpdatedAt      time.Time            `json:"updated_at"`
 }
 
 type PayPlan struct {
-	PlanType          types.PayPlanType `json:"planType"`
-	ChainIDs          []string          `json:"chainIds"`
-	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
-	ThroughputLimit   int32             `json:"throughputLimit"`
-	ApplicationLimit  int32             `json:"applicationLimit"`
-	CreatedAt         time.Time         `json:"createdAt"`
-	UpdatedAt         time.Time         `json:"updatedAt"`
-	DailyLimit        sql.NullInt32     `json:"dailyLimit"`
+	PlanType          types.PayPlanType `json:"plan_type"`
+	ChainIDs          []string          `json:"chain_ids"`
+	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
+	ThroughputLimit   int32             `json:"throughput_limit"`
+	ApplicationLimit  int32             `json:"application_limit"`
+	CreatedAt         time.Time         `json:"created_at"`
+	UpdatedAt         time.Time         `json:"updated_at"`
+	DailyLimit        sql.NullInt32     `json:"daily_limit"`
 }
 
 type PortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int32             `json:"accountID"`
+	AccountID          int32             `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
-	CreatedAt          time.Time         `json:"createdAt"`
-	UpdatedAt          time.Time         `json:"updatedAt"`
+	CreatedAt          time.Time         `json:"created_at"`
+	UpdatedAt          time.Time         `json:"updated_at"`
 	Deleted            bool              `json:"deleted"`
-	DeletedAt          sql.NullTime      `json:"deletedAt"`
-	ApplicationIDs     []string          `json:"applicationIds"`
-	RequestTimeout     sql.NullInt32     `json:"requestTimeout"`
-	GigastakeRedirect  sql.NullBool      `json:"gigastakeRedirect"`
-	FirstDateSurpassed sql.NullTime      `json:"firstDateSurpassed"`
-	CustomLimit        sql.NullInt32     `json:"customLimit"`
+	DeletedAt          sql.NullTime      `json:"deleted_at"`
+	RequestTimeout     sql.NullInt32     `json:"request_timeout"`
+	GigastakeRedirect  sql.NullBool      `json:"gigastake_redirect"`
+	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
+	CustomLimit        sql.NullInt32     `json:"custom_limit"`
 }
 
 type PortalApplicationAat struct {
 	ID              int32             `json:"id"`
-	ApplicationID   types.PortalAppID `json:"applicationID"`
+	ApplicationID   types.PortalAppID `json:"application_id"`
 	Address         string            `json:"address"`
-	PublicKey       string            `json:"publicKey"`
-	ClientPublicKey string            `json:"clientPublicKey"`
-	PrivateKey      string            `json:"privateKey"`
+	PublicKey       string            `json:"public_key"`
+	ClientPublicKey string            `json:"client_public_key"`
+	PrivateKey      string            `json:"private_key"`
 	Signature       string            `json:"signature"`
 	Version         string            `json:"version"`
 }
 
 type PortalApplicationNotification struct {
 	ID            int32                     `json:"id"`
-	ApplicationID types.PortalAppID         `json:"applicationID"`
+	ApplicationID types.PortalAppID         `json:"application_id"`
 	Active        bool                      `json:"active"`
 	Type          types.NotificationType    `json:"type"`
 	Destination   sql.NullString            `json:"destination"`
 	Trigger       sql.NullString            `json:"trigger"`
 	Events        []types.NotificationEvent `json:"events"`
-	UpdatedAt     time.Time                 `json:"updatedAt"`
+	UpdatedAt     time.Time                 `json:"updated_at"`
 }
 
 type PortalApplicationSetting struct {
 	ID                int32             `json:"id"`
-	ApplicationID     types.PortalAppID `json:"applicationID"`
-	MonthlyRelayLimit int32             `json:"monthlyRelayLimit"`
+	ApplicationID     types.PortalAppID `json:"application_id"`
+	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
 	Environment       types.Environment `json:"environment"`
-	FavoritedChainIDs []string          `json:"favoritedChainIds"`
-	SecretKey         sql.NullString    `json:"secretKey"`
-	SecretKeyRequired sql.NullBool      `json:"secretKeyRequired"`
-	UpdatedAt         time.Time         `json:"updatedAt"`
+	FavoritedChainIDs []string          `json:"favorited_chain_ids"`
+	SecretKey         sql.NullString    `json:"secret_key"`
+	SecretKeyRequired sql.NullBool      `json:"secret_key_required"`
+	UpdatedAt         time.Time         `json:"updated_at"`
 }
 
 type PortalApplicationWhitelist struct {
 	ID            int32               `json:"id"`
-	ApplicationID types.PortalAppID   `json:"applicationID"`
+	ApplicationID types.PortalAppID   `json:"application_id"`
 	Type          types.WhitelistType `json:"type"`
 	Value         string              `json:"value"`
-	ChainID       sql.NullString      `json:"chainID"`
-	CreatedAt     time.Time           `json:"createdAt"`
+	ChainID       sql.NullString      `json:"chain_id"`
+	CreatedAt     time.Time           `json:"created_at"`
 }
 
 type StickinessOption struct {
 	ID         int32             `json:"id"`
-	LbID       types.PortalAppID `json:"lbID"`
+	LbID       types.PortalAppID `json:"lb_id"`
 	Duration   sql.NullString    `json:"duration"`
-	StickyMax  sql.NullInt32     `json:"stickyMax"`
+	StickyMax  sql.NullInt32     `json:"sticky_max"`
 	Stickiness sql.NullBool      `json:"stickiness"`
 	Origins    []string          `json:"origins"`
 }
@@ -567,24 +566,24 @@ type StickinessOption struct {
 type User struct {
 	ID        types.UserID `json:"id"`
 	Email     types.Email  `json:"email"`
-	SignedUp  bool         `json:"signedUp"`
-	CreatedAt time.Time    `json:"createdAt"`
-	UpdatedAt time.Time    `json:"updatedAt"`
+	SignedUp  bool         `json:"signed_up"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
 }
 
 type UserAuthProvider struct {
 	ID             int32              `json:"id"`
-	UserID         types.UserID       `json:"userID"`
+	UserID         types.UserID       `json:"user_id"`
 	Type           types.AuthType     `json:"type"`
 	Provider       types.AuthProvider `json:"provider"`
-	ProviderUserID string             `json:"providerUserID"`
+	ProviderUserID string             `json:"provider_user_id"`
 	Federated      bool               `json:"federated"`
-	CreatedAt      time.Time          `json:"createdAt"`
+	CreatedAt      time.Time          `json:"created_at"`
 }
 
 type UserRole struct {
-	RoleName    string              `json:"roleName"`
+	RoleName    string              `json:"role_name"`
 	Permissions []types.Permissions `json:"permissions"`
-	CreatedAt   time.Time           `json:"createdAt"`
-	UpdatedAt   time.Time           `json:"updatedAt"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
 }

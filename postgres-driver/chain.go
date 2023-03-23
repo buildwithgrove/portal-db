@@ -393,3 +393,51 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 
 	return activeStatus, nil
 }
+
+/* Used by Listener */
+func (json Chain) toOutput() *types.Chain {
+	return &types.Chain{
+		ID:             json.ID,
+		Blockchain:     json.Blockchain,
+		Description:    json.Description,
+		EnforceResult:  json.EnforceResult,
+		Path:           json.Path.String,
+		Ticker:         json.Ticker,
+		ChainAliases:   json.ChainAliases,
+		AllowedMethods: json.AllowedMethods,
+		BlockchainID:   json.BlockchainID.Int32,
+		LogLimitBlocks: json.LogLimitBlocks.Int32,
+		RequestTimeout: json.RequestTimeout.Int32,
+		Active:         json.Active,
+		CreatedAt:      json.CreatedAt,
+		UpdatedAt:      json.UpdatedAt,
+	}
+}
+
+func (json ChainAltruist) toOutput() *types.Altruist {
+	return &types.Altruist{
+		ChainID:  json.ChainID,
+		URL:      json.URL,
+		Auth:     json.Auth.String,
+		AuthType: json.AuthType,
+	}
+}
+
+func (json ChainCheck) toOutput() *types.Check {
+	return &types.Check{
+		ChainID:   json.ChainID,
+		Payload:   json.Payload.String,
+		ResultKey: json.ResultKey.String,
+		Allowance: json.Allowance.Int32,
+	}
+}
+
+func (r ChainGigastakeRedirect) toOutput() *types.GigastakeRedirect {
+	return &types.GigastakeRedirect{
+		ChainID:              r.ChainID,
+		AccountID:            r.AccountID,
+		Domain:               r.Domain,
+		Alias:                r.Alias,
+		LegacyLoadBalancerID: r.LbID,
+	}
+}

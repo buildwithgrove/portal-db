@@ -112,3 +112,11 @@ func (pg *PostgresDriver) RemoveBlockedContract(ctx context.Context, blockedAddr
 
 	return nil
 }
+
+/* Used by Listener */
+func (gbc GlobalBlockedContract) toOutput() *types.BlockedContract {
+	return &types.BlockedContract{
+		BlockedAddress: gbc.BlockedAddress,
+		Active:         gbc.Active,
+	}
+}
