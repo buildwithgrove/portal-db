@@ -216,3 +216,28 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 		})
 	}
 }
+
+func (ts *PGDriverTestSuite) Test_ReadUserPermissions() {
+	tests := []struct {
+		name                    string
+		expectedUserPermissions map[types.UserID]*types.UserPermissions
+		err                     error
+	}{
+		{
+			name:                    "Should read all UserPermissions for the DB as a map[types.UserID]*types.UserPermissions",
+			expectedUserPermissions: testdata.UserPermissions,
+			err:                     nil,
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			userPermissions, err := ts.driver.ReadUserPermissions(context.Background())
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				ts.Equal(test.expectedUserPermissions, userPermissions)
+			}
+		})
+	}
+}

@@ -162,6 +162,44 @@ func (pg *PostgresDriver) validateDeletePortalUserInput(ctx context.Context, use
 	return nil
 }
 
+/* ----- postgresdriver UserPermissions Read Methods ----- */
+
+/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
+func (pg *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error) {
+	userRoles, err := pg.SelectUserPermissions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userPermissionsMap := make(map[types.UserID]*types.UserPermissions)
+
+	for _, userRoleRow := range userRoles {
+		userID := userRoleRow.UserID
+		accountID := userRoleRow.AccountID
+
+		if userPermissions, ok := userPermissionsMap[userID]; ok {
+			_, err := userPermissions.UpsertPermissions(accountID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			emptyPermissions := types.UserPermissions{
+				UserID:   userID,
+				Accounts: map[types.AccountID]types.AccountPermissions{},
+			}
+
+			permissions, err := emptyPermissions.UpsertPermissions(accountID, userRoleRow.RoleName)
+			if err != nil {
+				return nil, err
+			}
+
+			userPermissionsMap[userID] = permissions
+		}
+	}
+
+	return userPermissionsMap, nil
+}
+
 /* ----- Used by Listener ----- */
 func (json User) toOutput() *types.User {
 	return &types.User{

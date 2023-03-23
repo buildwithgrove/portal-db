@@ -345,6 +345,121 @@ var (
 		ProviderUserID:   "auth0|commander_data",
 	}
 
+	UserPermissions = map[types.UserID]*types.UserPermissions{
+		1: {
+			UserID: 1,
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				1: types.AccountPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
+				},
+			},
+		},
+		2: {
+			UserID: 2,
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				1: types.AccountPermissions{
+					RoleName: types.RoleAdmin,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+					},
+				},
+				2: types.AccountPermissions{
+					RoleName: types.RoleMember,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+					},
+				},
+			},
+		},
+		3: {
+			UserID: 3,
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				2: types.AccountPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
+				},
+			},
+		},
+		4: {
+			UserID: 4,
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				2: types.AccountPermissions{
+					RoleName: types.RoleMember,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+					},
+				},
+				4: types.AccountPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
+				},
+				5: types.AccountPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
+				},
+			},
+		},
+		5: {
+			UserID: 5,
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				3: types.AccountPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
+				},
+			},
+		},
+		6: {
+			UserID: 6,
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				3: types.AccountPermissions{
+					RoleName: types.RoleAdmin,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+					},
+				},
+			},
+		},
+		7: {
+			UserID: 7,
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				3: types.AccountPermissions{
+					RoleName: types.RoleMember,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+					},
+				},
+			},
+		},
+	}
+
 	PortalApps = map[types.PortalAppID]*types.PortalApp{
 		"test_app_3487u329rfn23f9": {
 			ID:        "test_app_3487u329rfn23f9",
@@ -942,19 +1057,19 @@ var (
 		Users: []types.UserAccess{
 			{
 				UserID:   "james_holden",
-				RoleName: "OWNER",
+				RoleName: types.RoleOwner,
 				Email:    "james.holden123@test.com",
 				Accepted: true,
 			},
 			{
 				UserID:   "paul_atreides",
-				RoleName: "ADMIN",
+				RoleName: types.RoleAdmin,
 				Email:    "paul.atreides456@test.com",
 				Accepted: true,
 			},
 			{
 				UserID:   "rick_deckard",
-				RoleName: "ADMIN",
+				RoleName: types.RoleAdmin,
 				Email:    "rick.deckard456@test.com",
 				Accepted: false,
 			},
@@ -1160,7 +1275,7 @@ var (
 
 	LegacyUserAccess = &types.UserAccess{
 		Email:    "james.holden123@test.com",
-		RoleName: "OWNER",
+		RoleName: types.RoleOwner,
 		Accepted: true,
 		UserID:   "james_holden_push_button",
 	}

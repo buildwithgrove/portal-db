@@ -1223,6 +1223,52 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, includeDeleted b
 	return items, nil
 }
 
+const selectUserPermissions = `-- name: SelectUserPermissions :many
+SELECT aua.account_id,
+    aua.user_id,
+    aua.role_name,
+    ur.permissions as permissions
+FROM account_user_access as aua
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
+WHERE aua.accepted = true
+    AND aua.user_id IS NOT NULL
+`
+
+type SelectUserPermissionsRow struct {
+	AccountID   types.AccountID     `json:"account_id"`
+	UserID      types.UserID        `json:"user_id"`
+	RoleName    types.RoleName      `json:"role_name"`
+	Permissions []types.Permissions `json:"permissions"`
+}
+
+func (q *Queries) SelectUserPermissions(ctx context.Context) ([]SelectUserPermissionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectUserPermissions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectUserPermissionsRow
+	for rows.Next() {
+		var i SelectUserPermissionsRow
+		if err := rows.Scan(
+			&i.AccountID,
+			&i.UserID,
+			&i.RoleName,
+			pq.Array(&i.Permissions),
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setGlobalBlockedContractActive = `-- name: SetGlobalBlockedContractActive :one
 UPDATE global_blocked_contracts
 SET active = $2,

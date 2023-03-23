@@ -268,6 +268,15 @@ WHERE (
         OR a.deleted = false
     )
 GROUP BY a.id;
+-- name: SelectUserPermissions :many
+SELECT aua.account_id,
+    aua.user_id,
+    aua.role_name,
+    ur.permissions as permissions
+FROM account_user_access as aua
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
+WHERE aua.accepted = true
+    AND aua.user_id IS NOT NULL;
 -- name: InsertAccount :one
 INSERT INTO accounts (
         name,
