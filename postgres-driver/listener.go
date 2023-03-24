@@ -18,7 +18,7 @@ type notification struct {
 	Data   any          `json:"data"`
 }
 
-func (n notification) parseAccountsNotification() *types.Notification {
+func (n notification) parseAccountNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbAccount Account
 	_ = json.Unmarshal(rawData, &dbAccount)
@@ -54,7 +54,7 @@ func (n notification) parsePortalAppNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseAppAATsNotification() *types.Notification {
+func (n notification) parseAATNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbAAT PortalApplicationAat
 	_ = json.Unmarshal(rawData, &dbAAT)
@@ -66,7 +66,7 @@ func (n notification) parseAppAATsNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseAppSettingsNotification() *types.Notification {
+func (n notification) parseSettingsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbAppSettings PortalApplicationSetting
 	_ = json.Unmarshal(rawData, &dbAppSettings)
@@ -78,7 +78,7 @@ func (n notification) parseAppSettingsNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseAppWhitelistsNotification() *types.Notification {
+func (n notification) parseWhitelistNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbAppWhitelist PortalApplicationWhitelist
 	_ = json.Unmarshal(rawData, &dbAppWhitelist)
@@ -90,7 +90,7 @@ func (n notification) parseAppWhitelistsNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseAppNotificationsNotification() *types.Notification {
+func (n notification) parseAppNotificationNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbAppNotification PortalApplicationNotification
 	_ = json.Unmarshal(rawData, &dbAppNotification)
@@ -214,20 +214,20 @@ func (n notification) parseStickinessOptionsNotification() *types.Notification {
 func (n notification) parseNotification() *types.Notification {
 	switch n.Table {
 	case types.TableAccounts:
-		return n.parseAccountsNotification()
+		return n.parseAccountNotification()
 	case types.TableAccountUserAccess:
 		return n.parseAccountUserAccessNotification()
 
 	case types.TablePortalApps:
 		return n.parsePortalAppNotification()
 	case types.TableAppAATs:
-		return n.parseAppAATsNotification()
+		return n.parseAATNotification()
 	case types.TableAppSettings:
-		return n.parseAppSettingsNotification()
+		return n.parseSettingsNotification()
 	case types.TableAppWhitelists:
-		return n.parseAppWhitelistsNotification()
+		return n.parseWhitelistNotification()
 	case types.TableAppNotifications:
-		return n.parseAppNotificationsNotification()
+		return n.parseAppNotificationNotification()
 
 	case types.TableChains:
 		return n.parseChainNotification()

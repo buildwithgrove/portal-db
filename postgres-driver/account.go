@@ -534,6 +534,7 @@ func (json Account) toOutput() *types.Account {
 	return &types.Account{
 		ID:                     json.ID,
 		Name:                   json.Name,
+		PlanType:               json.PlanType,
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: json.PartnerThroughputLimit.Int32,
 		PartnerAppLimit:        json.PartnerApplicationLimit.Int32,

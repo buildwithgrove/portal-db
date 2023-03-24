@@ -151,10 +151,11 @@ var (
 
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
-		Name:      "test_create_account_1",
-		PlanType:  types.PayPlanType("developer_plan"),
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
+		Name:            "test_create_account_1",
+		PlanType:        types.PayPlanType("developer_plan"),
+		PartnerChainIDs: map[types.ChainID]struct{}{},
+		CreatedAt:       MockTimestamp,
+		UpdatedAt:       MockTimestamp,
 		// TODO - remove when v2 migration finished
 		LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
 	}
@@ -741,7 +742,8 @@ var (
 				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync: {Type: types.ChainCheckTypeSync,
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
 					Payload:   `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`,
 					ResultKey: "result",
 					Allowance: 2,
