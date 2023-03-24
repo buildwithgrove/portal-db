@@ -147,16 +147,16 @@ var (
 			// TODO - remove when v2 migration finished
 			LegacyLoadBalancerID: "test_lb_f5ee77c7c58025231",
 		},
+	}
 
-		// This account used to test creation of Accounts
-		6: {
-			Name:      "test_create_account_1",
-			PlanType:  types.PayPlanType("developer_plan"),
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
-			// TODO - remove when v2 migration finished
-			LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
-		},
+	// TestCreateAccount account used to test creation of Accounts
+	TestCreateAccount = &types.Account{
+		Name:      "test_create_account_1",
+		PlanType:  types.PayPlanType("developer_plan"),
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+		// TODO - remove when v2 migration finished
+		LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
 	}
 
 	AccountUserAccess = map[types.UserID]types.AccountUserAccess{
@@ -605,77 +605,77 @@ var (
 				FirstDateSurpassed: MockTimestamp,
 			},
 		},
+	}
 
-		// This app used to test creation of PortalApps
-		"test_app_create_208r23r": {
-			ID:        "test_app_create_208r23r",
-			AccountID: 1,
-			Name:      "create_pokt_app_1",
-			Gigastake: true,
-			Staked:    false,
-			AAT: types.AAT{
-				Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
-				PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
-				ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
-				PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
-				Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
-				Version:         "0.0.1",
-			},
-			Settings: types.Settings{
-				Environment:       types.EnvironmentProduction,
-				SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
-				SecretKeyRequired: true,
-			},
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
-			// TODO remove legacy fields when migration to V2 schema complete
-			LegacyFields: types.LegacyFields{
-				CustomLimit:        750_000,
-				RequestTimeout:     15_000,
-				GigastakeRedirect:  true,
-				FirstDateSurpassed: MockTimestamp,
-				StickyOptions: types.StickyOptions{
-					Duration:      "60",
-					StickyOrigins: []string{"https://pokt.network", "https://example.com"},
-					StickyMax:     1200,
-					Stickiness:    true,
-				},
+	// TestCreatePortalApp app used to test creation of PortalApps
+	TestCreatePortalApp = &types.PortalApp{
+		ID:        "test_app_create_208r23r",
+		AccountID: 1,
+		Name:      "create_pokt_app_1",
+		Gigastake: true,
+		Staked:    false,
+		AAT: types.AAT{
+			Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
+			PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
+			ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
+			PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
+			Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
+			Version:         "0.0.1",
+		},
+		Settings: types.Settings{
+			Environment:       types.EnvironmentProduction,
+			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
+			SecretKeyRequired: true,
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+		// TODO remove legacy fields when migration to V2 schema complete
+		LegacyFields: types.LegacyFields{
+			CustomLimit:        750_000,
+			RequestTimeout:     15_000,
+			GigastakeRedirect:  true,
+			FirstDateSurpassed: MockTimestamp,
+			StickyOptions: types.StickyOptions{
+				Duration:      "60",
+				StickyOrigins: []string{"https://pokt.network", "https://example.com"},
+				StickyMax:     1200,
+				Stickiness:    true,
 			},
 		},
+	}
 
-		// This app used to test updates of PortalApps
-		"test_app_update_b03ca84c": {
-			ID:        "test_app_update_b03ca84c",
-			AccountID: 1,
-			Name:      "", // name set in test
-			Gigastake: true,
-			Staked:    false,
-			AAT: types.AAT{
-				Address:         "test_7d0cd2743543a6200e41224594954b06",
-				PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
-				ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
-				PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
-				Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
-				Version:         "0.0.1",
-			},
-			Settings: types.Settings{
-				Environment:       types.EnvironmentProduction,
-				SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
-				SecretKeyRequired: true,
-			},
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
-			LegacyFields: types.LegacyFields{
-				CustomLimit:        0,
-				RequestTimeout:     5_000,
-				GigastakeRedirect:  true,
-				FirstDateSurpassed: MockTimestamp,
-				StickyOptions: types.StickyOptions{
-					Duration:      "60",
-					StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-					StickyMax:     300,
-					Stickiness:    true,
-				},
+	// TestUpdatePortalApp app used to test updates of PortalApps
+	TestUpdatePortalApp = &types.PortalApp{
+		ID:        "test_app_update_b03ca84c",
+		AccountID: 1,
+		Name:      "", // name set in test
+		Gigastake: true,
+		Staked:    false,
+		AAT: types.AAT{
+			Address:         "test_7d0cd2743543a6200e41224594954b06",
+			PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
+			ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
+			PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
+			Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
+			Version:         "0.0.1",
+		},
+		Settings: types.Settings{
+			Environment:       types.EnvironmentProduction,
+			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
+			SecretKeyRequired: true,
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+		LegacyFields: types.LegacyFields{
+			CustomLimit:        0,
+			RequestTimeout:     5_000,
+			GigastakeRedirect:  true,
+			FirstDateSurpassed: MockTimestamp,
+			StickyOptions: types.StickyOptions{
+				Duration:      "60",
+				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
+				StickyMax:     300,
+				Stickiness:    true,
 			},
 		},
 	}

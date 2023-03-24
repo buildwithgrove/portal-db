@@ -98,7 +98,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 	}{
 		{
 			name:            "Should create a new PortalApp in the database",
-			portalApp:       *testdata.PortalApps["test_app_create_208r23r"],
+			portalApp:       *testdata.TestCreatePortalApp,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
@@ -274,7 +274,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 	for i, test := range tests {
 		ts.Run(test.name, func() {
 			// Create new portal app for test case
-			createApp := *testdata.PortalApps["test_app_update_b03ca84c"]
+			createApp := *testdata.TestUpdatePortalApp
 			createApp.Name = fmt.Sprintf("test-update-portal-app-%d", i+1)
 			createdPortalApp, err := ts.driver.WritePortalApp(context.Background(), createApp, testdata.MockTimestamp)
 			ts.NoError(err)

@@ -51,7 +51,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 		{
 			name:            "Should create a new Account in the database",
 			ownerID:         1,
-			account:         *testdata.Accounts[types.AccountID(6)],
+			account:         *testdata.TestCreateAccount,
 			testCreatedTime: testdata.MockTimestamp,
 			users: map[types.UserID]types.AccountUserAccess{
 				1: {
