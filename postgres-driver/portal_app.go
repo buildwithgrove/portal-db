@@ -427,9 +427,13 @@ func (json PortalApplicationAat) toOutput() *types.AAT {
 }
 
 func (json PortalApplicationSetting) toOutput() *types.Settings {
-	favoritedChainIDs := make(map[types.ChainID]struct{})
-	for _, chainID := range json.FavoritedChainIDs {
-		favoritedChainIDs[types.ChainID(chainID)] = struct{}{}
+	var favoritedChainIDs map[types.ChainID]struct{}
+	if len(json.FavoritedChainIDs) != 0 {
+		favoritedChainIDs = make(map[types.ChainID]struct{})
+		for _, chainID := range json.FavoritedChainIDs {
+			favoritedChainIDs[types.ChainID(chainID)] = struct{}{}
+		}
+
 	}
 
 	return &types.Settings{
