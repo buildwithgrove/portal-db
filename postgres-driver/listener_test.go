@@ -26,6 +26,7 @@ func TestListen(t *testing.T) {
 					Data: &types.Account{
 						ID:                     5,
 						Name:                   "test_account_5",
+						PlanType:               "basic_plan",
 						PartnerChainIDs:        map[types.ChainID]struct{}{"0006": {}, "0040": {}},
 						PartnerThroughputLimit: 6_000,
 						PartnerAppLimit:        1,
