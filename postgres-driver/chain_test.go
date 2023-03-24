@@ -52,7 +52,7 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 	}{
 		{
 			name:            "Should create a new Chain in the database",
-			chain:           *testdata.Chains[types.ChainID("0006")],
+			chain:           *testdata.TestCreateChain,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
@@ -65,7 +65,7 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 		{
 			name:            "Should fail if any input Altruist has an invalid URL",
 			altruistURL:     "htz:/bad-domain2",
-			chain:           *testdata.Chains[types.ChainID("0006")],
+			chain:           *testdata.TestCreateChain,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
 		},
@@ -73,7 +73,7 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			name:            "Should fail if any input Redirect has an invalid URL",
 			altruistURL:     "http://im.good.com",
 			redirectDomain:  "who did this",
-			chain:           *testdata.Chains[types.ChainID("0006")],
+			chain:           *testdata.TestCreateChain,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidRedirectDomain.Error(), "who did this"),
 		},
@@ -82,7 +82,7 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			altruistURL:     "http://im.good.com",
 			redirectDomain:  "im.also.good.io",
 			redirectAccount: 47,
-			chain:           *testdata.Chains[types.ChainID("0006")],
+			chain:           *testdata.TestCreateChain,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errAccountDoesntExist.Error(), 47),
 		},

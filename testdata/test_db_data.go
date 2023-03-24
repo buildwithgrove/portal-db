@@ -853,50 +853,50 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
+	}
 
-		// This chain used to test creation of Chains
-		"0006": {
-			ID:            "0006",
-			Blockchain:    "solana-mainnet",
-			Description:   "Solana",
-			EnforceResult: "JSON",
-			Ticker:        "SOL",
-			ChainAliases:  []string{"solana-mainnet"},
-			Altruists: []types.Altruist{
-				{
-					URL:      "https://test-rpc.solana-1.io:1234",
-					AuthType: types.ChainAuthTypeBasicAuth,
-					Auth:     "test_pocket:auth123456",
-				},
-				{
-					URL:      "https://test-rpc.solana-2.io:1234",
-					AuthType: types.ChainAuthTypeBasicAuth,
-					Auth:     "test_pocket:auth123456",
-				},
+	// TestCreateChain used to test creation of Chains
+	TestCreateChain = &types.Chain{
+		ID:            "0006",
+		Blockchain:    "solana-mainnet",
+		Description:   "Solana",
+		EnforceResult: "JSON",
+		Ticker:        "SOL",
+		ChainAliases:  []string{"solana-mainnet"},
+		Altruists: []types.Altruist{
+			{
+				URL:      "https://test-rpc.solana-1.io:1234",
+				AuthType: types.ChainAuthTypeBasicAuth,
+				Auth:     "test_pocket:auth123456",
 			},
-			Redirects: []types.GigastakeRedirect{
-				{
-					AccountID: 5, Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network",
-					// TODO - remove when v2 migration finished
-					LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
-				},
+			{
+				URL:      "https://test-rpc.solana-2.io:1234",
+				AuthType: types.ChainAuthTypeBasicAuth,
+				Auth:     "test_pocket:auth123456",
 			},
-			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync: {
-					Type:      types.ChainCheckTypeSync,
-					Payload:   `{"id":1,"jsonrpc":"2.0","method":"getSync"}`,
-					ResultKey: "sync",
-					Allowance: 2,
-				},
-				types.ChainCheckTypeChain: {
-					Type:      types.ChainCheckTypeChain,
-					Payload:   `{"id":1,"jsonrpc":"2.0","method":"getChain"}`,
-					ResultKey: "chain",
-				},
-			},
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
 		},
+		Redirects: []types.GigastakeRedirect{
+			{
+				AccountID: 5, Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network",
+				// TODO - remove when v2 migration finished
+				LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
+			},
+		},
+		Checks: map[types.ChainCheckType]types.Check{
+			types.ChainCheckTypeSync: {
+				Type:      types.ChainCheckTypeSync,
+				Payload:   `{"id":1,"jsonrpc":"2.0","method":"getSync"}`,
+				ResultKey: "sync",
+				Allowance: 2,
+			},
+			types.ChainCheckTypeChain: {
+				Type:      types.ChainCheckTypeChain,
+				Payload:   `{"id":1,"jsonrpc":"2.0","method":"getChain"}`,
+				ResultKey: "chain",
+			},
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
 	}
 
 	GlobalBlockedContracts = types.GlobalBlockedContracts{
