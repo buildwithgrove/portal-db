@@ -64,7 +64,7 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Tag
-        uses: codfish/semantic-release-action@v2.0.0
+        uses: codfish/semantic-release-action@v2.1.0
         id: semantic
         with:
           branches: |
