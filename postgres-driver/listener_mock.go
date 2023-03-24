@@ -33,6 +33,7 @@ func (l *ListenerMock) Listen(channel string) error {
 }
 
 // MockEvent simulates a database event by sending mock notifications to the ListenerMock's Notify channel.
+// To exclude main or side table actions simply pass an empty string as the parameter.
 func (l *ListenerMock) MockEvent(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) {
 	notifications := mockContent(mainTableAction, sideTablesAction, content)
 
@@ -89,34 +90,38 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 		partnerChainIDs = append(partnerChainIDs, string(chainID))
 	}
 
-	inputs = append(inputs, inputStruct{
-		action: mainTableAction,
-		table:  types.TableAccounts,
-		input: Account{
-			ID:                      account.ID,
-			Name:                    account.Name,
-			PlanType:                account.PlanType,
-			PartnerChainIDs:         partnerChainIDs,
-			PartnerThroughputLimit:  newSQLNullInt32(account.PartnerThroughputLimit, true),
-			PartnerApplicationLimit: newSQLNullInt32(account.PartnerAppLimit, true),
-			CreatedAt:               account.CreatedAt,
-			UpdatedAt:               account.UpdatedAt,
-			Deleted:                 account.Deleted,
-			LbID:                    account.LegacyLoadBalancerID,
-		},
-	})
-
-	for _, userAccess := range account.Users {
+	if mainTableAction != "" {
 		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableAccountUserAccess,
-			input: AccountUserAccess{
-				AccountID: account.ID,
-				UserID:    userAccess.UserID,
-				RoleName:  userAccess.RoleName,
-				Accepted:  userAccess.Accepted,
+			action: mainTableAction,
+			table:  types.TableAccounts,
+			input: Account{
+				ID:                      account.ID,
+				Name:                    account.Name,
+				PlanType:                account.PlanType,
+				PartnerChainIDs:         partnerChainIDs,
+				PartnerThroughputLimit:  newSQLNullInt32(account.PartnerThroughputLimit, true),
+				PartnerApplicationLimit: newSQLNullInt32(account.PartnerAppLimit, true),
+				CreatedAt:               account.CreatedAt,
+				UpdatedAt:               account.UpdatedAt,
+				Deleted:                 account.Deleted,
+				LbID:                    account.LegacyLoadBalancerID,
 			},
 		})
+	}
+
+	if sideTablesAction != "" {
+		for _, userAccess := range account.Users {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableAccountUserAccess,
+				input: AccountUserAccess{
+					AccountID: account.ID,
+					UserID:    userAccess.UserID,
+					RoleName:  userAccess.RoleName,
+					Accepted:  userAccess.Accepted,
+				},
+			})
+		}
 	}
 
 	return inputs
@@ -128,89 +133,93 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 
 	var inputs []inputStruct
 
-	inputs = append(inputs, inputStruct{
-		action: mainTableAction,
-		table:  types.TablePortalApps,
-		input: PortalApplication{
-			ID:                 portalApp.ID,
-			AccountID:          int32(portalApp.AccountID),
-			Name:               portalApp.Name,
-			Gigastake:          portalApp.Gigastake,
-			Staked:             portalApp.Staked,
-			CreatedAt:          portalApp.CreatedAt,
-			UpdatedAt:          portalApp.UpdatedAt,
-			Deleted:            portalApp.Deleted,
-			RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
-			GigastakeRedirect:  newSQLNullBool(&portalApp.LegacyFields.GigastakeRedirect),
-			FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
-			CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
-		},
-	})
-
-	inputs = append(inputs, inputStruct{
-		action: sideTablesAction,
-		table:  types.TableAppAATs,
-		input: PortalApplicationAat{
-			ApplicationID:   portalApp.ID,
-			Address:         portalApp.AAT.Address,
-			PublicKey:       portalApp.AAT.PublicKey,
-			ClientPublicKey: portalApp.AAT.ClientPublicKey,
-			PrivateKey:      portalApp.AAT.PrivateKey,
-			Signature:       portalApp.AAT.Signature,
-			Version:         portalApp.AAT.Version,
-		},
-	})
-
-	favoritedChainIDs := make([]string, 0, len(portalApp.Settings.FavoritedChainIDs))
-	for chainID := range portalApp.Settings.FavoritedChainIDs {
-		favoritedChainIDs = append(favoritedChainIDs, string(chainID))
-	}
-
-	inputs = append(inputs, inputStruct{
-		action: sideTablesAction,
-		table:  types.TableAppSettings,
-		input: PortalApplicationSetting{
-			ApplicationID:     portalApp.ID,
-			MonthlyRelayLimit: portalApp.Settings.MonthlyRelayLimit,
-			Environment:       portalApp.Settings.Environment,
-			FavoritedChainIDs: favoritedChainIDs,
-			SecretKey:         newSQLNullString(portalApp.Settings.SecretKey),
-			SecretKeyRequired: newSQLNullBool(&portalApp.Settings.SecretKeyRequired),
-		},
-	})
-
-	for chainID := range portalApp.Whitelists.Blockchains {
+	if mainTableAction != "" {
 		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableAppWhitelists,
-			input: PortalApplicationWhitelist{
-				ApplicationID: portalApp.ID,
-				Type:          types.WhitelistTypeBlockchains,
-				Value:         string(chainID),
+			action: mainTableAction,
+			table:  types.TablePortalApps,
+			input: PortalApplication{
+				ID:                 portalApp.ID,
+				AccountID:          int32(portalApp.AccountID),
+				Name:               portalApp.Name,
+				Gigastake:          portalApp.Gigastake,
+				Staked:             portalApp.Staked,
+				CreatedAt:          portalApp.CreatedAt,
+				UpdatedAt:          portalApp.UpdatedAt,
+				Deleted:            portalApp.Deleted,
+				RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
+				GigastakeRedirect:  newSQLNullBool(&portalApp.LegacyFields.GigastakeRedirect),
+				FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
+				CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
 			},
 		})
 	}
 
-	for _, notification := range portalApp.Notifications {
-		events := []types.NotificationEvent{}
-		for event, active := range notification.Events {
-			if active {
-				events = append(events, event)
-			}
+	if sideTablesAction != "" {
+		inputs = append(inputs, inputStruct{
+			action: sideTablesAction,
+			table:  types.TableAppAATs,
+			input: PortalApplicationAat{
+				ApplicationID:   portalApp.ID,
+				Address:         portalApp.AAT.Address,
+				PublicKey:       portalApp.AAT.PublicKey,
+				ClientPublicKey: portalApp.AAT.ClientPublicKey,
+				PrivateKey:      portalApp.AAT.PrivateKey,
+				Signature:       portalApp.AAT.Signature,
+				Version:         portalApp.AAT.Version,
+			},
+		})
+
+		favoritedChainIDs := make([]string, 0, len(portalApp.Settings.FavoritedChainIDs))
+		for chainID := range portalApp.Settings.FavoritedChainIDs {
+			favoritedChainIDs = append(favoritedChainIDs, string(chainID))
 		}
 
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
-			table:  types.TableAppNotifications,
-			input: PortalApplicationNotification{
-				ApplicationID: portalApp.ID,
-				Active:        notification.Active,
-				Type:          notification.Type,
-				Destination:   newSQLNullString(notification.Destination),
-				Trigger:       newSQLNullString(notification.Trigger),
-				Events:        events,
+			table:  types.TableAppSettings,
+			input: PortalApplicationSetting{
+				ApplicationID:     portalApp.ID,
+				MonthlyRelayLimit: portalApp.Settings.MonthlyRelayLimit,
+				Environment:       portalApp.Settings.Environment,
+				FavoritedChainIDs: favoritedChainIDs,
+				SecretKey:         newSQLNullString(portalApp.Settings.SecretKey),
+				SecretKeyRequired: newSQLNullBool(&portalApp.Settings.SecretKeyRequired),
 			},
 		})
+
+		for chainID := range portalApp.Whitelists.Blockchains {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableAppWhitelists,
+				input: PortalApplicationWhitelist{
+					ApplicationID: portalApp.ID,
+					Type:          types.WhitelistTypeBlockchains,
+					Value:         string(chainID),
+				},
+			})
+		}
+
+		for _, notification := range portalApp.Notifications {
+			events := []types.NotificationEvent{}
+			for event, active := range notification.Events {
+				if active {
+					events = append(events, event)
+				}
+			}
+
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableAppNotifications,
+				input: PortalApplicationNotification{
+					ApplicationID: portalApp.ID,
+					Active:        notification.Active,
+					Type:          notification.Type,
+					Destination:   newSQLNullString(notification.Destination),
+					Trigger:       newSQLNullString(notification.Trigger),
+					Events:        events,
+				},
+			})
+		}
 	}
 
 	return inputs
@@ -222,66 +231,70 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 
 	var inputs []inputStruct
 
-	inputs = append(inputs, inputStruct{
-		action: mainTableAction,
-		table:  types.TableChains,
-		input: Chain{
-			ID:             chain.ID,
-			Blockchain:     chain.Blockchain,
-			Description:    chain.Description,
-			EnforceResult:  chain.EnforceResult,
-			Ticker:         chain.Ticker,
-			Path:           newSQLNullString(chain.Path),
-			BlockchainID:   newSQLNullInt32(chain.BlockchainID, true),
-			RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
-			LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
-			ChainAliases:   chain.ChainAliases,
-			AllowedMethods: chain.AllowedMethods,
-			Active:         chain.Active,
-			CreatedAt:      chain.CreatedAt,
-			UpdatedAt:      chain.UpdatedAt,
-		},
-	})
-
-	for _, altruist := range chain.Altruists {
+	if mainTableAction != "" {
 		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableChainAltruists,
-			input: ChainAltruist{
-				ChainID:  chain.ID,
-				URL:      altruist.URL,
-				Auth:     newSQLNullString(altruist.Auth),
-				AuthType: altruist.AuthType,
+			action: mainTableAction,
+			table:  types.TableChains,
+			input: Chain{
+				ID:             chain.ID,
+				Blockchain:     chain.Blockchain,
+				Description:    chain.Description,
+				EnforceResult:  chain.EnforceResult,
+				Ticker:         chain.Ticker,
+				Path:           newSQLNullString(chain.Path),
+				BlockchainID:   newSQLNullInt32(chain.BlockchainID, true),
+				RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
+				LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
+				ChainAliases:   chain.ChainAliases,
+				AllowedMethods: chain.AllowedMethods,
+				Active:         chain.Active,
+				CreatedAt:      chain.CreatedAt,
+				UpdatedAt:      chain.UpdatedAt,
 			},
 		})
 	}
 
-	for _, redirect := range chain.Redirects {
-		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableChainGigastakeRedirects,
-			input: ChainGigastakeRedirect{
-				ChainID:   chain.ID,
-				AccountID: redirect.AccountID,
-				Alias:     redirect.Alias,
-				Domain:    redirect.Domain,
-				LbID:      redirect.LegacyLoadBalancerID,
-			},
-		})
-	}
+	if sideTablesAction != "" {
+		for _, altruist := range chain.Altruists {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableChainAltruists,
+				input: ChainAltruist{
+					ChainID:  chain.ID,
+					URL:      altruist.URL,
+					Auth:     newSQLNullString(altruist.Auth),
+					AuthType: altruist.AuthType,
+				},
+			})
+		}
 
-	for _, check := range chain.Checks {
-		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableChainChecks,
-			input: ChainCheck{
-				ChainID:   chain.ID,
-				Type:      check.Type,
-				Payload:   newSQLNullString(check.Payload),
-				ResultKey: newSQLNullString(check.ResultKey),
-				Allowance: newSQLNullInt32(check.Allowance, true),
-			},
-		})
+		for _, redirect := range chain.Redirects {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableChainGigastakeRedirects,
+				input: ChainGigastakeRedirect{
+					ChainID:   chain.ID,
+					AccountID: redirect.AccountID,
+					Alias:     redirect.Alias,
+					Domain:    redirect.Domain,
+					LbID:      redirect.LegacyLoadBalancerID,
+				},
+			})
+		}
+
+		for _, check := range chain.Checks {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableChainChecks,
+				input: ChainCheck{
+					ChainID:   chain.ID,
+					Type:      check.Type,
+					Payload:   newSQLNullString(check.Payload),
+					ResultKey: newSQLNullString(check.ResultKey),
+					Allowance: newSQLNullInt32(check.Allowance, true),
+				},
+			})
+		}
 	}
 
 	return inputs
