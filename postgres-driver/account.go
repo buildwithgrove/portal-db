@@ -526,9 +526,12 @@ func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, us
 
 /* ----- Used by Listener ----- */
 func (json Account) toOutput() *types.Account {
-	partnerChainIDs := make(map[types.ChainID]struct{})
-	for _, chainID := range json.PartnerChainIDs {
-		partnerChainIDs[types.ChainID(chainID)] = struct{}{}
+	var partnerChainIDs map[types.ChainID]struct{}
+	if len(json.PartnerChainIDs) != 0 {
+		partnerChainIDs = make(map[types.ChainID]struct{})
+		for _, chainID := range json.PartnerChainIDs {
+			partnerChainIDs[types.ChainID(chainID)] = struct{}{}
+		}
 	}
 
 	return &types.Account{
