@@ -114,7 +114,7 @@ type (
 	// UserPermissions stores all roles and read/write permissions for all Accounts for a given user
 	UserPermissions struct {
 		UserID   UserID                           `json:"userID"`
-		Accounts map[AccountID]AccountPermissions `json:"loadBalancers"`
+		Accounts map[AccountID]AccountPermissions `json:"accounts"`
 	}
 	// AccountPermissions stores user role and permissions for a given PortalApp
 	AccountPermissions struct {

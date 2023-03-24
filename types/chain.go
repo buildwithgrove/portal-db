@@ -84,6 +84,7 @@ type (
 		Checks         map[ChainCheckType]Check `json:"chainChecks,omitempty"`
 		CreatedAt      time.Time                `json:"createdAt"`
 		UpdatedAt      time.Time                `json:"updatedAt"`
+		Deleted        bool                     `json:"deleted"`
 	}
 	Altruist struct {
 		ChainID  ChainID       `json:"chainID,omitempty"`

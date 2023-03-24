@@ -222,17 +222,32 @@ func (a *PortalApp) MonthlyLimit() int32 {
 func (a *PortalApp) AddWhitelist(whitelist Whitelist) {
 	switch whitelist.Type {
 	case WhitelistTypeOrigins:
+		if a.Whitelists.Origins == nil {
+			a.Whitelists.Origins = make(map[Origin]struct{})
+		}
 		a.Whitelists.Origins[Origin(whitelist.Value)] = struct{}{}
 	case WhitelistTypeBlockchains:
+		if a.Whitelists.Blockchains == nil {
+			a.Whitelists.Blockchains = make(map[ChainID]struct{})
+		}
 		a.Whitelists.Blockchains[ChainID(whitelist.Value)] = struct{}{}
 	case WhitelistTypeUserAgents:
+		if a.Whitelists.UserAgents == nil {
+			a.Whitelists.UserAgents = make(map[UserAgent]struct{})
+		}
 		a.Whitelists.UserAgents[UserAgent(whitelist.Value)] = struct{}{}
 	case WhitelistTypeContracts:
+		if a.Whitelists.Contracts == nil {
+			a.Whitelists.Contracts = make(map[ChainID]map[Contract]struct{})
+		}
 		if _, ok := a.Whitelists.Contracts[whitelist.ChainID]; !ok {
 			a.Whitelists.Contracts[whitelist.ChainID] = make(map[Contract]struct{})
 		}
 		a.Whitelists.Contracts[whitelist.ChainID][Contract(whitelist.Value)] = struct{}{}
 	case WhitelistTypeMethods:
+		if a.Whitelists.Methods == nil {
+			a.Whitelists.Methods = make(map[ChainID]map[Method]struct{})
+		}
 		if _, ok := a.Whitelists.Methods[whitelist.ChainID]; !ok {
 			a.Whitelists.Methods[whitelist.ChainID] = make(map[Method]struct{})
 		}
