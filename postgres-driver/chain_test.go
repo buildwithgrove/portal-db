@@ -270,7 +270,12 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 			},
 			redirects: []types.GigastakeRedirect{},
 			checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"query"}`,
+					ResultKey: "result.sync_info",
+					Allowance: 1,
+				},
 			},
 			err: nil,
 		},

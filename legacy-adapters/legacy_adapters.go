@@ -363,6 +363,7 @@ func getAuthType(userID string) types.AuthType {
 func ConvertToV2Chain(b *types.Blockchain) types.Chain {
 	checks := map[types.ChainCheckType]types.Check{
 		types.ChainCheckTypeSync: {
+			Type:      types.ChainCheckTypeSync,
 			Payload:   b.SyncCheckOptions.Body,
 			ResultKey: b.SyncCheckOptions.ResultKey,
 			Allowance: int32(b.SyncCheckOptions.Allowance),
@@ -429,7 +430,7 @@ func parseAltruistURL(rawURL string) types.Altruist {
 func ConvertToV2UpdateChain(u types.UpdateBlockchain) types.Chain {
 	allowance := *u.Allowance
 	checks := map[types.ChainCheckType]types.Check{
-		types.ChainCheckTypeSync: {Payload: u.Body, ResultKey: u.ResultKey, Allowance: int32(allowance)},
+		types.ChainCheckTypeSync: {Type: types.ChainCheckTypeSync, Payload: u.Body, ResultKey: u.ResultKey, Allowance: int32(allowance)},
 	}
 	if u.ChainIDCheck != "" {
 		checks[types.ChainCheckTypeChain] = types.Check{Payload: u.ChainIDCheck}

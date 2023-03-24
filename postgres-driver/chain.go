@@ -158,6 +158,7 @@ func (c *SelectChainsRow) toChecks() (map[types.ChainCheckType]types.Check, erro
 	for _, checkRow := range checkRows {
 		checkType := types.ChainCheckType(checkRow.Type)
 		checks[checkType] = types.Check{
+			Type:      checkType,
 			Payload:   checkRow.Payload,
 			ResultKey: checkRow.ResultKey,
 			Allowance: checkRow.Allowance,

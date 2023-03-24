@@ -7,16 +7,23 @@ import (
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
-type ListenerMock struct {
-	Notify chan *pq.Notification
-}
+type (
+	// ListenerMock simulates a listener that receives notifications from a PostgreSQL database.
+	ListenerMock struct {
+		Notify chan *pq.Notification
+	}
+	inputStruct struct {
+		action types.Action
+		table  types.Table
+		input  any
+	}
+)
 
 func NewListenerMock() *ListenerMock {
-	return &ListenerMock{
-		Notify: make(chan *pq.Notification, 32),
-	}
+	return &ListenerMock{Notify: make(chan *pq.Notification, 32)}
 }
 
+// NotificationChannel returns a channel that receives pq.Notification instances.
 func (l *ListenerMock) NotificationChannel() <-chan *pq.Notification {
 	return l.Notify
 }
@@ -25,12 +32,16 @@ func (l *ListenerMock) Listen(channel string) error {
 	return nil
 }
 
-type inputStruct struct {
-	action types.Action
-	table  types.Table
-	input  any
+// MockEvent simulates a database event by sending mock notifications to the ListenerMock's Notify channel.
+func (l *ListenerMock) MockEvent(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) {
+	notifications := mockContent(mainTableAction, sideTablesAction, content)
+
+	for _, notification := range notifications {
+		l.Notify <- notification
+	}
 }
 
+// mockInput creates a mock pq.Notification based on the inputStruct provided.
 func mockInput(inStruct inputStruct) *pq.Notification {
 	notification, _ := json.Marshal(notification{
 		Table:  inStruct.table,
@@ -43,18 +54,19 @@ func mockInput(inStruct inputStruct) *pq.Notification {
 	}
 }
 
+// mockContent creates a list of mock notifications for a given mainTableAction, sideTablesAction, and content.
 func mockContent(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) []*pq.Notification {
 	var inputs []inputStruct
 
 	switch content.(type) {
+	case *types.Account:
+		inputs = accountInputs(mainTableAction, sideTablesAction, content)
 	case *types.PortalApp:
 		inputs = portalAppInputs(mainTableAction, sideTablesAction, content)
-	// case *types.Chain:
-	// 	inputs = blockchainInputs(mainTableAction, sideTablesAction, content)
-	// case *types.Account:
-	// 	inputs = loadBalancerInputs(mainTableAction, sideTablesAction, content)
+	case *types.Chain:
+		inputs = chainInputs(mainTableAction, sideTablesAction, content)
 	default:
-		panic("type not supported")
+		panic("invalid content type")
 	}
 
 	var notifications []*pq.Notification
@@ -66,14 +78,51 @@ func mockContent(mainTableAction, sideTablesAction types.Action, content types.S
 	return notifications
 }
 
-func (l *ListenerMock) MockEvent(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) {
-	notifications := mockContent(mainTableAction, sideTablesAction, content)
+// accountInputs generates the mock data for a listener notification for an Account struct
+func accountInputs(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) []inputStruct {
+	account := content.(*types.Account)
 
-	for _, notification := range notifications {
-		l.Notify <- notification
+	var inputs []inputStruct
+
+	partnerChainIDs := make([]string, 0, len(account.PartnerChainIDs))
+	for chainID := range account.PartnerChainIDs {
+		partnerChainIDs = append(partnerChainIDs, string(chainID))
 	}
+
+	inputs = append(inputs, inputStruct{
+		action: mainTableAction,
+		table:  types.TableAccounts,
+		input: Account{
+			ID:                      account.ID,
+			Name:                    account.Name,
+			PlanType:                account.PlanType,
+			PartnerChainIDs:         partnerChainIDs,
+			PartnerThroughputLimit:  newSQLNullInt32(account.PartnerThroughputLimit, true),
+			PartnerApplicationLimit: newSQLNullInt32(account.PartnerAppLimit, true),
+			CreatedAt:               account.CreatedAt,
+			UpdatedAt:               account.UpdatedAt,
+			Deleted:                 account.Deleted,
+			LbID:                    account.LegacyLoadBalancerID,
+		},
+	})
+
+	for _, userAccess := range account.Users {
+		inputs = append(inputs, inputStruct{
+			action: sideTablesAction,
+			table:  types.TableAccountUserAccess,
+			input: AccountUserAccess{
+				AccountID: account.ID,
+				UserID:    userAccess.UserID,
+				RoleName:  userAccess.RoleName,
+				Accepted:  userAccess.Accepted,
+			},
+		})
+	}
+
+	return inputs
 }
 
+// portalAppInputs generates the mock data for a listener notification for a PortalApp struct
 func portalAppInputs(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) []inputStruct {
 	portalApp := content.(*types.PortalApp)
 
@@ -130,30 +179,6 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		},
 	})
 
-	for origin := range portalApp.Whitelists.Origins {
-		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableAppWhitelists,
-			input: PortalApplicationWhitelist{
-				ApplicationID: portalApp.ID,
-				Type:          types.WhitelistTypeOrigins,
-				Value:         string(origin),
-			},
-		})
-	}
-
-	for userAgent := range portalApp.Whitelists.UserAgents {
-		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableAppWhitelists,
-			input: PortalApplicationWhitelist{
-				ApplicationID: portalApp.ID,
-				Type:          types.WhitelistTypeUserAgents,
-				Value:         string(userAgent),
-			},
-		})
-	}
-
 	for chainID := range portalApp.Whitelists.Blockchains {
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
@@ -164,36 +189,6 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				Value:         string(chainID),
 			},
 		})
-	}
-
-	for chainID, contracts := range portalApp.Whitelists.Contracts {
-		for contract := range contracts {
-			inputs = append(inputs, inputStruct{
-				action: sideTablesAction,
-				table:  types.TableAppWhitelists,
-				input: PortalApplicationWhitelist{
-					ApplicationID: portalApp.ID,
-					Type:          types.WhitelistTypeContracts,
-					Value:         string(contract),
-					ChainID:       newSQLNullString(string(chainID)),
-				},
-			})
-		}
-	}
-
-	for chainID, methods := range portalApp.Whitelists.Methods {
-		for method := range methods {
-			inputs = append(inputs, inputStruct{
-				action: sideTablesAction,
-				table:  types.TableAppWhitelists,
-				input: PortalApplicationWhitelist{
-					ApplicationID: portalApp.ID,
-					Type:          types.WhitelistTypeMethods,
-					Value:         string(method),
-					ChainID:       newSQLNullString(string(chainID)),
-				},
-			})
-		}
 	}
 
 	for _, notification := range portalApp.Notifications {
@@ -214,6 +209,77 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				Destination:   newSQLNullString(notification.Destination),
 				Trigger:       newSQLNullString(notification.Trigger),
 				Events:        events,
+			},
+		})
+	}
+
+	return inputs
+}
+
+// chainInputs generates the mock data for a listener notification for a Chain struct
+func chainInputs(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) []inputStruct {
+	chain := content.(*types.Chain)
+
+	var inputs []inputStruct
+
+	inputs = append(inputs, inputStruct{
+		action: mainTableAction,
+		table:  types.TableChains,
+		input: Chain{
+			ID:             chain.ID,
+			Blockchain:     chain.Blockchain,
+			Description:    chain.Description,
+			EnforceResult:  chain.EnforceResult,
+			Ticker:         chain.Ticker,
+			Path:           newSQLNullString(chain.Path),
+			BlockchainID:   newSQLNullInt32(chain.BlockchainID, true),
+			RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
+			LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
+			ChainAliases:   chain.ChainAliases,
+			AllowedMethods: chain.AllowedMethods,
+			Active:         chain.Active,
+			CreatedAt:      chain.CreatedAt,
+			UpdatedAt:      chain.UpdatedAt,
+		},
+	})
+
+	for _, altruist := range chain.Altruists {
+		inputs = append(inputs, inputStruct{
+			action: sideTablesAction,
+			table:  types.TableChainAltruists,
+			input: ChainAltruist{
+				ChainID:  chain.ID,
+				URL:      altruist.URL,
+				Auth:     newSQLNullString(altruist.Auth),
+				AuthType: altruist.AuthType,
+			},
+		})
+	}
+
+	for _, redirect := range chain.Redirects {
+		inputs = append(inputs, inputStruct{
+			action: sideTablesAction,
+			table:  types.TableChainGigastakeRedirects,
+			input: ChainGigastakeRedirect{
+				ChainID:   chain.ID,
+				AccountID: redirect.AccountID,
+				Alias:     redirect.Alias,
+				Domain:    redirect.Domain,
+				LbID:      redirect.LegacyLoadBalancerID,
+			},
+		})
+	}
+
+	for _, check := range chain.Checks {
+		inputs = append(inputs, inputStruct{
+			action: sideTablesAction,
+			table:  types.TableChainChecks,
+			input: ChainCheck{
+				ChainID:   chain.ID,
+				Type:      check.Type,
+				Payload:   newSQLNullString(check.Payload),
+				ResultKey: newSQLNullString(check.ResultKey),
+				Allowance: newSQLNullInt32(check.Allowance, true),
 			},
 		})
 	}

@@ -416,7 +416,7 @@ func (json PortalApplication) toOutput() *types.PortalApp {
 
 func (json PortalApplicationAat) toOutput() *types.AAT {
 	return &types.AAT{
-		AppID:           types.PortalAppID(json.ID),
+		AppID:           json.ApplicationID,
 		Address:         json.Address,
 		PublicKey:       json.PublicKey,
 		ClientPublicKey: json.ClientPublicKey,
@@ -433,7 +433,7 @@ func (json PortalApplicationSetting) toOutput() *types.Settings {
 	}
 
 	return &types.Settings{
-		AppID:             types.PortalAppID(json.ID),
+		AppID:             json.ApplicationID,
 		Environment:       types.Environment(json.Environment),
 		SecretKey:         json.SecretKey.String,
 		SecretKeyRequired: json.SecretKeyRequired.Bool,

@@ -18,6 +18,30 @@ type notification struct {
 	Data   any          `json:"data"`
 }
 
+func (n notification) parseAccountsNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbAccount Account
+	_ = json.Unmarshal(rawData, &dbAccount)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbAccount.toOutput(),
+	}
+}
+
+func (n notification) parseAccountUserAccessNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbAccountUser AccountUserAccess
+	_ = json.Unmarshal(rawData, &dbAccountUser)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbAccountUser.toOutput(),
+	}
+}
+
 func (n notification) parsePortalAppNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbPortalApp PortalApplication
@@ -78,66 +102,6 @@ func (n notification) parseAppNotificationsNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseAccountsNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbAccount Account
-	_ = json.Unmarshal(rawData, &dbAccount)
-
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbAccount.toOutput(),
-	}
-}
-
-func (n notification) parseAccountUserAccessNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbAccountUser AccountUserAccess
-	_ = json.Unmarshal(rawData, &dbAccountUser)
-
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbAccountUser.toOutput(),
-	}
-}
-
-func (n notification) parseUsersNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbUser User
-	_ = json.Unmarshal(rawData, &dbUser)
-
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbUser.toOutput(),
-	}
-}
-
-func (n notification) parseUserAuthProviderNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbUserAuthProvider UserAuthProvider
-	_ = json.Unmarshal(rawData, &dbUserAuthProvider)
-
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbUserAuthProvider.toOutput(),
-	}
-}
-
-func (n notification) parsePayPlanNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbPayPlan PayPlan
-	_ = json.Unmarshal(rawData, &dbPayPlan)
-
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbPayPlan.toOutput(),
-	}
-}
-
 func (n notification) parseChainNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbChain Chain
@@ -186,6 +150,42 @@ func (n notification) parseGigastakeRedirectNotification() *types.Notification {
 	}
 }
 
+func (n notification) parseUsersNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbUser User
+	_ = json.Unmarshal(rawData, &dbUser)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbUser.toOutput(),
+	}
+}
+
+func (n notification) parseUserAuthProviderNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbUserAuthProvider UserAuthProvider
+	_ = json.Unmarshal(rawData, &dbUserAuthProvider)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbUserAuthProvider.toOutput(),
+	}
+}
+
+func (n notification) parsePayPlanNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbPayPlan PayPlan
+	_ = json.Unmarshal(rawData, &dbPayPlan)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbPayPlan.toOutput(),
+	}
+}
+
 func (n notification) parseGlobalBlockedContractNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbBlockedContract GlobalBlockedContract
@@ -213,6 +213,11 @@ func (n notification) parseStickinessOptionsNotification() *types.Notification {
 
 func (n notification) parseNotification() *types.Notification {
 	switch n.Table {
+	case types.TableAccounts:
+		return n.parseAccountsNotification()
+	case types.TableAccountUserAccess:
+		return n.parseAccountUserAccessNotification()
+
 	case types.TablePortalApps:
 		return n.parsePortalAppNotification()
 	case types.TableAppAATs:
@@ -224,19 +229,6 @@ func (n notification) parseNotification() *types.Notification {
 	case types.TableAppNotifications:
 		return n.parseAppNotificationsNotification()
 
-	case types.TableAccounts:
-		return n.parseAccountsNotification()
-	case types.TableAccountUserAccess:
-		return n.parseAccountUserAccessNotification()
-
-	case types.TableUsers:
-		return n.parseUsersNotification()
-	case types.TableUserAuthProviders:
-		return n.parseUserAuthProviderNotification()
-
-	case types.TablePayPlans:
-		return n.parsePayPlanNotification()
-
 	case types.TableChains:
 		return n.parseChainNotification()
 	case types.TableChainAltruists:
@@ -245,6 +237,14 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseGigastakeRedirectNotification()
 	case types.TableChainChecks:
 		return n.parseChainCheckNotification()
+
+	case types.TableUsers:
+		return n.parseUsersNotification()
+	case types.TableUserAuthProviders:
+		return n.parseUserAuthProviderNotification()
+
+	case types.TablePayPlans:
+		return n.parsePayPlanNotification()
 
 	case types.TableGlobalBlockedContracts:
 		return n.parseGlobalBlockedContractNotification()

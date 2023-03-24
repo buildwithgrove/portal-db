@@ -705,7 +705,12 @@ var (
 				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"query"}`,
+					ResultKey: "result.sync_info",
+					Allowance: 1,
+				},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -736,7 +741,11 @@ var (
 				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 2},
+				types.ChainCheckTypeSync: {Type: types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`,
+					ResultKey: "result",
+					Allowance: 2,
+				},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -766,8 +775,17 @@ var (
 				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`, ResultKey: "result", Allowance: 5},
-				types.ChainCheckTypeChain: {Payload: `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`, ResultKey: "id"},
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}`,
+					ResultKey: "result",
+					Allowance: 5,
+				},
+				types.ChainCheckTypeChain: {
+					Type:      types.ChainCheckTypeChain,
+					Payload:   `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`,
+					ResultKey: "id",
+				},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -791,7 +809,12 @@ var (
 			},
 			Redirects: []types.GigastakeRedirect{},
 			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"sui_blockNumber","params":[]}`, ResultKey: "result", Allowance: 7},
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"sui_blockNumber","params":[]}`,
+					ResultKey: "result",
+					Allowance: 7,
+				},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -820,7 +843,12 @@ var (
 				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}`, ResultKey: "result", Allowance: 8},
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}`,
+					ResultKey: "result",
+					Allowance: 8,
+				},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -854,8 +882,17 @@ var (
 				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
-				types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"getSync"}`, ResultKey: "sync", Allowance: 2},
-				types.ChainCheckTypeChain: {Payload: `{"id":1,"jsonrpc":"2.0","method":"getChain"}`, ResultKey: "chain"},
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"getSync"}`,
+					ResultKey: "sync",
+					Allowance: 2,
+				},
+				types.ChainCheckTypeChain: {
+					Type:      types.ChainCheckTypeChain,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"getChain"}`,
+					ResultKey: "chain",
+				},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -966,9 +1003,22 @@ var (
 			},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
-			types.ChainCheckTypeSync:  {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
-			types.ChainCheckTypeChain: {Payload: `{"id":1,"jsonrpc":"2.0","method":"chain"}`, ResultKey: "result.sync_info"},
-			types.ChainCheckTypeMerge: {Payload: `{"id":1,"jsonrpc":"2.0","method":"merge"}`, ResultKey: "result.sync_info"},
+			types.ChainCheckTypeSync: {
+				Type:      types.ChainCheckTypeSync,
+				Payload:   `{"id":1,"jsonrpc":"2.0","method":"query"}`,
+				ResultKey: "result.sync_info",
+				Allowance: 1,
+			},
+			types.ChainCheckTypeChain: {
+				Type:      types.ChainCheckTypeChain,
+				Payload:   `{"id":1,"jsonrpc":"2.0","method":"chain"}`,
+				ResultKey: "result.sync_info",
+			},
+			types.ChainCheckTypeMerge: {
+				Type:      types.ChainCheckTypeMerge,
+				Payload:   `{"id":1,"jsonrpc":"2.0","method":"merge"}`,
+				ResultKey: "result.sync_info",
+			},
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
@@ -993,7 +1043,12 @@ var (
 			{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
-			types.ChainCheckTypeSync: {Payload: `{"id":1,"jsonrpc":"2.0","method":"query"}`, ResultKey: "result.sync_info", Allowance: 1},
+			types.ChainCheckTypeSync: {
+				Type:      types.ChainCheckTypeSync,
+				Payload:   `{"id":1,"jsonrpc":"2.0","method":"query"}`,
+				ResultKey: "result.sync_info",
+				Allowance: 1,
+			},
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
