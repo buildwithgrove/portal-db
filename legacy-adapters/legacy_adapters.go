@@ -11,7 +11,7 @@ import (
 )
 
 /* V2 Struct to Legacy Struct Adaptors */
-func ConvertToLegacyLoadBalancer(a *types.Account) types.LoadBalancer {
+func ConvertToLegacyLoadBalancer(a types.Account) types.LoadBalancer {
 	var users []types.UserAccess
 
 	for _, accountUser := range a.Users {
@@ -42,7 +42,8 @@ func ConvertToLegacyLoadBalancer(a *types.Account) types.LoadBalancer {
 
 	var legacyApps []*types.Application
 	for _, portalApp := range a.PortalApps {
-		legacyApps = append(legacyApps, ConvertToLegacyApplication(portalApp, userID, a.Plan.Type, legacyDailyLimit))
+		app := ConvertToLegacyApplication(*portalApp, userID, a.Plan.Type, legacyDailyLimit)
+		legacyApps = append(legacyApps, &app)
 	}
 	var appData *types.PortalApp
 	for _, portalApp := range a.PortalApps {
@@ -65,8 +66,8 @@ func ConvertToLegacyLoadBalancer(a *types.Account) types.LoadBalancer {
 	}
 }
 
-func ConvertToLegacyApplication(a *types.PortalApp, userID string, planType types.PayPlanType, dailyLimit int32) *types.Application {
-	return &types.Application{
+func ConvertToLegacyApplication(a types.PortalApp, userID string, planType types.PayPlanType, dailyLimit int32) types.Application {
+	return types.Application{
 		ID:     string(a.ID),
 		UserID: userID,
 		Name:   a.Name,
@@ -96,7 +97,7 @@ func ConvertToLegacyApplication(a *types.PortalApp, userID string, planType type
 	}
 }
 
-func ConvertToLegacyGatewaySettings(a *types.PortalApp) types.GatewaySettings {
+func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
 	gatewaySettings := types.GatewaySettings{
 		SecretKey:         a.Settings.SecretKey,
 		SecretKeyRequired: a.Settings.SecretKeyRequired,
@@ -148,7 +149,7 @@ func ConvertToLegacyGatewaySettings(a *types.PortalApp) types.GatewaySettings {
 	return gatewaySettings
 }
 
-func ConvertToLegacyBlockchain(c *types.Chain) types.Blockchain {
+func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
 	var redirects []types.Redirect
 	for _, chainRedirect := range c.Redirects {
 		redirects = append(redirects, types.Redirect{
@@ -211,7 +212,7 @@ func ConvertToLegacyPayPlan(c *types.Plan) types.PayPlan {
 // Creates the struct with all fields needed to create a new Account & PortalApp
 // LoadBalancer must be sent to PHD containing its Application already defined inside PUB
 // This way the Account and PortalApp can be created in only one operation (no PHD client changes needed)
-func ConvertToV2AccountAndPortalApp(lb *types.LoadBalancer, lbID string) (types.Account, types.PortalApp) {
+func ConvertToV2AccountAndPortalApp(lb types.LoadBalancer, lbID string) (types.Account, types.PortalApp) {
 	app := lb.Applications[0]
 	owner := lb.Users[0]
 
@@ -333,7 +334,7 @@ func ConvertToV2UpdatePortalApp(u types.UpdateApplication, appID string) types.U
 	}
 }
 
-func ConvertToV2AccountUserAccess(u *types.UserAccess) types.AccountUserAccess {
+func ConvertToV2AccountUserAccess(u types.UserAccess) types.AccountUserAccess {
 	authType := getAuthType(u.UserID)
 	return types.AccountUserAccess{
 		Email:           types.Email(u.Email),
@@ -452,7 +453,7 @@ func ConvertToV2UpdateChain(u types.UpdateBlockchain) types.Chain {
 	}
 }
 
-func ConvertToV2Redirect(r *types.Redirect) types.GigastakeRedirect {
+func ConvertToV2Redirect(r types.Redirect) types.GigastakeRedirect {
 	return types.GigastakeRedirect{
 		LegacyLoadBalancerID: r.LoadBalancerID,
 		Alias:                r.Alias,

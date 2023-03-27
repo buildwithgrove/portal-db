@@ -93,7 +93,7 @@ CREATE TABLE chains (
     blockchain VARCHAR(100) NOT NULL,
     description VARCHAR(100) NOT NULL,
     enforce_result VARCHAR(4) NOT NULL,
-    ticker VARCHAR(20) NOT NULL,
+    ticker VARCHAR(100) NOT NULL,
     path VARCHAR(100),
     blockchain_id INT,
     request_timeout INT,

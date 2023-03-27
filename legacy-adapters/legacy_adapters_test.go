@@ -21,12 +21,12 @@ func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
 
 	tests := []struct {
 		name                       string
-		account                    *types.Account
+		account                    types.Account
 		expectedLegacyLoadBalancer types.LoadBalancer
 	}{
 		{
 			name:                       "Should convert a V2 Account struct to a legacy LoadBalancer struct",
-			account:                    testdata.V2Account,
+			account:                    *testdata.V2Account,
 			expectedLegacyLoadBalancer: testdata.LegacyLoadBalancer,
 		},
 	}
@@ -44,7 +44,7 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 
 	tests := []struct {
 		name                      string
-		portalApp                 *types.PortalApp
+		portalApp                 types.PortalApp
 		userID                    string
 		planType                  types.PayPlanType
 		dailyLimit                int32
@@ -52,7 +52,7 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 	}{
 		{
 			name:                      "Should convert a V2 PortalApp struct to a legacy Application struct",
-			portalApp:                 testdata.PortalApps["test_app_3487u329rfn23f9"],
+			portalApp:                 *testdata.PortalApps["test_app_3487u329rfn23f9"],
 			userID:                    "james_holden",
 			planType:                  "basic_plan",
 			dailyLimit:                1_000,
@@ -73,12 +73,12 @@ func Test_LegacyAdapators_ConvertToLegacyBlockchain(t *testing.T) {
 
 	tests := []struct {
 		name                     string
-		chain                    *types.Chain
+		chain                    types.Chain
 		expectedLegacyBlockchain types.Blockchain
 	}{
 		{
 			name:                     "Should convert a V2 Chain struct to a legacy Blockchain struct",
-			chain:                    testdata.Chains["0001"],
+			chain:                    *testdata.Chains["0001"],
 			expectedLegacyBlockchain: testdata.LegacyBlockchain,
 		},
 	}
@@ -138,7 +138,7 @@ func Test_LegacyAdapators_ConvertToV2AccountAndPortalApp(t *testing.T) {
 			testID := generateTestAccountID()
 			test.expectedV2Account.LegacyLoadBalancerID = testID
 
-			v2Account, v2PortalApp := ConvertToV2AccountAndPortalApp(&test.loadBalancer, testID)
+			v2Account, v2PortalApp := ConvertToV2AccountAndPortalApp(test.loadBalancer, testID)
 			c.Equal(test.expectedV2Account, v2Account)
 			c.Equal(test.expectedV2PortalApp, v2PortalApp)
 		})
@@ -232,12 +232,12 @@ func Test_LegacyAdapators_ConvertToV2Redirect(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		redirect           *types.Redirect
+		redirect           types.Redirect
 		expectedV2Redirect types.GigastakeRedirect
 	}{
 		{
 			name:               "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
-			redirect:           testdata.LegacyRedirect,
+			redirect:           *testdata.LegacyRedirect,
 			expectedV2Redirect: testdata.Chains["0001"].Redirects[0],
 		},
 	}
@@ -256,12 +256,12 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 
 	tests := []struct {
 		name                        string
-		userAccess                  *types.UserAccess
+		userAccess                  types.UserAccess
 		expectedV2AccountUserAccess types.AccountUserAccess
 	}{
 		{
 			name:                        "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
-			userAccess:                  testdata.LegacyUserAccess,
+			userAccess:                  *testdata.LegacyUserAccess,
 			expectedV2AccountUserAccess: testdata.AccountUserAccess[1],
 		},
 	}
