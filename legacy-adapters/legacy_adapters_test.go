@@ -48,7 +48,7 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 		userID                    string
 		planType                  types.PayPlanType
 		dailyLimit                int32
-		expectedLegacyApplication *types.Application
+		expectedLegacyApplication types.Application
 	}{
 		{
 			name:                      "Should convert a V2 PortalApp struct to a legacy Application struct",
@@ -177,12 +177,12 @@ func Test_LegacyAdapators_ConvertToV2Chain(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		blockchain      *types.Blockchain
+		blockchain      types.Blockchain
 		expectedV2Chain types.Chain
 	}{
 		{
 			name:            "Should convert a legacy Blockchain struct to a V2 Chain struct",
-			blockchain:      &testdata.LegacyBlockchain,
+			blockchain:      testdata.LegacyBlockchain,
 			expectedV2Chain: *testdata.Chains["0001"],
 		},
 	}
@@ -237,7 +237,7 @@ func Test_LegacyAdapators_ConvertToV2Redirect(t *testing.T) {
 	}{
 		{
 			name:               "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
-			redirect:           *testdata.LegacyRedirect,
+			redirect:           testdata.LegacyRedirect,
 			expectedV2Redirect: testdata.Chains["0001"].Redirects[0],
 		},
 	}
@@ -261,7 +261,7 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 	}{
 		{
 			name:                        "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
-			userAccess:                  *testdata.LegacyUserAccess,
+			userAccess:                  testdata.LegacyUserAccess,
 			expectedV2AccountUserAccess: testdata.AccountUserAccess[1],
 		},
 	}

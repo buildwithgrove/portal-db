@@ -1109,7 +1109,7 @@ var (
 			StickyMax:     300,
 			Stickiness:    true,
 		},
-		Applications: []*types.Application{LegacyApplication},
+		Applications: []*types.Application{&LegacyApplication},
 		Users: []types.UserAccess{
 			{
 				UserID:   "james_holden",
@@ -1134,7 +1134,7 @@ var (
 		UpdatedAt: MockTimestamp,
 	}
 
-	LegacyApplication = &types.Application{
+	LegacyApplication = types.Application{
 		ID:                 "test_app_3487u329rfn23f9",
 		UserID:             "james_holden",
 		Name:               "pokt_app_123",
@@ -1323,13 +1323,13 @@ var (
 		Altruist:          "https://test_pocket:auth123456@altruist-0001-3.com:1234", // pragma: allowlist secret
 	}
 
-	LegacyRedirect = &types.Redirect{
+	LegacyRedirect = types.Redirect{
 		LoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		Domain:         "pokt-rpc.gateway.pokt.network",
 		Alias:          "altruist-0001",
 	}
 
-	LegacyUserAccess = &types.UserAccess{
+	LegacyUserAccess = types.UserAccess{
 		Email:    "james.holden123@test.com",
 		RoleName: types.RoleOwner,
 		Accepted: true,

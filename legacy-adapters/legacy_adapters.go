@@ -361,7 +361,7 @@ func getAuthType(userID string) types.AuthType {
 	}
 }
 
-func ConvertToV2Chain(b *types.Blockchain) types.Chain {
+func ConvertToV2Chain(b types.Blockchain) types.Chain {
 	checks := map[types.ChainCheckType]types.Check{
 		types.ChainCheckTypeSync: {
 			Type:      types.ChainCheckTypeSync,
