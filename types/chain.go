@@ -109,36 +109,13 @@ type (
 		ResultKey string         `json:"resultKey"`
 		Allowance int32          `json:"allowance"`
 	}
-
-	/* Update structs */
-	UpdateChain struct {
-		Blockchain     string     `json:"blockchain,omitempty"`
-		Description    string     `json:"description,omitempty"`
-		EnforceResult  string     `json:"enforceResult,omitempty"`
-		Path           string     `json:"path,omitempty"`
-		Ticker         string     `json:"ticker,omitempty"`
-		ChainAliases   []string   `json:"blockchainAliases,omitempty"`
-		LogLimitBlocks int32      `json:"logLimitBlocks,omitempty"`
-		RequestTimeout int32      `json:"requestTimeout,omitempty"`
-		Altruists      []Altruist `json:"altruists,omitempty"`
-
-		Checks map[ChainCheckType]UpdateCheck `json:"chainChecks"`
-
-		UpdatedAt time.Time `json:"updatedAt"`
-	}
-	UpdateCheck struct {
-		ChainID   string `json:"chainID,omitempty"`
-		Payload   string `json:"payload"`
-		ResultKey string `json:"resultKey"`
-		Allowance *int32 `json:"allowance"` // must be able to set allowance to 0
-	}
 )
 
 func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
 	return c.Checks[checkType]
 }
 
-func (c *Chain) UpdateBlockchain(update *UpdateChain) {
+func (c *Chain) UpdateBlockchain(update *Chain) {
 	if update.Blockchain != "" {
 		c.Blockchain = update.Blockchain
 	}
@@ -171,7 +148,7 @@ func (c *Chain) UpdateBlockchain(update *UpdateChain) {
 	}
 }
 
-func (c *Chain) updateChainChecks(update *UpdateChain) {
+func (c *Chain) updateChainChecks(update *Chain) {
 	for checkType, check := range update.Checks {
 		if check.Payload != "" {
 			updatedCheck := Check{
@@ -179,8 +156,8 @@ func (c *Chain) updateChainChecks(update *UpdateChain) {
 				ResultKey: check.ResultKey,
 				Allowance: c.Checks[checkType].Allowance,
 			}
-			if check.Allowance != nil {
-				updatedCheck.Allowance = *check.Allowance
+			if check.Allowance != 0 {
+				updatedCheck.Allowance = check.Allowance
 			}
 			c.Checks[checkType] = updatedCheck
 		}

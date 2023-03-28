@@ -59,8 +59,8 @@ type (
 
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error)
-		/* DeleteAccount saves input Account to the database. */
-		DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error
+		/* SetAccountDeleted sets the Account Deleted field to true. */
+		SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error
 
 		/* WriteAccountUser saves input AccountUserAccess to the database. */
 		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)

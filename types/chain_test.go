@@ -10,7 +10,7 @@ func TestUpdateBlockchain(t *testing.T) {
 	tests := []struct {
 		name     string
 		chain    Chain
-		update   UpdateChain
+		update   Chain
 		expected Chain
 	}{
 		{
@@ -18,7 +18,7 @@ func TestUpdateBlockchain(t *testing.T) {
 			chain: Chain{
 				Description: "Old Description",
 			},
-			update: UpdateChain{
+			update: Chain{
 				Description: "New Description",
 			},
 			expected: Chain{
@@ -28,7 +28,7 @@ func TestUpdateBlockchain(t *testing.T) {
 		{
 			name:     "Should update multiple fields",
 			chain:    Chain{Blockchain: "Old Blockchain", Description: "Old Description"},
-			update:   UpdateChain{Blockchain: "New Blockchain", Description: "New Description"},
+			update:   Chain{Blockchain: "New Blockchain", Description: "New Description"},
 			expected: Chain{Blockchain: "New Blockchain", Description: "New Description"},
 		},
 		{
@@ -38,8 +38,8 @@ func TestUpdateBlockchain(t *testing.T) {
 					ChainCheckTypeChain: {Payload: "Old Payload"},
 				},
 			},
-			update: UpdateChain{
-				Checks: map[ChainCheckType]UpdateCheck{
+			update: Chain{
+				Checks: map[ChainCheckType]Check{
 					ChainCheckTypeChain: {Payload: "New Payload"},
 				},
 			},
@@ -52,7 +52,7 @@ func TestUpdateBlockchain(t *testing.T) {
 		{
 			name:     "Should not update with empty update",
 			chain:    Chain{Blockchain: "Old Blockchain", Description: "Old Description"},
-			update:   UpdateChain{},
+			update:   Chain{},
 			expected: Chain{Blockchain: "Old Blockchain", Description: "Old Description"},
 		},
 	}

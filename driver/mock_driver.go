@@ -16,20 +16,6 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// DeleteAccount provides a mock function with given fields: ctx, account, deletedAt
-func (_m *MockDriver) DeleteAccount(ctx context.Context, account types.Account, deletedAt time.Time) error {
-	ret := _m.Called(ctx, account, deletedAt)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Account, time.Time) error); ok {
-		r0 = rf(ctx, account, deletedAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteGigastakeRedirect provides a mock function with given fields: ctx, chainID, domain
 func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error {
 	ret := _m.Called(ctx, chainID, domain)
@@ -282,6 +268,20 @@ func (_m *MockDriver) RemoveBlockedContract(ctx context.Context, blockedAddress 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.BlockedAddress) error); ok {
 		r0 = rf(ctx, blockedAddress)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SetAccountDeleted provides a mock function with given fields: ctx, accountID, deletedAt
+func (_m *MockDriver) SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error {
+	ret := _m.Called(ctx, accountID, deletedAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.AccountID, time.Time) error); ok {
+		r0 = rf(ctx, accountID, deletedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
