@@ -207,6 +207,38 @@ func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, qtx *Qu
 	return nil
 }
 
+/* ----- postgresdriver Account Update Methods ----- */
+
+// SetAccountDeleted updates a single Account in the database's Deleted field to true
+func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) error {
+	err := pg.validateUpdateAccountInput(ctx, update.AccountID)
+	if err != nil {
+		return err
+	}
+
+	params := UpdateAccountQueryParams{ID: update.AccountID, Name: update.Name, UpdatedAt: updatedAt}
+
+	err = pg.UpdateAccountQuery(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateUpdateAccountInput validates the input to update an existing Account
+func (pg *PostgresDriver) validateUpdateAccountInput(ctx context.Context, accountID types.AccountID) error {
+	accountExists, err := pg.CheckAccountExists(ctx, accountID)
+	if err != nil {
+		return err
+	}
+	if !accountExists {
+		return fmt.Errorf(errAccountDoesntExist.Error(), accountID)
+	}
+
+	return nil
+}
+
 /* ----- postgresdriver Account Delete Methods ----- */
 
 // SetAccountDeleted updates a single Account in the database's Deleted field to true

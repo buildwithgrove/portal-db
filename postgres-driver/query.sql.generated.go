@@ -1308,6 +1308,24 @@ func (q *Queries) UpdateAccountOwnerToAdmin(ctx context.Context, accountID types
 	return err
 }
 
+const updateAccountQuery = `-- name: UpdateAccountQuery :exec
+UPDATE accounts
+SET name = COALESCE($2, accounts.name),
+    updated_at = $3
+WHERE id = $1
+`
+
+type UpdateAccountQueryParams struct {
+	ID        types.AccountID `json:"id"`
+	Name      string          `json:"name"`
+	UpdatedAt time.Time       `json:"updated_at"`
+}
+
+func (q *Queries) UpdateAccountQuery(ctx context.Context, arg UpdateAccountQueryParams) error {
+	_, err := q.db.ExecContext(ctx, updateAccountQuery, arg.ID, arg.Name, arg.UpdatedAt)
+	return err
+}
+
 const updateAccountUserRole = `-- name: UpdateAccountUserRole :exec
 UPDATE account_user_access
 SET role_name = $3,
