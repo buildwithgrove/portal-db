@@ -59,6 +59,8 @@ type (
 
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error)
+		/* UpdateAccount updates a single Account in the database. */
+		UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) error
 		/* SetAccountDeleted sets the Account Deleted field to true. */
 		SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error
 

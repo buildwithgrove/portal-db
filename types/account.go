@@ -49,6 +49,12 @@ type (
 		RoleName  RoleName  `json:"roleName"`
 	}
 
+	// UpdateAccount contains all fields required to update an Account
+	UpdateAccount struct {
+		AccountID AccountID `json:"accountID"`
+		Name      string    `json:"name"`
+	}
+
 	// UpdateAccountUserRole contains all fields required to update an Account User's Role
 	UpdateAccountUserRole struct {
 		UserID    UserID    `json:"userID"`

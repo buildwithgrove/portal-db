@@ -268,6 +268,11 @@ WHERE (
         OR a.deleted = false
     )
 GROUP BY a.id;
+-- name: UpdateAccountQuery :exec
+UPDATE accounts
+SET name = COALESCE($2, accounts.name),
+    updated_at = $3
+WHERE id = $1;
 -- name: SelectUserPermissions :many
 SELECT aua.account_id,
     aua.user_id,
