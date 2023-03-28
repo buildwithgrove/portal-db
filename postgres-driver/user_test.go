@@ -49,22 +49,9 @@ func (ts *PGDriverTestSuite) Test_ReadUserIDsMap() {
 		err                error
 	}{
 		{
-			name: "Should return the Portal UserID when passed the auth provider user ID",
-			expectedUserIDsMap: map[types.ProviderUserID]types.UserID{
-				"auth0|amos_burton":        6,
-				"auth0|bernard_marx":       11,
-				"auth0|chrisjen_avasarala": 5,
-				"auth0|ellen_ripley":       3,
-				"auth0|frodo_baggins":      7,
-				"auth0|james_holden":       1,
-				"auth0|paul_atreides":      2,
-				"auth0|rick_deckard":       8,
-				"auth0|tyrion_lannister":   9,
-				"auth0|ulfric_stormcloak":  4,
-				"github|james_holden":      1,
-				"github|paul_atreides":     2,
-			},
-			err: nil,
+			name:               "Should return the Portal UserID when passed the auth provider user ID",
+			expectedUserIDsMap: testdata.UserIDs,
+			err:                nil,
 		},
 	}
 
