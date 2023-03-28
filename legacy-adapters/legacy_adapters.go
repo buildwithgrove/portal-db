@@ -344,7 +344,17 @@ func ConvertToV2AccountUserAccess(u types.UserAccess) types.AccountUserAccess {
 	}
 }
 
-func ConvertToV2UpdateAccountUserAccess(u types.UpdateUserAccess, lbID string, userID int32, accepted bool) types.UpdateAccountUserRole {
+func ConvertToV2UpdateAcceptAccountUserAccess(u types.UpdateUserAccess, accountID types.AccountID, userID types.UserID) types.UpdateAcceptAccountUser {
+	authType := getAuthType(u.UserID)
+	return types.UpdateAcceptAccountUser{
+		AccountID:        accountID,
+		UserID:           userID,
+		AuthProviderType: authType,
+		ProviderUserID:   u.UserID,
+	}
+}
+
+func ConvertToV2UpdateAccountUserAccess(u types.UpdateUserAccess, lbID string, userID int32) types.UpdateAccountUserRole {
 	return types.UpdateAccountUserRole{
 		LegacyLoadBalancerID: lbID,
 		UserID:               types.UserID(userID),

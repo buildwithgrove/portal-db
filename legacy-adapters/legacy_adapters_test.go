@@ -288,7 +288,6 @@ func Test_LegacyAdapators_ConvertToV2UpdateAccountUserAccess(t *testing.T) {
 		lbID                        string
 		userID                      int32
 		userAccess                  types.UpdateUserAccess
-		accepted                    bool
 		expectedV2AccountUserAccess types.UpdateAccountUserRole
 	}{
 		{
@@ -296,7 +295,6 @@ func Test_LegacyAdapators_ConvertToV2UpdateAccountUserAccess(t *testing.T) {
 			lbID:       "test_lb_3127flsdhfoi323f",
 			userID:     123,
 			userAccess: testdata.LegacyUpdateUserAccess,
-			accepted:   true,
 			expectedV2AccountUserAccess: types.UpdateAccountUserRole{
 				RoleName:             types.RoleAdmin,
 				UserID:               123,
@@ -307,7 +305,7 @@ func Test_LegacyAdapators_ConvertToV2UpdateAccountUserAccess(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			v2AccountUserAccess := ConvertToV2UpdateAccountUserAccess(test.userAccess, test.lbID, test.userID, test.accepted)
+			v2AccountUserAccess := ConvertToV2UpdateAccountUserAccess(test.userAccess, test.lbID, test.userID)
 			test.expectedV2AccountUserAccess.UserID = types.UserID(test.userID)
 			c.Equal(test.expectedV2AccountUserAccess, v2AccountUserAccess)
 		})
