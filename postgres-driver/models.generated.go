@@ -572,13 +572,13 @@ type User struct {
 }
 
 type UserAuthProvider struct {
-	ID             int32              `json:"id"`
-	UserID         types.UserID       `json:"user_id"`
-	Type           types.AuthType     `json:"type"`
-	Provider       types.AuthProvider `json:"provider"`
-	ProviderUserID string             `json:"provider_user_id"`
-	Federated      bool               `json:"federated"`
-	CreatedAt      time.Time          `json:"created_at"`
+	ID             int32                `json:"id"`
+	UserID         types.UserID         `json:"user_id"`
+	Type           types.AuthType       `json:"type"`
+	Provider       types.AuthProvider   `json:"provider"`
+	ProviderUserID types.ProviderUserID `json:"provider_user_id"`
+	Federated      bool                 `json:"federated"`
+	CreatedAt      time.Time            `json:"created_at"`
 }
 
 type UserRole struct {

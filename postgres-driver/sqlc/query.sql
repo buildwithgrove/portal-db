@@ -282,6 +282,10 @@ FROM account_user_access as aua
     LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
 WHERE aua.accepted = true
     AND aua.user_id IS NOT NULL;
+-- name: SelectUserIDs :many
+SELECT user_id,
+    provider_user_id
+FROM user_auth_providers;
 -- name: InsertAccount :one
 INSERT INTO accounts (
         name,

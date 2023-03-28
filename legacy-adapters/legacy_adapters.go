@@ -200,7 +200,7 @@ func formatAltruistURL(altruist types.Altruist) string {
 	return formattedURL
 }
 
-func ConvertToLegacyPayPlan(c *types.Plan) types.PayPlan {
+func ConvertToLegacyPayPlan(c types.Plan) types.PayPlan {
 	return types.PayPlan{
 		Type:  c.Type,
 		Limit: int(c.LegacyDailyLimit),
@@ -350,7 +350,7 @@ func ConvertToV2UpdateAcceptAccountUserAccess(u types.UpdateUserAccess, accountI
 		AccountID:        accountID,
 		UserID:           userID,
 		AuthProviderType: authType,
-		ProviderUserID:   u.UserID,
+		ProviderUserID:   types.ProviderUserID(u.UserID),
 	}
 }
 

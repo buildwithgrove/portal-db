@@ -13,10 +13,11 @@ var (
 
 /* Enums */
 type (
-	AuthProvider string
-	AuthType     string
-	Permissions  string
-	RoleName     string
+	AuthProvider   string
+	AuthType       string
+	Permissions    string
+	RoleName       string
+	ProviderUserID string
 )
 
 const (
@@ -95,16 +96,16 @@ type (
 	}
 	// UserAuthProvider represents a single auth provider for a user (eg. Auth0)
 	UserAuthProvider struct {
-		ProviderUserID string       `json:"providerUserID"`
-		Type           AuthType     `json:"type"`
-		Provider       AuthProvider `json:"provider"`
-		Federated      bool         `json:"federated"`
+		ProviderUserID ProviderUserID `json:"providerUserID"`
+		Type           AuthType       `json:"type"`
+		Provider       AuthProvider   `json:"provider"`
+		Federated      bool           `json:"federated"`
 	}
 
 	CreateUser struct {
-		Email            Email    `json:"email"`
-		AuthProviderType AuthType `json:"type"`
-		ProviderUserID   string   `json:"providerUserID"`
+		Email            Email          `json:"email"`
+		AuthProviderType AuthType       `json:"type"`
+		ProviderUserID   ProviderUserID `json:"providerUserID"`
 	}
 )
 

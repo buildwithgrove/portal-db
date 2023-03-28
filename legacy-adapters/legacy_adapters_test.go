@@ -108,7 +108,7 @@ func Test_LegacyAdapators_ConvertToLegacyPayPlan(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legacyPayPlan := ConvertToLegacyPayPlan(&test.plan)
+			legacyPayPlan := ConvertToLegacyPayPlan(test.plan)
 			c.Equal(test.expectedLegacyPayPlan, legacyPayPlan)
 		})
 	}

@@ -79,6 +79,8 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/v2/types.AuthType"
           - column: "user_auth_providers.provider"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.AuthProvider"
+          - column: "user_auth_providers.provider_user_id"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.ProviderUserID"
           - column: "chains.id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.ChainID"
           - column: "chain_altruists.chain_id"

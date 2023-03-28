@@ -214,13 +214,13 @@ RETURNING user_id
 `
 
 type CreateUserNewSignUpParams struct {
-	Email          types.Email        `json:"email"`
-	CreatedAt      time.Time          `json:"created_at"`
-	UpdatedAt      time.Time          `json:"updated_at"`
-	Type           types.AuthType     `json:"type"`
-	Provider       types.AuthProvider `json:"provider"`
-	ProviderUserID string             `json:"provider_user_id"`
-	Federated      bool               `json:"federated"`
+	Email          types.Email          `json:"email"`
+	CreatedAt      time.Time            `json:"created_at"`
+	UpdatedAt      time.Time            `json:"updated_at"`
+	Type           types.AuthType       `json:"type"`
+	Provider       types.AuthProvider   `json:"provider"`
+	ProviderUserID types.ProviderUserID `json:"provider_user_id"`
+	Federated      bool                 `json:"federated"`
 }
 
 func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSignUpParams) (types.UserID, error) {
@@ -360,7 +360,7 @@ FROM user_auth_providers
 WHERE provider_user_id = $1
 `
 
-func (q *Queries) GetPortalUserID(ctx context.Context, providerUserID string) (types.UserID, error) {
+func (q *Queries) GetPortalUserID(ctx context.Context, providerUserID types.ProviderUserID) (types.UserID, error) {
 	row := q.db.QueryRowContext(ctx, getPortalUserID, providerUserID)
 	var user_id types.UserID
 	err := row.Scan(&user_id)
@@ -385,7 +385,7 @@ type GetUserDataFromAuthProviderUserIDRow struct {
 	AuthProviders json.RawMessage `json:"auth_providers"`
 }
 
-func (q *Queries) GetUserDataFromAuthProviderUserID(ctx context.Context, providerUserID string) (GetUserDataFromAuthProviderUserIDRow, error) {
+func (q *Queries) GetUserDataFromAuthProviderUserID(ctx context.Context, providerUserID types.ProviderUserID) (GetUserDataFromAuthProviderUserIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserDataFromAuthProviderUserID, providerUserID)
 	var i GetUserDataFromAuthProviderUserIDRow
 	err := row.Scan(
@@ -1223,6 +1223,40 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, includeDeleted b
 	return items, nil
 }
 
+const selectUserIDs = `-- name: SelectUserIDs :many
+SELECT user_id,
+    provider_user_id
+FROM user_auth_providers
+`
+
+type SelectUserIDsRow struct {
+	UserID         types.UserID         `json:"user_id"`
+	ProviderUserID types.ProviderUserID `json:"provider_user_id"`
+}
+
+func (q *Queries) SelectUserIDs(ctx context.Context) ([]SelectUserIDsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectUserIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectUserIDsRow
+	for rows.Next() {
+		var i SelectUserIDsRow
+		if err := rows.Scan(&i.UserID, &i.ProviderUserID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectUserPermissions = `-- name: SelectUserPermissions :many
 SELECT aua.account_id,
     aua.user_id,
@@ -1617,12 +1651,12 @@ WHERE id = (
 `
 
 type UpdateUserAcceptedInviteParams struct {
-	UserID         types.UserID       `json:"user_id"`
-	Type           types.AuthType     `json:"type"`
-	Provider       types.AuthProvider `json:"provider"`
-	ProviderUserID string             `json:"provider_user_id"`
-	Federated      bool               `json:"federated"`
-	AccountID      types.AccountID    `json:"account_id"`
+	UserID         types.UserID         `json:"user_id"`
+	Type           types.AuthType       `json:"type"`
+	Provider       types.AuthProvider   `json:"provider"`
+	ProviderUserID types.ProviderUserID `json:"provider_user_id"`
+	Federated      bool                 `json:"federated"`
+	AccountID      types.AccountID      `json:"account_id"`
 }
 
 func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAcceptedInviteParams) error {

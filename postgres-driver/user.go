@@ -13,11 +13,11 @@ import (
 
 type (
 	authProviderDBRow struct {
-		UserID         types.UserID       `json:"user_id"`
-		Type           types.AuthType     `json:"type"`
-		Provider       types.AuthProvider `json:"provider"`
-		ProviderUserID string             `json:"provider_user_id"`
-		Federated      bool               `json:"federated"`
+		UserID         types.UserID         `json:"user_id"`
+		Type           types.AuthType       `json:"type"`
+		Provider       types.AuthProvider   `json:"provider"`
+		ProviderUserID types.ProviderUserID `json:"provider_user_id"`
+		Federated      bool                 `json:"federated"`
 	}
 )
 
@@ -31,7 +31,7 @@ var (
 // /* ----- postgresdriver User Read Methods ----- */
 
 // GetPortalUserIDFromProviderID takes a user's auth provider ID and returns the Portal UserID
-func (pg *PostgresDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error) {
+func (pg *PostgresDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID types.ProviderUserID) (types.UserID, error) {
 	userID, err := pg.GetPortalUserID(ctx, providerUserID)
 	if err != nil {
 		switch err {
@@ -43,6 +43,21 @@ func (pg *PostgresDriver) GetPortalUserIDFromProviderID(ctx context.Context, pro
 	}
 
 	return userID, nil
+}
+
+// ReadUserIDsMap returns all user IDs in the database mapped by their provider user IDs
+func (pg *PostgresDriver) ReadUserIDsMap(ctx context.Context) (map[types.ProviderUserID]types.UserID, error) {
+	userIDs, err := pg.SelectUserIDs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDsMap := make(map[types.ProviderUserID]types.UserID, len(userIDs))
+	for _, userIDRow := range userIDs {
+		userIDsMap[userIDRow.ProviderUserID] = userIDRow.UserID
+	}
+
+	return userIDsMap, nil
 }
 
 // ReadUserByUserID takes a portal UserID and returns a single user in the database as a User struct

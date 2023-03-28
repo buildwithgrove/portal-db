@@ -11,7 +11,7 @@ import (
 func (ts *PGDriverTestSuite) Test_GetPortalUserIDFromProviderID() {
 	tests := []struct {
 		name           string
-		providerUserID string
+		providerUserID types.ProviderUserID
 		portalUserID   types.UserID
 		err            error
 	}{
@@ -39,6 +39,40 @@ func (ts *PGDriverTestSuite) Test_GetPortalUserIDFromProviderID() {
 			portalUserID, err := ts.driver.GetPortalUserIDFromProviderID(context.Background(), test.providerUserID)
 			ts.Equal(test.err, err)
 			ts.Equal(test.portalUserID, portalUserID)
+		})
+	}
+}
+func (ts *PGDriverTestSuite) Test_ReadUserIDsMap() {
+	tests := []struct {
+		name               string
+		expectedUserIDsMap map[types.ProviderUserID]types.UserID
+		err                error
+	}{
+		{
+			name: "Should return the Portal UserID when passed the auth provider user ID",
+			expectedUserIDsMap: map[types.ProviderUserID]types.UserID{
+				"auth0|amos_burton":        6,
+				"auth0|bernard_marx":       11,
+				"auth0|chrisjen_avasarala": 5,
+				"auth0|ellen_ripley":       3,
+				"auth0|frodo_baggins":      7,
+				"auth0|james_holden":       1,
+				"auth0|paul_atreides":      2,
+				"auth0|rick_deckard":       8,
+				"auth0|tyrion_lannister":   9,
+				"auth0|ulfric_stormcloak":  4,
+				"github|james_holden":      1,
+				"github|paul_atreides":     2,
+			},
+			err: nil,
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			userIDsMap, err := ts.driver.ReadUserIDsMap(context.Background())
+			ts.Equal(test.err, err)
+			ts.Equal(test.expectedUserIDsMap, userIDsMap)
 		})
 	}
 }

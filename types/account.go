@@ -67,10 +67,10 @@ type (
 
 	// UpdateAccountUserRole contains all fields required to update an Account User's Role
 	UpdateAcceptAccountUser struct {
-		AccountID        AccountID `json:"accountID"`
-		UserID           UserID    `json:"userID"`
-		AuthProviderType AuthType  `json:"type"`
-		ProviderUserID   string    `json:"providerUserID"`
+		AccountID        AccountID      `json:"accountID"`
+		UserID           UserID         `json:"userID"`
+		AuthProviderType AuthType       `json:"type"`
+		ProviderUserID   ProviderUserID `json:"providerUserID"`
 	}
 )
 

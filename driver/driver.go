@@ -24,6 +24,9 @@ type (
 
 		/* ReadPlans returns all Plans in the database */
 		ReadPlans(ctx context.Context) (map[types.PayPlanType]*types.Plan, error)
+
+		/* ReadUserIDsMap returns all Portal User IDs in the database as a map that takes the form map[types.ProviderUserID]types.UserID */
+		ReadUserIDsMap(ctx context.Context) (map[types.ProviderUserID]types.UserID, error)
 		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
 		ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error)
 

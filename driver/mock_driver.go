@@ -224,6 +224,29 @@ func (_m *MockDriver) ReadUserByUserID(ctx context.Context, userID types.UserID)
 	return r0, r1
 }
 
+// ReadUserIDsMap provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadUserIDsMap(ctx context.Context) (map[types.ProviderUserID]types.UserID, error) {
+	ret := _m.Called(ctx)
+
+	var r0 map[types.ProviderUserID]types.UserID
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.ProviderUserID]types.UserID); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[types.ProviderUserID]types.UserID)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ReadUserPermissions provides a mock function with given fields: ctx
 func (_m *MockDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error) {
 	ret := _m.Called(ctx)
@@ -345,6 +368,20 @@ func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccount
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAcceptAccountUser, time.Time) error); ok {
 		r0 = rf(ctx, acceptAccountUser, updatedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateAccount provides a mock function with given fields: ctx, update, updatedAt
+func (_m *MockDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) error {
+	ret := _m.Called(ctx, update, updatedAt)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAccount, time.Time) error); ok {
+		r0 = rf(ctx, update, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
