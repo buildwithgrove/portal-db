@@ -427,27 +427,26 @@ type AccountUserAccess struct {
 }
 
 type Chain struct {
-	ID             types.ChainID  `json:"id"`
-	Blockchain     string         `json:"blockchain"`
-	Description    string         `json:"description"`
-	EnforceResult  string         `json:"enforce_result"`
-	Ticker         string         `json:"ticker"`
-	Path           sql.NullString `json:"path"`
-	BlockchainID   sql.NullInt32  `json:"blockchain_id"`
-	RequestTimeout sql.NullInt32  `json:"request_timeout"`
-	LogLimitBlocks sql.NullInt32  `json:"log_limit_blocks"`
-	ChainAliases   []string       `json:"chain_aliases"`
-	AllowedMethods []string       `json:"allowed_methods"`
-	Active         bool           `json:"active"`
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
-	Deleted        sql.NullBool   `json:"deleted"`
-	DeletedAt      sql.NullTime   `json:"deleted_at"`
+	ID             types.RelayChainID `json:"id"`
+	Blockchain     string             `json:"blockchain"`
+	Description    string             `json:"description"`
+	EnforceResult  string             `json:"enforce_result"`
+	Ticker         string             `json:"ticker"`
+	Path           sql.NullString     `json:"path"`
+	RequestTimeout sql.NullInt32      `json:"request_timeout"`
+	LogLimitBlocks sql.NullInt32      `json:"log_limit_blocks"`
+	ChainAliases   []string           `json:"chain_aliases"`
+	AllowedMethods []string           `json:"allowed_methods"`
+	Active         bool               `json:"active"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	Deleted        sql.NullBool       `json:"deleted"`
+	DeletedAt      sql.NullTime       `json:"deleted_at"`
 }
 
 type ChainAltruist struct {
 	ID        int32               `json:"id"`
-	ChainID   types.ChainID       `json:"chain_id"`
+	ChainID   types.RelayChainID  `json:"chain_id"`
 	URL       types.AltruistURL   `json:"url"`
 	Auth      sql.NullString      `json:"auth"`
 	AuthType  types.ChainAuthType `json:"auth_type"`
@@ -456,19 +455,20 @@ type ChainAltruist struct {
 }
 
 type ChainCheck struct {
-	ID        int32                `json:"id"`
-	ChainID   types.ChainID        `json:"chain_id"`
-	Type      types.ChainCheckType `json:"type"`
-	Payload   sql.NullString       `json:"payload"`
-	ResultKey sql.NullString       `json:"result_key"`
-	Allowance sql.NullInt32        `json:"allowance"`
-	CreatedAt time.Time            `json:"created_at"`
-	UpdatedAt time.Time            `json:"updated_at"`
+	ID         int32                `json:"id"`
+	ChainID    types.RelayChainID   `json:"chain_id"`
+	Type       types.ChainCheckType `json:"type"`
+	Payload    sql.NullString       `json:"payload"`
+	ResultKey  sql.NullString       `json:"result_key"`
+	Allowance  sql.NullInt32        `json:"allowance"`
+	EVMChainID sql.NullInt32        `json:"evm_chain_id"`
+	CreatedAt  time.Time            `json:"created_at"`
+	UpdatedAt  time.Time            `json:"updated_at"`
 }
 
 type ChainGigastakeRedirect struct {
 	ID        int32                `json:"id"`
-	ChainID   types.ChainID        `json:"chain_id"`
+	ChainID   types.RelayChainID   `json:"chain_id"`
 	AccountID types.AccountID      `json:"account_id"`
 	Alias     string               `json:"alias"`
 	Domain    types.RedirectDomain `json:"domain"`

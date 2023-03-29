@@ -121,22 +121,22 @@ type (
 	}
 
 	Settings struct {
-		AppID             PortalAppID          `json:"appID,omitempty"`
-		Environment       Environment          `json:"environment"`
-		SecretKey         string               `json:"secretKey"`
-		SecretKeyRequired bool                 `json:"secretKeyRequired"`
-		FavoritedChainIDs map[ChainID]struct{} `json:"favoritedBlockchainIDs"`
+		AppID             PortalAppID               `json:"appID,omitempty"`
+		Environment       Environment               `json:"environment"`
+		SecretKey         string                    `json:"secretKey"`
+		SecretKeyRequired bool                      `json:"secretKeyRequired"`
+		FavoritedChainIDs map[RelayChainID]struct{} `json:"favoritedBlockchainIDs"`
 		// MonthlyRelayLimit sets the monthly limit per-application
 		// Sum of an Account's Apps MonthlyRelayLimits cannot exceed the Account's MonthlyRelayLimit
 		MonthlyRelayLimit int32 `json:"monthlyRelayLimit"`
 	}
 
 	Whitelists struct {
-		Origins     map[Origin]struct{}               `json:"origins"`
-		UserAgents  map[UserAgent]struct{}            `json:"userAgents"`
-		Blockchains map[ChainID]struct{}              `json:"blockchains"`
-		Contracts   map[ChainID]map[Contract]struct{} `json:"contracts"`
-		Methods     map[ChainID]map[Method]struct{}   `json:"methods"`
+		Origins     map[Origin]struct{}                    `json:"origins"`
+		UserAgents  map[UserAgent]struct{}                 `json:"userAgents"`
+		Blockchains map[RelayChainID]struct{}              `json:"blockchains"`
+		Contracts   map[RelayChainID]map[Contract]struct{} `json:"contracts"`
+		Methods     map[RelayChainID]map[Method]struct{}   `json:"methods"`
 	}
 
 	// Whitelist (singular) is used by the listener in PHD to receive a single whitelist row
@@ -144,7 +144,7 @@ type (
 		AppID   PortalAppID   `json:"applicationID"`
 		Type    WhitelistType `json:"type"`
 		Value   string        `json:"value"`
-		ChainID ChainID       `json:"chain_id"`
+		ChainID RelayChainID  `json:"chain_id"`
 	}
 
 	AppNotification struct {
@@ -228,9 +228,9 @@ func (a *PortalApp) AddWhitelist(whitelist Whitelist) {
 		a.Whitelists.Origins[Origin(whitelist.Value)] = struct{}{}
 	case WhitelistTypeBlockchains:
 		if a.Whitelists.Blockchains == nil {
-			a.Whitelists.Blockchains = make(map[ChainID]struct{})
+			a.Whitelists.Blockchains = make(map[RelayChainID]struct{})
 		}
-		a.Whitelists.Blockchains[ChainID(whitelist.Value)] = struct{}{}
+		a.Whitelists.Blockchains[RelayChainID(whitelist.Value)] = struct{}{}
 	case WhitelistTypeUserAgents:
 		if a.Whitelists.UserAgents == nil {
 			a.Whitelists.UserAgents = make(map[UserAgent]struct{})
@@ -238,7 +238,7 @@ func (a *PortalApp) AddWhitelist(whitelist Whitelist) {
 		a.Whitelists.UserAgents[UserAgent(whitelist.Value)] = struct{}{}
 	case WhitelistTypeContracts:
 		if a.Whitelists.Contracts == nil {
-			a.Whitelists.Contracts = make(map[ChainID]map[Contract]struct{})
+			a.Whitelists.Contracts = make(map[RelayChainID]map[Contract]struct{})
 		}
 		if _, ok := a.Whitelists.Contracts[whitelist.ChainID]; !ok {
 			a.Whitelists.Contracts[whitelist.ChainID] = make(map[Contract]struct{})
@@ -246,7 +246,7 @@ func (a *PortalApp) AddWhitelist(whitelist Whitelist) {
 		a.Whitelists.Contracts[whitelist.ChainID][Contract(whitelist.Value)] = struct{}{}
 	case WhitelistTypeMethods:
 		if a.Whitelists.Methods == nil {
-			a.Whitelists.Methods = make(map[ChainID]map[Method]struct{})
+			a.Whitelists.Methods = make(map[RelayChainID]map[Method]struct{})
 		}
 		if _, ok := a.Whitelists.Methods[whitelist.ChainID]; !ok {
 			a.Whitelists.Methods[whitelist.ChainID] = make(map[Method]struct{})
@@ -261,7 +261,7 @@ func (a *PortalApp) DeleteWhitelist(whitelist Whitelist) {
 	case WhitelistTypeOrigins:
 		delete(a.Whitelists.Origins, Origin(whitelist.Value))
 	case WhitelistTypeBlockchains:
-		delete(a.Whitelists.Blockchains, ChainID(whitelist.Value))
+		delete(a.Whitelists.Blockchains, RelayChainID(whitelist.Value))
 	case WhitelistTypeUserAgents:
 		delete(a.Whitelists.UserAgents, UserAgent(whitelist.Value))
 	case WhitelistTypeContracts:
@@ -294,13 +294,13 @@ func (a *PortalApp) IsUserAgentWhitelisted(userAgent UserAgent) bool {
 }
 
 // IsBlockchainWhitelisted returns a boolean indicating whether the given BLOCKCHAIN is whitelisted for an application
-func (a *PortalApp) IsBlockchainWhitelisted(blockchain ChainID) bool {
+func (a *PortalApp) IsBlockchainWhitelisted(blockchain RelayChainID) bool {
 	_, ok := a.Whitelists.Blockchains[blockchain]
 	return ok
 }
 
 // IsContractWhitelisted returns a boolean indicating whether the given CONTRACT is whitelisted for a blockchain and application
-func (a *PortalApp) IsContractWhitelisted(chainID ChainID, contract Contract) bool {
+func (a *PortalApp) IsContractWhitelisted(chainID RelayChainID, contract Contract) bool {
 	if chainContracts, contractsOK := a.Whitelists.Contracts[chainID]; contractsOK {
 		if _, contractOK := chainContracts[contract]; contractOK {
 			return true
@@ -310,7 +310,7 @@ func (a *PortalApp) IsContractWhitelisted(chainID ChainID, contract Contract) bo
 }
 
 // IsMethodWhitelisted returns a boolean indicating whether the given METHOD is whitelisted for a blockchain and application
-func (a *PortalApp) IsMethodWhitelisted(chainID ChainID, method Method) bool {
+func (a *PortalApp) IsMethodWhitelisted(chainID RelayChainID, method Method) bool {
 	if chainMethods, methodsOK := a.Whitelists.Methods[chainID]; methodsOK {
 		if _, methodOK := chainMethods[method]; methodOK {
 			return true

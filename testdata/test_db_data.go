@@ -23,7 +23,7 @@ var (
 	PayPlans = map[types.PayPlanType]*types.Plan{
 		types.PayPlanType("basic_plan"): {
 			Type:              types.PayPlanType("basic_plan"),
-			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}},
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 5_000_000,
 			ThroughputLimit:   5_000,
 			AppLimit:          2,
@@ -31,7 +31,7 @@ var (
 		},
 		types.PayPlanType("pro_plan"): {
 			Type:              types.PayPlanType("pro_plan"),
-			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
 			AppLimit:          5,
@@ -39,7 +39,7 @@ var (
 		},
 		types.PayPlanType("enterprise_plan"): {
 			Type:              types.PayPlanType("enterprise_plan"),
-			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}, "0034": {}},
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}, "0034": {}},
 			MonthlyRelayLimit: 20_000_000,
 			ThroughputLimit:   20_000,
 			AppLimit:          10,
@@ -47,7 +47,7 @@ var (
 		},
 		types.PayPlanType("developer_plan"): {
 			Type:              types.PayPlanType("developer_plan"),
-			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0034": {}},
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0034": {}},
 			MonthlyRelayLimit: 500_000,
 			ThroughputLimit:   500,
 			AppLimit:          1,
@@ -55,7 +55,7 @@ var (
 		},
 		types.PayPlanType("startup_plan"): {
 			Type:              types.PayPlanType("startup_plan"),
-			ChainIDs:          map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			MonthlyRelayLimit: 1_000_000,
 			ThroughputLimit:   1_000,
 			AppLimit:          5,
@@ -73,7 +73,7 @@ var (
 				2: AccountUserAccess[2],
 				8: AccountUserAccess[8],
 			},
-			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
+			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			PartnerThroughputLimit: 2_000,
 			PartnerAppLimit:        1,
 			CreatedAt:              MockTimestamp,
@@ -91,7 +91,7 @@ var (
 				9: AccountUserAccess[9],
 				2: AccountUserAccess[10],
 			},
-			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
+			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
 			PartnerAppLimit:        3,
 			CreatedAt:              MockTimestamp,
@@ -109,7 +109,7 @@ var (
 				7:  AccountUserAccess[7],
 				10: AccountUserAccess[12],
 			},
-			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
+			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
 			PartnerAppLimit:        2,
 			CreatedAt:              MockTimestamp,
@@ -124,7 +124,7 @@ var (
 			Users: map[types.UserID]types.AccountUserAccess{
 				4: AccountUserAccess[11],
 			},
-			PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}},
+			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 			PartnerThroughputLimit: 1_000,
 			PartnerAppLimit:        2,
 			CreatedAt:              MockTimestamp,
@@ -139,7 +139,7 @@ var (
 			Users: map[types.UserID]types.AccountUserAccess{
 				4: AccountUserAccess[11],
 			},
-			PartnerChainIDs:        map[types.ChainID]struct{}{"0006": {}, "0040": {}},
+			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
 			PartnerThroughputLimit: 6_000,
 			PartnerAppLimit:        1,
 			CreatedAt:              MockTimestamp,
@@ -498,11 +498,11 @@ var (
 			Whitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://test.com": {}},
 				UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)": {}},
-				Blockchains: map[types.ChainID]struct{}{"0053": {}},
-				Contracts: map[types.ChainID]map[types.Contract]struct{}{
+				Blockchains: map[types.RelayChainID]struct{}{"0053": {}},
+				Contracts: map[types.RelayChainID]map[types.Contract]struct{}{
 					"0001": {"0x1234567890abcdef": {}},
 				},
-				Methods: map[types.ChainID]map[types.Method]struct{}{
+				Methods: map[types.RelayChainID]map[types.Method]struct{}{
 					"0001": {"GET": {}},
 				},
 			},
@@ -556,11 +556,11 @@ var (
 			Whitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://example.com": {}},
 				UserAgents:  map[types.UserAgent]struct{}{"Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36": {}},
-				Blockchains: map[types.ChainID]struct{}{"0021": {}},
-				Contracts: map[types.ChainID]map[types.Contract]struct{}{
+				Blockchains: map[types.RelayChainID]struct{}{"0021": {}},
+				Contracts: map[types.RelayChainID]map[types.Contract]struct{}{
 					"0064": {"0x0987654321abcdef": {}},
 				},
-				Methods: map[types.ChainID]map[types.Method]struct{}{
+				Methods: map[types.RelayChainID]map[types.Method]struct{}{
 					"0064": {"POST": {}},
 				},
 			},
@@ -695,7 +695,7 @@ var (
 		},
 	}
 
-	Chains = map[types.ChainID]*types.Chain{
+	Chains = map[types.RelayChainID]*types.Chain{
 		"0001": {
 			ID:            "0001",
 			Blockchain:    "mainnet",
@@ -733,7 +733,6 @@ var (
 		"0053": {
 			ID:             "0053",
 			Blockchain:     "optimism-mainnet",
-			BlockchainID:   10,
 			Description:    "Optimism Mainnet",
 			EnforceResult:  "JSON",
 			Ticker:         "OP",
@@ -769,7 +768,6 @@ var (
 		"0021": {
 			ID:             "0021",
 			Blockchain:     "eth-mainnet",
-			BlockchainID:   1,
 			Description:    "Ethereum Mainnet",
 			EnforceResult:  "JSON",
 			Ticker:         "ETH",
@@ -798,9 +796,10 @@ var (
 					Allowance: 5,
 				},
 				types.ChainCheckTypeChain: {
-					Type:      types.ChainCheckTypeChain,
-					Payload:   `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`,
-					ResultKey: "id",
+					Type:       types.ChainCheckTypeChain,
+					Payload:    `{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}`,
+					ResultKey:  "id",
+					EVMChainID: 1,
 				},
 			},
 			CreatedAt: MockTimestamp,
@@ -838,7 +837,6 @@ var (
 		"0040": {
 			ID:            "0040",
 			Blockchain:    "harmony-0",
-			BlockchainID:  1,
 			Description:   "Harmony Shard 0",
 			EnforceResult: "JSON",
 			Ticker:        "HMY",
@@ -906,9 +904,10 @@ var (
 				Allowance: 2,
 			},
 			types.ChainCheckTypeChain: {
-				Type:      types.ChainCheckTypeChain,
-				Payload:   `{"id":1,"jsonrpc":"2.0","method":"getChain"}`,
-				ResultKey: "chain",
+				Type:       types.ChainCheckTypeChain,
+				Payload:    `{"id":1,"jsonrpc":"2.0","method":"getChain"}`,
+				ResultKey:  "chain",
+				EVMChainID: 5,
 			},
 		},
 		CreatedAt: MockTimestamp,
@@ -1026,9 +1025,10 @@ var (
 				Allowance: 1,
 			},
 			types.ChainCheckTypeChain: {
-				Type:      types.ChainCheckTypeChain,
-				Payload:   `{"id":1,"jsonrpc":"2.0","method":"chain"}`,
-				ResultKey: "result.sync_info",
+				Type:       types.ChainCheckTypeChain,
+				Payload:    `{"id":1,"jsonrpc":"2.0","method":"chain"}`,
+				ResultKey:  "result.sync_info",
+				EVMChainID: 3,
 			},
 			types.ChainCheckTypeMerge: {
 				Type:      types.ChainCheckTypeMerge,
@@ -1097,7 +1097,7 @@ var (
 			2: AccountUserAccess[2],
 			8: AccountUserAccess[8],
 		},
-		PartnerChainIDs:        map[types.ChainID]struct{}{"0001": {}, "0053": {}},
+		PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 		PartnerThroughputLimit: 2_000,
 		PartnerAppLimit:        1,
 		CreatedAt:              MockTimestamp,

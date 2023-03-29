@@ -111,9 +111,9 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 	whitelists := types.Whitelists{
 		Origins:     make(map[types.Origin]struct{}),
 		UserAgents:  make(map[types.UserAgent]struct{}),
-		Blockchains: make(map[types.ChainID]struct{}),
-		Contracts:   make(map[types.ChainID]map[types.Contract]struct{}),
-		Methods:     make(map[types.ChainID]map[types.Method]struct{}),
+		Blockchains: make(map[types.RelayChainID]struct{}),
+		Contracts:   make(map[types.RelayChainID]map[types.Contract]struct{}),
+		Methods:     make(map[types.RelayChainID]map[types.Method]struct{}),
 	}
 
 	var whitelistRows []whitelistDBRow
@@ -125,22 +125,22 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 		switch wl.Type {
 
 		case types.WhitelistTypeBlockchains:
-			whitelists.Blockchains[types.ChainID(wl.Value)] = struct{}{}
+			whitelists.Blockchains[types.RelayChainID(wl.Value)] = struct{}{}
 		case types.WhitelistTypeOrigins:
 			whitelists.Origins[types.Origin(wl.Value)] = struct{}{}
 		case types.WhitelistTypeUserAgents:
 			whitelists.UserAgents[types.UserAgent(wl.Value)] = struct{}{}
 
 		case types.WhitelistTypeContracts:
-			if _, ok := whitelists.Contracts[types.ChainID(wl.BlockchainID)]; !ok {
-				whitelists.Contracts[types.ChainID(wl.BlockchainID)] = make(map[types.Contract]struct{})
+			if _, ok := whitelists.Contracts[types.RelayChainID(wl.BlockchainID)]; !ok {
+				whitelists.Contracts[types.RelayChainID(wl.BlockchainID)] = make(map[types.Contract]struct{})
 			}
-			whitelists.Contracts[types.ChainID(wl.BlockchainID)][types.Contract(wl.Value)] = struct{}{}
+			whitelists.Contracts[types.RelayChainID(wl.BlockchainID)][types.Contract(wl.Value)] = struct{}{}
 		case types.WhitelistTypeMethods:
-			if _, ok := whitelists.Methods[types.ChainID(wl.BlockchainID)]; !ok {
-				whitelists.Methods[types.ChainID(wl.BlockchainID)] = make(map[types.Method]struct{})
+			if _, ok := whitelists.Methods[types.RelayChainID(wl.BlockchainID)]; !ok {
+				whitelists.Methods[types.RelayChainID(wl.BlockchainID)] = make(map[types.Method]struct{})
 			}
-			whitelists.Methods[types.ChainID(wl.BlockchainID)][types.Method(wl.Value)] = struct{}{}
+			whitelists.Methods[types.RelayChainID(wl.BlockchainID)][types.Method(wl.Value)] = struct{}{}
 		}
 	}
 
@@ -427,11 +427,11 @@ func (json PortalApplicationAat) toOutput() *types.AAT {
 }
 
 func (json PortalApplicationSetting) toOutput() *types.Settings {
-	var favoritedChainIDs map[types.ChainID]struct{}
+	var favoritedChainIDs map[types.RelayChainID]struct{}
 	if len(json.FavoritedChainIDs) != 0 {
-		favoritedChainIDs = make(map[types.ChainID]struct{})
+		favoritedChainIDs = make(map[types.RelayChainID]struct{})
 		for _, chainID := range json.FavoritedChainIDs {
-			favoritedChainIDs[types.ChainID(chainID)] = struct{}{}
+			favoritedChainIDs[types.RelayChainID(chainID)] = struct{}{}
 		}
 
 	}
@@ -451,7 +451,7 @@ func (json PortalApplicationWhitelist) toOutput() *types.Whitelist {
 		AppID:   json.ApplicationID,
 		Type:    json.Type,
 		Value:   json.Value,
-		ChainID: types.ChainID(json.ChainID.String),
+		ChainID: types.RelayChainID(json.ChainID.String),
 	}
 }
 

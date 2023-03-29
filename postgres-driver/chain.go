@@ -27,11 +27,12 @@ type (
 	}
 
 	checkDBRow struct {
-		ChainID   string `json:"chain_id"`
-		Type      string `json:"type"`
-		Payload   string `json:"payload"`
-		ResultKey string `json:"result_key"`
-		Allowance int32  `json:"allowance"`
+		ChainID    string `json:"chain_id"`
+		Type       string `json:"type"`
+		Payload    string `json:"payload"`
+		ResultKey  string `json:"result_key"`
+		Allowance  int32  `json:"allowance"`
+		EVMChainID int32  `json:"evm_chain_id"`
 	}
 )
 
@@ -45,20 +46,20 @@ var (
 /* ----- postgresdriver Chain Read Methods ----- */
 
 // ReadChains returns all Chains in the database as Chains structs
-func (pg *PostgresDriver) ReadChains(ctx context.Context, options types.DriverOptions) (map[types.ChainID]*types.Chain, error) {
+func (pg *PostgresDriver) ReadChains(ctx context.Context, options types.DriverOptions) (map[types.RelayChainID]*types.Chain, error) {
 	dbChains, err := pg.SelectChains(ctx, options.IncludeDeleted)
 	if err != nil {
 		return nil, err
 	}
 
-	chains := make(map[types.ChainID]*types.Chain, len(dbChains))
+	chains := make(map[types.RelayChainID]*types.Chain, len(dbChains))
 	for _, dbChain := range dbChains {
 		chain, err := dbChain.toChain()
 		if err != nil {
 			return nil, err
 		}
 
-		chains[types.ChainID(dbChain.ID)] = chain
+		chains[types.RelayChainID(dbChain.ID)] = chain
 	}
 
 	return chains, nil
@@ -80,7 +81,7 @@ func (c *SelectChainsRow) toChain() (*types.Chain, error) {
 	}
 
 	chain := &types.Chain{
-		ID:             types.ChainID(c.ID),
+		ID:             types.RelayChainID(c.ID),
 		Blockchain:     c.Blockchain,
 		Description:    c.Description,
 		EnforceResult:  c.EnforceResult,
@@ -88,7 +89,6 @@ func (c *SelectChainsRow) toChain() (*types.Chain, error) {
 		ChainAliases:   c.ChainAliases,
 		AllowedMethods: c.AllowedMethods,
 		Path:           c.Path.String,
-		BlockchainID:   c.BlockchainID.Int32,
 		LogLimitBlocks: c.LogLimitBlocks.Int32,
 		RequestTimeout: c.RequestTimeout.Int32,
 		Active:         c.Active,
@@ -158,10 +158,11 @@ func (c *SelectChainsRow) toChecks() (map[types.ChainCheckType]types.Check, erro
 	for _, checkRow := range checkRows {
 		checkType := types.ChainCheckType(checkRow.Type)
 		checks[checkType] = types.Check{
-			Type:      checkType,
-			Payload:   checkRow.Payload,
-			ResultKey: checkRow.ResultKey,
-			Allowance: checkRow.Allowance,
+			Type:       checkType,
+			Payload:    checkRow.Payload,
+			ResultKey:  checkRow.ResultKey,
+			Allowance:  checkRow.Allowance,
+			EVMChainID: checkRow.EVMChainID,
 		}
 	}
 
@@ -240,7 +241,6 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 		EnforceResult:  chain.EnforceResult,
 		Ticker:         chain.Ticker,
 		Path:           newSQLNullString(chain.Path),
-		BlockchainID:   newSQLNullInt32(chain.BlockchainID, true),
 		RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
 		LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
 		ChainAliases:   chain.ChainAliases,
@@ -282,13 +282,14 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 	}
 	for checkType, check := range chain.Checks {
 		err := qtx.UpsertChainCheck(ctx, UpsertChainCheckParams{
-			ChainID:   createdChainID,
-			Type:      checkType,
-			Payload:   newSQLNullString(check.Payload),
-			ResultKey: newSQLNullString(check.ResultKey),
-			Allowance: newSQLNullInt32(check.Allowance, false),
-			CreatedAt: chain.CreatedAt,
-			UpdatedAt: chain.CreatedAt,
+			ChainID:    createdChainID,
+			Type:       checkType,
+			Payload:    newSQLNullString(check.Payload),
+			ResultKey:  newSQLNullString(check.ResultKey),
+			Allowance:  newSQLNullInt32(check.Allowance, false),
+			EVMChainID: newSQLNullInt32(check.EVMChainID, false),
+			CreatedAt:  chain.CreatedAt,
+			UpdatedAt:  chain.CreatedAt,
 		})
 		if err != nil {
 			return err
@@ -376,7 +377,7 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 	return nil
 }
 
-func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID types.ChainID, active bool, updatedAt time.Time) (bool, error) {
+func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error) {
 	chainExists, err := pg.CheckChainExists(ctx, chainID)
 	if err != nil {
 		return false, err
@@ -406,7 +407,6 @@ func (json Chain) toOutput() *types.Chain {
 		Ticker:         json.Ticker,
 		ChainAliases:   json.ChainAliases,
 		AllowedMethods: json.AllowedMethods,
-		BlockchainID:   json.BlockchainID.Int32,
 		LogLimitBlocks: json.LogLimitBlocks.Int32,
 		RequestTimeout: json.RequestTimeout.Int32,
 		Active:         json.Active,
@@ -426,11 +426,12 @@ func (json ChainAltruist) toOutput() *types.Altruist {
 
 func (json ChainCheck) toOutput() *types.Check {
 	return &types.Check{
-		ChainID:   json.ChainID,
-		Type:      json.Type,
-		Payload:   json.Payload.String,
-		ResultKey: json.ResultKey.String,
-		Allowance: json.Allowance.Int32,
+		ChainID:    json.ChainID,
+		Type:       json.Type,
+		Payload:    json.Payload.String,
+		ResultKey:  json.ResultKey.String,
+		Allowance:  json.Allowance.Int32,
+		EVMChainID: json.EVMChainID.Int32,
 	}
 }
 

@@ -6,7 +6,7 @@ import "regexp"
 type (
 	AccountID      int32
 	UserID         int32
-	ChainID        string
+	RelayChainID   string
 	PortalAppID    string
 	Email          string
 	BlockedAddress string

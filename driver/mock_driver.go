@@ -17,11 +17,11 @@ type MockDriver struct {
 }
 
 // DeleteGigastakeRedirect provides a mock function with given fields: ctx, chainID, domain
-func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error {
+func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, domain string) error {
 	ret := _m.Called(ctx, chainID, domain)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, string) error); ok {
 		r0 = rf(ctx, chainID, domain)
 	} else {
 		r0 = ret.Error(0)
@@ -133,15 +133,15 @@ func (_m *MockDriver) ReadBlockedContracts(ctx context.Context) (types.GlobalBlo
 }
 
 // ReadChains provides a mock function with given fields: ctx, options
-func (_m *MockDriver) ReadChains(ctx context.Context, options types.DriverOptions) (map[types.ChainID]*types.Chain, error) {
+func (_m *MockDriver) ReadChains(ctx context.Context, options types.DriverOptions) (map[types.RelayChainID]*types.Chain, error) {
 	ret := _m.Called(ctx, options)
 
-	var r0 map[types.ChainID]*types.Chain
-	if rf, ok := ret.Get(0).(func(context.Context, types.DriverOptions) map[types.ChainID]*types.Chain); ok {
+	var r0 map[types.RelayChainID]*types.Chain
+	if rf, ok := ret.Get(0).(func(context.Context, types.DriverOptions) map[types.RelayChainID]*types.Chain); ok {
 		r0 = rf(ctx, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[types.ChainID]*types.Chain)
+			r0 = ret.Get(0).(map[types.RelayChainID]*types.Chain)
 		}
 	}
 
@@ -327,18 +327,18 @@ func (_m *MockDriver) SetAccountUserRole(ctx context.Context, updateAccountUser 
 }
 
 // SetChainActiveStatus provides a mock function with given fields: ctx, chainID, active, updatedAt
-func (_m *MockDriver) SetChainActiveStatus(ctx context.Context, chainID types.ChainID, active bool, updatedAt time.Time) (bool, error) {
+func (_m *MockDriver) SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error) {
 	ret := _m.Called(ctx, chainID, active, updatedAt)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, types.ChainID, bool, time.Time) bool); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, bool, time.Time) bool); ok {
 		r0 = rf(ctx, chainID, active, updatedAt)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.ChainID, bool, time.Time) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, types.RelayChainID, bool, time.Time) error); ok {
 		r1 = rf(ctx, chainID, active, updatedAt)
 	} else {
 		r1 = ret.Error(1)

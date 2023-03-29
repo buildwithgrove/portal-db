@@ -254,7 +254,6 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 				EnforceResult:  chain.EnforceResult,
 				Ticker:         chain.Ticker,
 				Path:           newSQLNullString(chain.Path),
-				BlockchainID:   newSQLNullInt32(chain.BlockchainID, true),
 				RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
 				LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
 				ChainAliases:   chain.ChainAliases,
@@ -299,11 +298,12 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 				action: sideTablesAction,
 				table:  types.TableChainChecks,
 				input: ChainCheck{
-					ChainID:   chain.ID,
-					Type:      check.Type,
-					Payload:   newSQLNullString(check.Payload),
-					ResultKey: newSQLNullString(check.ResultKey),
-					Allowance: newSQLNullInt32(check.Allowance, true),
+					ChainID:    chain.ID,
+					Type:       check.Type,
+					Payload:    newSQLNullString(check.Payload),
+					ResultKey:  newSQLNullString(check.ResultKey),
+					Allowance:  newSQLNullInt32(check.Allowance, false),
+					EVMChainID: newSQLNullInt32(check.EVMChainID, false),
 				},
 			})
 		}

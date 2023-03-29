@@ -16,7 +16,7 @@ type (
 		Name                   string                       `json:"name"`
 		PlanType               PayPlanType                  `json:"planType"`
 		Users                  map[UserID]AccountUserAccess `json:"users"`
-		PartnerChainIDs        map[ChainID]struct{}         `json:"partnerBlockchainIDs"`
+		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
 		PartnerThroughputLimit int32                        `json:"partnerThroughputLimit"`
 		PartnerAppLimit        int32                        `json:"partnerAppLimit"`
 		CreatedAt              time.Time                    `json:"createdAt"`

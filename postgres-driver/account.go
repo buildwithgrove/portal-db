@@ -54,20 +54,20 @@ func (pg *PostgresDriver) ReadAccounts(ctx context.Context, options types.Driver
 
 // toAccount converts Account SELECT output to Account struct
 func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
-	var chainIDs map[types.ChainID]struct{}
+	var chainIDs map[types.RelayChainID]struct{}
 	if len(a.PartnerChainIDs) != 0 {
-		chainIDs = make(map[types.ChainID]struct{}, len(a.PartnerChainIDs))
+		chainIDs = make(map[types.RelayChainID]struct{}, len(a.PartnerChainIDs))
 		for _, chainID := range a.PartnerChainIDs {
-			chainIDs[types.ChainID(chainID)] = struct{}{}
+			chainIDs[types.RelayChainID(chainID)] = struct{}{}
 		}
 	}
 
-	var partnerChainIDs map[types.ChainID]struct{}
+	var partnerChainIDs map[types.RelayChainID]struct{}
 	if len(a.PartnerChainIDs) != 0 {
 
-		partnerChainIDs = make(map[types.ChainID]struct{}, len(a.PartnerChainIDs))
+		partnerChainIDs = make(map[types.RelayChainID]struct{}, len(a.PartnerChainIDs))
 		for _, chainID := range a.PartnerChainIDs {
-			partnerChainIDs[types.ChainID(chainID)] = struct{}{}
+			partnerChainIDs[types.RelayChainID(chainID)] = struct{}{}
 		}
 	}
 
@@ -558,11 +558,11 @@ func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, us
 
 /* ----- Used by Listener ----- */
 func (json Account) toOutput() *types.Account {
-	var partnerChainIDs map[types.ChainID]struct{}
+	var partnerChainIDs map[types.RelayChainID]struct{}
 	if len(json.PartnerChainIDs) != 0 {
-		partnerChainIDs = make(map[types.ChainID]struct{})
+		partnerChainIDs = make(map[types.RelayChainID]struct{})
 		for _, chainID := range json.PartnerChainIDs {
-			partnerChainIDs[types.ChainID(chainID)] = struct{}{}
+			partnerChainIDs[types.RelayChainID(chainID)] = struct{}{}
 		}
 	}
 

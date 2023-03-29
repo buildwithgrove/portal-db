@@ -27,19 +27,19 @@ var testPortalApplication = PortalApp{
 		SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
 		SecretKeyRequired: true,
 		MonthlyRelayLimit: 250_000,
-		FavoritedChainIDs: map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		FavoritedChainIDs: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
 	},
 	Whitelists: Whitelists{
 		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
 		UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
-		Blockchains: map[ChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
-		Contracts: map[ChainID]map[Contract]struct{}{
+		Blockchains: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		Contracts: map[RelayChainID]map[Contract]struct{}{
 			"0001": {"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}, "0xtest_2f78db6436527729929aaf6c616361de0f7": {}},
 			"0056": {"0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}, "0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}},
 			"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
 			"003E": {"0xtest_f958d2ee523a2206206994597c13d831ec7": {}, "0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}},
 		},
-		Methods: map[ChainID]map[Method]struct{}{
+		Methods: map[RelayChainID]map[Method]struct{}{
 			"0001": {"GET": {}, "POST": {}, "PUT": {}},
 			"0056": {"GET": {}, "POST": {}},
 			"0002": {"GET": {}, "POST": {}, "PUT": {}, "DELETE": {}},
@@ -160,25 +160,25 @@ func Test_PortalApp_IsBlockchainWhitelisted(t *testing.T) {
 	tests := []struct {
 		name           string
 		portalApp      PortalApp
-		blockchain     ChainID
+		blockchain     RelayChainID
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given blockchain is whitelisted for a given app",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("0001"),
+			blockchain:     RelayChainID("0001"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given blockchain is whitelisted for a given app",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("003E"),
+			blockchain:     RelayChainID("003E"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given blockchain is not whitelisted for a given app",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("7009"),
+			blockchain:     RelayChainID("7009"),
 			expectedResult: false,
 		},
 	}
@@ -197,35 +197,35 @@ func Test_PortalApp_IsContractWhitelisted(t *testing.T) {
 	tests := []struct {
 		name           string
 		portalApp      PortalApp
-		blockchain     ChainID
+		blockchain     RelayChainID
 		contract       Contract
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given contract is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("0001"),
+			blockchain:     RelayChainID("0001"),
 			contract:       Contract("0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given contract is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("003E"),
+			blockchain:     RelayChainID("003E"),
 			contract:       Contract("0xtest_0a85d5af5bf1d1762f925bdaddc4201f984"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given contract is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("0056"),
+			blockchain:     RelayChainID("0056"),
 			contract:       Contract("0xtest_04938rfj439fj3409jf0439fjf4304f4444"),
 			expectedResult: false,
 		},
 		{
 			name:           "Should return false if a given contract is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("7009"),
+			blockchain:     RelayChainID("7009"),
 			contract:       Contract("0xtest_439834fnin3f2032f03re3j2f30fj33f3f3"),
 			expectedResult: false,
 		},
@@ -245,35 +245,35 @@ func Test_PortalApp_IsMethodWhitelisted(t *testing.T) {
 	tests := []struct {
 		name           string
 		portalApp      PortalApp
-		blockchain     ChainID
+		blockchain     RelayChainID
 		method         Method
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given method is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("0001"),
+			blockchain:     RelayChainID("0001"),
 			method:         Method("POST"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given method is whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("003E"),
+			blockchain:     RelayChainID("003E"),
 			method:         Method("GET"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given method is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("0056"),
+			blockchain:     RelayChainID("0056"),
 			method:         Method("PUT"),
 			expectedResult: false,
 		},
 		{
 			name:           "Should return false if a given method is not whitelisted for a given app and blockchain",
 			portalApp:      testPortalApplication,
-			blockchain:     ChainID("7009"),
+			blockchain:     RelayChainID("7009"),
 			method:         Method("GET"),
 			expectedResult: false,
 		},

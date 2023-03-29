@@ -684,7 +684,6 @@ VALUES (
 INSERT INTO chains (
         id,
         blockchain,
-        blockchain_id,
         description,
         enforce_result,
         path,
@@ -699,7 +698,6 @@ INSERT INTO chains (
 VALUES (
         '0001',
         'mainnet',
-        NULL,
         'Pocket Network Mainnet',
         'JSON',
         '/v1/query/height',
@@ -714,7 +712,6 @@ VALUES (
     (
         '0053',
         'optimism-mainnet',
-        10,
         'Optimism Mainnet',
         'JSON',
         '',
@@ -729,7 +726,6 @@ VALUES (
     (
         '0021',
         'eth-mainnet',
-        1,
         'Ethereum Mainnet',
         'JSON',
         '',
@@ -744,7 +740,6 @@ VALUES (
     (
         '0064',
         'sui-testnet',
-        NULL,
         'Sui Testnet',
         'JSON',
         '',
@@ -759,7 +754,6 @@ VALUES (
     (
         '0040',
         'harmony-0',
-        1,
         'Harmony Shard 0',
         'JSON',
         '',
@@ -875,6 +869,7 @@ INSERT INTO chain_checks (
         payload,
         result_key,
         allowance,
+        evm_chain_id,
         created_at,
         updated_at
     )
@@ -884,6 +879,7 @@ VALUES (
         '{"id":1,"jsonrpc":"2.0","method":"query"}',
         'result.sync_info',
         1,
+        NULL,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -893,6 +889,7 @@ VALUES (
         '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}',
         'result',
         2,
+        NULL,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -902,6 +899,7 @@ VALUES (
         '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}',
         'result',
         5,
+        NULL,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -911,6 +909,7 @@ VALUES (
         '{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}',
         'id',
         NULL,
+        1,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -920,6 +919,7 @@ VALUES (
         '{"id":1,"jsonrpc":"2.0","method":"sui_blockNumber","params":[]}',
         'result',
         7,
+        NULL,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -929,6 +929,7 @@ VALUES (
         '{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}',
         'result',
         8,
+        NULL,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
