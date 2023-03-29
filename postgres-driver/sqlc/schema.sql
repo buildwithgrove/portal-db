@@ -95,7 +95,6 @@ CREATE TABLE chains (
     enforce_result VARCHAR(4) NOT NULL,
     ticker VARCHAR(100) NOT NULL,
     path VARCHAR(100),
-    blockchain_id INT,
     request_timeout INT,
     log_limit_blocks INT,
     chain_aliases VARCHAR(100) ARRAY,
@@ -135,6 +134,7 @@ CREATE TABLE chain_checks (
     payload VARCHAR(255),
     result_key VARCHAR(100),
     allowance INT,
+    evm_chain_id INT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (chain_id, type),
@@ -146,6 +146,16 @@ CREATE TABLE chain_checks (
         OR (
             type <> 'sync'
             AND allowance IS NULL
+        )
+    ),
+    CONSTRAINT chain_id_check CHECK (
+        (
+            type = 'chain'
+            AND evm_chain_id IS NOT NULL
+        )
+        OR (
+            type <> 'chain'
+            AND evm_chain_id IS NULL
         )
     )
 );

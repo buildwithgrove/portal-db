@@ -27,7 +27,7 @@ func TestListen(t *testing.T) {
 						ID:                     5,
 						Name:                   "test_account_5",
 						PlanType:               "basic_plan",
-						PartnerChainIDs:        map[types.ChainID]struct{}{"0006": {}, "0040": {}},
+						PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
 						PartnerThroughputLimit: 6_000,
 						PartnerAppLimit:        1,
 						CreatedAt:              testdata.MockTimestamp,

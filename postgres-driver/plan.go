@@ -4,9 +4,9 @@ import "github.com/pokt-foundation/portal-db/v2/types"
 
 /* ----- Used by Listener ----- */
 func (json PayPlan) toOutput() *types.Plan {
-	chainIDs := make(map[types.ChainID]struct{})
+	chainIDs := make(map[types.RelayChainID]struct{})
 	for _, id := range json.ChainIDs {
-		chainIDs[types.ChainID(id)] = struct{}{}
+		chainIDs[types.RelayChainID(id)] = struct{}{}
 	}
 
 	return &types.Plan{

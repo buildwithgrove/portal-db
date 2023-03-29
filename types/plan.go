@@ -6,9 +6,9 @@ type PayPlanType string
 /* Pay Plan Type and Methods */
 type (
 	Plan struct {
-		ID       string               `json:"id"`
-		Type     PayPlanType          `json:"planType"`
-		ChainIDs map[ChainID]struct{} `json:"blockchainIDs"`
+		ID       string                    `json:"id"`
+		Type     PayPlanType               `json:"planType"`
+		ChainIDs map[RelayChainID]struct{} `json:"blockchainIDs"`
 		// MonthlyRelayLimit is the number of relays-per-month for a pay plan
 		MonthlyRelayLimit int32 `json:"monthlyRelayLimit"`
 		// ThroughputLimit is the number of relays-per-second for a pay plan

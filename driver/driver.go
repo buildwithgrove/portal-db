@@ -18,7 +18,7 @@ type (
 		/* ReadAccounts returns all Accounts in the database. Can specify if deleted Accounts should be included. */
 		ReadAccounts(ctx context.Context, options types.DriverOptions) (map[types.AccountID]*types.Account, error)
 		/* ReadChains returns all Chains in the databas. Can specify if deleted Chains should be included. */
-		ReadChains(ctx context.Context, options types.DriverOptions) (map[types.ChainID]*types.Chain, error)
+		ReadChains(ctx context.Context, options types.DriverOptions) (map[types.RelayChainID]*types.Chain, error)
 		/* ReadPortalApps returns all PortalApps in the database. Can specify if deleted PortalApps should be included.  */
 		ReadPortalApps(ctx context.Context, options types.DriverOptions) (map[types.PortalAppID]*types.PortalApp, error)
 
@@ -81,9 +81,9 @@ type (
 		/* UpdateChain updates Chain and ChainCheck for a given Chain. */
 		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */
-		SetChainActiveStatus(ctx context.Context, chainID types.ChainID, active bool, updatedAt time.Time) (bool, error)
+		SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error)
 		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
-		DeleteGigastakeRedirect(ctx context.Context, chainID types.ChainID, domain string) error
+		DeleteGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, domain string) error
 
 		/* WriteBlockedContract adds a new blocked address to the global blocked contracts table. */
 		WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error

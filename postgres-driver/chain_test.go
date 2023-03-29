@@ -13,18 +13,18 @@ import (
 func (ts *PGDriverTestSuite) Test_ReadChains() {
 	tests := []struct {
 		name    string
-		chains  map[types.ChainID]*types.Chain
+		chains  map[types.RelayChainID]*types.Chain
 		options types.DriverOptions
 		err     error
 	}{
 		{
 			name: "Should return all non-deleted Chains from the database",
-			chains: map[types.ChainID]*types.Chain{
-				types.ChainID("0001"): testdata.Chains[types.ChainID("0001")],
-				types.ChainID("0053"): testdata.Chains[types.ChainID("0053")],
-				types.ChainID("0021"): testdata.Chains[types.ChainID("0021")],
-				types.ChainID("0064"): testdata.Chains[types.ChainID("0064")],
-				types.ChainID("0040"): testdata.Chains[types.ChainID("0040")],
+			chains: map[types.RelayChainID]*types.Chain{
+				types.RelayChainID("0001"): testdata.Chains[types.RelayChainID("0001")],
+				types.RelayChainID("0053"): testdata.Chains[types.RelayChainID("0053")],
+				types.RelayChainID("0021"): testdata.Chains[types.RelayChainID("0021")],
+				types.RelayChainID("0064"): testdata.Chains[types.RelayChainID("0064")],
+				types.RelayChainID("0040"): testdata.Chains[types.RelayChainID("0040")],
 			},
 			options: types.DriverOptions{},
 			err:     nil,
@@ -58,7 +58,7 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 		},
 		{
 			name:            "Should fail if chain already exists in the database",
-			chain:           *testdata.Chains[types.ChainID("0064")],
+			chain:           *testdata.Chains[types.RelayChainID("0064")],
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errChainExists.Error(), "0064"),
 		},
@@ -152,7 +152,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 		{
 			name:            "Should fail if any input Altruist has an invalid URL",
 			altruistURL:     "htz:/bad-domain2",
-			chain:           *testdata.Chains[types.ChainID("0040")],
+			chain:           *testdata.Chains[types.RelayChainID("0040")],
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
 		},
@@ -160,7 +160,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			name:            "Should fail if any input Redirect has an invalid URL",
 			altruistURL:     "http://im.good.com",
 			redirectDomain:  "who did this",
-			chain:           *testdata.Chains[types.ChainID("0040")],
+			chain:           *testdata.Chains[types.RelayChainID("0040")],
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidRedirectDomain.Error(), "who did this"),
 		},
@@ -169,7 +169,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			altruistURL:     "http://im.good.com",
 			redirectDomain:  "im.also.good.io",
 			redirectAccount: 47,
-			chain:           *testdata.Chains[types.ChainID("0040")],
+			chain:           *testdata.Chains[types.RelayChainID("0040")],
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errAccountDoesntExist.Error(), 47),
 		},
@@ -210,7 +210,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 	tests := []struct {
 		name                string
-		chainID             types.ChainID
+		chainID             types.RelayChainID
 		chainJSON           string
 		testCreatedTime     time.Time
 		description, ticker string
@@ -370,7 +370,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 func (ts *PGDriverTestSuite) Test_SetChainActiveStatus() {
 	tests := []struct {
 		name    string
-		chainID types.ChainID
+		chainID types.RelayChainID
 		active  bool
 		err     error
 	}{

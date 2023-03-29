@@ -67,7 +67,7 @@ func (r RedirectDomain) IsValid() bool {
 /* Chain Struct and Methods */
 type (
 	Chain struct {
-		ID             ChainID                  `json:"id"`
+		ID             RelayChainID             `json:"id"`
 		Blockchain     string                   `json:"blockchain"`
 		Description    string                   `json:"description"`
 		EnforceResult  string                   `json:"enforceResult"`
@@ -75,7 +75,6 @@ type (
 		Ticker         string                   `json:"ticker"`
 		ChainAliases   []string                 `json:"blockchainAliases"`
 		AllowedMethods []string                 `json:"allowedMethods"`
-		BlockchainID   int32                    `json:"blockchainID"`
 		LogLimitBlocks int32                    `json:"logLimitBlocks"`
 		RequestTimeout int32                    `json:"requestTimeout"`
 		Active         bool                     `json:"active"`
@@ -87,13 +86,13 @@ type (
 		Deleted        bool                     `json:"deleted"`
 	}
 	Altruist struct {
-		ChainID  ChainID       `json:"chainID,omitempty"`
+		ChainID  RelayChainID  `json:"chainID,omitempty"`
 		URL      AltruistURL   `json:"url"`
 		Auth     string        `json:"auth"`
 		AuthType ChainAuthType `json:"authType"`
 	}
 	GigastakeRedirect struct {
-		ChainID   ChainID        `json:"chainID,omitempty"`
+		ChainID   RelayChainID   `json:"chainID,omitempty"`
 		AccountID AccountID      `json:"accountID"`
 		Domain    RedirectDomain `json:"domain"`
 		Alias     string         `json:"alias"`
@@ -103,11 +102,12 @@ type (
 		LegacyLoadBalancerID string `json:"legacyLoadBalancerID"`
 	}
 	Check struct {
-		ChainID   ChainID        `json:"chainID,omitempty"`
-		Type      ChainCheckType `json:"type"`
-		Payload   string         `json:"payload"`
-		ResultKey string         `json:"resultKey"`
-		Allowance int32          `json:"allowance"`
+		ChainID    RelayChainID   `json:"chainID,omitempty"`
+		Type       ChainCheckType `json:"type"`
+		Payload    string         `json:"payload"`
+		ResultKey  string         `json:"resultKey"`
+		Allowance  int32          `json:"allowance"`
+		EVMChainID int32          `json:"evmChainID"`
 	}
 )
 
@@ -158,6 +158,9 @@ func (c *Chain) updateChainChecks(update *Chain) {
 			}
 			if check.Allowance != 0 {
 				updatedCheck.Allowance = check.Allowance
+			}
+			if check.EVMChainID != 0 {
+				updatedCheck.EVMChainID = check.EVMChainID
 			}
 			c.Checks[checkType] = updatedCheck
 		}

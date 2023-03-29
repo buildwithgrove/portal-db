@@ -557,7 +557,6 @@ INSERT INTO chains (
         enforce_result,
         path,
         ticker,
-        blockchain_id,
         request_timeout,
         log_limit_blocks,
         chain_aliases,
@@ -577,8 +576,7 @@ VALUES (
         $9,
         $10,
         $11,
-        $12,
-        $13
+        $12
     ) ON CONFLICT (id) DO
 UPDATE
 SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
@@ -586,7 +584,6 @@ SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
     enforce_result = COALESCE(EXCLUDED.enforce_result, chains.enforce_result),
     path = COALESCE(EXCLUDED.path, chains.path),
     ticker = COALESCE(EXCLUDED.ticker, chains.ticker),
-    blockchain_id = COALESCE(EXCLUDED.blockchain_id, chains.blockchain_id),
     request_timeout = COALESCE(EXCLUDED.request_timeout, chains.request_timeout),
     log_limit_blocks = COALESCE(
         EXCLUDED.log_limit_blocks,
@@ -654,6 +651,7 @@ INSERT INTO chain_checks (
         payload,
         result_key,
         allowance,
+        evm_chain_id,
         created_at,
         updated_at
     )
@@ -664,12 +662,14 @@ VALUES (
         $4,
         $5,
         $6,
-        $7
+        $7,
+        $8
     ) ON CONFLICT (chain_id, type) DO
 UPDATE
 SET payload = COALESCE(EXCLUDED.payload, chain_checks.payload),
     result_key = COALESCE(EXCLUDED.result_key, chain_checks.result_key),
     allowance = COALESCE(EXCLUDED.allowance, chain_checks.allowance),
+    evm_chain_id = COALESCE(EXCLUDED.evm_chain_id, chain_checks.evm_chain_id),
     updated_at = EXCLUDED.updated_at;
 -- name: DeleteUnusedChainChecks :exec
 DELETE FROM chain_checks

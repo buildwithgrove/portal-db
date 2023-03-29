@@ -165,7 +165,7 @@ func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
 	return types.Blockchain{
 		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
-		ChainID:           strconv.Itoa(int(c.BlockchainID)),
+		ChainID:           strconv.Itoa(int(c.Checks[types.ChainCheckTypeChain].EVMChainID)),
 		ChainIDCheck:      c.Checks[types.ChainCheckTypeChain].Payload,
 		Description:       c.Description,
 		EnforceResult:     c.EnforceResult,
@@ -381,10 +381,14 @@ func ConvertToV2Chain(b types.Blockchain) types.Chain {
 		},
 	}
 	if b.ChainIDCheck != "" {
-		checks[types.ChainCheckTypeChain] = types.Check{Payload: b.ChainIDCheck}
-	}
+		chainID, _ := strconv.Atoi(b.ChainID)
+		evmChainID := int32(chainID)
 
-	blockchainID, _ := strconv.Atoi(b.ChainID)
+		checks[types.ChainCheckTypeChain] = types.Check{
+			Payload:    b.ChainIDCheck,
+			EVMChainID: evmChainID,
+		}
+	}
 
 	altruist := parseAltruistURL(b.Altruist)
 
@@ -398,9 +402,8 @@ func ConvertToV2Chain(b types.Blockchain) types.Chain {
 	}
 
 	return types.Chain{
-		ID:             types.ChainID(b.ID),
+		ID:             types.RelayChainID(b.ID),
 		Blockchain:     b.Blockchain,
-		BlockchainID:   int32(blockchainID),
 		Description:    b.Description,
 		EnforceResult:  b.EnforceResult,
 		Path:           b.Path,
