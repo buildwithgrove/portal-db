@@ -536,7 +536,7 @@ var (
 		},
 		"test_app_2308rj09r23r9r2": {
 			ID:        "test_app_2308rj09r23r9r2",
-			AccountID: 1,
+			AccountID: 2,
 			Name:      "pokt_app_456",
 			Gigastake: false,
 			Staked:    true,
@@ -593,7 +593,7 @@ var (
 		},
 		"test_app_47fhs7j4hs7fj24": {
 			ID:        "test_app_47fhs7j4hs7fj24",
-			AccountID: 1,
+			AccountID: 3,
 			Name:      "pokt_app_789",
 			Gigastake: false,
 			Staked:    true,
@@ -625,7 +625,7 @@ var (
 	// TestCreatePortalApp app used to test creation of PortalApps
 	TestCreatePortalApp = &types.PortalApp{
 		ID:        "test_app_create_208r23r",
-		AccountID: 1,
+		AccountID: 4,
 		Name:      "create_pokt_app_1",
 		Gigastake: true,
 		Staked:    false,

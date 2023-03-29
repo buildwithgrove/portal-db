@@ -462,7 +462,7 @@ VALUES (
     ),
     (
         'test_app_2308rj09r23r9r2',
-        1,
+        2,
         'pokt_app_456',
         false,
         true,
@@ -474,7 +474,7 @@ VALUES (
     ),
     (
         'test_app_47fhs7j4hs7fj24',
-        1,
+        3,
         'pokt_app_789',
         false,
         true,
