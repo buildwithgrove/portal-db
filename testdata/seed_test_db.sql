@@ -276,6 +276,30 @@ VALUES (
         false,
         '{ "test-extension://", "test-extension2://" }'
     );
+INSERT INTO account_integrations (
+        lb_id,
+        covalent_api_key_free,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'test_lb_34987u329rfn23f',
+        'test_covalent_api_key_1',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_lb_3890ru23jfi32fj',
+        'test_covalent_api_key_2',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_lb_34gg4g43g34g5hh',
+        'test_covalent_api_key_3',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
 INSERT INTO user_access (
         lb_id,
         role_name,

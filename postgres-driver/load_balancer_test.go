@@ -31,6 +31,9 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							StickyMax:     300,
 							Stickiness:    true,
 						},
+						Integrations: types.AccountIntegrations{
+							CovalentAPIKey: "test_covalent_api_key_1",
+						},
 						Users: []types.UserAccess{
 							{RoleName: "OWNER", UserID: "test_user_1dbffbdfeeb225", Email: "owner1@test.com", Accepted: true},
 							{RoleName: "ADMIN", UserID: "test_user_admin1234", Email: "admin1@test.com", Accepted: true},
@@ -51,6 +54,9 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							StickyMax:     600,
 							Stickiness:    false,
 						},
+						Integrations: types.AccountIntegrations{
+							CovalentAPIKey: "test_covalent_api_key_3",
+						},
 						Users: []types.UserAccess{
 							{RoleName: "OWNER", UserID: "test_user_redirect233344", Email: "owner3@test.com", Accepted: true},
 							{RoleName: "MEMBER", UserID: "", Email: "member2@test.com", Accepted: false},
@@ -69,6 +75,9 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							StickyOrigins: []string{"chrome-extension://"},
 							StickyMax:     400,
 							Stickiness:    true,
+						},
+						Integrations: types.AccountIntegrations{
+							CovalentAPIKey: "test_covalent_api_key_2",
 						},
 						Users: []types.UserAccess{
 							{RoleName: "OWNER", UserID: "test_user_04228205bd261a", Email: "owner2@test.com", Accepted: true},
@@ -93,6 +102,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 				ts.Equal(test.loadBalancers[i].Gigastake, loadBalancer.Gigastake)
 				ts.Equal(test.loadBalancers[i].GigastakeRedirect, loadBalancer.GigastakeRedirect)
 				ts.Equal(test.loadBalancers[i].StickyOptions, loadBalancer.StickyOptions)
+				ts.Equal(test.loadBalancers[i].Integrations, loadBalancer.Integrations)
 				ts.Equal(test.loadBalancers[i].Users, loadBalancer.Users)
 				ts.NotEmpty(loadBalancer.CreatedAt)
 				ts.NotEmpty(loadBalancer.UpdatedAt)
@@ -201,6 +211,9 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 							StickyMax:     400,
 							Stickiness:    true,
 						},
+						Integrations: types.AccountIntegrations{
+							CovalentAPIKey: "test_covalent_api_key_4",
+						},
 						Users: []types.UserAccess{
 							{
 								UserID:   "test_user_47fhsd75jd756sh",
@@ -213,16 +226,17 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				},
 				expectedNumOfLBs: 4,
 				expectedLB: SelectOneLoadBalancerRow{
-					Name:              sql.NullString{Valid: true, String: "pokt_app_789"},
-					UserID:            sql.NullString{Valid: true, String: "test_user_47fhsd75jd756sh"},
-					RequestTimeout:    sql.NullInt32{Valid: true, Int32: 5000},
-					Gigastake:         sql.NullBool{Valid: true, Bool: true},
-					GigastakeRedirect: sql.NullBool{Valid: true, Bool: true},
-					Duration:          sql.NullString{Valid: true, String: "70"},
-					StickyMax:         sql.NullInt32{Valid: true, Int32: 400},
-					Stickiness:        sql.NullBool{Valid: true, Bool: true},
-					Origins:           []string{"chrome-extension://"},
-					Users:             json.RawMessage(`[{"email": "owner4@test.com", "userID": "test_user_47fhsd75jd756sh", "accepted": true, "roleName": "OWNER"}]`),
+					Name:               sql.NullString{Valid: true, String: "pokt_app_789"},
+					UserID:             sql.NullString{Valid: true, String: "test_user_47fhsd75jd756sh"},
+					RequestTimeout:     sql.NullInt32{Valid: true, Int32: 5000},
+					Gigastake:          sql.NullBool{Valid: true, Bool: true},
+					GigastakeRedirect:  sql.NullBool{Valid: true, Bool: true},
+					Duration:           sql.NullString{Valid: true, String: "70"},
+					StickyMax:          sql.NullInt32{Valid: true, Int32: 400},
+					Stickiness:         sql.NullBool{Valid: true, Bool: true},
+					Origins:            []string{"chrome-extension://"},
+					CovalentApiKeyFree: sql.NullString{Valid: true, String: "test_covalent_api_key_4"},
+					Users:              json.RawMessage(`[{"email": "owner4@test.com", "userID": "test_user_47fhsd75jd756sh", "accepted": true, "roleName": "OWNER"}]`),
 				},
 				err: nil,
 			},
@@ -264,6 +278,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 							ts.Equal(test.expectedLB.Origins, loadBalancer.Origins)
 							ts.Equal(test.expectedLB.StickyMax, loadBalancer.StickyMax)
 							ts.Equal(test.expectedLB.Stickiness, loadBalancer.Stickiness)
+							ts.Equal(test.expectedLB.CovalentApiKeyFree, loadBalancer.CovalentApiKeyFree)
 							ts.Equal(test.expectedLB.Users, loadBalancer.Users)
 							ts.NotEmpty(loadBalancer.CreatedAt)
 							ts.NotEmpty(loadBalancer.UpdatedAt)
