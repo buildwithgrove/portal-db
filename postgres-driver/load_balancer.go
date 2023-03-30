@@ -56,6 +56,10 @@ func (lb *SelectLoadBalancersRow) toLoadBalancer() (*types.LoadBalancer, error) 
 			Stickiness:    lb.SStickiness.Bool,
 		},
 
+		Integrations: types.AccountIntegrations{
+			CovalentAPIKey: lb.CovalentApiKeyFree.String,
+		},
+
 		CreatedAt: lb.CreatedAt.Time,
 		UpdatedAt: lb.UpdatedAt.Time,
 	}
@@ -141,6 +145,14 @@ func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *ty
 		}
 	}
 
+	accountIntegrationsParams := extractInsertAccountIntegrations(loadBalancer)
+	if accountIntegrationsParams.isNotNull() {
+		err = qtx.InsertAccountIntegrations(ctx, accountIntegrationsParams)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	loadBalancer.Users[0].RoleName = types.RoleOwner                                                // The first User will be the OWNER of the LoadBalancer
 	err = qtx.InsertUserAccess(ctx, extractInsertUserAccess(id, loadBalancer.Users[0], true, time)) // New LB owners always start with accepted = true
 	if err != nil {
@@ -187,6 +199,18 @@ func extractInsertStickinessOptions(loadBalancer *types.LoadBalancer) InsertStic
 }
 func (i *InsertStickinessOptionsParams) isNotNull() bool {
 	return i.Duration.Valid || len(i.Origins) > 0 || i.StickyMax.Valid
+}
+
+func extractInsertAccountIntegrations(loadBalancer *types.LoadBalancer) InsertAccountIntegrationsParams {
+	return InsertAccountIntegrationsParams{
+		LbID:               loadBalancer.ID,
+		CovalentApiKeyFree: newSQLNullString(loadBalancer.Integrations.CovalentAPIKey),
+		CreatedAt:          newSQLNullTime(loadBalancer.CreatedAt),
+		UpdatedAt:          newSQLNullTime(loadBalancer.UpdatedAt),
+	}
+}
+func (i *InsertAccountIntegrationsParams) isNotNull() bool {
+	return i.CovalentApiKeyFree.Valid
 }
 
 func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted bool, createdAt time.Time) InsertUserAccessParams {

@@ -78,6 +78,16 @@ CREATE TABLE IF NOT EXISTS loadbalancers (
 	updated_at TIMESTAMP NULL,
 	PRIMARY KEY (id)
 );
+-- Will be migrated to V2 but creating here for the time being
+CREATE TABLE IF NOT EXISTS account_integrations (
+	id INT GENERATED ALWAYS AS IDENTITY,
+	lb_id VARCHAR NOT NULL UNIQUE,
+	covalent_api_key_free VARCHAR UNIQUE,
+	covalent_api_key_paid VARCHAR UNIQUE,
+	created_at TIMESTAMP NULL,
+	updated_at TIMESTAMP NULL,
+	PRIMARY KEY (id)
+);
 CREATE TABLE IF NOT EXISTS stickiness_options (
 	id INT GENERATED ALWAYS AS IDENTITY,
 	lb_id VARCHAR NOT NULL UNIQUE,

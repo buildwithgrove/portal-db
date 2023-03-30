@@ -22,18 +22,23 @@ type LbApp struct {
 /* Load Balancers Table */
 type (
 	LoadBalancer struct {
-		ID                string         `json:"id"`
-		Name              string         `json:"name"`
-		UserID            string         `json:"userID"`
-		ApplicationIDs    []string       `json:"applicationIDs,omitempty"`
-		RequestTimeout    int            `json:"requestTimeout"`
-		Gigastake         bool           `json:"gigastake"`
-		GigastakeRedirect bool           `json:"gigastakeRedirect"`
-		StickyOptions     StickyOptions  `json:"stickinessOptions"`
-		Applications      []*Application `json:"applications"`
-		Users             []UserAccess   `json:"users"`
-		CreatedAt         time.Time      `json:"createdAt"`
-		UpdatedAt         time.Time      `json:"updatedAt"`
+		ID                string              `json:"id"`
+		Name              string              `json:"name"`
+		UserID            string              `json:"userID"`
+		ApplicationIDs    []string            `json:"applicationIDs,omitempty"`
+		RequestTimeout    int                 `json:"requestTimeout"`
+		Gigastake         bool                `json:"gigastake"`
+		GigastakeRedirect bool                `json:"gigastakeRedirect"`
+		StickyOptions     StickyOptions       `json:"stickinessOptions"`
+		Applications      []*Application      `json:"applications"`
+		Integrations      AccountIntegrations `json:"integrations"`
+		Users             []UserAccess        `json:"users"`
+		CreatedAt         time.Time           `json:"createdAt"`
+		UpdatedAt         time.Time           `json:"updatedAt"`
+	}
+	AccountIntegrations struct {
+		ID             string `json:"id,omitempty"`
+		CovalentAPIKey string `json:"covalentAPIKey"`
 	}
 	StickyOptions struct {
 		ID            string   `json:"id,omitempty"`
