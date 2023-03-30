@@ -10,10 +10,10 @@ import (
 )
 
 var testPortalApplication = PortalApp{
-	ID:        "test_app_3487u329rfn23f9",
+	ID:        "test_app_1",
 	Name:      "test_portal_app_123",
 	Gigastake: true,
-	AccountID: 1,
+	AccountID: "account_1",
 	AAT: AAT{
 		Address:         "test_34715cae753e67c75fbb340442e7de8e",
 		PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",

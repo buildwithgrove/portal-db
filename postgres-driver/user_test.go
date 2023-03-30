@@ -18,13 +18,13 @@ func (ts *PGDriverTestSuite) Test_GetPortalUserIDFromProviderID() {
 		{
 			name:           "Should return the Portal UserID when passed the auth provider user ID",
 			providerUserID: "auth0|paul_atreides",
-			portalUserID:   2,
+			portalUserID:   "user_2",
 			err:            nil,
 		},
 		{
 			name:           "Should return the Portal UserID when passed the auth provider user ID",
 			providerUserID: "auth0|tyrion_lannister",
-			portalUserID:   9,
+			portalUserID:   "user_9",
 			err:            nil,
 		},
 		{
@@ -73,20 +73,20 @@ func (ts *PGDriverTestSuite) Test_ReadUserByUserID() {
 	}{
 		{
 			name:   "Should return a Portal User when passed the portal UserID",
-			userID: 1,
-			user:   testdata.Users[1],
+			userID: "user_1",
+			user:   testdata.Users["user_1"],
 			err:    nil,
 		},
 		{
 			name:   "Should return a Portal User when passed the portal UserID",
-			userID: 7,
-			user:   testdata.Users[7],
+			userID: "user_7",
+			user:   testdata.Users["user_7"],
 			err:    nil,
 		},
 		{
 			name:   "Should fail if the user does not exist in the database",
-			userID: 42,
-			err:    fmt.Errorf(errUserDoesntExist.Error(), 42),
+			userID: "user_42",
+			err:    fmt.Errorf(errUserDoesntExist.Error(), "user_42"),
 		},
 	}
 
@@ -114,7 +114,7 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 				ProviderUserID:   "auth0|geralt_of_rivia",
 			},
 			user: &types.User{
-				ID:       0, // user ID set in test case
+				ID:       "", // user ID set in test case
 				Email:    "geralt.of.rivia623@example.com",
 				SignedUp: true,
 				AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -181,13 +181,13 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 		},
 		{
 			name:                 "Should delete a portal User from the DB including its account user and auth provider rows",
-			accountID:            2,
+			accountID:            "account_2",
 			numUsersBeforeDelete: 5,
 			accountUsersAfterDelete: map[types.UserID]types.AccountUserAccess{
-				3: testdata.AccountUserAccess[3],
-				4: testdata.AccountUserAccess[4],
-				9: testdata.AccountUserAccess[9],
-				2: testdata.AccountUserAccess[10],
+				"user_3": testdata.AccountUserAccess[3],
+				"user_4": testdata.AccountUserAccess[4],
+				"user_9": testdata.AccountUserAccess[9],
+				"user_2": testdata.AccountUserAccess[10],
 			},
 			createUser:  testdata.TestCreateUser,
 			expectedErr: errUserDoesntExist,
@@ -195,8 +195,8 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 		},
 		{
 			name:   "Should fail if the user does not exist in the database",
-			userID: 42,
-			err:    fmt.Errorf(errUserDoesntExist.Error(), 42),
+			userID: "user_42",
+			err:    fmt.Errorf(errUserDoesntExist.Error(), "user_42"),
 		},
 	}
 
@@ -209,7 +209,7 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 				ts.Equal(test.err, err)
 				createdUserID = userID
 
-				if test.accountID != types.AccountID(0) {
+				if test.accountID != types.AccountID("") {
 					// if accountID set in test case then test deleting a user with an account
 					_, err = ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
 						AccountID: test.accountID, Email: test.createUser.Email, RoleName: types.RoleMember,
@@ -228,7 +228,7 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 				_, err := ts.driver.ReadUserByUserID(context.Background(), userID)
 				ts.Equal(fmt.Errorf(test.expectedErr.Error(), userID), err)
 
-				if test.accountID != types.AccountID(0) {
+				if test.accountID != types.AccountID("") {
 					accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 					ts.NoError(err)
 					ts.Equal(test.accountUsersAfterDelete, accounts[test.accountID].Users)

@@ -7,32 +7,32 @@ import (
 )
 
 var testUserPermissions = map[UserID]UserPermissions{
-	1: {
-		UserID: 1,
+	"user_1": {
+		UserID: "user_1",
 		Accounts: map[AccountID]AccountPermissions{
-			1: {
+			"account_1": {
 				RoleName:    RoleOwner,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
 		},
 	},
-	2: {
-		UserID: 2,
+	"user_2": {
+		UserID: "user_2",
 		Accounts: map[AccountID]AccountPermissions{
-			1: {
+			"account_1": {
 				RoleName:    RoleAdmin,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
 			},
-			2: {
+			"account_2": {
 				RoleName:    RoleMember,
 				Permissions: []Permissions{PermReadEndpoint},
 			},
 		},
 	},
-	3: {
-		UserID: 3,
+	"user_3": {
+		UserID: "user_3",
 		Accounts: map[AccountID]AccountPermissions{
-			3: {
+			"account_3": {
 				RoleName:    RoleOwner,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 			},
@@ -51,20 +51,20 @@ func Test_UserPermissions_GetRole(t *testing.T) {
 	}{
 		{
 			name:      "Should return the role for a given user and portal application ID",
-			userID:    1,
-			accountID: 1,
+			userID:    "user_1",
+			accountID: "account_1",
 			roleName:  RoleOwner,
 		},
 		{
 			name:      "Should return the role for a given user and portal application ID",
-			userID:    2,
-			accountID: 2,
+			userID:    "user_2",
+			accountID: "account_2",
 			roleName:  RoleMember,
 		},
 		{
 			name:      "Should return an empty string if user does not have a role for a portal application",
-			userID:    1,
-			accountID: 77,
+			userID:    "user_1",
+			accountID: "account_77",
 			roleName:  "",
 		},
 	}
@@ -92,17 +92,17 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 	}{
 		{
 			name:      "Should add permissions for an App if the user doesn't have any for that App",
-			userID:    1,
-			accountID: 4,
+			userID:    "user_1",
+			accountID: "account_4",
 			roleName:  RoleAdmin,
 			expectedPermissions: &UserPermissions{
-				UserID: 1,
+				UserID: "user_1",
 				Accounts: map[AccountID]AccountPermissions{
-					1: {
+					"account_1": {
 						RoleName:    RoleOwner,
 						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
-					4: {
+					"account_4": {
 						RoleName:    RoleAdmin,
 						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
 					},
@@ -111,17 +111,17 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 		},
 		{
 			name:      "Should update permissions for an App if the user already has them for that App",
-			userID:    1,
-			accountID: 4,
+			userID:    "user_1",
+			accountID: "account_4",
 			roleName:  RoleMember,
 			expectedPermissions: &UserPermissions{
-				UserID: 1,
+				UserID: "user_1",
 				Accounts: map[AccountID]AccountPermissions{
-					1: {
+					"account_1": {
 						RoleName:    RoleOwner,
 						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
-					4: {
+					"account_4": {
 						RoleName:    RoleMember,
 						Permissions: []Permissions{PermReadEndpoint},
 					},
@@ -130,14 +130,14 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 		},
 		{
 			name:      "Should fail if passed an empty App ID",
-			userID:    1,
-			accountID: 0,
+			userID:    "user_1",
+			accountID: "",
 			err:       errAccountIDIsEmpty,
 		},
 		{
 			name:      "Should fail if passed an invalid role",
-			userID:    1,
-			accountID: 4,
+			userID:    "user_1",
+			accountID: "account_4",
 			roleName:  RoleName("not_real"),
 			err:       errInvalidRole,
 		},
@@ -167,13 +167,13 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 	}{
 		{
 			name:      "Should delete UserPermissions for a given user and App",
-			userID:    3,
-			accountID: 5,
+			userID:    "user_3",
+			accountID: "account_5",
 			roleName:  RoleMember,
 			expectedPermissions: &UserPermissions{
-				UserID: 3,
+				UserID: "user_3",
 				Accounts: map[AccountID]AccountPermissions{
-					3: {
+					"account_3": {
 						RoleName:    RoleOwner,
 						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 					},
@@ -207,20 +207,20 @@ func Test_UserPermissions_HasPermission_Read(t *testing.T) {
 	}{
 		{
 			name:              "Should return a boolean indicating whether a given user has read permission for a given portal application",
-			userID:            1,
-			accountID:         1,
+			userID:            "user_1",
+			accountID:         "account_1",
 			hasReadPermission: true,
 		},
 		{
 			name:              "Should return a boolean indicating whether a given user has read permission for a given portal application",
-			userID:            1,
-			accountID:         89,
+			userID:            "user_1",
+			accountID:         "account_89",
 			hasReadPermission: false,
 		},
 		{
 			name:              "Should return a boolean indicating whether a given user has read permission for a given portal application",
-			userID:            2,
-			accountID:         2,
+			userID:            "user_2",
+			accountID:         "account_2",
 			hasReadPermission: true,
 		},
 	}
@@ -246,20 +246,20 @@ func Test_UserPermissions_HasPermission_Write(t *testing.T) {
 	}{
 		{
 			name:               "Should return a boolean indicating whether a given user has write permission for a given portal application",
-			userID:             1,
-			accountID:          1,
+			userID:             "user_1",
+			accountID:          "account_1",
 			hasWritePermission: true,
 		},
 		{
 			name:               "Should return a boolean indicating whether a given user has write permission for a given portal application",
-			userID:             1,
-			accountID:          89,
+			userID:             "user_1",
+			accountID:          "account_89",
 			hasWritePermission: false,
 		},
 		{
 			name:               "Should return a boolean indicating whether a given user has write permission for a given portal application",
-			userID:             3,
-			accountID:          3,
+			userID:             "user_3",
+			accountID:          "account_3",
 			hasWritePermission: true,
 		},
 	}
@@ -285,20 +285,20 @@ func Test_UserPermissions_HasPermission_Delete(t *testing.T) {
 	}{
 		{
 			name:                "Should return a boolean indicating whether a given user has delete permission for a given portal application",
-			userID:              1,
-			accountID:           1,
+			userID:              "user_1",
+			accountID:           "account_1",
 			hasDeletePermission: true,
 		},
 		{
 			name:                "Should return a boolean indicating whether a given user has delete permission for a given portal application",
-			userID:              1,
-			accountID:           89,
+			userID:              "user_1",
+			accountID:           "account_89",
 			hasDeletePermission: false,
 		},
 		{
 			name:                "Should return a boolean indicating whether a given user has delete permission for a given portal application",
-			userID:              3,
-			accountID:           3,
+			userID:              "user_3",
+			accountID:           "account_3",
 			hasDeletePermission: true,
 		},
 	}
@@ -323,20 +323,20 @@ func Test_UserPermissions_HasPermission_Transfer(t *testing.T) {
 	}{
 		{
 			name:                "Should return a boolean indicating whether a given user has transfer permission for a given portal application",
-			userID:              1,
-			accountID:           1,
+			userID:              "user_1",
+			accountID:           "account_1",
 			hasDeletePermission: true,
 		},
 		{
 			name:                "Should return a boolean indicating whether a given user has transfer permission for a given portal application",
-			userID:              1,
-			accountID:           89,
+			userID:              "user_1",
+			accountID:           "account_89",
 			hasDeletePermission: false,
 		},
 		{
 			name:                "Should return a boolean indicating whether a given user has transfer permission for a given portal application",
-			userID:              3,
-			accountID:           3,
+			userID:              "user_3",
+			accountID:           "account_3",
 			hasDeletePermission: true,
 		},
 	}

@@ -13,7 +13,7 @@ import (
 
 type (
 	userAccessDBRow struct {
-		UserID          int32                     `json:"user_id"`
+		UserID          string                    `json:"user_id"`
 		Email           string                    `json:"email"`
 		RoleName        string                    `json:"role_name"`
 		Accepted        bool                      `json:"accepted"`
@@ -24,10 +24,10 @@ type (
 var (
 	errInvalidRoleName           = errors.New("error invalid role name set")
 	errPayPlanDoesntExist        = errors.New("error pay plan '%s' does not exist")
-	errAccountDoesntExist        = errors.New("error account does not exists for account ID '%d'")
-	errAccountUserDoesntExist    = errors.New("error user ID '%d' does not exist for account ID '%d'")
-	errCannotDeleteOwner         = errors.New("error cannot delete user ID '%d' for account ID '%d' because this user is the current account owner")
-	errCannotTransferNotAccepted = errors.New("error cannot transfer ownership to user ID '%d' for account ID '%d' because the user has not accepted their invite")
+	errAccountDoesntExist        = errors.New("error account does not exists for account ID '%s'")
+	errAccountUserDoesntExist    = errors.New("error user ID '%s' does not exist for account ID '%s'")
+	errCannotDeleteOwner         = errors.New("error cannot delete user ID '%s' for account ID '%s' because this user is the current account owner")
+	errCannotTransferNotAccepted = errors.New("error cannot transfer ownership to user ID '%s' for account ID '%s' because the user has not accepted their invite")
 )
 
 /* ----- postgresdriver Account Read Methods ----- */
@@ -133,7 +133,14 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 		return nil, err
 	}
 
+	id, err := pg.generateID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	account.ID = types.AccountID(id)
+
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
+		ID:        account.ID,
 		Name:      account.Name,
 		PlanType:  account.PlanType,
 		CreatedAt: createdAt,
@@ -332,7 +339,14 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 	createAccountUser types.CreateAccountUserAccess,
 	createdAt time.Time,
 ) (*types.AccountUserAccess, error) {
+	id, err := pg.generateID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userID := types.UserID(id)
+
 	params := InsertAccountUserAccessNoUserParams{
+		ID:        userID,
 		AccountID: createAccountUser.AccountID,
 		Email:     createAccountUser.Email,
 		RoleName:  createAccountUser.RoleName,

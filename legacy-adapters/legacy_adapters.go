@@ -360,7 +360,7 @@ func ConvertToV2UpdateAcceptAccountUserAccess(u types.UpdateUserAccess, accountI
 	}
 }
 
-func ConvertToV2UpdateAccountUserAccess(u types.UpdateUserAccess, lbID string, userID int32) types.UpdateAccountUserRole {
+func ConvertToV2UpdateAccountUserAccess(u types.UpdateUserAccess, lbID string, userID string) types.UpdateAccountUserRole {
 	return types.UpdateAccountUserRole{
 		LegacyLoadBalancerID: lbID,
 		UserID:               types.UserID(userID),

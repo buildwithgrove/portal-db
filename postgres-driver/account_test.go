@@ -19,11 +19,11 @@ func (ts *PGDriverTestSuite) Test_ReadAccounts() {
 		{
 			name: "Should return all non-deleted Accounts from the database",
 			accounts: map[types.AccountID]*types.Account{
-				types.AccountID(1): testdata.Accounts[types.AccountID(1)],
-				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
-				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
-				types.AccountID(4): testdata.Accounts[types.AccountID(4)],
-				types.AccountID(5): testdata.Accounts[types.AccountID(5)],
+				types.AccountID("account_1"): testdata.Accounts[types.AccountID("account_1")],
+				types.AccountID("account_2"): testdata.Accounts[types.AccountID("account_2")],
+				types.AccountID("account_3"): testdata.Accounts[types.AccountID("account_3")],
+				types.AccountID("account_4"): testdata.Accounts[types.AccountID("account_4")],
+				types.AccountID("account_5"): testdata.Accounts[types.AccountID("account_5")],
 			},
 			options: types.DriverOptions{},
 			err:     nil,
@@ -50,13 +50,13 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 	}{
 		{
 			name:            "Should create a new Account in the database",
-			ownerID:         1,
+			ownerID:         "user_1",
 			account:         *testdata.TestCreateAccount,
 			testCreatedTime: testdata.MockTimestamp,
 			users: map[types.UserID]types.AccountUserAccess{
-				1: {
-					UserID:   testdata.Users[1].ID,
-					Email:    testdata.Users[1].Email,
+				"user_1": {
+					UserID:   testdata.Users["user_1"].ID,
+					Email:    testdata.Users["user_1"].Email,
 					RoleName: types.RoleOwner,
 					Accepted: true,
 					ProviderUserIDs: map[types.AuthType]string{
@@ -69,24 +69,24 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 		},
 		{
 			name:            "Should fail if input Account does not have a PayPlanType set",
-			ownerID:         1,
+			ownerID:         "user_1",
 			account:         types.Account{PlanType: ""},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errPayPlanDoesntExist.Error(), ""),
 		},
 		{
 			name:            "Should fail if input Account has an invalid plan type",
-			ownerID:         1,
+			ownerID:         "user_1",
 			account:         types.Account{PlanType: types.PayPlanType("turbo_ultra_mega_plan")},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errPayPlanDoesntExist.Error(), types.PayPlanType("turbo_ultra_mega_plan")),
 		},
 		{
 			name:            "Should fail if input User does not exist in the db",
-			ownerID:         451,
-			account:         *testdata.Accounts[types.AccountID(5)],
+			ownerID:         "user_451",
+			account:         *testdata.Accounts[types.AccountID("account_5")],
 			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errUserDoesntExist.Error(), 451),
+			err:             fmt.Errorf(errUserDoesntExist.Error(), "user_451"),
 		},
 	}
 
@@ -117,30 +117,30 @@ func (ts *PGDriverTestSuite) Test_UpdateAccount() {
 	}{
 		{
 			name:      "Should update account name successfully",
-			accountID: testdata.Accounts[1].ID,
+			accountID: testdata.Accounts["account_1"].ID,
 			update: types.UpdateAccount{
-				AccountID: testdata.Accounts[1].ID,
+				AccountID: testdata.Accounts["account_1"].ID,
 				Name:      "Updated Account",
 			},
 			err: nil,
 		},
 		{
 			name:      "Should update account name back to original successfully",
-			accountID: testdata.Accounts[1].ID,
+			accountID: testdata.Accounts["account_1"].ID,
 			update: types.UpdateAccount{
-				AccountID: testdata.Accounts[1].ID,
-				Name:      testdata.Accounts[1].Name,
+				AccountID: testdata.Accounts["account_1"].ID,
+				Name:      testdata.Accounts["account_1"].Name,
 			},
 			err: nil,
 		},
 		{
 			name:      "Should fail if account does not exist",
-			accountID: 347,
+			accountID: "account_347",
 			update: types.UpdateAccount{
-				AccountID: 347,
+				AccountID: "account_347",
 				Name:      "Non-existent Account",
 			},
-			err: fmt.Errorf(errAccountDoesntExist.Error(), 347),
+			err: fmt.Errorf(errAccountDoesntExist.Error(), "account_347"),
 		},
 	}
 
@@ -179,16 +179,16 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 		{
 			name: "Should create a new AccountUserAccess row in the database for an existing User",
 			createAccountUser: types.CreateAccountUserAccess{
-				AccountID: 1,
+				AccountID: "account_1",
 				Email:     "bernard.marx@test.com",
 				RoleName:  types.RoleMember,
 			},
 			accountUser: testdata.AccountUserAccess[13],
 			accountUsersAfterCreate: map[types.UserID]types.AccountUserAccess{
-				1:  testdata.AccountUserAccess[1],
-				2:  testdata.AccountUserAccess[2],
-				8:  testdata.AccountUserAccess[8],
-				11: testdata.AccountUserAccess[13],
+				"user_1":  testdata.AccountUserAccess[1],
+				"user_2":  testdata.AccountUserAccess[2],
+				"user_8":  testdata.AccountUserAccess[8],
+				"user_11": testdata.AccountUserAccess[13],
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
@@ -197,13 +197,13 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 			name:        "Should create a new AccountUserAccess row in the database for a user that hasn't signed up yet",
 			notSignedUp: true,
 			createAccountUser: types.CreateAccountUserAccess{
-				AccountID: 4,
+				AccountID: "account_4",
 				Email:     "winston.smith@test.com",
 				RoleName:  types.RoleAdmin,
 			},
 			accountUser: testdata.AccountUserAccess[14],
 			accountUsersAfterCreate: map[types.UserID]types.AccountUserAccess{
-				4: testdata.AccountUserAccess[11],
+				"user_4": testdata.AccountUserAccess[11],
 				// Winston assigned in test case after creation
 			},
 			testCreatedTime: testdata.MockTimestamp,
@@ -212,7 +212,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 		{
 			name: "Should fail if an invalid email provided",
 			createAccountUser: types.CreateAccountUserAccess{
-				AccountID: 4,
+				AccountID: "account_4",
 				Email:     "winston.smith",
 				RoleName:  types.RoleAdmin,
 			},
@@ -222,12 +222,12 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 		{
 			name: "Should fail if account does not exist",
 			createAccountUser: types.CreateAccountUserAccess{
-				AccountID: 674,
+				AccountID: "account_674",
 				Email:     "winston.smith@test.com",
 				RoleName:  types.RoleAdmin,
 			},
 			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errAccountDoesntExist.Error(), 674),
+			err:             fmt.Errorf(errAccountDoesntExist.Error(), "account_674"),
 		},
 	}
 
@@ -262,16 +262,16 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 		{
 			name: "Should update an existing AccountUserAccess row's role to non-OWNER role",
 			updateAccountUser: types.UpdateAccountUserRole{
-				AccountID: 3,
-				UserID:    7,
+				AccountID: "account_3",
+				UserID:    "user_7",
 				RoleName:  types.RoleAdmin,
 			},
 			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				5:  testdata.AccountUserAccess[5],
-				6:  testdata.AccountUserAccess[6],
-				10: testdata.AccountUserAccess[12],
-				7: {
-					UserID:          7,
+				"user_5":  testdata.AccountUserAccess[5],
+				"user_6":  testdata.AccountUserAccess[6],
+				"user_10": testdata.AccountUserAccess[12],
+				"user_7": {
+					UserID:          "user_7",
 					Email:           "frodo.baggins123@test.com",
 					RoleName:        types.RoleAdmin,
 					Accepted:        true,
@@ -284,16 +284,16 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 		{
 			name: "Should update an existing AccountUserAccess row's role back to original role",
 			updateAccountUser: types.UpdateAccountUserRole{
-				AccountID: 3,
-				UserID:    7,
+				AccountID: "account_3",
+				UserID:    "user_7",
 				RoleName:  types.RoleMember,
 			},
 			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				5:  testdata.AccountUserAccess[5],
-				6:  testdata.AccountUserAccess[6],
-				10: testdata.AccountUserAccess[12],
-				7: {
-					UserID:          7,
+				"user_5":  testdata.AccountUserAccess[5],
+				"user_6":  testdata.AccountUserAccess[6],
+				"user_10": testdata.AccountUserAccess[12],
+				"user_7": {
+					UserID:          "user_7",
 					Email:           "frodo.baggins123@test.com",
 					RoleName:        types.RoleMember,
 					Accepted:        true,
@@ -306,22 +306,22 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 		{
 			name: "Should transfer the OWNER of an Account",
 			updateAccountUser: types.UpdateAccountUserRole{
-				AccountID: 2,
-				UserID:    4,
+				AccountID: "account_2",
+				UserID:    "user_4",
 				RoleName:  types.RoleOwner,
 			},
 			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				9: testdata.AccountUserAccess[9],
-				2: testdata.AccountUserAccess[10],
-				3: {
-					UserID:          3,
+				"user_9": testdata.AccountUserAccess[9],
+				"user_2": testdata.AccountUserAccess[10],
+				"user_3": {
+					UserID:          "user_3",
 					Email:           "ellen.ripley789@test.com",
 					RoleName:        types.RoleAdmin,
 					Accepted:        true,
 					ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ellen_ripley"},
 				},
-				4: {
-					UserID:          4,
+				"user_4": {
+					UserID:          "user_4",
 					Email:           "ulfric.stormcloak123@test.com",
 					RoleName:        types.RoleOwner,
 					Accepted:        true,
@@ -334,15 +334,15 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 		{
 			name: "Should work for users that have not accepted their invite yet",
 			updateAccountUser: types.UpdateAccountUserRole{
-				AccountID: 3,
-				UserID:    10,
+				AccountID: "account_3",
+				UserID:    "user_10",
 				RoleName:  types.RoleAdmin,
 			},
 			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				5:  testdata.AccountUserAccess[5],
-				6:  testdata.AccountUserAccess[6],
-				7:  testdata.AccountUserAccess[7],
-				10: {UserID: 10, Email: "daenerys.targaryen123@test.com", RoleName: types.RoleAdmin, Accepted: false},
+				"user_5":  testdata.AccountUserAccess[5],
+				"user_6":  testdata.AccountUserAccess[6],
+				"user_7":  testdata.AccountUserAccess[7],
+				"user_10": {UserID: "user_10", Email: "daenerys.targaryen123@test.com", RoleName: types.RoleAdmin, Accepted: false},
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
@@ -350,22 +350,22 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 		{
 			name: "Should fail is attemptong to transfer ownership to user that has not accepted their invite yet",
 			updateAccountUser: types.UpdateAccountUserRole{
-				AccountID: 3,
-				UserID:    10,
+				AccountID: "account_3",
+				UserID:    "user_10",
 				RoleName:  types.RoleOwner,
 			},
 			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errCannotTransferNotAccepted.Error(), 10, 3),
+			err:             fmt.Errorf(errCannotTransferNotAccepted.Error(), "user_10", "account_3"),
 		},
 		{
 			name: "Should fail if User is not a member of an Account",
 			updateAccountUser: types.UpdateAccountUserRole{
-				AccountID: 2,
-				UserID:    512,
+				AccountID: "account_2",
+				UserID:    "user_512",
 				RoleName:  types.RoleMember,
 			},
 			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errAccountUserDoesntExist.Error(), 512, 2),
+			err:             fmt.Errorf(errAccountUserDoesntExist.Error(), "user_512", "account_2"),
 		},
 	}
 
@@ -394,15 +394,15 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 	}{
 		{
 			name:   "Should create a new UserAuthProvider for an existing user in the DB",
-			userID: 10,
+			userID: "user_10",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
-				AccountID:        3,
-				UserID:           10,
+				AccountID:        "account_3",
+				UserID:           "user_10",
 				AuthProviderType: types.AuthTypeAuth0Username,
 				ProviderUserID:   "auth0|daenerys_targaryen",
 			},
 			user: &types.User{
-				ID:       10,
+				ID:       "user_10",
 				Email:    "daenerys.targaryen123@test.com",
 				SignedUp: true,
 				AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -415,11 +415,11 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				UpdatedAt: testdata.MockTimestamp,
 			},
 			accountUsers: map[types.UserID]types.AccountUserAccess{
-				5: testdata.AccountUserAccess[5],
-				6: testdata.AccountUserAccess[6],
-				7: testdata.AccountUserAccess[7],
-				10: {
-					UserID: 10, Email: "daenerys.targaryen123@test.com", RoleName: types.RoleAdmin, Accepted: true,
+				"user_5": testdata.AccountUserAccess[5],
+				"user_6": testdata.AccountUserAccess[6],
+				"user_7": testdata.AccountUserAccess[7],
+				"user_10": {
+					UserID: "user_10", Email: "daenerys.targaryen123@test.com", RoleName: types.RoleAdmin, Accepted: true,
 					ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|daenerys_targaryen"},
 				},
 			},
@@ -428,8 +428,8 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 		{
 			name: "Should fail if an invalid auth provider type provided",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
-				AccountID:        3,
-				UserID:           10,
+				AccountID:        "account_3",
+				UserID:           "user_10",
 				AuthProviderType: types.AuthType("ask_jeeves"),
 			},
 			err: fmt.Errorf(errInvalidAuthProviderType.Error(), types.AuthType("ask_jeeves")),
@@ -466,30 +466,30 @@ func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
 			name:                    "Should set a Account's deleted field to true, causing it to not appear in the ReadAccounts query",
 			numAccountsBeforeDelete: 6,
 			accountsAfterDelete: map[types.AccountID]*types.Account{
-				types.AccountID(1): testdata.Accounts[types.AccountID(1)],
-				types.AccountID(2): testdata.Accounts[types.AccountID(2)],
-				types.AccountID(3): testdata.Accounts[types.AccountID(3)],
-				types.AccountID(4): testdata.Accounts[types.AccountID(4)],
-				types.AccountID(5): testdata.Accounts[types.AccountID(5)],
+				types.AccountID("account_1"): testdata.Accounts[types.AccountID("account_1")],
+				types.AccountID("account_2"): testdata.Accounts[types.AccountID("account_2")],
+				types.AccountID("account_3"): testdata.Accounts[types.AccountID("account_3")],
+				types.AccountID("account_4"): testdata.Accounts[types.AccountID("account_4")],
+				types.AccountID("account_5"): testdata.Accounts[types.AccountID("account_5")],
 			},
 			err: nil,
 		},
 		{
 			name:                    "Should fail if account does not exist",
-			accountID:               347,
+			accountID:               "account_347",
 			numAccountsBeforeDelete: 5,
-			err:                     fmt.Errorf(errAccountDoesntExist.Error(), 347),
+			err:                     fmt.Errorf(errAccountDoesntExist.Error(), "account_347"),
 		},
 	}
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			if test.accountID == types.AccountID(0) {
+			if test.accountID == types.AccountID("") {
 				// Create test Account to delete
 				createdAccount, err := ts.driver.WriteAccount(
 					context.Background(),
-					1,
-					types.Account{PlanType: types.PayPlanType("developer_plan")},
+					"user_1",
+					types.Account{Name: "test_delete_account_1", PlanType: types.PayPlanType("developer_plan")},
 					testdata.MockTimestamp,
 				)
 				ts.NoError(err)
@@ -535,34 +535,34 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 	}{
 		{
 			name:                    "Should delete a single AccountUserAccess row",
-			accountID:               1,
+			accountID:               "account_1",
 			numAccountsBeforeDelete: 5,
 			accountUsersAfterDelete: map[types.UserID]types.AccountUserAccess{
-				1: testdata.AccountUserAccess[1],
-				2: testdata.AccountUserAccess[2],
-				8: testdata.AccountUserAccess[8],
+				"user_1": testdata.AccountUserAccess[1],
+				"user_2": testdata.AccountUserAccess[2],
+				"user_8": testdata.AccountUserAccess[8],
 			},
 			err: nil,
 		},
 		{
 			name:                    "Should fail if provided a UserID that doesn't exist for the Account",
-			userID:                  789,
-			accountID:               3,
+			userID:                  "user_789",
+			accountID:               "account_3",
 			numAccountsBeforeDelete: 5,
-			err:                     fmt.Errorf(errAccountUserDoesntExist.Error(), 789, 3),
+			err:                     fmt.Errorf(errAccountUserDoesntExist.Error(), "user_789", "account_3"),
 		},
 		{
 			name:      "Should fail if attempting to delete the current Account OWNER",
-			userID:    1,
-			accountID: 1,
-			err:       fmt.Errorf(errCannotDeleteOwner.Error(), 1, 1),
+			userID:    "user_1",
+			accountID: "account_1",
+			err:       fmt.Errorf(errCannotDeleteOwner.Error(), "user_1", "account_1"),
 		},
 	}
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
 			if test.err == nil {
-				if test.userID == types.UserID(0) {
+				if test.userID == types.UserID("") {
 					// create test User to delete
 					createdUser, err := ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
 						AccountID: test.accountID, Email: "hermaeus.mora@example.com", RoleName: types.RoleMember,

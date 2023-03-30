@@ -18,13 +18,13 @@ func TestListen(t *testing.T) {
 	}{
 		{
 			name:    "Should process Account notifications",
-			content: testdata.Accounts[5],
+			content: testdata.Accounts["account_5"],
 			expectedNotifications: map[types.Table]*types.Notification{
 				types.TableAccounts: {
 					Table:  types.TableAccounts,
 					Action: types.ActionInsert,
 					Data: &types.Account{
-						ID:                     5,
+						ID:                     "account_5",
 						Name:                   "test_account_5",
 						PlanType:               "basic_plan",
 						PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
@@ -39,8 +39,8 @@ func TestListen(t *testing.T) {
 					Table:  types.TableAccountUserAccess,
 					Action: types.ActionUpdate,
 					Data: &types.AccountUserAccess{
-						AccountID: 5,
-						UserID:    4,
+						AccountID: "account_5",
+						UserID:    "user_4",
 						RoleName:  types.RoleOwner,
 						Accepted:  true,
 					},
@@ -49,14 +49,14 @@ func TestListen(t *testing.T) {
 		},
 		{
 			name:    "Should process PortalApp notifications",
-			content: testdata.PortalApps["test_app_3487u329rfn23f9"],
+			content: testdata.PortalApps["test_app_1"],
 			expectedNotifications: map[types.Table]*types.Notification{
 				types.TablePortalApps: {
 					Table:  types.TablePortalApps,
 					Action: types.ActionInsert,
 					Data: &types.PortalApp{
-						ID:        "test_app_3487u329rfn23f9",
-						AccountID: 1,
+						ID:        "test_app_1",
+						AccountID: "account_1",
 						Name:      "pokt_app_123",
 						Gigastake: true,
 						Staked:    false,
@@ -75,7 +75,7 @@ func TestListen(t *testing.T) {
 					Table:  types.TableAppAATs,
 					Action: types.ActionUpdate,
 					Data: &types.AAT{
-						AppID:           "test_app_3487u329rfn23f9",
+						AppID:           "test_app_1",
 						Address:         "test_34715cae753e67c75fbb340442e7de8e",
 						PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
 						ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
@@ -88,7 +88,7 @@ func TestListen(t *testing.T) {
 					Table:  types.TableAppSettings,
 					Action: types.ActionUpdate,
 					Data: &types.Settings{
-						AppID:             "test_app_3487u329rfn23f9",
+						AppID:             "test_app_1",
 						Environment:       "production",
 						SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
 						SecretKeyRequired: true,
@@ -99,7 +99,7 @@ func TestListen(t *testing.T) {
 					Table:  types.TableAppWhitelists,
 					Action: types.ActionUpdate,
 					Data: &types.Whitelist{
-						AppID: "test_app_3487u329rfn23f9",
+						AppID: "test_app_1",
 						Type:  "blockchains",
 						Value: "0053",
 					},
@@ -108,7 +108,7 @@ func TestListen(t *testing.T) {
 					Table:  types.TableAppNotifications,
 					Action: types.ActionUpdate,
 					Data: &types.AppNotification{
-						AppID:       "test_app_3487u329rfn23f9",
+						AppID:       "test_app_1",
 						Active:      true,
 						Destination: "test@test.com",
 						Trigger:     "trigger123",
@@ -119,7 +119,7 @@ func TestListen(t *testing.T) {
 					Table:  types.TableStickinessOptions,
 					Action: types.ActionUpdate,
 					Data: &types.StickyOptions{
-						ID:            "test_app_3487u329rfn23f9",
+						ID:            "test_app_1",
 						Duration:      "60",
 						StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
 						StickyMax:     300,
@@ -163,7 +163,7 @@ func TestListen(t *testing.T) {
 					Action: types.ActionUpdate,
 					Data: &types.GigastakeRedirect{
 						ChainID:              "0001",
-						AccountID:            1,
+						AccountID:            "account_1",
 						Domain:               "pokt-rpc.gateway.pokt.network",
 						Alias:                "altruist-0001",
 						LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",

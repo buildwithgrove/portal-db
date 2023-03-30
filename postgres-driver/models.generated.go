@@ -498,7 +498,7 @@ type PayPlan struct {
 
 type PortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int32             `json:"account_id"`
+	AccountID          types.AccountID   `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`

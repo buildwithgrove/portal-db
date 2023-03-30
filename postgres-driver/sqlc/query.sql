@@ -1,3 +1,20 @@
+-- name: CheckIDExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM (
+                SELECT id
+                FROM portal_applications
+                WHERE portal_applications.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM accounts
+                WHERE accounts.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM users
+                WHERE users.id = @id::VARCHAR
+            ) AS id_table
+    );
 -- name: SelectPortalApplications :many
 SELECT p.*,
     paa.address,
@@ -288,6 +305,7 @@ SELECT user_id,
 FROM user_auth_providers;
 -- name: InsertAccount :one
 INSERT INTO accounts (
+        id,
         name,
         plan_type,
         created_at,
@@ -295,7 +313,7 @@ INSERT INTO accounts (
         -- legacy field
         lb_id
     )
-VALUES ($1, $2, $3, $4, $5)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 -- name: DeleteAccount :exec
 UPDATE accounts
@@ -382,12 +400,13 @@ RETURNING account_user_access.user_id,
 -- name: InsertAccountUserAccessNoUser :one
 WITH inserted_user AS (
     INSERT INTO users (
+            id,
             email,
             signed_up,
             created_at,
             updated_at
         )
-    VALUES ($1, false, $4, $5)
+    VALUES ($1, $2, false, $3, $4)
     RETURNING id,
         email
 )
@@ -400,15 +419,15 @@ INSERT INTO account_user_access (
         updated_at
     )
 VALUES (
-        $2,
+        $5,
         (
             SELECT id
             FROM inserted_user
         ),
-        $3,
+        $6,
         false,
-        $4,
-        $5
+        $3,
+        $4
     )
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
@@ -436,8 +455,8 @@ WHERE account_user_access.account_id = $1
     );
 -- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
-    INSERT INTO users (email, signed_up, created_at, updated_at)
-    VALUES ($1, true, $2, $3) ON CONFLICT (email) DO NOTHING
+    INSERT INTO users (id, email, signed_up, created_at, updated_at)
+    VALUES ($1, $2, true, $3, $4) ON CONFLICT (email) DO NOTHING
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -457,14 +476,14 @@ VALUES (
                     (
                         SELECT id
                         FROM users
-                        WHERE users.email = $1
+                        WHERE users.email = $2
                     )
                 )
         ),
-        $4,
         $5,
         $6,
-        $7
+        $7,
+        $8
     )
 RETURNING user_id;
 -- name: UpdateUserAcceptedInvite :exec
@@ -642,7 +661,7 @@ SET chain_id = COALESCE(
 DELETE FROM chain_gigastake_redirects
 WHERE chain_id = $1
     AND account_id NOT IN (
-        SELECT unnest(@account_ids::INTEGER [])
+        SELECT unnest(@account_ids::VARCHAR [])
     );
 -- name: UpsertChainCheck :exec
 INSERT INTO chain_checks (

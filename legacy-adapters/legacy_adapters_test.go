@@ -52,7 +52,7 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 	}{
 		{
 			name:                      "Should convert a V2 PortalApp struct to a legacy Application struct",
-			portalApp:                 *testdata.PortalApps["test_app_3487u329rfn23f9"],
+			portalApp:                 *testdata.PortalApps["test_app_1"],
 			userID:                    "auth0|james_holden",
 			planType:                  "basic_plan",
 			dailyLimit:                1_000,
@@ -127,7 +127,7 @@ func Test_LegacyAdapators_ConvertToV2AccountAndPortalApp(t *testing.T) {
 		{
 			name:                "Should convert a legacy LoadBalancer struct to V2 Account & PortalApp structs",
 			loadBalancer:        testdata.LegacyLoadBalancer,
-			accountID:           1,
+			accountID:           "account_1",
 			expectedV2Account:   testdata.V2CreateAccount,
 			expectedV2PortalApp: testdata.V2CreatePortalApp,
 		},
@@ -156,7 +156,7 @@ func Test_LegacyAdapators_ConvertToV2UpdatePortalApp(t *testing.T) {
 	}{
 		{
 			name:                      "Should convert a legacy UpdateApplication struct to a V2 UpdatePortalApp struct",
-			appID:                     "test_app_3487u329rfn23f9",
+			appID:                     "test_app_1",
 			updateApplication:         testdata.LegacyUpdateApplication,
 			expectedV2UpdatePortalApp: testdata.V2UpdatePortalApp,
 		},
@@ -190,7 +190,7 @@ func Test_LegacyAdapators_ConvertToV2Chain(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			v2Chain := ConvertToV2Chain(test.blockchain)
-			v2Chain.Redirects[0].AccountID = 1
+			v2Chain.Redirects[0].AccountID = "account_1"
 			c.Equal(test.expectedV2Chain, v2Chain)
 		})
 	}
@@ -245,7 +245,7 @@ func Test_LegacyAdapators_ConvertToV2Redirect(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			v2Redirect := ConvertToV2Redirect(test.redirect)
-			v2Redirect.AccountID = 1
+			v2Redirect.AccountID = "account_1"
 			c.Equal(test.expectedV2Redirect, v2Redirect)
 		})
 	}
@@ -271,7 +271,7 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 			v2AccountUserAccess := ConvertToV2AccountUserAccess(test.userAccess)
 
 			// Set fields not used in the legacy update to reuse test struct
-			test.expectedV2AccountUserAccess.UserID = 0
+			test.expectedV2AccountUserAccess.UserID = ""
 			delete(test.expectedV2AccountUserAccess.ProviderUserIDs, types.AuthTypeAuth0Github)
 			test.expectedV2AccountUserAccess.ProviderUserIDs[types.AuthTypeAuth0Username] = test.userAccess.UserID
 
@@ -286,18 +286,18 @@ func Test_LegacyAdapators_ConvertToV2UpdateAccountUserAccess(t *testing.T) {
 	tests := []struct {
 		name                        string
 		lbID                        string
-		userID                      int32
+		userID                      string
 		userAccess                  types.UpdateUserAccess
 		expectedV2AccountUserAccess types.UpdateAccountUserRole
 	}{
 		{
 			name:       "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
 			lbID:       "test_lb_3127flsdhfoi323f",
-			userID:     123,
+			userID:     "user_123",
 			userAccess: testdata.LegacyUpdateUserAccess,
 			expectedV2AccountUserAccess: types.UpdateAccountUserRole{
 				RoleName:             types.RoleAdmin,
-				UserID:               123,
+				UserID:               "user_123",
 				LegacyLoadBalancerID: "test_lb_3127flsdhfoi323f",
 			},
 		},

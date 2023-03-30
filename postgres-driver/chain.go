@@ -20,7 +20,7 @@ type (
 
 	gigastakeRedirectDBRow struct {
 		ChainID              string `json:"chain_id"`
-		AccountID            int32  `json:"account_id"`
+		AccountID            string `json:"account_id"`
 		Alias                string `json:"alias"`
 		Domain               string `json:"domain"`
 		LegacyLoadBalancerID string `json:"lb_id"`
@@ -355,7 +355,7 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 	if chain.Redirects != nil {
 		deleteRedirectParams := DeleteUnusedChainGigastakeRedirectsParams{ChainID: chain.ID}
 		for _, redirect := range chain.Redirects {
-			deleteRedirectParams.AccountIDs = append(deleteRedirectParams.AccountIDs, int32(redirect.AccountID))
+			deleteRedirectParams.AccountIDs = append(deleteRedirectParams.AccountIDs, string(redirect.AccountID))
 		}
 		err := qtx.DeleteUnusedChainGigastakeRedirects(ctx, deleteRedirectParams)
 		if err != nil {

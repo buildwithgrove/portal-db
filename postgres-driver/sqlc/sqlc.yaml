@@ -50,6 +50,8 @@ sql:
           # ID type Overrides
           - column: "portal_applications.id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"
+          - column: "portal_applications.account_id"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.AccountID"
           - column: "portal_application_aats.application_id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"
           - column: "portal_application_settings.application_id"

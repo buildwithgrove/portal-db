@@ -1,18 +1,19 @@
 package postgresdriver
 
 import (
-	"crypto/rand"
+	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	// PQ import is required
 	_ "github.com/lib/pq"
 	"github.com/pokt-foundation/portal-db/v2/types"
+	"github.com/pokt-foundation/utils-go/id"
 )
 
-const idLength = 24
+const idLength = 6
 
 var (
 	ErrMissingID     = errors.New("missing id")
@@ -20,6 +21,7 @@ var (
 	ErrMissingUserID = errors.New("missing user id")
 	ErrMissingEmail  = errors.New("missing user email")
 	ErrMissingRole   = errors.New("missing user role")
+	errCheckingID    = errors.New("error checking if ID %s exists")
 )
 
 // The PostgresDriver struct satisfies the Driver interface which defines all database driver methods
@@ -74,15 +76,27 @@ func NewPostgresDriverFromDBInstance(db *sql.DB, listener Listener) *PostgresDri
 	return driver
 }
 
-/* NotificationChannel returns receiver Notification channel  */
-func (d *PostgresDriver) NotificationChannel() <-chan *types.Notification {
-	return d.notification
+// NotificationChannel returns receiver Notification channel
+func (pg *PostgresDriver) NotificationChannel() <-chan *types.Notification {
+	return pg.notification
 }
 
-func generatePortalAppID() string {
-	bytes := make([]byte, idLength/2)
-	_, _ = rand.Read(bytes)
-	return hex.EncodeToString(bytes)
+// generateID generates a new random ID with the specified length and checks that it doesn't already exist in the DB.
+// If it already exists in the DB a new random ID is generated until one is created that does not already exist.
+func (pg *PostgresDriver) generateID(ctx context.Context) (string, error) {
+	var generatedID string
+	var err error
+	idExists := true
+
+	for idExists {
+		generatedID = id.GenerateID(idLength)
+		idExists, err = pg.CheckIDExists(ctx, generatedID)
+		if err != nil {
+			return "", fmt.Errorf(errCheckingID.Error(), generatedID)
+		}
+	}
+
+	return generatedID, nil
 }
 
 func newSQLNullString(value string) sql.NullString {

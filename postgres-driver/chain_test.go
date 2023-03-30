@@ -81,10 +81,10 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			name:            "Should fail if any input Redirect has an invalid AccountID",
 			altruistURL:     "http://im.good.com",
 			redirectDomain:  "im.also.good.io",
-			redirectAccount: 47,
+			redirectAccount: "account_47",
 			chain:           *testdata.TestCreateChain,
 			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errAccountDoesntExist.Error(), 47),
+			err:             fmt.Errorf(errAccountDoesntExist.Error(), "account_47"),
 		},
 	}
 
@@ -96,7 +96,7 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			if test.redirectDomain != "" {
 				test.chain.Redirects[0].Domain = test.redirectDomain
 			}
-			if test.redirectAccount != 0 {
+			if test.redirectAccount != "" {
 				test.chain.Redirects[0].AccountID = test.redirectAccount
 			}
 
@@ -168,10 +168,10 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			name:            "Should fail if any input Redirect has an invalid AccountID",
 			altruistURL:     "http://im.good.com",
 			redirectDomain:  "im.also.good.io",
-			redirectAccount: 47,
+			redirectAccount: "account_47",
 			chain:           *testdata.Chains[types.RelayChainID("0040")],
 			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errAccountDoesntExist.Error(), 47),
+			err:             fmt.Errorf(errAccountDoesntExist.Error(), "account_47"),
 		},
 	}
 
@@ -183,7 +183,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			if test.redirectDomain != "" {
 				test.chain.Redirects[0].Domain = test.redirectDomain
 			}
-			if test.redirectAccount != 0 {
+			if test.redirectAccount != "" {
 				test.chain.Redirects[0].AccountID = test.redirectAccount
 			}
 
@@ -307,7 +307,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 				"redirects": [
 					{
 					  "chainID": "",
-					  "accountID": 1,
+					  "accountID": "account_1",
 					  "domain": "pokt-rpc-ultra.gateway.pokt.network",
 					  "alias": "altruist-0007"
 					}
@@ -334,7 +334,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 				},
 			},
 			redirects: []types.GigastakeRedirect{
-				{AccountID: 1, Alias: "altruist-0007", Domain: "pokt-rpc-ultra.gateway.pokt.network"},
+				{AccountID: "account_1", Alias: "altruist-0007", Domain: "pokt-rpc-ultra.gateway.pokt.network"},
 			},
 			checks: map[types.ChainCheckType]types.Check{},
 			err:    nil,

@@ -4,8 +4,8 @@ import "regexp"
 
 /* String ID types */
 type (
-	AccountID      int32
-	UserID         int32
+	AccountID      string
+	UserID         string
 	RelayChainID   string
 	PortalAppID    string
 	Email          string

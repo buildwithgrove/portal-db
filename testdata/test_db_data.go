@@ -64,14 +64,14 @@ var (
 	}
 
 	Accounts = map[types.AccountID]*types.Account{
-		1: {
-			ID:       1,
+		"account_1": {
+			ID:       "account_1",
 			Name:     "test_account_1",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
-				1: AccountUserAccess[1],
-				2: AccountUserAccess[2],
-				8: AccountUserAccess[8],
+				"user_1": AccountUserAccess[1],
+				"user_2": AccountUserAccess[2],
+				"user_8": AccountUserAccess[8],
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			PartnerThroughputLimit: 2_000,
@@ -81,15 +81,15 @@ var (
 			// TODO - remove when v2 migration finished
 			LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		},
-		2: {
-			ID:       2,
+		"account_2": {
+			ID:       "account_2",
 			Name:     "test_account_2",
 			PlanType: types.PayPlanType("pro_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
-				3: AccountUserAccess[3],
-				4: AccountUserAccess[4],
-				9: AccountUserAccess[9],
-				2: AccountUserAccess[10],
+				"user_3": AccountUserAccess[3],
+				"user_4": AccountUserAccess[4],
+				"user_9": AccountUserAccess[9],
+				"user_2": AccountUserAccess[10],
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
@@ -99,15 +99,15 @@ var (
 			// TODO - remove when v2 migration finished
 			LegacyLoadBalancerID: "test_lb_d2c7361fd9c5dff7",
 		},
-		3: {
-			ID:       3,
+		"account_3": {
+			ID:       "account_3",
 			Name:     "test_account_3",
 			PlanType: types.PayPlanType("startup_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
-				5:  AccountUserAccess[5],
-				6:  AccountUserAccess[6],
-				7:  AccountUserAccess[7],
-				10: AccountUserAccess[12],
+				"user_5":  AccountUserAccess[5],
+				"user_6":  AccountUserAccess[6],
+				"user_7":  AccountUserAccess[7],
+				"user_10": AccountUserAccess[12],
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
@@ -117,12 +117,12 @@ var (
 			// TODO - remove when v2 migration finished
 			LegacyLoadBalancerID: "test_lb_4b874c457f73c4e9",
 		},
-		4: {
-			ID:       4,
+		"account_4": {
+			ID:       "account_4",
 			Name:     "test_account_4",
 			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
-				4: AccountUserAccess[11],
+				"user_4": AccountUserAccess[11],
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 			PartnerThroughputLimit: 1_000,
@@ -132,12 +132,12 @@ var (
 			// TODO - remove when v2 migration finished
 			LegacyLoadBalancerID: "test_lb_746e04231640556a",
 		},
-		5: {
-			ID:       5,
+		"account_5": {
+			ID:       "account_5",
 			Name:     "test_account_5",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
-				4: AccountUserAccess[11],
+				"user_4": AccountUserAccess[11],
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
 			PartnerThroughputLimit: 6_000,
@@ -159,31 +159,31 @@ var (
 		LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
 	}
 
-	AccountUserAccess = map[types.UserID]types.AccountUserAccess{
-		1: {UserID: 1, Email: "james.holden123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|james_holden", types.AuthTypeAuth0Github: "github|james_holden"}},
-		2: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
-		3: {UserID: 3, Email: "ellen.ripley789@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ellen_ripley"}},
-		4: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
-		5: {UserID: 5, Email: "chrisjen.avasarala1@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|chrisjen_avasarala"}},
-		6: {UserID: 6, Email: "amos.burton789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|amos_burton"}},
-		7: {UserID: 7, Email: "frodo.baggins123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|frodo_baggins"}},
-		8: {UserID: 8, Email: "rick.deckard456@test.com", RoleName: types.RoleAdmin, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|rick_deckard"}},
-		9: {UserID: 9, Email: "tyrion.lannister789@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|tyrion_lannister"}},
+	AccountUserAccess = map[int]types.AccountUserAccess{
+		1: {UserID: "user_1", Email: "james.holden123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|james_holden", types.AuthTypeAuth0Github: "github|james_holden"}},
+		2: {UserID: "user_2", Email: "paul.atreides456@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
+		3: {UserID: "user_3", Email: "ellen.ripley789@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ellen_ripley"}},
+		4: {UserID: "user_4", Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
+		5: {UserID: "user_5", Email: "chrisjen.avasarala1@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|chrisjen_avasarala"}},
+		6: {UserID: "user_6", Email: "amos.burton789@test.com", RoleName: types.RoleAdmin, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|amos_burton"}},
+		7: {UserID: "user_7", Email: "frodo.baggins123@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|frodo_baggins"}},
+		8: {UserID: "user_8", Email: "rick.deckard456@test.com", RoleName: types.RoleAdmin, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|rick_deckard"}},
+		9: {UserID: "user_9", Email: "tyrion.lannister789@test.com", RoleName: types.RoleMember, Accepted: false, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|tyrion_lannister"}},
 		// Paul is an admin of Account 1 as well as a member of Account 2
-		10: {UserID: 2, Email: "paul.atreides456@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
+		10: {UserID: "user_2", Email: "paul.atreides456@test.com", RoleName: types.RoleMember, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"}},
 		// Ulfric is an admin of Account 2 as well as the owner of Accounts 4 and 5
-		11: {UserID: 4, Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
+		11: {UserID: "user_4", Email: "ulfric.stormcloak123@test.com", RoleName: types.RoleOwner, Accepted: true, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"}},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
-		12: {UserID: 10, Email: "daenerys.targaryen123@test.com", RoleName: types.RoleMember, Accepted: false},
+		12: {UserID: "user_10", Email: "daenerys.targaryen123@test.com", RoleName: types.RoleMember, Accepted: false},
 		// Bernard is an existing user and is used to create a new AccountUserAccess row
-		13: {UserID: 11, Email: "bernard.marx@test.com", Accepted: false, RoleName: types.RoleMember, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|bernard_marx"}},
+		13: {UserID: "user_11", Email: "bernard.marx@test.com", Accepted: false, RoleName: types.RoleMember, ProviderUserIDs: map[types.AuthType]string{types.AuthTypeAuth0Username: "auth0|bernard_marx"}},
 		// Winston has not signed up yet and is used to create a new AccountUserAccess row
 		14: {Email: "winston.smith@test.com", RoleName: types.RoleAdmin, Accepted: false},
 	}
 
 	Users = map[types.UserID]*types.User{
-		1: {
-			ID:       1,
+		"user_1": {
+			ID:       "user_1",
 			Email:    "james.holden123@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -203,8 +203,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		2: {
-			ID:       2,
+		"user_2": {
+			ID:       "user_2",
 			Email:    "paul.atreides456@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -224,8 +224,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		3: {
-			ID:       3,
+		"user_3": {
+			ID:       "user_3",
 			Email:    "ellen.ripley789@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -239,8 +239,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		4: {
-			ID:       4,
+		"user_4": {
+			ID:       "user_4",
 			Email:    "ulfric.stormcloak123@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -254,8 +254,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		5: {
-			ID:       5,
+		"user_5": {
+			ID:       "user_5",
 			Email:    "chrisjen.avasarala1@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -269,8 +269,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		6: {
-			ID:       6,
+		"user_6": {
+			ID:       "user_6",
 			Email:    "amos.burton789@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -284,8 +284,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		7: {
-			ID:       7,
+		"user_7": {
+			ID:       "user_7",
 			Email:    "frodo.baggins123@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -299,8 +299,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		8: {
-			ID:       8,
+		"user_8": {
+			ID:       "user_8",
 			Email:    "rick.deckard456@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -314,8 +314,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		9: {
-			ID:       9,
+		"user_9": {
+			ID:       "user_9",
 			Email:    "tyrion.lannister789@test.com",
 			SignedUp: true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
@@ -329,8 +329,8 @@ var (
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
-		10: {
-			ID:            10,
+		"user_10": {
+			ID:            "user_10",
 			Email:         "daenerys.targaryen123@test.com",
 			SignedUp:      false,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{},
@@ -346,10 +346,10 @@ var (
 	}
 
 	UserPermissions = map[types.UserID]*types.UserPermissions{
-		1: {
-			UserID: 1,
+		"user_1": {
+			UserID: "user_1",
 			Accounts: map[types.AccountID]types.AccountPermissions{
-				1: types.AccountPermissions{
+				"account_1": types.AccountPermissions{
 					RoleName: types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -360,17 +360,17 @@ var (
 				},
 			},
 		},
-		2: {
-			UserID: 2,
+		"user_2": {
+			UserID: "user_2",
 			Accounts: map[types.AccountID]types.AccountPermissions{
-				1: types.AccountPermissions{
+				"account_1": types.AccountPermissions{
 					RoleName: types.RoleAdmin,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 						types.PermWriteEndpoint,
 					},
 				},
-				2: types.AccountPermissions{
+				"account_2": types.AccountPermissions{
 					RoleName: types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -378,10 +378,10 @@ var (
 				},
 			},
 		},
-		3: {
-			UserID: 3,
+		"user_3": {
+			UserID: "user_3",
 			Accounts: map[types.AccountID]types.AccountPermissions{
-				2: types.AccountPermissions{
+				"account_2": types.AccountPermissions{
 					RoleName: types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -392,16 +392,16 @@ var (
 				},
 			},
 		},
-		4: {
-			UserID: 4,
+		"user_4": {
+			UserID: "user_4",
 			Accounts: map[types.AccountID]types.AccountPermissions{
-				2: types.AccountPermissions{
+				"account_2": types.AccountPermissions{
 					RoleName: types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 					},
 				},
-				4: types.AccountPermissions{
+				"account_4": types.AccountPermissions{
 					RoleName: types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -410,21 +410,7 @@ var (
 						types.PermTransferEndpoint,
 					},
 				},
-				5: types.AccountPermissions{
-					RoleName: types.RoleOwner,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-						types.PermDeleteEndpoint,
-						types.PermTransferEndpoint,
-					},
-				},
-			},
-		},
-		5: {
-			UserID: 5,
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				3: types.AccountPermissions{
+				"account_5": types.AccountPermissions{
 					RoleName: types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -435,10 +421,24 @@ var (
 				},
 			},
 		},
-		6: {
-			UserID: 6,
+		"user_5": {
+			UserID: "user_5",
 			Accounts: map[types.AccountID]types.AccountPermissions{
-				3: types.AccountPermissions{
+				"account_3": types.AccountPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
+				},
+			},
+		},
+		"user_6": {
+			UserID: "user_6",
+			Accounts: map[types.AccountID]types.AccountPermissions{
+				"account_3": types.AccountPermissions{
 					RoleName: types.RoleAdmin,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -447,10 +447,10 @@ var (
 				},
 			},
 		},
-		7: {
-			UserID: 7,
+		"user_7": {
+			UserID: "user_7",
 			Accounts: map[types.AccountID]types.AccountPermissions{
-				3: types.AccountPermissions{
+				"account_3": types.AccountPermissions{
 					RoleName: types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -461,24 +461,24 @@ var (
 	}
 
 	UserIDs = map[types.ProviderUserID]types.UserID{
-		"auth0|amos_burton":        6,
-		"auth0|bernard_marx":       11,
-		"auth0|chrisjen_avasarala": 5,
-		"auth0|ellen_ripley":       3,
-		"auth0|frodo_baggins":      7,
-		"auth0|james_holden":       1,
-		"auth0|paul_atreides":      2,
-		"auth0|rick_deckard":       8,
-		"auth0|tyrion_lannister":   9,
-		"auth0|ulfric_stormcloak":  4,
-		"github|james_holden":      1,
-		"github|paul_atreides":     2,
+		"auth0|amos_burton":        "user_6",
+		"auth0|bernard_marx":       "user_11",
+		"auth0|chrisjen_avasarala": "user_5",
+		"auth0|ellen_ripley":       "user_3",
+		"auth0|frodo_baggins":      "user_7",
+		"auth0|james_holden":       "user_1",
+		"auth0|paul_atreides":      "user_2",
+		"auth0|rick_deckard":       "user_8",
+		"auth0|tyrion_lannister":   "user_9",
+		"auth0|ulfric_stormcloak":  "user_4",
+		"github|james_holden":      "user_1",
+		"github|paul_atreides":     "user_2",
 	}
 
 	PortalApps = map[types.PortalAppID]*types.PortalApp{
-		"test_app_3487u329rfn23f9": {
-			ID:        "test_app_3487u329rfn23f9",
-			AccountID: 1,
+		"test_app_1": {
+			ID:        "test_app_1",
+			AccountID: "account_1",
 			Name:      "pokt_app_123",
 			Gigastake: true,
 			Staked:    false,
@@ -534,9 +534,9 @@ var (
 				},
 			},
 		},
-		"test_app_2308rj09r23r9r2": {
-			ID:        "test_app_2308rj09r23r9r2",
-			AccountID: 2,
+		"test_app_2": {
+			ID:        "test_app_2",
+			AccountID: "account_2",
 			Name:      "pokt_app_456",
 			Gigastake: false,
 			Staked:    true,
@@ -591,9 +591,9 @@ var (
 				},
 			},
 		},
-		"test_app_47fhs7j4hs7fj24": {
-			ID:        "test_app_47fhs7j4hs7fj24",
-			AccountID: 3,
+		"test_app_3": {
+			ID:        "test_app_3",
+			AccountID: "account_3",
 			Name:      "pokt_app_789",
 			Gigastake: false,
 			Staked:    true,
@@ -625,7 +625,7 @@ var (
 	// TestCreatePortalApp app used to test creation of PortalApps
 	TestCreatePortalApp = &types.PortalApp{
 		ID:        "test_app_create_208r23r",
-		AccountID: 4,
+		AccountID: "account_4",
 		Name:      "create_pokt_app_1",
 		Gigastake: true,
 		Staked:    false,
@@ -662,7 +662,7 @@ var (
 	// TestUpdatePortalApp app used to test updates of PortalApps
 	TestUpdatePortalApp = &types.PortalApp{
 		ID:        "test_app_update_b03ca84c",
-		AccountID: 1,
+		AccountID: "account_1",
 		Name:      "", // name set in test
 		Gigastake: true,
 		Staked:    false,
@@ -714,7 +714,7 @@ var (
 			},
 			Redirects: []types.GigastakeRedirect{
 				{
-					AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
+					AccountID: "account_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
 					// TODO - remove when v2 migration finished
 					LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
 				},
@@ -749,7 +749,7 @@ var (
 			},
 			Redirects: []types.GigastakeRedirect{
 				{
-					AccountID: 2, Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network",
+					AccountID: "account_2", Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network",
 					// TODO - remove when v2 migration finished
 					LegacyLoadBalancerID: "test_lb_d2c7361fd9c5dff7",
 				},
@@ -783,7 +783,7 @@ var (
 			},
 			Redirects: []types.GigastakeRedirect{
 				{
-					AccountID: 3, Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network",
+					AccountID: "account_3", Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network",
 					// TODO - remove when v2 migration finished
 					LegacyLoadBalancerID: "test_lb_4b874c457f73c4e9",
 				},
@@ -851,7 +851,7 @@ var (
 			},
 			Redirects: []types.GigastakeRedirect{
 				{
-					AccountID: 4, Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network",
+					AccountID: "account_4", Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network",
 					// TODO - remove when v2 migration finished
 					LegacyLoadBalancerID: "test_lb_746e04231640556a",
 				},
@@ -891,7 +891,7 @@ var (
 		},
 		Redirects: []types.GigastakeRedirect{
 			{
-				AccountID: 5, Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network",
+				AccountID: "account_5", Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network",
 				// TODO - remove when v2 migration finished
 				LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
 			},
@@ -1012,7 +1012,7 @@ var (
 		},
 		Redirects: []types.GigastakeRedirect{
 			{
-				AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
+				AccountID: "account_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
 				// TODO - remove when v2 migration finished
 				LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
 			},
@@ -1056,7 +1056,7 @@ var (
 			},
 		},
 		Redirects: []types.GigastakeRedirect{
-			{AccountID: 1, Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+			{AccountID: "account_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
@@ -1088,14 +1088,14 @@ var (
 	/* ----- Legacy Data ----- */
 
 	V2Account = &types.Account{
-		ID:                   1,
+		ID:                   "account_1",
 		Name:                 "test_legacy_lb_1",
 		LegacyLoadBalancerID: "test_lb_3127flsdhfoi323f",
 		PlanType:             types.PayPlanType("basic_plan"),
 		Users: map[types.UserID]types.AccountUserAccess{
-			1: AccountUserAccess[1],
-			2: AccountUserAccess[2],
-			8: AccountUserAccess[8],
+			"user_1": AccountUserAccess[1],
+			"user_2": AccountUserAccess[2],
+			"user_8": AccountUserAccess[8],
 		},
 		PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 		PartnerThroughputLimit: 2_000,
@@ -1106,7 +1106,7 @@ var (
 		// Assume Plan and PortalApps have been set in PHD
 		Plan: PayPlans["basic_plan"],
 		PortalApps: map[types.PortalAppID]*types.PortalApp{
-			"test_app_3487u329rfn23f9": PortalApps["test_app_3487u329rfn23f9"],
+			"test_app_1": PortalApps["test_app_1"],
 		},
 	}
 
@@ -1150,7 +1150,7 @@ var (
 	}
 
 	LegacyApplication = types.Application{
-		ID:                 "test_app_3487u329rfn23f9",
+		ID:                 "test_app_1",
 		UserID:             "auth0|james_holden",
 		Name:               "pokt_app_123",
 		FirstDateSurpassed: MockTimestamp,
@@ -1246,7 +1246,7 @@ var (
 		Name:      "test_legacy_lb_1",
 		Gigastake: true,
 		Staked:    false,
-		AccountID: 0,
+		AccountID: "",
 		AAT: types.AAT{
 			Address:         "test_34715cae753e67c75fbb340442e7de8e",
 			PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
@@ -1286,7 +1286,7 @@ var (
 	}
 
 	V2UpdatePortalApp = types.UpdatePortalApp{
-		AppID:    "test_app_3487u329rfn23f9",
+		AppID:    "test_app_1",
 		Name:     "test_portal_app_123",
 		Settings: &types.UpdateAppSettings{SecretKey: "test_90210ac4bdd3423e24877d1ff92"},
 		Notifications: []types.UpdateAppNotifications{

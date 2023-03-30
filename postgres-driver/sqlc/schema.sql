@@ -39,7 +39,7 @@ CREATE TABLE pay_plans (
 );
 -- Users Tables
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(10) PRIMARY KEY,
     email VARCHAR(255) NULL UNIQUE,
     signed_up BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -47,7 +47,7 @@ CREATE TABLE users (
 );
 CREATE TABLE user_auth_providers (
     id SERIAL PRIMARY KEY,
-    user_id SERIAL NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id VARCHAR(10) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type auth_type NOT NULL,
     provider auth_provider NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE user_roles (
 );
 -- Accounts Tables
 CREATE TABLE accounts (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(10) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     plan_type VARCHAR(25) NOT NULL REFERENCES pay_plans(plan_type),
     partner_chain_ids VARCHAR(4) ARRAY,
@@ -77,8 +77,8 @@ CREATE TABLE accounts (
 );
 CREATE TABLE account_user_access (
     id SERIAL PRIMARY KEY,
-    account_id SERIAL NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    user_id SERIAL NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    user_id VARCHAR(10) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role_name VARCHAR(25) NOT NULL REFERENCES user_roles(role_name),
     accepted BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -118,7 +118,7 @@ CREATE TABLE chain_altruists (
 CREATE TABLE chain_gigastake_redirects (
     id SERIAL PRIMARY KEY,
     chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
-    account_id SERIAL NOT NULL REFERENCES accounts(id),
+    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id),
     alias VARCHAR(100) NOT NULL,
     domain VARCHAR(100) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -162,7 +162,7 @@ CREATE TABLE chain_checks (
 -- Portal Application Tables
 CREATE TABLE portal_applications (
     id VARCHAR(24) PRIMARY KEY,
-    account_id SERIAL NOT NULL REFERENCES accounts(id),
+    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id),
     name VARCHAR(255) NOT NULL,
     gigastake BOOLEAN NOT NULL,
     staked BOOLEAN NOT NULL,

@@ -122,6 +122,32 @@ func (q *Queries) CheckChainExists(ctx context.Context, id types.RelayChainID) (
 	return exists, err
 }
 
+const checkIDExists = `-- name: CheckIDExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM (
+                SELECT id
+                FROM portal_applications
+                WHERE portal_applications.id = $1::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM accounts
+                WHERE accounts.id = $1::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM users
+                WHERE users.id = $1::VARCHAR
+            ) AS id_table
+    )
+`
+
+func (q *Queries) CheckIDExists(ctx context.Context, id string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkIDExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkPlanTypeExists = `-- name: CheckPlanTypeExists :one
 SELECT EXISTS(
         SELECT 1
@@ -180,8 +206,8 @@ func (q *Queries) CheckUserIDFromEmail(ctx context.Context, email types.Email) (
 
 const createUserNewSignUp = `-- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
-    INSERT INTO users (email, signed_up, created_at, updated_at)
-    VALUES ($1, true, $2, $3) ON CONFLICT (email) DO NOTHING
+    INSERT INTO users (id, email, signed_up, created_at, updated_at)
+    VALUES ($1, $2, true, $3, $4) ON CONFLICT (email) DO NOTHING
     RETURNING id
 )
 INSERT INTO user_auth_providers (
@@ -201,19 +227,20 @@ VALUES (
                     (
                         SELECT id
                         FROM users
-                        WHERE users.email = $1
+                        WHERE users.email = $2
                     )
                 )
         ),
-        $4,
         $5,
         $6,
-        $7
+        $7,
+        $8
     )
 RETURNING user_id
 `
 
 type CreateUserNewSignUpParams struct {
+	ID             types.UserID         `json:"id"`
 	Email          types.Email          `json:"email"`
 	CreatedAt      time.Time            `json:"created_at"`
 	UpdatedAt      time.Time            `json:"updated_at"`
@@ -225,6 +252,7 @@ type CreateUserNewSignUpParams struct {
 
 func (q *Queries) CreateUserNewSignUp(ctx context.Context, arg CreateUserNewSignUpParams) (types.UserID, error) {
 	row := q.db.QueryRowContext(ctx, createUserNewSignUp,
+		arg.ID,
 		arg.Email,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -328,13 +356,13 @@ const deleteUnusedChainGigastakeRedirects = `-- name: DeleteUnusedChainGigastake
 DELETE FROM chain_gigastake_redirects
 WHERE chain_id = $1
     AND account_id NOT IN (
-        SELECT unnest($2::INTEGER [])
+        SELECT unnest($2::VARCHAR [])
     )
 `
 
 type DeleteUnusedChainGigastakeRedirectsParams struct {
 	ChainID    types.RelayChainID `json:"chain_id"`
-	AccountIDs []int32            `json:"account_ids"`
+	AccountIDs []string           `json:"account_ids"`
 }
 
 func (q *Queries) DeleteUnusedChainGigastakeRedirects(ctx context.Context, arg DeleteUnusedChainGigastakeRedirectsParams) error {
@@ -433,6 +461,7 @@ func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.User
 
 const insertAccount = `-- name: InsertAccount :one
 INSERT INTO accounts (
+        id,
         name,
         plan_type,
         created_at,
@@ -440,11 +469,12 @@ INSERT INTO accounts (
         -- legacy field
         lb_id
     )
-VALUES ($1, $2, $3, $4, $5)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id, name, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at, lb_id
 `
 
 type InsertAccountParams struct {
+	ID        types.AccountID   `json:"id"`
 	Name      string            `json:"name"`
 	PlanType  types.PayPlanType `json:"plan_type"`
 	CreatedAt time.Time         `json:"created_at"`
@@ -454,6 +484,7 @@ type InsertAccountParams struct {
 
 func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (Account, error) {
 	row := q.db.QueryRowContext(ctx, insertAccount,
+		arg.ID,
 		arg.Name,
 		arg.PlanType,
 		arg.CreatedAt,
@@ -545,12 +576,13 @@ func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccount
 const insertAccountUserAccessNoUser = `-- name: InsertAccountUserAccessNoUser :one
 WITH inserted_user AS (
     INSERT INTO users (
+            id,
             email,
             signed_up,
             created_at,
             updated_at
         )
-    VALUES ($1, false, $4, $5)
+    VALUES ($1, $2, false, $3, $4)
     RETURNING id,
         email
 )
@@ -563,15 +595,15 @@ INSERT INTO account_user_access (
         updated_at
     )
 VALUES (
-        $2,
+        $5,
         (
             SELECT id
             FROM inserted_user
         ),
-        $3,
+        $6,
         false,
-        $4,
-        $5
+        $3,
+        $4
     )
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
@@ -583,11 +615,12 @@ RETURNING account_user_access.user_id,
 `
 
 type InsertAccountUserAccessNoUserParams struct {
+	ID        types.UserID    `json:"id"`
 	Email     types.Email     `json:"email"`
-	AccountID types.AccountID `json:"account_id"`
-	RoleName  types.RoleName  `json:"role_name"`
 	CreatedAt time.Time       `json:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at"`
+	AccountID types.AccountID `json:"account_id"`
+	RoleName  types.RoleName  `json:"role_name"`
 }
 
 type InsertAccountUserAccessNoUserRow struct {
@@ -599,11 +632,12 @@ type InsertAccountUserAccessNoUserRow struct {
 
 func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertAccountUserAccessNoUserParams) (InsertAccountUserAccessNoUserRow, error) {
 	row := q.db.QueryRowContext(ctx, insertAccountUserAccessNoUser,
+		arg.ID,
 		arg.Email,
-		arg.AccountID,
-		arg.RoleName,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.AccountID,
+		arg.RoleName,
 	)
 	var i InsertAccountUserAccessNoUserRow
 	err := row.Scan(
@@ -647,7 +681,7 @@ RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, delet
 
 type InsertPortalApplicationParams struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int32             `json:"account_id"`
+	AccountID          types.AccountID   `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
@@ -1138,7 +1172,7 @@ GROUP BY p.id,
 
 type SelectPortalApplicationsRow struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          int32             `json:"account_id"`
+	AccountID          types.AccountID   `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`

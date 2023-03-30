@@ -23,7 +23,7 @@ type (
 
 var (
 	errUserIDDoesntExist       = errors.New("error user ID does not exist for auth provider ID '%s'")
-	errUserDoesntExist         = errors.New("error user does not exist for portal ID '%d'")
+	errUserDoesntExist         = errors.New("error user does not exist for portal ID '%s'")
 	errInvalidEmail            = errors.New("error email input is not a valid email address '%s'")
 	errInvalidAuthProviderType = errors.New("error invalid auth provider type '%s'")
 )
@@ -36,9 +36,9 @@ func (pg *PostgresDriver) GetPortalUserIDFromProviderID(ctx context.Context, pro
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return types.UserID(0), fmt.Errorf(errUserIDDoesntExist.Error(), providerUserID)
+			return types.UserID(""), fmt.Errorf(errUserIDDoesntExist.Error(), providerUserID)
 		default:
-			return types.UserID(0), err
+			return types.UserID(""), err
 		}
 	}
 
@@ -113,10 +113,17 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
 	err := pg.validateWriteUserNewSignUpInput(ctx, user)
 	if err != nil {
-		return types.UserID(0), err
+		return types.UserID(""), err
 	}
 
+	id, err := pg.generateID(ctx)
+	if err != nil {
+		return types.UserID(""), err
+	}
+	userID := types.UserID(id)
+
 	params := CreateUserNewSignUpParams{
+		ID:             userID,
 		Email:          user.Email,
 		ProviderUserID: user.ProviderUserID,
 		Type:           user.AuthProviderType,
@@ -128,7 +135,7 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	createdUserID, err := pg.CreateUserNewSignUp(ctx, params)
 	if err != nil {
-		return types.UserID(0), err
+		return types.UserID(""), err
 	}
 
 	return types.UserID(createdUserID), nil
@@ -153,12 +160,12 @@ func (pg *PostgresDriver) validateWriteUserNewSignUpInput(ctx context.Context, u
 func (pg *PostgresDriver) DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error) {
 	err := pg.validateDeletePortalUserInput(ctx, userID)
 	if err != nil {
-		return types.UserID(0), err
+		return types.UserID(""), err
 	}
 
 	deletedUserID, err := pg.DeleteUser(ctx, userID)
 	if err != nil {
-		return types.UserID(0), err
+		return types.UserID(""), err
 	}
 
 	return types.UserID(deletedUserID), nil

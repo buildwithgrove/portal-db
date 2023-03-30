@@ -131,7 +131,7 @@ var permissionsList = map[RoleName][]Permissions{
 }
 
 func (u *UserPermissions) IsEmpty() bool {
-	if u.UserID == UserID(0) || len(u.Accounts) == 0 {
+	if u.UserID == UserID("") || len(u.Accounts) == 0 {
 		return true
 	}
 	return false
@@ -147,7 +147,7 @@ func (u *UserPermissions) GetRole(accountID AccountID) RoleName {
 }
 
 func (u *UserPermissions) UpsertPermissions(accountID AccountID, role RoleName) (*UserPermissions, error) {
-	if accountID == 0 {
+	if accountID == "" {
 		return nil, errAccountIDIsEmpty
 	}
 	if !role.IsValid() {

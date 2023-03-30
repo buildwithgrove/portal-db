@@ -139,7 +139,7 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 			table:  types.TablePortalApps,
 			input: PortalApplication{
 				ID:                 portalApp.ID,
-				AccountID:          int32(portalApp.AccountID),
+				AccountID:          (portalApp.AccountID),
 				Name:               portalApp.Name,
 				Gigastake:          portalApp.Gigastake,
 				Staked:             portalApp.Staked,

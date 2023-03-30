@@ -152,7 +152,12 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 // WritePortalApp creates a single PortalApp in the database, including its AAT and Settings rows
 // TEMP - also create its legacy StickinessOptions table (TODO remove when V2 migration completed)
 func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, createdAt time.Time) (*types.PortalApp, error) {
-	portalApp.ID = types.PortalAppID(generatePortalAppID())
+	id, err := pg.generateID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	portalApp.ID = types.PortalAppID(id)
 	portalApp.CreatedAt = createdAt
 	portalApp.UpdatedAt = createdAt
 
@@ -166,7 +171,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 	_, err = qtx.InsertPortalApplication(ctx, InsertPortalApplicationParams{
 		ID:        portalApp.ID,
-		AccountID: int32(portalApp.AccountID),
+		AccountID: portalApp.AccountID,
 		Name:      portalApp.Name,
 		Gigastake: portalApp.Gigastake,
 		Staked:    portalApp.Staked,
