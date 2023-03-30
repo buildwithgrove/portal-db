@@ -293,12 +293,6 @@ VALUES (
         'test_covalent_api_key_2',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'test_lb_34gg4g43g34g5hh',
-        'test_covalent_api_key_3',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO user_access (
         lb_id,

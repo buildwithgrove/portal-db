@@ -596,6 +596,7 @@ SELECT lb.lb_id,
     so.stickiness AS s_stickiness,
     so.origins AS s_origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
     COALESCE(user_access.ua, '[]') AS users,
     lb.created_at,
@@ -634,6 +635,7 @@ GROUP BY lb.lb_id,
     so.stickiness,
     so.origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     user_access.ua
 ORDER BY lb.lb_id ASC;
 -- name: SelectOneLoadBalancer :one
@@ -648,6 +650,7 @@ SELECT lb.lb_id,
     so.stickiness,
     so.origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
     COALESCE(user_access.ua, '[]') AS users,
     lb.created_at,
@@ -687,6 +690,7 @@ GROUP BY lb.lb_id,
     so.stickiness,
     so.origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     user_access.ua;
 -- name: SelectUserRoles :many
 SELECT ua.lb_id,
@@ -727,14 +731,30 @@ INSERT INTO stickiness_options (
         origins
     )
 VALUES ($1, $2, $3, $4, $5);
--- name: InsertAccountIntegrations :exec
+-- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
         lb_id,
         covalent_api_key_free,
+        covalent_api_key_paid,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4);
+VALUES ($1, $2, $3, $4, $5) ON CONFLICT (lb_id) DO
+UPDATE
+SET covalent_api_key_free = CASE
+        WHEN EXCLUDED.covalent_api_key_free IS NOT NULL THEN EXCLUDED.covalent_api_key_free
+        ELSE account_integrations.covalent_api_key_free
+    END,
+    covalent_api_key_paid = CASE
+        WHEN EXCLUDED.covalent_api_key_paid IS NOT NULL THEN EXCLUDED.covalent_api_key_paid
+        ELSE account_integrations.covalent_api_key_paid
+    END,
+    created_at = CASE
+        WHEN EXCLUDED.created_at IS NOT NULL THEN EXCLUDED.created_at
+        ELSE account_integrations.created_at
+    END,
+    updated_at = EXCLUDED.updated_at
+RETURNING *;
 -- name: InsertUserAccess :exec
 INSERT INTO user_access (
         lb_id,

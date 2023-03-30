@@ -32,7 +32,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							Stickiness:    true,
 						},
 						Integrations: types.AccountIntegrations{
-							CovalentAPIKey: "test_covalent_api_key_1",
+							CovalentAPIKeyFree: "test_covalent_api_key_1",
 						},
 						Users: []types.UserAccess{
 							{RoleName: "OWNER", UserID: "test_user_1dbffbdfeeb225", Email: "owner1@test.com", Accepted: true},
@@ -54,9 +54,6 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							StickyMax:     600,
 							Stickiness:    false,
 						},
-						Integrations: types.AccountIntegrations{
-							CovalentAPIKey: "test_covalent_api_key_3",
-						},
 						Users: []types.UserAccess{
 							{RoleName: "OWNER", UserID: "test_user_redirect233344", Email: "owner3@test.com", Accepted: true},
 							{RoleName: "MEMBER", UserID: "", Email: "member2@test.com", Accepted: false},
@@ -77,7 +74,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							Stickiness:    true,
 						},
 						Integrations: types.AccountIntegrations{
-							CovalentAPIKey: "test_covalent_api_key_2",
+							CovalentAPIKeyFree: "test_covalent_api_key_2",
 						},
 						Users: []types.UserAccess{
 							{RoleName: "OWNER", UserID: "test_user_04228205bd261a", Email: "owner2@test.com", Accepted: true},
@@ -212,7 +209,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 							Stickiness:    true,
 						},
 						Integrations: types.AccountIntegrations{
-							CovalentAPIKey: "test_covalent_api_key_4",
+							CovalentAPIKeyFree: "test_covalent_api_key_4",
 						},
 						Users: []types.UserAccess{
 							{
@@ -226,17 +223,16 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				},
 				expectedNumOfLBs: 4,
 				expectedLB: SelectOneLoadBalancerRow{
-					Name:               sql.NullString{Valid: true, String: "pokt_app_789"},
-					UserID:             sql.NullString{Valid: true, String: "test_user_47fhsd75jd756sh"},
-					RequestTimeout:     sql.NullInt32{Valid: true, Int32: 5000},
-					Gigastake:          sql.NullBool{Valid: true, Bool: true},
-					GigastakeRedirect:  sql.NullBool{Valid: true, Bool: true},
-					Duration:           sql.NullString{Valid: true, String: "70"},
-					StickyMax:          sql.NullInt32{Valid: true, Int32: 400},
-					Stickiness:         sql.NullBool{Valid: true, Bool: true},
-					Origins:            []string{"chrome-extension://"},
-					CovalentApiKeyFree: sql.NullString{Valid: true, String: "test_covalent_api_key_4"},
-					Users:              json.RawMessage(`[{"email": "owner4@test.com", "userID": "test_user_47fhsd75jd756sh", "accepted": true, "roleName": "OWNER"}]`),
+					Name:              sql.NullString{Valid: true, String: "pokt_app_789"},
+					UserID:            sql.NullString{Valid: true, String: "test_user_47fhsd75jd756sh"},
+					RequestTimeout:    sql.NullInt32{Valid: true, Int32: 5000},
+					Gigastake:         sql.NullBool{Valid: true, Bool: true},
+					GigastakeRedirect: sql.NullBool{Valid: true, Bool: true},
+					Duration:          sql.NullString{Valid: true, String: "70"},
+					StickyMax:         sql.NullInt32{Valid: true, Int32: 400},
+					Stickiness:        sql.NullBool{Valid: true, Bool: true},
+					Origins:           []string{"chrome-extension://"},
+					Users:             json.RawMessage(`[{"email": "owner4@test.com", "userID": "test_user_47fhsd75jd756sh", "accepted": true, "roleName": "OWNER"}]`),
 				},
 				err: nil,
 			},
@@ -285,6 +281,46 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 						}
 					}
 				}
+			}
+		}
+	})
+
+	ts.Run("Test_UpsertIntegrations", func() {
+		tests := []struct {
+			name               string
+			integrationsInputs types.AccountIntegrations
+			expectedAPIKeyRow  sql.NullString
+			err                error
+		}{
+			{
+				name: "Should create a single account integrations row",
+				integrationsInputs: types.AccountIntegrations{
+					ID:                 "test_lb_34gg4g43g34g5hh",
+					CovalentAPIKeyFree: "test_covalent_api_key_3",
+				},
+				expectedAPIKeyRow: sql.NullString{Valid: true, String: "test_covalent_api_key_3"},
+				err:               nil,
+			},
+			{
+				name: "Should update an existing account integrations row",
+				integrationsInputs: types.AccountIntegrations{
+					ID:                 "test_lb_34987u329rfn23f",
+					CovalentAPIKeyFree: "test_covalent_api_key_4",
+				},
+				expectedAPIKeyRow: sql.NullString{Valid: true, String: "test_covalent_api_key_4"},
+				err:               nil,
+			},
+		}
+
+		for _, test := range tests {
+			createdIntegrations, err := ts.driver.UpsertIntegrations(testCtx, test.integrationsInputs)
+			if err == nil {
+				ts.Equal(test.err, err)
+				ts.Equal(test.integrationsInputs, *createdIntegrations)
+
+				loadBalancer, err := ts.driver.SelectOneLoadBalancer(testCtx, createdIntegrations.ID)
+				ts.Equal(test.err, err)
+				ts.Equal(test.expectedAPIKeyRow, loadBalancer.CovalentApiKeyFree)
 			}
 		}
 	})

@@ -37,8 +37,9 @@ type (
 		UpdatedAt         time.Time           `json:"updatedAt"`
 	}
 	AccountIntegrations struct {
-		ID             string `json:"id,omitempty"`
-		CovalentAPIKey string `json:"covalentAPIKey"`
+		ID                 string `json:"id,omitempty"`
+		CovalentAPIKeyFree string `json:"covalentAPIKeyFree"`
+		CovalentAPIKeyPaid string `json:"covalentAPIKeyPaid"`
 	}
 	StickyOptions struct {
 		ID            string   `json:"id,omitempty"`

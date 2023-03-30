@@ -1,6 +1,7 @@
 package postgresdriver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -57,7 +58,8 @@ func (lb *SelectLoadBalancersRow) toLoadBalancer() (*types.LoadBalancer, error) 
 		},
 
 		Integrations: types.AccountIntegrations{
-			CovalentAPIKey: lb.CovalentApiKeyFree.String,
+			CovalentAPIKeyFree: lb.CovalentApiKeyFree.String,
+			CovalentAPIKeyPaid: lb.CovalentApiKeyPaid.String,
 		},
 
 		CreatedAt: lb.CreatedAt.Time,
@@ -145,14 +147,6 @@ func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *ty
 		}
 	}
 
-	accountIntegrationsParams := extractInsertAccountIntegrations(loadBalancer)
-	if accountIntegrationsParams.isNotNull() {
-		err = qtx.InsertAccountIntegrations(ctx, accountIntegrationsParams)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	loadBalancer.Users[0].RoleName = types.RoleOwner                                                // The first User will be the OWNER of the LoadBalancer
 	err = qtx.InsertUserAccess(ctx, extractInsertUserAccess(id, loadBalancer.Users[0], true, time)) // New LB owners always start with accepted = true
 	if err != nil {
@@ -201,18 +195,6 @@ func (i *InsertStickinessOptionsParams) isNotNull() bool {
 	return i.Duration.Valid || len(i.Origins) > 0 || i.StickyMax.Valid
 }
 
-func extractInsertAccountIntegrations(loadBalancer *types.LoadBalancer) InsertAccountIntegrationsParams {
-	return InsertAccountIntegrationsParams{
-		LbID:               loadBalancer.ID,
-		CovalentApiKeyFree: newSQLNullString(loadBalancer.Integrations.CovalentAPIKey),
-		CreatedAt:          newSQLNullTime(loadBalancer.CreatedAt),
-		UpdatedAt:          newSQLNullTime(loadBalancer.UpdatedAt),
-	}
-}
-func (i *InsertAccountIntegrationsParams) isNotNull() bool {
-	return i.CovalentApiKeyFree.Valid
-}
-
 func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted bool, createdAt time.Time) InsertUserAccessParams {
 	return InsertUserAccessParams{
 		LbID:      lbID,
@@ -223,6 +205,38 @@ func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted 
 		CreatedAt: newSQLNullTime(createdAt),
 		UpdatedAt: newSQLNullTime(createdAt),
 	}
+}
+func PrettyString(label string, thing interface{}) {
+	jsonThing, _ := json.Marshal(thing)
+	str := string(jsonThing)
+
+	var prettyJSON bytes.Buffer
+	_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
+	output := prettyJSON.String()
+
+	fmt.Println(label, output)
+}
+
+/* UpsertIntegrations saves or updates input AccountIntegrations in the database */
+func (p *PostgresDriver) UpsertIntegrations(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error) {
+	time := time.Now()
+
+	accountIntegrations, err := p.UpsertAccountIntegrations(ctx, UpsertAccountIntegrationsParams{
+		LbID:               integrations.ID,
+		CovalentApiKeyFree: newSQLNullString(integrations.CovalentAPIKeyFree),
+		CovalentApiKeyPaid: newSQLNullString(integrations.CovalentAPIKeyPaid),
+		CreatedAt:          newSQLNullTime(time),
+		UpdatedAt:          newSQLNullTime(time),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AccountIntegrations{
+		ID:                 accountIntegrations.LbID,
+		CovalentAPIKeyFree: accountIntegrations.CovalentApiKeyFree.String,
+		CovalentAPIKeyPaid: accountIntegrations.CovalentApiKeyPaid.String,
+	}, nil
 }
 
 /* WriteLoadBalancerUser saves input LoadBalancer to the database */

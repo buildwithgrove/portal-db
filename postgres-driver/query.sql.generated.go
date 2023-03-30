@@ -119,33 +119,6 @@ func (q *Queries) GetUserAccessAccepted(ctx context.Context, arg GetUserAccessAc
 	return accepted, err
 }
 
-const insertAccountIntegrations = `-- name: InsertAccountIntegrations :exec
-INSERT INTO account_integrations (
-        lb_id,
-        covalent_api_key_free,
-        created_at,
-        updated_at
-    )
-VALUES ($1, $2, $3, $4)
-`
-
-type InsertAccountIntegrationsParams struct {
-	LbID               string         `json:"lbID"`
-	CovalentApiKeyFree sql.NullString `json:"covalentApiKeyFree"`
-	CreatedAt          sql.NullTime   `json:"createdAt"`
-	UpdatedAt          sql.NullTime   `json:"updatedAt"`
-}
-
-func (q *Queries) InsertAccountIntegrations(ctx context.Context, arg InsertAccountIntegrationsParams) error {
-	_, err := q.db.ExecContext(ctx, insertAccountIntegrations,
-		arg.LbID,
-		arg.CovalentApiKeyFree,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-	)
-	return err
-}
-
 const insertAppLimit = `-- name: InsertAppLimit :exec
 INSERT into app_limits (application_id, pay_plan, custom_limit)
 VALUES ($1, $2, $3)
@@ -1076,6 +1049,7 @@ SELECT lb.lb_id,
     so.stickiness AS s_stickiness,
     so.origins AS s_origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
     COALESCE(user_access.ua, '[]') AS users,
     lb.created_at,
@@ -1114,6 +1088,7 @@ GROUP BY lb.lb_id,
     so.stickiness,
     so.origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     user_access.ua
 ORDER BY lb.lb_id ASC
 `
@@ -1130,6 +1105,7 @@ type SelectLoadBalancersRow struct {
 	SStickiness        sql.NullBool    `json:"sStickiness"`
 	SOrigins           []string        `json:"sOrigins"`
 	CovalentApiKeyFree sql.NullString  `json:"covalentApiKeyFree"`
+	CovalentApiKeyPaid sql.NullString  `json:"covalentApiKeyPaid"`
 	AppIds             []byte          `json:"appIds"`
 	Users              json.RawMessage `json:"users"`
 	CreatedAt          sql.NullTime    `json:"createdAt"`
@@ -1157,6 +1133,7 @@ func (q *Queries) SelectLoadBalancers(ctx context.Context) ([]SelectLoadBalancer
 			&i.SStickiness,
 			pq.Array(&i.SOrigins),
 			&i.CovalentApiKeyFree,
+			&i.CovalentApiKeyPaid,
 			&i.AppIds,
 			&i.Users,
 			&i.CreatedAt,
@@ -1399,6 +1376,7 @@ SELECT lb.lb_id,
     so.stickiness,
     so.origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
     COALESCE(user_access.ua, '[]') AS users,
     lb.created_at,
@@ -1438,6 +1416,7 @@ GROUP BY lb.lb_id,
     so.stickiness,
     so.origins,
     ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     user_access.ua
 `
 
@@ -1453,6 +1432,7 @@ type SelectOneLoadBalancerRow struct {
 	Stickiness         sql.NullBool    `json:"stickiness"`
 	Origins            []string        `json:"origins"`
 	CovalentApiKeyFree sql.NullString  `json:"covalentApiKeyFree"`
+	CovalentApiKeyPaid sql.NullString  `json:"covalentApiKeyPaid"`
 	AppIds             []byte          `json:"appIds"`
 	Users              json.RawMessage `json:"users"`
 	CreatedAt          sql.NullTime    `json:"createdAt"`
@@ -1474,6 +1454,7 @@ func (q *Queries) SelectOneLoadBalancer(ctx context.Context, lbID string) (Selec
 		&i.Stickiness,
 		pq.Array(&i.Origins),
 		&i.CovalentApiKeyFree,
+		&i.CovalentApiKeyPaid,
 		&i.AppIds,
 		&i.Users,
 		&i.CreatedAt,
@@ -1796,6 +1777,60 @@ type UpdateWhitelistMethodsParams struct {
 func (q *Queries) UpdateWhitelistMethods(ctx context.Context, arg UpdateWhitelistMethodsParams) error {
 	_, err := q.db.ExecContext(ctx, updateWhitelistMethods, arg.ApplicationID, arg.BlockchainID, pq.Array(arg.Methods))
 	return err
+}
+
+const upsertAccountIntegrations = `-- name: UpsertAccountIntegrations :one
+INSERT INTO account_integrations (
+        lb_id,
+        covalent_api_key_free,
+        covalent_api_key_paid,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5) ON CONFLICT (lb_id) DO
+UPDATE
+SET covalent_api_key_free = CASE
+        WHEN EXCLUDED.covalent_api_key_free IS NOT NULL THEN EXCLUDED.covalent_api_key_free
+        ELSE account_integrations.covalent_api_key_free
+    END,
+    covalent_api_key_paid = CASE
+        WHEN EXCLUDED.covalent_api_key_paid IS NOT NULL THEN EXCLUDED.covalent_api_key_paid
+        ELSE account_integrations.covalent_api_key_paid
+    END,
+    created_at = CASE
+        WHEN EXCLUDED.created_at IS NOT NULL THEN EXCLUDED.created_at
+        ELSE account_integrations.created_at
+    END,
+    updated_at = EXCLUDED.updated_at
+RETURNING id, lb_id, covalent_api_key_free, covalent_api_key_paid, created_at, updated_at
+`
+
+type UpsertAccountIntegrationsParams struct {
+	LbID               string         `json:"lbID"`
+	CovalentApiKeyFree sql.NullString `json:"covalentApiKeyFree"`
+	CovalentApiKeyPaid sql.NullString `json:"covalentApiKeyPaid"`
+	CreatedAt          sql.NullTime   `json:"createdAt"`
+	UpdatedAt          sql.NullTime   `json:"updatedAt"`
+}
+
+func (q *Queries) UpsertAccountIntegrations(ctx context.Context, arg UpsertAccountIntegrationsParams) (AccountIntegration, error) {
+	row := q.db.QueryRowContext(ctx, upsertAccountIntegrations,
+		arg.LbID,
+		arg.CovalentApiKeyFree,
+		arg.CovalentApiKeyPaid,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i AccountIntegration
+	err := row.Scan(
+		&i.ID,
+		&i.LbID,
+		&i.CovalentApiKeyFree,
+		&i.CovalentApiKeyPaid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const upsertAppLimit = `-- name: UpsertAppLimit :exec
