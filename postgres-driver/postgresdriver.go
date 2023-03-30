@@ -13,7 +13,7 @@ import (
 	"github.com/pokt-foundation/utils-go/id"
 )
 
-const idLength = 6
+const idLength = 8
 
 var (
 	ErrMissingID     = errors.New("missing id")
