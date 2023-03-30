@@ -53,7 +53,7 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 		{
 			name:                      "Should convert a V2 PortalApp struct to a legacy Application struct",
 			portalApp:                 *testdata.PortalApps["test_app_3487u329rfn23f9"],
-			userID:                    "james_holden",
+			userID:                    "auth0|james_holden",
 			planType:                  "basic_plan",
 			dailyLimit:                1_000,
 			expectedLegacyApplication: testdata.LegacyApplication,

@@ -302,8 +302,8 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 					Type:       check.Type,
 					Payload:    newSQLNullString(check.Payload),
 					ResultKey:  newSQLNullString(check.ResultKey),
-					Allowance:  newSQLNullInt32(check.Allowance, false),
-					EVMChainID: newSQLNullInt32(check.EVMChainID, false),
+					Allowance:  newSQLNullInt32(check.Allowance, true),
+					EVMChainID: newSQLNullInt32(check.EVMChainID, true),
 				},
 			})
 		}

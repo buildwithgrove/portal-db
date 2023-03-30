@@ -24,9 +24,6 @@ func ConvertToLegacyLoadBalancer(a types.Account) types.LoadBalancer {
 			userID = accountUser.ProviderUserIDs[types.AuthTypeAuth0Github]
 		}
 
-		// user ID will be stored as `auth0|userid123` or `github|userid123`
-		userID = strings.Split(userID, "|")[1]
-
 		users = append(users, types.UserAccess{
 			UserID:   userID,
 			RoleName: accountUser.RoleName,
@@ -45,10 +42,14 @@ func ConvertToLegacyLoadBalancer(a types.Account) types.LoadBalancer {
 		app := ConvertToLegacyApplication(*portalApp, userID, a.Plan.Type, legacyDailyLimit)
 		legacyApps = append(legacyApps, &app)
 	}
-	var appData *types.PortalApp
-	for _, portalApp := range a.PortalApps {
-		appData = portalApp
-		break
+
+	appData := &types.PortalApp{}
+	appData.LegacyFields = types.LegacyFields{}
+	if len(a.PortalApps) > 0 {
+		for _, portalApp := range a.PortalApps {
+			appData = portalApp
+			break
+		}
 	}
 
 	return types.LoadBalancer{
@@ -162,10 +163,15 @@ func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
 	// for now we can assume each chain has only one altruist
 	altruistURL := formatAltruistURL(c.Altruists[0])
 
+	var chainID string
+	if c.Checks[types.ChainCheckTypeChain].EVMChainID != 0 {
+		chainID = strconv.Itoa(int(c.Checks[types.ChainCheckTypeChain].EVMChainID))
+	}
+
 	return types.Blockchain{
 		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
-		ChainID:           strconv.Itoa(int(c.Checks[types.ChainCheckTypeChain].EVMChainID)),
+		ChainID:           chainID,
 		ChainIDCheck:      c.Checks[types.ChainCheckTypeChain].Payload,
 		Description:       c.Description,
 		EnforceResult:     c.EnforceResult,

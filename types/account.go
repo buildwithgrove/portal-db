@@ -2,7 +2,6 @@ package types
 
 import (
 	"errors"
-	"strings"
 	"time"
 )
 
@@ -86,8 +85,7 @@ func (a *Account) LegacyUserID() string {
 			default:
 				userID = user.ProviderUserIDs[AuthTypeAuth0Github]
 			}
-			// user ID will be stored as `auth0|userid123` or `github|userid123`
-			return strings.Split(userID, "|")[1]
+			return userID
 		}
 	}
 	return ""

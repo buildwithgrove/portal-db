@@ -100,6 +100,9 @@ type (
 		// TODO - remove when v2 migration finished
 		// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
 		LegacyLoadBalancerID string `json:"legacyLoadBalancerID"`
+
+		// GigastakeAccount is set inside PHD
+		GigastakeAccount *Account `json:"gigastakeAccount"`
 	}
 	Check struct {
 		ChainID    RelayChainID   `json:"chainID,omitempty"`

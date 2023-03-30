@@ -1113,7 +1113,7 @@ var (
 	LegacyLoadBalancer = types.LoadBalancer{
 		ID:                "test_lb_3127flsdhfoi323f",
 		Name:              "test_legacy_lb_1",
-		UserID:            "james_holden",
+		UserID:            "auth0|james_holden",
 		ApplicationIDs:    []string(nil),
 		RequestTimeout:    5000,
 		Gigastake:         true,
@@ -1127,19 +1127,19 @@ var (
 		Applications: []*types.Application{&LegacyApplication},
 		Users: []types.UserAccess{
 			{
-				UserID:   "james_holden",
+				UserID:   "auth0|james_holden",
 				RoleName: types.RoleOwner,
 				Email:    "james.holden123@test.com",
 				Accepted: true,
 			},
 			{
-				UserID:   "paul_atreides",
+				UserID:   "auth0|paul_atreides",
 				RoleName: types.RoleAdmin,
 				Email:    "paul.atreides456@test.com",
 				Accepted: true,
 			},
 			{
-				UserID:   "rick_deckard",
+				UserID:   "auth0|rick_deckard",
 				RoleName: types.RoleAdmin,
 				Email:    "rick.deckard456@test.com",
 				Accepted: false,
@@ -1151,7 +1151,7 @@ var (
 
 	LegacyApplication = types.Application{
 		ID:                 "test_app_3487u329rfn23f9",
-		UserID:             "james_holden",
+		UserID:             "auth0|james_holden",
 		Name:               "pokt_app_123",
 		FirstDateSurpassed: MockTimestamp,
 		GatewayAAT: types.GatewayAAT{
@@ -1190,7 +1190,6 @@ var (
 		ID:                "0001",
 		Altruist:          "https://test_pocket:auth123456@altruist-0001.com:1234", // pragma: allowlist secret
 		Blockchain:        "mainnet",
-		ChainID:           "0",
 		Description:       "Pocket Network Mainnet",
 		EnforceResult:     "JSON",
 		Path:              "/v1/query/height",
@@ -1339,6 +1338,7 @@ var (
 	}
 
 	LegacyRedirect = types.Redirect{
+		ChainID:        "0001",
 		LoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		Domain:         "pokt-rpc.gateway.pokt.network",
 		Alias:          "altruist-0001",
