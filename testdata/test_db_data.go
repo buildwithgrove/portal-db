@@ -28,6 +28,7 @@ var (
 			ThroughputLimit:   5_000,
 			AppLimit:          2,
 			LegacyDailyLimit:  1_000,
+			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("pro_plan"): {
 			Type:              types.PayPlanType("pro_plan"),
@@ -36,6 +37,7 @@ var (
 			ThroughputLimit:   10_000,
 			AppLimit:          5,
 			LegacyDailyLimit:  5_000,
+			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("enterprise_plan"): {
 			Type:              types.PayPlanType("enterprise_plan"),
@@ -44,6 +46,7 @@ var (
 			ThroughputLimit:   20_000,
 			AppLimit:          10,
 			LegacyDailyLimit:  10_000,
+			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("developer_plan"): {
 			Type:              types.PayPlanType("developer_plan"),
@@ -52,6 +55,7 @@ var (
 			ThroughputLimit:   500,
 			AppLimit:          1,
 			LegacyDailyLimit:  100,
+			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("startup_plan"): {
 			Type:              types.PayPlanType("startup_plan"),
@@ -60,6 +64,7 @@ var (
 			ThroughputLimit:   1_000,
 			AppLimit:          5,
 			LegacyDailyLimit:  500,
+			CreatedAt:         MockTimestamp,
 		},
 	}
 
@@ -1168,11 +1173,11 @@ var (
 			WhitelistOrigins:     []string{"https://test.com"},
 			WhitelistUserAgents:  []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
 			WhitelistBlockchains: []string{"0053"},
-			WhitelistContracts:   []types.WhitelistContracts{{ChainID: "0001", Contracts: []string{"0x1234567890abcdef"}}},
-			WhitelistMethods:     []types.WhitelistMethods{{ChainID: "0001", Methods: []string{"GET"}}},
+			WhitelistContracts:   []types.WhitelistContracts{{BlockchainID: "0001", Contracts: []string{"0x1234567890abcdef"}}},
+			WhitelistMethods:     []types.WhitelistMethods{{BlockchainID: "0001", Methods: []string{"GET"}}},
 		},
 		Limit: types.AppLimit{
-			Plan:        types.PayPlan{Type: "basic_plan", Limit: 1_000},
+			PayPlan:     types.PayPlan{Type: "basic_plan", Limit: 1_000},
 			CustomLimit: 0,
 		},
 		NotificationSettings: types.NotificationSettings{
@@ -1221,19 +1226,19 @@ var (
 			WhitelistBlockchains: []string{"0001", "0002", "003E", "0056"},
 			WhitelistUserAgents:  []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"},
 			WhitelistContracts: []types.WhitelistContracts{
-				{ChainID: "0001", Contracts: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
-				{ChainID: "0002", Contracts: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
-				{ChainID: "003E", Contracts: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
-				{ChainID: "0056", Contracts: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
+				{BlockchainID: "0001", Contracts: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
+				{BlockchainID: "0002", Contracts: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
+				{BlockchainID: "003E", Contracts: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
+				{BlockchainID: "0056", Contracts: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 			},
 			WhitelistMethods: []types.WhitelistMethods{
-				{ChainID: "0001", Methods: []string{"GET", "POST", "PUT"}},
-				{ChainID: "0002", Methods: []string{"DELETE", "GET", "POST", "PUT"}},
-				{ChainID: "003E", Methods: []string{"GET"}},
-				{ChainID: "0056", Methods: []string{"GET", "POST"}},
+				{BlockchainID: "0001", Methods: []string{"GET", "POST", "PUT"}},
+				{BlockchainID: "0002", Methods: []string{"DELETE", "GET", "POST", "PUT"}},
+				{BlockchainID: "003E", Methods: []string{"GET"}},
+				{BlockchainID: "0056", Methods: []string{"GET", "POST"}},
 			},
 		},
-		Limit:                &types.AppLimit{Plan: types.PayPlan{Type: types.FreetierV0, Limit: 250_000}, CustomLimit: 0},
+		Limit:                &types.AppLimit{PayPlan: types.PayPlan{Type: types.FreetierV0, Limit: 250_000}, CustomLimit: 0},
 		NotificationSettings: &types.UpdateNotificationSettings{SignedUp: boolToPointer(true), Quarter: boolToPointer(true), Half: boolToPointer(false), ThreeQuarters: boolToPointer(true), Full: boolToPointer(false)},
 	}
 

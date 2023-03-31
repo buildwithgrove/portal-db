@@ -396,6 +396,27 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 	return activeStatus, nil
 }
 
+func (pg *PostgresDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, accountID types.AccountID, domain types.RedirectDomain) error {
+	redirectExists, err := pg.CheckRedirectExists(ctx, CheckRedirectExistsParams{
+		ChainID:   chainID,
+		AccountID: accountID,
+		Domain:    domain,
+	})
+	if err != nil {
+		return err
+	}
+	if !redirectExists {
+		return fmt.Errorf("Redirect with chain ID '%s', account ID '%s' and domain '%s' doesn't exist", chainID, accountID, domain)
+	}
+
+	err = pg.DeleteGigastakeRedirect(ctx, DeleteGigastakeRedirectParams{ChainID: chainID, AccountID: accountID, Domain: domain})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 /* ----- Used by Listener ----- */
 func (json Chain) toOutput() *types.Chain {
 	return &types.Chain{

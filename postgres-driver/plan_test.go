@@ -1,0 +1,36 @@
+package postgresdriver
+
+import (
+	"context"
+
+	"github.com/pokt-foundation/portal-db/v2/testdata"
+	"github.com/pokt-foundation/portal-db/v2/types"
+)
+
+func (ts *PGDriverTestSuite) Test_ReadPlans() {
+	tests := []struct {
+		name  string
+		plans map[types.PayPlanType]*types.Plan
+		err   error
+	}{
+		{
+			name: "Should return all plans from the database",
+			plans: map[types.PayPlanType]*types.Plan{
+				"basic_plan":      testdata.PayPlans["basic_plan"],
+				"pro_plan":        testdata.PayPlans["pro_plan"],
+				"startup_plan":    testdata.PayPlans["startup_plan"],
+				"developer_plan":  testdata.PayPlans["developer_plan"],
+				"enterprise_plan": testdata.PayPlans["enterprise_plan"],
+			},
+			err: nil,
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			plans, err := ts.driver.ReadPlans(context.Background())
+			ts.Equal(test.err, err)
+			ts.Equal(test.plans, plans)
+		})
+	}
+}
