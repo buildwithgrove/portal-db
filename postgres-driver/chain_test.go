@@ -408,3 +408,58 @@ func (ts *PGDriverTestSuite) Test_SetChainActiveStatus() {
 		})
 	}
 }
+
+func (ts *PGDriverTestSuite) Test_RemoveGigastakeRedirect() {
+	tests := []struct {
+		name      string
+		chainID   types.RelayChainID
+		accountID types.AccountID
+		domain    types.RedirectDomain
+		removed   bool
+		err       error
+	}{
+		{
+			name:      "Should remove an existing gigastake redirect",
+			chainID:   "0040",
+			accountID: "account_4",
+			domain:    "hmy-rpc.gateway.pokt.network",
+			removed:   true,
+			err:       nil,
+		},
+		{
+			name:      "Should fail if gigastake redirect does not exist",
+			chainID:   "0040",
+			accountID: "nonexistent_account",
+			domain:    "nonexistent_domain",
+			removed:   false,
+			err:       fmt.Errorf("Redirect with chain ID '%s', account ID '%s' and domain '%s' doesn't exist", "0040", "nonexistent_account", "nonexistent_domain"),
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			if test.removed {
+				redirectExists, err := ts.driver.CheckRedirectExists(context.Background(), CheckRedirectExistsParams{
+					ChainID:   test.chainID,
+					AccountID: test.accountID,
+					Domain:    test.domain,
+				})
+				ts.NoError(err)
+				ts.True(redirectExists)
+			}
+
+			err := ts.driver.RemoveGigastakeRedirect(context.Background(), test.chainID, test.accountID, test.domain)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				redirectExists, err := ts.driver.CheckRedirectExists(context.Background(), CheckRedirectExistsParams{
+					ChainID:   test.chainID,
+					AccountID: test.accountID,
+					Domain:    test.domain,
+				})
+				ts.NoError(err)
+				ts.False(redirectExists)
+			}
+		})
+	}
+}

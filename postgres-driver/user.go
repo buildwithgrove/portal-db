@@ -22,28 +22,12 @@ type (
 )
 
 var (
-	errUserIDDoesntExist       = errors.New("error user ID does not exist for auth provider ID '%s'")
 	errUserDoesntExist         = errors.New("error user does not exist for portal ID '%s'")
 	errInvalidEmail            = errors.New("error email input is not a valid email address '%s'")
 	errInvalidAuthProviderType = errors.New("error invalid auth provider type '%s'")
 )
 
 // /* ----- postgresdriver User Read Methods ----- */
-
-// GetPortalUserIDFromProviderID takes a user's auth provider ID and returns the Portal UserID
-func (pg *PostgresDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID types.ProviderUserID) (types.UserID, error) {
-	userID, err := pg.GetPortalUserID(ctx, providerUserID)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return types.UserID(""), fmt.Errorf(errUserIDDoesntExist.Error(), providerUserID)
-		default:
-			return types.UserID(""), err
-		}
-	}
-
-	return userID, nil
-}
 
 // ReadUserIDsMap returns all user IDs in the database mapped by their provider user IDs
 func (pg *PostgresDriver) ReadUserIDsMap(ctx context.Context) (map[types.ProviderUserID]types.UserID, error) {

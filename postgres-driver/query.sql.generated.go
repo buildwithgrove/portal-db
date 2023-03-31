@@ -163,6 +163,29 @@ func (q *Queries) CheckPlanTypeExists(ctx context.Context, planType types.PayPla
 	return exists, err
 }
 
+const checkRedirectExists = `-- name: CheckRedirectExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM chain_gigastake_redirects
+        WHERE chain_id = $1
+            AND account_id = $2
+            AND domain = $3
+    )
+`
+
+type CheckRedirectExistsParams struct {
+	ChainID   types.RelayChainID   `json:"chain_id"`
+	AccountID types.AccountID      `json:"account_id"`
+	Domain    types.RedirectDomain `json:"domain"`
+}
+
+func (q *Queries) CheckRedirectExists(ctx context.Context, arg CheckRedirectExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkRedirectExists, arg.ChainID, arg.AccountID, arg.Domain)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkUserEmail = `-- name: CheckUserEmail :one
 SELECT email
 FROM users
@@ -296,6 +319,24 @@ type DeleteAccountUserParams struct {
 
 func (q *Queries) DeleteAccountUser(ctx context.Context, arg DeleteAccountUserParams) error {
 	_, err := q.db.ExecContext(ctx, deleteAccountUser, arg.AccountID, arg.UserID)
+	return err
+}
+
+const deleteGigastakeRedirect = `-- name: DeleteGigastakeRedirect :exec
+DELETE FROM chain_gigastake_redirects
+WHERE chain_id = $1
+    AND account_id = $2
+    and domain = $3
+`
+
+type DeleteGigastakeRedirectParams struct {
+	ChainID   types.RelayChainID   `json:"chain_id"`
+	AccountID types.AccountID      `json:"account_id"`
+	Domain    types.RedirectDomain `json:"domain"`
+}
+
+func (q *Queries) DeleteGigastakeRedirect(ctx context.Context, arg DeleteGigastakeRedirectParams) error {
+	_, err := q.db.ExecContext(ctx, deleteGigastakeRedirect, arg.ChainID, arg.AccountID, arg.Domain)
 	return err
 }
 
@@ -1067,6 +1108,58 @@ func (q *Queries) SelectGlobalBlockedContract(ctx context.Context) ([]SelectGlob
 	for rows.Next() {
 		var i SelectGlobalBlockedContractRow
 		if err := rows.Scan(&i.ID, &i.BlockedAddress); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectPlans = `-- name: SelectPlans :many
+SELECT plan_type,
+    chain_ids,
+    monthly_relay_limit,
+    throughput_limit,
+    application_limit,
+    created_at,
+    daily_limit
+FROM pay_plans
+`
+
+type SelectPlansRow struct {
+	PlanType          types.PayPlanType `json:"plan_type"`
+	ChainIDs          []string          `json:"chain_ids"`
+	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
+	ThroughputLimit   int32             `json:"throughput_limit"`
+	ApplicationLimit  int32             `json:"application_limit"`
+	CreatedAt         time.Time         `json:"created_at"`
+	DailyLimit        sql.NullInt32     `json:"daily_limit"`
+}
+
+func (q *Queries) SelectPlans(ctx context.Context) ([]SelectPlansRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectPlans)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectPlansRow
+	for rows.Next() {
+		var i SelectPlansRow
+		if err := rows.Scan(
+			&i.PlanType,
+			pq.Array(&i.ChainIDs),
+			&i.MonthlyRelayLimit,
+			&i.ThroughputLimit,
+			&i.ApplicationLimit,
+			&i.CreatedAt,
+			&i.DailyLimit,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

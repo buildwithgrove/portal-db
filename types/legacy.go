@@ -55,6 +55,15 @@ var (
 
 /* Legacy Structs */
 type (
+	LoadBalancerID        string
+	LegacyUserPermissions struct {
+		UserID        UserID                                     `json:"userID"`
+		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions `json:"accounts"`
+	}
+	LoadBalancerPermissions struct {
+		RoleName    RoleName      `json:"roleName"`
+		Permissions []Permissions `json:"permissions"`
+	}
 	// LoadBalancer
 	LoadBalancer struct {
 		ID                string         `json:"id"`
@@ -117,18 +126,18 @@ type (
 		WhitelistBlockchains []string             `json:"whitelistBlockchains,omitempty"`
 	}
 	WhitelistContracts struct {
-		ID        string   `json:"id,omitempty"`
-		ChainID   string   `json:"chainID"`
-		Contracts []string `json:"contracts"`
+		ID           string   `json:"id,omitempty"`
+		BlockchainID string   `json:"chainID"`
+		Contracts    []string `json:"contracts"`
 	}
 	WhitelistMethods struct {
-		ID      string   `json:"id,omitempty"`
-		ChainID string   `json:"chainID"`
-		Methods []string `json:"methods"`
+		ID           string   `json:"id,omitempty"`
+		BlockchainID string   `json:"chainID"`
+		Methods      []string `json:"methods"`
 	}
 	AppLimit struct {
 		ID          string  `json:"id,omitempty"`
-		Plan        PayPlan `json:"payPlan"`
+		PayPlan     PayPlan `json:"payPlan"`
 		CustomLimit int     `json:"customLimit"`
 	}
 	PayPlan struct {
@@ -172,10 +181,10 @@ type (
 		UpdatedAt      time.Time `json:"updatedAt"`
 	}
 	SyncCheckOptions struct {
-		ChainID   string `json:"chainID,omitempty"`
-		Body      string `json:"body"`
-		ResultKey string `json:"resultKey"`
-		Allowance int    `json:"allowance"`
+		BlockchainID string `json:"chainID,omitempty"`
+		Body         string `json:"body"`
+		ResultKey    string `json:"resultKey"`
+		Allowance    int    `json:"allowance"`
 	}
 
 	/* Update structs */
@@ -248,9 +257,9 @@ type (
 
 /* Legacy Methods */
 func (a *Application) DailyLimit() int {
-	if a.Limit.Plan.Type == Enterprise {
+	if a.Limit.PayPlan.Type == Enterprise {
 		return a.Limit.CustomLimit
 	}
 
-	return a.Limit.Plan.Limit
+	return a.Limit.PayPlan.Limit
 }

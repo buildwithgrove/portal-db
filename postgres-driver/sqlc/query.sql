@@ -15,6 +15,15 @@ SELECT EXISTS (
                 WHERE users.id = @id::VARCHAR
             ) AS id_table
     );
+-- name: SelectPlans :many
+SELECT plan_type,
+    chain_ids,
+    monthly_relay_limit,
+    throughput_limit,
+    application_limit,
+    created_at,
+    daily_limit
+FROM pay_plans;
 -- name: SelectPortalApplications :many
 SELECT p.*,
     paa.address,
@@ -327,6 +336,15 @@ SELECT EXISTS(
         WHERE id = $1
             AND deleted = false
     );
+    -- name: CheckRedirectExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM chain_gigastake_redirects
+        WHERE chain_id = $1
+            AND account_id = $2
+            AND domain = $3
+    );
+
 -- name: CheckPlanTypeExists :one
 SELECT EXISTS(
         SELECT 1
@@ -663,6 +681,11 @@ WHERE chain_id = $1
     AND account_id NOT IN (
         SELECT unnest(@account_ids::VARCHAR [])
     );
+-- name: DeleteGigastakeRedirect :exec
+DELETE FROM chain_gigastake_redirects
+WHERE chain_id = $1
+    AND account_id = $2
+    and domain = $3;
 -- name: UpsertChainCheck :exec
 INSERT INTO chain_checks (
         chain_id,

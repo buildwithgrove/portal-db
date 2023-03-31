@@ -16,20 +16,6 @@ type MockDriver struct {
 	mock.Mock
 }
 
-// DeleteGigastakeRedirect provides a mock function with given fields: ctx, chainID, domain
-func (_m *MockDriver) DeleteGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, domain string) error {
-	ret := _m.Called(ctx, chainID, domain)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, string) error); ok {
-		r0 = rf(ctx, chainID, domain)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeletePortalUser provides a mock function with given fields: ctx, userID
 func (_m *MockDriver) DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error) {
 	ret := _m.Called(ctx, userID)
@@ -44,27 +30,6 @@ func (_m *MockDriver) DeletePortalUser(ctx context.Context, userID types.UserID)
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.UserID) error); ok {
 		r1 = rf(ctx, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetPortalUserIDFromProviderID provides a mock function with given fields: ctx, providerUserID
-func (_m *MockDriver) GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error) {
-	ret := _m.Called(ctx, providerUserID)
-
-	var r0 types.UserID
-	if rf, ok := ret.Get(0).(func(context.Context, string) types.UserID); ok {
-		r0 = rf(ctx, providerUserID)
-	} else {
-		r0 = ret.Get(0).(types.UserID)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, providerUserID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -291,6 +256,20 @@ func (_m *MockDriver) RemoveBlockedContract(ctx context.Context, blockedAddress 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.BlockedAddress) error); ok {
 		r0 = rf(ctx, blockedAddress)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RemoveGigastakeRedirect provides a mock function with given fields: ctx, chainID, accountID, domain
+func (_m *MockDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, accountID types.AccountID, domain types.RedirectDomain) error {
+	ret := _m.Called(ctx, chainID, accountID, domain)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, types.AccountID, types.RedirectDomain) error); ok {
+		r0 = rf(ctx, chainID, accountID, domain)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -552,33 +531,19 @@ func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp types.Portal
 }
 
 // WriteUserNewSignUp provides a mock function with given fields: ctx, user, createdAt
-func (_m *MockDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) error {
+func (_m *MockDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
 	ret := _m.Called(ctx, user, createdAt)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.CreateUser, time.Time) error); ok {
-		r0 = rf(ctx, user, createdAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// WriteUserProviderSignedUp provides a mock function with given fields: ctx, userID, user, createdAt
-func (_m *MockDriver) WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
-	ret := _m.Called(ctx, userID, user, createdAt)
-
 	var r0 types.UserID
-	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.CreateUser, time.Time) types.UserID); ok {
-		r0 = rf(ctx, userID, user, createdAt)
+	if rf, ok := ret.Get(0).(func(context.Context, types.CreateUser, time.Time) types.UserID); ok {
+		r0 = rf(ctx, user, createdAt)
 	} else {
 		r0 = ret.Get(0).(types.UserID)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.UserID, types.CreateUser, time.Time) error); ok {
-		r1 = rf(ctx, userID, user, createdAt)
+	if rf, ok := ret.Get(1).(func(context.Context, types.CreateUser, time.Time) error); ok {
+		r1 = rf(ctx, user, createdAt)
 	} else {
 		r1 = ret.Error(1)
 	}

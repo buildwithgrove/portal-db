@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 /* Enums */
 type PayPlanType string
 
@@ -18,7 +20,8 @@ type (
 
 		// TODO - remove when v2 migration finished
 		// LegacyDailyLimit is the daily limit (required for legacy apps to function)
-		LegacyDailyLimit int32 `json:"legacyDailyLimit"`
+		LegacyDailyLimit int32     `json:"legacyDailyLimit"`
+		CreatedAt        time.Time `json:"createdAt"`
 	}
 )
 

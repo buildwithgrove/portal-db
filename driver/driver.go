@@ -30,8 +30,6 @@ type (
 		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
 		ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error)
 
-		/* GetPortalUserIDFromProviderID returns a user's portal UserID */
-		GetPortalUserIDFromProviderID(ctx context.Context, providerUserID string) (types.UserID, error)
 		/* ReadUserByUserID returns a single user from a portal UserID */
 		ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error)
 
@@ -54,9 +52,7 @@ type (
 		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
 
 		/* WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input. */
-		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) error
-		/* WriteUserProviderSignedUp creates a new portal UserAuthProvider in the DB when a user accepts their team invite. */
-		WriteUserProviderSignedUp(ctx context.Context, userID types.UserID, user types.CreateUser, createdAt time.Time) (types.UserID, error)
+		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error)
 		/* DeletePortalUser deletes a portal User from the DB. WARNING will do a full delete in the case of users. */
 		DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error)
 
@@ -82,8 +78,8 @@ type (
 		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */
 		SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error)
-		/* DeleteGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
-		DeleteGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, domain string) error
+		/* RemoveGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
+		RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, accountID types.AccountID, domain types.RedirectDomain) error
 
 		/* WriteBlockedContract adds a new blocked address to the global blocked contracts table. */
 		WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error

@@ -8,40 +8,6 @@ import (
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
-func (ts *PGDriverTestSuite) Test_GetPortalUserIDFromProviderID() {
-	tests := []struct {
-		name           string
-		providerUserID types.ProviderUserID
-		portalUserID   types.UserID
-		err            error
-	}{
-		{
-			name:           "Should return the Portal UserID when passed the auth provider user ID",
-			providerUserID: "auth0|paul_atreides",
-			portalUserID:   "user_2",
-			err:            nil,
-		},
-		{
-			name:           "Should return the Portal UserID when passed the auth provider user ID",
-			providerUserID: "auth0|tyrion_lannister",
-			portalUserID:   "user_9",
-			err:            nil,
-		},
-		{
-			name:           "Should fail if the user does not exist in the database",
-			providerUserID: "auth0|deckard_cain",
-			err:            fmt.Errorf(errUserIDDoesntExist.Error(), "auth0|deckard_cain"),
-		},
-	}
-
-	for _, test := range tests {
-		ts.Run(test.name, func() {
-			portalUserID, err := ts.driver.GetPortalUserIDFromProviderID(context.Background(), test.providerUserID)
-			ts.Equal(test.err, err)
-			ts.Equal(test.portalUserID, portalUserID)
-		})
-	}
-}
 func (ts *PGDriverTestSuite) Test_ReadUserIDsMap() {
 	tests := []struct {
 		name               string

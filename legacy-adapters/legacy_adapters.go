@@ -82,7 +82,7 @@ func ConvertToLegacyApplication(a types.PortalApp, userID string, planType types
 		},
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
 		Limit: types.AppLimit{
-			Plan:        types.PayPlan{Type: planType, Limit: int(dailyLimit)},
+			PayPlan:     types.PayPlan{Type: planType, Limit: int(dailyLimit)},
 			CustomLimit: int(a.LegacyFields.CustomLimit),
 		},
 		NotificationSettings: types.NotificationSettings{
@@ -126,11 +126,11 @@ func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
 		}
 		sort.Strings(contractList)
 		gatewaySettings.WhitelistContracts = append(gatewaySettings.WhitelistContracts, types.WhitelistContracts{
-			ChainID: string(chainID), Contracts: contractList},
+			BlockchainID: string(chainID), Contracts: contractList},
 		)
 	}
 	sort.Slice(gatewaySettings.WhitelistContracts, func(i, j int) bool {
-		return gatewaySettings.WhitelistContracts[i].ChainID < gatewaySettings.WhitelistContracts[j].ChainID
+		return gatewaySettings.WhitelistContracts[i].BlockchainID < gatewaySettings.WhitelistContracts[j].BlockchainID
 	})
 
 	for chainID, methods := range a.Whitelists.Methods {
@@ -140,11 +140,11 @@ func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
 		}
 		sort.Strings(methodList)
 		gatewaySettings.WhitelistMethods = append(gatewaySettings.WhitelistMethods, types.WhitelistMethods{
-			ChainID: string(chainID), Methods: methodList},
+			BlockchainID: string(chainID), Methods: methodList},
 		)
 	}
 	sort.Slice(gatewaySettings.WhitelistMethods, func(i, j int) bool {
-		return gatewaySettings.WhitelistMethods[i].ChainID < gatewaySettings.WhitelistMethods[j].ChainID
+		return gatewaySettings.WhitelistMethods[i].BlockchainID < gatewaySettings.WhitelistMethods[j].BlockchainID
 	})
 
 	return gatewaySettings
@@ -224,7 +224,7 @@ func ConvertToV2AccountAndPortalApp(lb types.LoadBalancer, lbID string) (types.A
 
 	account := types.Account{
 		Name:                 lb.Name,
-		PlanType:             types.PayPlanType(lb.Applications[0].Limit.Plan.Type),
+		PlanType:             types.PayPlanType(lb.Applications[0].Limit.PayPlan.Type),
 		LegacyLoadBalancerID: lbID,
 	}
 
@@ -310,14 +310,14 @@ func ConvertToV2UpdatePortalApp(u types.UpdateApplication, appID string) types.U
 			contracts := []string{}
 			contracts = append(contracts, chainContracts.Contracts...)
 			contractWhitelists = append(contractWhitelists, types.ChainIDWhitelists{
-				ChainID: chainContracts.ChainID, Values: contracts,
+				ChainID: chainContracts.BlockchainID, Values: contracts,
 			})
 		}
 		for _, chainMethods := range u.GatewaySettings.WhitelistMethods {
 			methods := []string{}
 			methods = append(methods, chainMethods.Methods...)
 			methodWhitelists = append(methodWhitelists, types.ChainIDWhitelists{
-				ChainID: chainMethods.ChainID, Values: methods,
+				ChainID: chainMethods.BlockchainID, Values: methods,
 			})
 		}
 
