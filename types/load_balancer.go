@@ -35,6 +35,7 @@ type (
 		Users             []UserAccess        `json:"users"`
 		CreatedAt         time.Time           `json:"createdAt"`
 		UpdatedAt         time.Time           `json:"updatedAt"`
+		AccountID         string              `json:"accountID"`
 	}
 	AccountIntegrations struct {
 		ID                 string `json:"id,omitempty"`

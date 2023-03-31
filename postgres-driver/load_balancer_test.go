@@ -39,6 +39,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							{RoleName: "ADMIN", UserID: "test_user_admin1234", Email: "admin1@test.com", Accepted: true},
 							{RoleName: "MEMBER", UserID: "test_user_member1234", Email: "member1@test.com", Accepted: true},
 						},
+						AccountID: "account1",
 					},
 					{
 						ID:                "test_lb_34gg4g43g34g5hh",
@@ -58,6 +59,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							{RoleName: "OWNER", UserID: "test_user_redirect233344", Email: "owner3@test.com", Accepted: true},
 							{RoleName: "MEMBER", UserID: "", Email: "member2@test.com", Accepted: false},
 						},
+						AccountID: "account3",
 					},
 					{
 						ID:                "test_lb_3890ru23jfi32fj",
@@ -80,6 +82,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 							{RoleName: "OWNER", UserID: "test_user_04228205bd261a", Email: "owner2@test.com", Accepted: true},
 							{RoleName: "ADMIN", UserID: "test_user_admin5678", Email: "admin2@test.com", Accepted: true},
 						},
+						AccountID: "account2",
 					},
 				},
 				err: nil,
@@ -101,6 +104,7 @@ func (ts *PGDriverTestSuite) Test_ReadTests() {
 				ts.Equal(test.loadBalancers[i].StickyOptions, loadBalancer.StickyOptions)
 				ts.Equal(test.loadBalancers[i].Integrations, loadBalancer.Integrations)
 				ts.Equal(test.loadBalancers[i].Users, loadBalancer.Users)
+				ts.Equal(test.loadBalancers[i].AccountID, loadBalancer.AccountID)
 				ts.NotEmpty(loadBalancer.CreatedAt)
 				ts.NotEmpty(loadBalancer.UpdatedAt)
 			}
@@ -251,6 +255,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				if err == nil {
 					ts.Equal(test.err, err)
 					ts.Len(createdLB.ID, 24)
+					ts.Len(createdLB.AccountID, 8)
 					ts.Equal(input.Name, createdLB.Name)
 					ts.NotEmpty(createdLB.CreatedAt)
 					ts.NotEmpty(createdLB.UpdatedAt)
@@ -276,6 +281,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 							ts.Equal(test.expectedLB.Stickiness, loadBalancer.Stickiness)
 							ts.Equal(test.expectedLB.CovalentApiKeyFree, loadBalancer.CovalentApiKeyFree)
 							ts.Equal(test.expectedLB.Users, loadBalancer.Users)
+							ts.Len(loadBalancer.AccountID, 8)
 							ts.NotEmpty(loadBalancer.CreatedAt)
 							ts.NotEmpty(loadBalancer.UpdatedAt)
 						}

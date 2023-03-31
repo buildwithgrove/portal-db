@@ -584,6 +584,12 @@ WHERE application_id = ANY (@application_ids::VARCHAR []);
 UPDATE applications
 SET status = COALESCE($2, status)
 WHERE application_id = $1;
+-- name: CheckAccountIDExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM loadbalancers
+        WHERE account_id = $1
+    );
 -- name: SelectLoadBalancers :many
 SELECT lb.lb_id,
     lb.name,
@@ -591,6 +597,7 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration AS s_duration,
     so.sticky_max AS s_sticky_max,
     so.stickiness AS s_stickiness,
@@ -630,6 +637,7 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
@@ -645,6 +653,7 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
@@ -685,6 +694,7 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
@@ -709,6 +719,7 @@ INSERT into loadbalancers (
         request_timeout,
         gigastake,
         gigastake_redirect,
+        account_id,
         created_at,
         updated_at
     )
@@ -720,7 +731,8 @@ VALUES (
         $5,
         $6,
         $7,
-        $8
+        $8,
+        $9
     );
 -- name: InsertStickinessOptions :exec
 INSERT INTO stickiness_options (

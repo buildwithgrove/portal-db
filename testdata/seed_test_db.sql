@@ -216,7 +216,8 @@ INSERT INTO loadbalancers (
         gigastake,
         gigastake_redirect,
         created_at,
-        updated_at
+        updated_at,
+        account_id
     )
 VALUES (
         'test_lb_34987u329rfn23f',
@@ -226,7 +227,8 @@ VALUES (
         true,
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'account1'
     ),
     (
         'test_lb_3890ru23jfi32fj',
@@ -236,7 +238,8 @@ VALUES (
         true,
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'account2'
     ),
     (
         'test_lb_34gg4g43g34g5hh',
@@ -246,7 +249,8 @@ VALUES (
         false,
         false,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'account3'
     );
 INSERT INTO stickiness_options (
         lb_id,

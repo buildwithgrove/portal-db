@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS loadbalancers (
 	gigastake_redirect BOOLEAN,
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
+	account_id VARCHAR(10) UNIQUE,
 	PRIMARY KEY (id)
 );
 -- Will be migrated to V2 but creating here for the time being
