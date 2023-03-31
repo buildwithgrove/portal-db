@@ -1132,19 +1132,19 @@ var (
 		Applications: []*types.Application{&LegacyApplication},
 		Users: []types.UserAccess{
 			{
-				UserID:   "auth0|james_holden",
+				UserID:   "user_1",
 				RoleName: types.RoleOwner,
 				Email:    "james.holden123@test.com",
 				Accepted: true,
 			},
 			{
-				UserID:   "auth0|paul_atreides",
+				UserID:   "user_2",
 				RoleName: types.RoleAdmin,
 				Email:    "paul.atreides456@test.com",
 				Accepted: true,
 			},
 			{
-				UserID:   "auth0|rick_deckard",
+				UserID:   "user_8",
 				RoleName: types.RoleAdmin,
 				Email:    "rick.deckard456@test.com",
 				Accepted: false,

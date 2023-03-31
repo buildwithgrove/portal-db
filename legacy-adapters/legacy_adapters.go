@@ -15,17 +15,8 @@ func ConvertToLegacyLoadBalancer(a types.Account) types.LoadBalancer {
 	var users []types.UserAccess
 
 	for _, accountUser := range a.Users {
-		var userID string
-		// in case user has two auth providers, default to using their Auth0 Username/PW ID
-		switch {
-		case accountUser.ProviderUserIDs[types.AuthTypeAuth0Username] != "":
-			userID = accountUser.ProviderUserIDs[types.AuthTypeAuth0Username]
-		default:
-			userID = accountUser.ProviderUserIDs[types.AuthTypeAuth0Github]
-		}
-
 		users = append(users, types.UserAccess{
-			UserID:   userID,
+			UserID:   string(accountUser.UserID),
 			RoleName: accountUser.RoleName,
 			Email:    string(accountUser.Email),
 			Accepted: accountUser.Accepted,
