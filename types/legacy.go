@@ -58,7 +58,7 @@ type (
 	LoadBalancerID        string
 	LegacyUserPermissions struct {
 		UserID        UserID                                     `json:"userID"`
-		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions `json:"accounts"`
+		LoadBalancers map[LoadBalancerID]LoadBalancerPermissions `json:"loadBalancers"`
 	}
 	LoadBalancerPermissions struct {
 		RoleName    RoleName      `json:"roleName"`
