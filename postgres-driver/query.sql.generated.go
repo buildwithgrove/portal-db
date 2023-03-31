@@ -911,6 +911,12 @@ func (q *Queries) RemoveGlobalBlockedContract(ctx context.Context, blockedAddres
 }
 
 const selectAccounts = `-- name: SelectAccounts :many
+WITH user_auth_agg AS (
+    SELECT user_id,
+        json_object_agg(type, provider_user_id) AS provider_user_ids
+    FROM user_auth_providers
+    GROUP BY user_id
+)
 SELECT a.id, a.name, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at, a.lb_id,
     json_agg(
         json_build_object(
@@ -923,17 +929,14 @@ SELECT a.id, a.name, a.plan_type, a.partner_chain_ids, a.partner_throughput_limi
             'accepted',
             au.accepted,
             'provider_user_ids',
-            (
-                SELECT json_object_agg(type, provider_user_id)
-                FROM user_auth_providers
-                WHERE user_id = u.id
-            )
+            uaa.provider_user_ids
         )
     ) AS users
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
+    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
 WHERE (
         $1::BOOLEAN
         OR a.deleted = false
@@ -956,8 +959,8 @@ type SelectAccountsRow struct {
 	Users                   json.RawMessage   `json:"users"`
 }
 
-func (q *Queries) SelectAccounts(ctx context.Context, includeDeleted bool) ([]SelectAccountsRow, error) {
-	rows, err := q.db.QueryContext(ctx, selectAccounts, includeDeleted)
+func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAccountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectAccounts, dollar_1)
 	if err != nil {
 		return nil, err
 	}

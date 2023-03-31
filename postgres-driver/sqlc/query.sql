@@ -267,6 +267,12 @@ SET deleted = true,
     deleted_at = $2
 WHERE id = $1;
 -- name: SelectAccounts :many
+WITH user_auth_agg AS (
+    SELECT user_id,
+        json_object_agg(type, provider_user_id) AS provider_user_ids
+    FROM user_auth_providers
+    GROUP BY user_id
+)
 SELECT a.*,
     json_agg(
         json_build_object(
@@ -279,19 +285,16 @@ SELECT a.*,
             'accepted',
             au.accepted,
             'provider_user_ids',
-            (
-                SELECT json_object_agg(type, provider_user_id)
-                FROM user_auth_providers
-                WHERE user_id = u.id
-            )
+            uaa.provider_user_ids
         )
     ) AS users
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
+    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
 WHERE (
-        @include_deleted::BOOLEAN
+        $1::BOOLEAN
         OR a.deleted = false
     )
 GROUP BY a.id;
