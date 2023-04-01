@@ -43,6 +43,8 @@ type (
 		RemoveLoadBalancer(ctx context.Context, id string) error
 		/* RemoveUserAccess deletes a UserAccess row */
 		RemoveUserAccess(ctx context.Context, email, lbID string) error
+		/* RemoveUserAccess adds or updates a Load Balancer/Account integrations row */
+		UpsertLoadBalancerIntegrations(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error)
 
 		/* WriteApplication saves input Application to the database */
 		WriteApplication(ctx context.Context, app *types.Application) (*types.Application, error)

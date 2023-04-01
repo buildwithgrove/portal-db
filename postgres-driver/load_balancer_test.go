@@ -292,7 +292,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 		}
 	})
 
-	ts.Run("Test_UpsertIntegrations", func() {
+	ts.Run("Test_UpsertLoadBalancerIntegrations", func() {
 		tests := []struct {
 			name               string
 			integrationsInputs types.AccountIntegrations
@@ -320,7 +320,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 		}
 
 		for _, test := range tests {
-			createdIntegrations, err := ts.driver.UpsertIntegrations(testCtx, test.integrationsInputs)
+			createdIntegrations, err := ts.driver.UpsertLoadBalancerIntegrations(testCtx, test.integrationsInputs)
 			ts.Equal(test.err, err)
 			if err == nil {
 				ts.Equal(test.integrationsInputs, *createdIntegrations)

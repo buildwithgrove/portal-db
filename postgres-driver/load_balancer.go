@@ -248,8 +248,8 @@ func PrettyString(label string, thing interface{}) {
 	fmt.Println(label, output)
 }
 
-/* UpsertIntegrations saves or updates input AccountIntegrations in the database */
-func (p *PostgresDriver) UpsertIntegrations(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error) {
+/* UpsertLoadBalancerIntegrations saves or updates input AccountIntegrations in the database */
+func (p *PostgresDriver) UpsertLoadBalancerIntegrations(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error) {
 	time := time.Now()
 
 	accountIntegrations, err := p.UpsertAccountIntegrations(ctx, UpsertAccountIntegrationsParams{
