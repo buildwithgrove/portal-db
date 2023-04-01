@@ -246,6 +246,12 @@ INSERT
 	OR
 UPDATE
 	OR DELETE ON user_access FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER account_integrations_notify_event
+AFTER
+INSERT
+	OR
+UPDATE
+	OR DELETE ON account_integrations FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER lb_apps_notify_event
 AFTER
 INSERT ON lb_apps FOR EACH ROW EXECUTE PROCEDURE notify_event();

@@ -477,6 +477,11 @@ type (
 		Email    string `json:"email"`
 		Accepted bool   `json:"accepted"`
 	}
+	dbAccountIntegrationsJSON struct {
+		AccountID          string `json:"account_id"`
+		CovalentAPIKeyFree string `json:"covalent_api_key_free"`
+		CovalentAPIKeyPaid string `json:"covalent_api_key_paid"`
+	}
 )
 
 func (j dbLoadBalancerJSON) toOutput() *types.LoadBalancer {
@@ -507,5 +512,12 @@ func (j dbUserAccessJSON) toOutput() *types.UserAccess {
 		RoleName: types.RoleName(j.RoleName),
 		Email:    j.Email,
 		Accepted: j.Accepted,
+	}
+}
+func (j dbAccountIntegrationsJSON) toOutput() *types.AccountIntegrations {
+	return &types.AccountIntegrations{
+		AccountID:          j.AccountID,
+		CovalentAPIKeyFree: j.CovalentAPIKeyFree,
+		CovalentAPIKeyPaid: j.CovalentAPIKeyPaid,
 	}
 }

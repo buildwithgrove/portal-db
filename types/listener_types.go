@@ -12,9 +12,10 @@ type (
 )
 
 const (
-	TableLoadBalancers     Table = "loadbalancers"
-	TableStickinessOptions Table = "stickiness_options"
-	TableUserAccess        Table = "user_access"
+	TableLoadBalancers       Table = "loadbalancers"
+	TableStickinessOptions   Table = "stickiness_options"
+	TableUserAccess          Table = "user_access"
+	TableAccountIntegrations Table = "account_integrations"
 
 	TableLbApps Table = "lb_apps"
 
@@ -47,6 +48,9 @@ func (s *StickyOptions) Table() Table {
 }
 func (s *UserAccess) Table() Table {
 	return TableUserAccess
+}
+func (s *AccountIntegrations) Table() Table {
+	return TableAccountIntegrations
 }
 
 func (l *LbApp) Table() Table {

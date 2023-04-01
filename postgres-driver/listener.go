@@ -54,6 +54,18 @@ func (n notification) parseUserAccessNotification() *types.Notification {
 	}
 }
 
+func (n notification) parseAccountIntegrationsNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbAccountIntegrations dbAccountIntegrationsJSON
+	_ = json.Unmarshal(rawData, &dbAccountIntegrations)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbAccountIntegrations.toOutput(),
+	}
+}
+
 func (n notification) parseLbApps() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var lbApp types.LbApp
@@ -194,6 +206,8 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseStickinessOptionsNotification()
 	case types.TableUserAccess:
 		return n.parseUserAccessNotification()
+	case types.TableAccountIntegrations:
+		return n.parseAccountIntegrationsNotification()
 
 	case types.TableLbApps:
 		return n.parseLbApps()
