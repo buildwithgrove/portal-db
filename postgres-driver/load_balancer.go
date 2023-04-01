@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pokt-foundation/portal-db/types"
+	"github.com/pokt-foundation/utils-go/id"
 )
 
 var (
@@ -64,6 +65,9 @@ func (lb *SelectLoadBalancersRow) toLoadBalancer() (*types.LoadBalancer, error) 
 
 		CreatedAt: lb.CreatedAt.Time,
 		UpdatedAt: lb.UpdatedAt.Time,
+
+		// Note: here in prep for the V2 migration, needed for Covalent API keys
+		AccountID: lb.AccountID.String,
 	}
 
 	// Unmarshal LoadBalancer Users JSON into []types.UserAccess
@@ -111,6 +115,24 @@ func (p *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.Use
 	return userPermissionsMap, nil
 }
 
+// generateID generates a new random account_id
+// Note: here in prep for the V2 migration, needed for Covalent API keys
+func (p *PostgresDriver) generateAccountID(ctx context.Context) (string, error) {
+	var generatedID string
+	var err error
+	idExists := true
+
+	for idExists {
+		generatedID = id.GenerateID(idLength)
+		idExists, err = p.CheckAccountIDExists(ctx, newSQLNullString(generatedID))
+		if err != nil {
+			return "", fmt.Errorf("error checking ID %s", generatedID)
+		}
+	}
+
+	return generatedID, nil
+}
+
 /* WriteLoadBalancer saves input LoadBalancer to the database */
 func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *types.LoadBalancer) (*types.LoadBalancer, error) {
 	if len(loadBalancer.Users) < 1 {
@@ -122,6 +144,13 @@ func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *ty
 		return nil, err
 	}
 	loadBalancer.ID = id
+
+	accountID, err := p.generateAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	loadBalancer.AccountID = accountID
+
 	time := time.Now()
 	loadBalancer.CreatedAt = time
 	loadBalancer.UpdatedAt = time
@@ -179,6 +208,8 @@ func extractInsertLoadBalancer(loadBalancer *types.LoadBalancer) InsertLoadBalan
 		GigastakeRedirect: newSQLNullBool(&loadBalancer.GigastakeRedirect),
 		CreatedAt:         newSQLNullTime(loadBalancer.CreatedAt),
 		UpdatedAt:         newSQLNullTime(loadBalancer.UpdatedAt),
+		// Note: here in prep for the V2 migration, needed for Covalent API keys
+		AccountID: newSQLNullString(loadBalancer.AccountID),
 	}
 }
 

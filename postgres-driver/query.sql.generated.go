@@ -32,6 +32,21 @@ func (q *Queries) ActivateBlockchain(ctx context.Context, arg ActivateBlockchain
 	return err
 }
 
+const checkAccountIDExists = `-- name: CheckAccountIDExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM loadbalancers
+        WHERE account_id = $1
+    )
+`
+
+func (q *Queries) CheckAccountIDExists(ctx context.Context, accountID sql.NullString) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkAccountIDExists, accountID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const deleteNotPresentWhitelistContracts = `-- name: DeleteNotPresentWhitelistContracts :exec
 DELETE FROM whitelist_contracts
 WHERE application_id = $1
@@ -363,6 +378,7 @@ INSERT into loadbalancers (
         request_timeout,
         gigastake,
         gigastake_redirect,
+        account_id,
         created_at,
         updated_at
     )
@@ -374,7 +390,8 @@ VALUES (
         $5,
         $6,
         $7,
-        $8
+        $8,
+        $9
     )
 `
 
@@ -385,6 +402,7 @@ type InsertLoadBalancerParams struct {
 	RequestTimeout    sql.NullInt32  `json:"requestTimeout"`
 	Gigastake         sql.NullBool   `json:"gigastake"`
 	GigastakeRedirect sql.NullBool   `json:"gigastakeRedirect"`
+	AccountID         sql.NullString `json:"accountID"`
 	CreatedAt         sql.NullTime   `json:"createdAt"`
 	UpdatedAt         sql.NullTime   `json:"updatedAt"`
 }
@@ -397,6 +415,7 @@ func (q *Queries) InsertLoadBalancer(ctx context.Context, arg InsertLoadBalancer
 		arg.RequestTimeout,
 		arg.Gigastake,
 		arg.GigastakeRedirect,
+		arg.AccountID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -1044,6 +1063,7 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration AS s_duration,
     so.sticky_max AS s_sticky_max,
     so.stickiness AS s_stickiness,
@@ -1083,6 +1103,7 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
@@ -1100,6 +1121,7 @@ type SelectLoadBalancersRow struct {
 	Gigastake          sql.NullBool    `json:"gigastake"`
 	GigastakeRedirect  sql.NullBool    `json:"gigastakeRedirect"`
 	UserID             sql.NullString  `json:"userID"`
+	AccountID          sql.NullString  `json:"accountID"`
 	SDuration          sql.NullString  `json:"sDuration"`
 	SStickyMax         sql.NullInt32   `json:"sStickyMax"`
 	SStickiness        sql.NullBool    `json:"sStickiness"`
@@ -1128,6 +1150,7 @@ func (q *Queries) SelectLoadBalancers(ctx context.Context) ([]SelectLoadBalancer
 			&i.Gigastake,
 			&i.GigastakeRedirect,
 			&i.UserID,
+			&i.AccountID,
 			&i.SDuration,
 			&i.SStickyMax,
 			&i.SStickiness,
@@ -1371,6 +1394,7 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
@@ -1411,6 +1435,7 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
+    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
@@ -1427,6 +1452,7 @@ type SelectOneLoadBalancerRow struct {
 	Gigastake          sql.NullBool    `json:"gigastake"`
 	GigastakeRedirect  sql.NullBool    `json:"gigastakeRedirect"`
 	UserID             sql.NullString  `json:"userID"`
+	AccountID          sql.NullString  `json:"accountID"`
 	Duration           sql.NullString  `json:"duration"`
 	StickyMax          sql.NullInt32   `json:"stickyMax"`
 	Stickiness         sql.NullBool    `json:"stickiness"`
@@ -1449,6 +1475,7 @@ func (q *Queries) SelectOneLoadBalancer(ctx context.Context, lbID string) (Selec
 		&i.Gigastake,
 		&i.GigastakeRedirect,
 		&i.UserID,
+		&i.AccountID,
 		&i.Duration,
 		&i.StickyMax,
 		&i.Stickiness,

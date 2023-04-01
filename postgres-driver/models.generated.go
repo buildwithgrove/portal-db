@@ -145,6 +145,7 @@ type Loadbalancer struct {
 	GigastakeRedirect sql.NullBool   `json:"gigastakeRedirect"`
 	CreatedAt         sql.NullTime   `json:"createdAt"`
 	UpdatedAt         sql.NullTime   `json:"updatedAt"`
+	AccountID         sql.NullString `json:"accountID"`
 }
 
 type NotificationSetting struct {

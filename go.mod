@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/google/go-cmp v0.5.9
 	github.com/lib/pq v1.10.7
+	github.com/pokt-foundation/utils-go v0.3.0
 	github.com/stretchr/testify v1.8.1
 )
 
