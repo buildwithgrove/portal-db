@@ -252,8 +252,9 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 		for _, test := range tests {
 			for _, input := range test.loadBalancerInputs {
 				createdLB, err := ts.driver.WriteLoadBalancer(testCtx, input)
-				if err == nil {
-					ts.Equal(test.err, err)
+				ts.Equal(test.err, err)
+
+				if test.err == nil {
 					ts.Len(createdLB.ID, 24)
 					ts.Len(createdLB.AccountID, 8)
 					ts.Equal(input.Name, createdLB.Name)
@@ -281,7 +282,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 							ts.Equal(test.expectedLB.Stickiness, loadBalancer.Stickiness)
 							ts.Equal(test.expectedLB.CovalentApiKeyFree, loadBalancer.CovalentApiKeyFree)
 							ts.Equal(test.expectedLB.Users, loadBalancer.Users)
-							ts.Len(loadBalancer.AccountID, 8)
+							ts.Len(loadBalancer.AccountID.String, 8)
 							ts.NotEmpty(loadBalancer.CreatedAt)
 							ts.NotEmpty(loadBalancer.UpdatedAt)
 						}
@@ -320,8 +321,8 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 
 		for _, test := range tests {
 			createdIntegrations, err := ts.driver.UpsertIntegrations(testCtx, test.integrationsInputs)
+			ts.Equal(test.err, err)
 			if err == nil {
-				ts.Equal(test.err, err)
 				ts.Equal(test.integrationsInputs, *createdIntegrations)
 
 				loadBalancer, err := ts.driver.SelectOneLoadBalancer(testCtx, createdIntegrations.ID)
@@ -461,7 +462,6 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 
 			if err == nil {
 				loadBalancer, err := ts.driver.SelectOneLoadBalancer(testCtx, test.lbIDInput)
-
 				ts.Equal(test.err, err)
 				ts.Equal(test.lbIDInput, loadBalancer.LbID)
 				ts.Equal(test.expectedUsersJSON, loadBalancer.Users)

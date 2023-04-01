@@ -123,7 +123,7 @@ func (p *PostgresDriver) generateAccountID(ctx context.Context) (string, error) 
 	idExists := true
 
 	for idExists {
-		generatedID = id.GenerateID(idLength)
+		generatedID = id.GenerateID(8)
 		idExists, err = p.CheckAccountIDExists(ctx, newSQLNullString(generatedID))
 		if err != nil {
 			return "", fmt.Errorf("error checking ID %s", generatedID)
