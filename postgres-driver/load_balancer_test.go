@@ -295,23 +295,26 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 	ts.Run("Test_UpsertLoadBalancerIntegrations", func() {
 		tests := []struct {
 			name               string
+			loadBalancerID     string
 			integrationsInputs types.AccountIntegrations
 			expectedAPIKeyRow  sql.NullString
 			err                error
 		}{
 			{
-				name: "Should create a single account integrations row",
+				name:           "Should create a single account integrations row",
+				loadBalancerID: "test_lb_34gg4g43g34g5hh",
 				integrationsInputs: types.AccountIntegrations{
-					ID:                 "test_lb_34gg4g43g34g5hh",
+					AccountID:          "account3",
 					CovalentAPIKeyFree: "test_covalent_api_key_3",
 				},
 				expectedAPIKeyRow: sql.NullString{Valid: true, String: "test_covalent_api_key_3"},
 				err:               nil,
 			},
 			{
-				name: "Should update an existing account integrations row",
+				name:           "Should update an existing account integrations row",
+				loadBalancerID: "test_lb_34987u329rfn23f",
 				integrationsInputs: types.AccountIntegrations{
-					ID:                 "test_lb_34987u329rfn23f",
+					AccountID:          "account1",
 					CovalentAPIKeyFree: "test_covalent_api_key_4",
 				},
 				expectedAPIKeyRow: sql.NullString{Valid: true, String: "test_covalent_api_key_4"},
@@ -325,7 +328,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 			if err == nil {
 				ts.Equal(test.integrationsInputs, *createdIntegrations)
 
-				loadBalancer, err := ts.driver.SelectOneLoadBalancer(testCtx, createdIntegrations.ID)
+				loadBalancer, err := ts.driver.SelectOneLoadBalancer(testCtx, test.loadBalancerID)
 				ts.Equal(test.err, err)
 				ts.Equal(test.expectedAPIKeyRow, loadBalancer.CovalentApiKeyFree)
 			}

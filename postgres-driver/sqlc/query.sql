@@ -610,7 +610,7 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.lb_id = ai.lb_id
+    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
@@ -666,7 +666,7 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.lb_id = ai.lb_id
+    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
@@ -745,13 +745,13 @@ INSERT INTO stickiness_options (
 VALUES ($1, $2, $3, $4, $5);
 -- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
-        lb_id,
+        account_id,
         covalent_api_key_free,
         covalent_api_key_paid,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5) ON CONFLICT (lb_id) DO
+VALUES ($1, $2, $3, $4, $5) ON CONFLICT (account_id) DO
 UPDATE
 SET covalent_api_key_free = CASE
         WHEN EXCLUDED.covalent_api_key_free IS NOT NULL THEN EXCLUDED.covalent_api_key_free

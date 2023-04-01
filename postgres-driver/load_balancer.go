@@ -253,7 +253,7 @@ func (p *PostgresDriver) UpsertLoadBalancerIntegrations(ctx context.Context, int
 	time := time.Now()
 
 	accountIntegrations, err := p.UpsertAccountIntegrations(ctx, UpsertAccountIntegrationsParams{
-		LbID:               integrations.ID,
+		AccountID:          integrations.AccountID,
 		CovalentApiKeyFree: newSQLNullString(integrations.CovalentAPIKeyFree),
 		CovalentApiKeyPaid: newSQLNullString(integrations.CovalentAPIKeyPaid),
 		CreatedAt:          newSQLNullTime(time),
@@ -264,7 +264,7 @@ func (p *PostgresDriver) UpsertLoadBalancerIntegrations(ctx context.Context, int
 	}
 
 	return &types.AccountIntegrations{
-		ID:                 accountIntegrations.LbID,
+		AccountID:          accountIntegrations.AccountID,
 		CovalentAPIKeyFree: accountIntegrations.CovalentApiKeyFree.String,
 		CovalentAPIKeyPaid: accountIntegrations.CovalentApiKeyPaid.String,
 	}, nil

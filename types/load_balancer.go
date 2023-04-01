@@ -38,7 +38,7 @@ type (
 		AccountID         string              `json:"accountID"`
 	}
 	AccountIntegrations struct {
-		ID                 string `json:"id,omitempty"`
+		AccountID          string `json:"id,omitempty"`
 		CovalentAPIKeyFree string `json:"covalentAPIKeyFree"`
 		CovalentAPIKeyPaid string `json:"covalentAPIKeyPaid"`
 	}

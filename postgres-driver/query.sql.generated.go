@@ -1076,7 +1076,7 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.lb_id = ai.lb_id
+    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
@@ -1407,7 +1407,7 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.lb_id = ai.lb_id
+    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
@@ -1808,13 +1808,13 @@ func (q *Queries) UpdateWhitelistMethods(ctx context.Context, arg UpdateWhitelis
 
 const upsertAccountIntegrations = `-- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
-        lb_id,
+        account_id,
         covalent_api_key_free,
         covalent_api_key_paid,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5) ON CONFLICT (lb_id) DO
+VALUES ($1, $2, $3, $4, $5) ON CONFLICT (account_id) DO
 UPDATE
 SET covalent_api_key_free = CASE
         WHEN EXCLUDED.covalent_api_key_free IS NOT NULL THEN EXCLUDED.covalent_api_key_free
@@ -1829,11 +1829,11 @@ SET covalent_api_key_free = CASE
         ELSE account_integrations.created_at
     END,
     updated_at = EXCLUDED.updated_at
-RETURNING id, lb_id, covalent_api_key_free, covalent_api_key_paid, created_at, updated_at
+RETURNING id, account_id, covalent_api_key_free, covalent_api_key_paid, created_at, updated_at
 `
 
 type UpsertAccountIntegrationsParams struct {
-	LbID               string         `json:"lbID"`
+	AccountID          string         `json:"accountID"`
 	CovalentApiKeyFree sql.NullString `json:"covalentApiKeyFree"`
 	CovalentApiKeyPaid sql.NullString `json:"covalentApiKeyPaid"`
 	CreatedAt          sql.NullTime   `json:"createdAt"`
@@ -1842,7 +1842,7 @@ type UpsertAccountIntegrationsParams struct {
 
 func (q *Queries) UpsertAccountIntegrations(ctx context.Context, arg UpsertAccountIntegrationsParams) (AccountIntegration, error) {
 	row := q.db.QueryRowContext(ctx, upsertAccountIntegrations,
-		arg.LbID,
+		arg.AccountID,
 		arg.CovalentApiKeyFree,
 		arg.CovalentApiKeyPaid,
 		arg.CreatedAt,
@@ -1851,7 +1851,7 @@ func (q *Queries) UpsertAccountIntegrations(ctx context.Context, arg UpsertAccou
 	var i AccountIntegration
 	err := row.Scan(
 		&i.ID,
-		&i.LbID,
+		&i.AccountID,
 		&i.CovalentApiKeyFree,
 		&i.CovalentApiKeyPaid,
 		&i.CreatedAt,

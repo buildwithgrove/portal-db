@@ -281,19 +281,19 @@ VALUES (
         '{ "test-extension://", "test-extension2://" }'
     );
 INSERT INTO account_integrations (
-        lb_id,
+        account_id,
         covalent_api_key_free,
         created_at,
         updated_at
     )
 VALUES (
-        'test_lb_34987u329rfn23f',
+        'account1',
         'test_covalent_api_key_1',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_3890ru23jfi32fj',
+        'account2',
         'test_covalent_api_key_2',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'

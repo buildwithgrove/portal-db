@@ -58,7 +58,7 @@ func (ns NullPermissionsEnum) Value() (driver.Value, error) {
 
 type AccountIntegration struct {
 	ID                 int32          `json:"id"`
-	LbID               string         `json:"lbID"`
+	AccountID          string         `json:"accountID"`
 	CovalentApiKeyFree sql.NullString `json:"covalentApiKeyFree"`
 	CovalentApiKeyPaid sql.NullString `json:"covalentApiKeyPaid"`
 	CreatedAt          sql.NullTime   `json:"createdAt"`
