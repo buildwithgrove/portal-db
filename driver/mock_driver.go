@@ -299,6 +299,29 @@ func (_m *MockDriver) UpdateUserAccessRole(ctx context.Context, email string, lb
 	return r0
 }
 
+// UpsertLoadBalancerIntegrations provides a mock function with given fields: ctx, integrations
+func (_m *MockDriver) UpsertLoadBalancerIntegrations(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error) {
+	ret := _m.Called(ctx, integrations)
+
+	var r0 *types.AccountIntegrations
+	if rf, ok := ret.Get(0).(func(context.Context, types.AccountIntegrations) *types.AccountIntegrations); ok {
+		r0 = rf(ctx, integrations)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.AccountIntegrations)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.AccountIntegrations) error); ok {
+		r1 = rf(ctx, integrations)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // WriteApplication provides a mock function with given fields: ctx, app
 func (_m *MockDriver) WriteApplication(ctx context.Context, app *types.Application) (*types.Application, error) {
 	ret := _m.Called(ctx, app)
