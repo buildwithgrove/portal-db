@@ -460,6 +460,7 @@ type (
 		RequestTimeout    int    `json:"request_timeout"`
 		Gigastake         bool   `json:"gigastake"`
 		GigastakeRedirect bool   `json:"gigastake_redirect"`
+		AccountID         string `json:"account_id"`
 		CreatedAt         string `json:"created_at"`
 		UpdatedAt         string `json:"updated_at"`
 	}
@@ -492,6 +493,7 @@ func (j dbLoadBalancerJSON) toOutput() *types.LoadBalancer {
 		RequestTimeout:    j.RequestTimeout,
 		Gigastake:         j.Gigastake,
 		GigastakeRedirect: j.GigastakeRedirect,
+		AccountID:         j.AccountID,
 		CreatedAt:         psqlDateToTime(j.CreatedAt),
 		UpdatedAt:         psqlDateToTime(j.UpdatedAt),
 	}
