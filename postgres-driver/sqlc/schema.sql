@@ -87,6 +87,15 @@ CREATE TABLE account_user_access (
 );
 CREATE UNIQUE INDEX idx_account_owner_constraint ON account_user_access (account_id)
 WHERE role_name = 'OWNER';
+CREATE TABLE IF NOT EXISTS account_integrations (
+	id INT GENERATED ALWAYS AS IDENTITY,
+	account_id VARCHAR(10) NOT NULL UNIQUE,
+	covalent_api_key_free VARCHAR UNIQUE,
+	covalent_api_key_paid VARCHAR UNIQUE,
+	created_at TIMESTAMP NULL,
+	updated_at TIMESTAMP NULL,
+	PRIMARY KEY (id)
+);
 -- Chains Tables
 CREATE TABLE chains (
     id VARCHAR(4) PRIMARY KEY,

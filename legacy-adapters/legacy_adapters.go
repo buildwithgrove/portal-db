@@ -45,10 +45,12 @@ func ConvertToLegacyLoadBalancer(a types.Account) types.LoadBalancer {
 
 	return types.LoadBalancer{
 		ID:                a.LegacyLoadBalancerID,
+		AccountID:         string(a.ID),
 		Name:              a.Name,
 		UserID:            userID,
 		Applications:      legacyApps,
 		Users:             users,
+		Integrations:      a.Integrations,
 		CreatedAt:         a.CreatedAt,
 		UpdatedAt:         a.UpdatedAt,
 		Gigastake:         appData.Gigastake,

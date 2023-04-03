@@ -132,6 +132,36 @@ VALUES (
         -- legacy field
         'test_lb_f5ee77c7c58025231'
     );
+INSERT INTO account_integrations (
+        account_id,
+        covalent_api_key_free,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'account_1',
+        'covalent_api_key_1',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'covalent_api_key_2',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'covalent_api_key_3',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_4',
+        'covalent_api_key_4',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
 -- Insert users
 INSERT INTO users (id, email, signed_up, created_at, updated_at)
 VALUES (
