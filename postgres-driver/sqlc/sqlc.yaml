@@ -11,6 +11,8 @@ overrides:
       url: "URL"
       urls: "URLs"
       evm_chain_id: "EVMChainID"
+      covalent_api_key_free: "CovalentAPIKeyFree"
+      covalent_api_key_paid: "CovalentAPIKeyPaid"
 
 sql:
   - schema: "schema.sql"
@@ -66,6 +68,8 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/v2/types.AccountID"
           - column: "accounts.plan_type"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PayPlanType"
+          - column: "account_integrations.account_id"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.AccountID"
           - column: "account_user_access.account_id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.AccountID"
           - column: "account_user_access.user_id"

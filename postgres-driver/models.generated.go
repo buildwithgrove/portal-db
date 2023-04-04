@@ -416,6 +416,15 @@ type Account struct {
 	LbID                    string            `json:"lb_id"`
 }
 
+type AccountIntegration struct {
+	ID                 int32           `json:"id"`
+	AccountID          types.AccountID `json:"account_id"`
+	CovalentAPIKeyFree sql.NullString  `json:"covalent_api_key_free"`
+	CovalentAPIKeyPaid sql.NullString  `json:"covalent_api_key_paid"`
+	CreatedAt          sql.NullTime    `json:"created_at"`
+	UpdatedAt          sql.NullTime    `json:"updated_at"`
+}
+
 type AccountUserAccess struct {
 	ID        int32           `json:"id"`
 	AccountID types.AccountID `json:"account_id"`

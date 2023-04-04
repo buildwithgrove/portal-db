@@ -78,6 +78,9 @@ var (
 				"user_2": AccountUserAccess[2],
 				"user_8": AccountUserAccess[8],
 			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_1",
+			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			PartnerThroughputLimit: 2_000,
 			PartnerAppLimit:        1,
@@ -95,6 +98,9 @@ var (
 				"user_4": AccountUserAccess[4],
 				"user_9": AccountUserAccess[9],
 				"user_2": AccountUserAccess[10],
+			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_2",
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
@@ -114,6 +120,9 @@ var (
 				"user_7":  AccountUserAccess[7],
 				"user_10": AccountUserAccess[12],
 			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_3",
+			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
 			PartnerAppLimit:        2,
@@ -128,6 +137,9 @@ var (
 			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
+			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_4",
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 			PartnerThroughputLimit: 1_000,

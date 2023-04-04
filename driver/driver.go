@@ -60,6 +60,8 @@ type (
 		WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error)
 		/* UpdateAccount updates a single Account in the database. */
 		UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) error
+		/* UpsertAccountIntegration adds or updates the Account Integrations for a single Account. */
+		UpsertAccountIntegration(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error)
 		/* SetAccountDeleted sets the Account Deleted field to true. */
 		SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error
 

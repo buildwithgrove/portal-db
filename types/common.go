@@ -45,8 +45,9 @@ const (
 	TableAppWhitelists    Table = "portal_application_whitelists"
 	TableAppNotifications Table = "portal_application_notifications"
 
-	TableAccounts          Table = "accounts"
-	TableAccountUserAccess Table = "account_user_access"
+	TableAccounts            Table = "accounts"
+	TableAccountUserAccess   Table = "account_user_access"
+	TableAccountIntegrations Table = "account_integrations"
 
 	TableUsers             Table = "users"
 	TableUserAuthProviders Table = "user_auth_providers"

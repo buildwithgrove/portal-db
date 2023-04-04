@@ -42,6 +42,18 @@ func (n notification) parseAccountUserAccessNotification() *types.Notification {
 	}
 }
 
+func (n notification) parseAccountIntegrationsNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbAccountIntegrations AccountIntegration
+	_ = json.Unmarshal(rawData, &dbAccountIntegrations)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbAccountIntegrations.toOutput(),
+	}
+}
+
 func (n notification) parsePortalAppNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbPortalApp PortalApplication
@@ -217,6 +229,8 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseAccountNotification()
 	case types.TableAccountUserAccess:
 		return n.parseAccountUserAccessNotification()
+	case types.TableAccountIntegrations:
+		return n.parseAccountIntegrationsNotification()
 
 	case types.TablePortalApps:
 		return n.parsePortalAppNotification()
