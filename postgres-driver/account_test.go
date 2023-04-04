@@ -108,6 +108,56 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 	}
 }
 
+func (ts *PGDriverTestSuite) Test_UpsertAccountIntegration() {
+	tests := []struct {
+		name              string
+		integrationsInput types.AccountIntegrations
+		expectedAPIKeyRow string
+		err               error
+	}{
+		{
+			name: "Should create a single account integrations row",
+			integrationsInput: types.AccountIntegrations{
+				AccountID:          "account_5",
+				CovalentAPIKeyFree: "created_covalent_api_key_1",
+			},
+			expectedAPIKeyRow: "created_covalent_api_key_1",
+			err:               nil,
+		},
+		{
+			name: "Should update an existing account integrations row",
+			integrationsInput: types.AccountIntegrations{
+				AccountID:          "account_1",
+				CovalentAPIKeyFree: "updated_covalent_api_key_1",
+			},
+			expectedAPIKeyRow: "updated_covalent_api_key_1",
+			err:               nil,
+		},
+	}
+
+	for _, test := range tests {
+		createdIntegrations, err := ts.driver.UpsertAccountIntegration(context.Background(), test.integrationsInput)
+		ts.Equal(test.err, err)
+		if err == nil {
+			ts.Equal(test.integrationsInput, *createdIntegrations)
+
+			if test.err == nil {
+				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: false})
+				ts.NoError(err)
+				exists := false
+				for _, account := range accounts {
+					if account.ID == test.integrationsInput.AccountID {
+						exists = true
+						ts.Equal(test.expectedAPIKeyRow, account.Integrations.CovalentAPIKeyFree)
+						break
+					}
+				}
+				ts.True(exists)
+			}
+		}
+	}
+}
+
 func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 	tests := []struct {
 		name                    string

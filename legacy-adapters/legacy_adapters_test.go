@@ -108,22 +108,18 @@ func Test_LegacyAdapators_ConvertToLegacyPayPlan(t *testing.T) {
 	}
 }
 
-func Test_LegacyAdapators_ConvertToV2AccountAndPortalApp(t *testing.T) {
+func Test_LegacyAdapators_ConvertToV2PortalAppAndAAT(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
 		name                   string
 		loadBalancer           types.LoadBalancer
-		accountID              types.AccountID
-		expectedV2Account      types.Account
 		expectedV2PortalApp    types.PortalApp
 		expectedV2PortalAppAAT types.AAT
 	}{
 		{
-			name:                   "Should convert a legacy LoadBalancer struct to V2 Account & PortalApp structs",
+			name:                   "Should convert a legacy LoadBalancer struct to V2 PortalApp & AAT structs",
 			loadBalancer:           testdata.LegacyLoadBalancer,
-			accountID:              "account_1",
-			expectedV2Account:      testdata.V2CreateAccount,
 			expectedV2PortalApp:    testdata.V2CreatePortalApp,
 			expectedV2PortalAppAAT: testdata.V2CreatePortalAppAAT,
 		},
@@ -131,8 +127,7 @@ func Test_LegacyAdapators_ConvertToV2AccountAndPortalApp(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			v2Account, v2PortalApp, v2AAT := ConvertToV2AccountPortalAppAndAAT(test.loadBalancer)
-			c.Equal(test.expectedV2Account, v2Account)
+			v2PortalApp, v2AAT := ConvertToV2PortalAppAndAAT(test.loadBalancer)
 			c.Equal(test.expectedV2PortalApp, v2PortalApp)
 			c.Equal(test.expectedV2PortalAppAAT, v2AAT)
 		})

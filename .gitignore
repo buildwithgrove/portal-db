@@ -21,3 +21,4 @@ bin
 pre-commit-2.20.0.pyz
 pre-commit-2.20.0.pyz.*
 test.json
+*.txt

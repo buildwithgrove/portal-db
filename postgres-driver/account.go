@@ -83,9 +83,13 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: a.PartnerThroughputLimit.Int32,
 		PartnerAppLimit:        a.PartnerApplicationLimit.Int32,
-		CreatedAt:              a.CreatedAt.UTC(),
-		UpdatedAt:              a.UpdatedAt.UTC(),
-		Deleted:                a.Deleted,
+		Integrations: types.AccountIntegrations{
+			CovalentAPIKeyFree: a.CovalentAPIKeyFree.String,
+			CovalentAPIKeyPaid: a.CovalentAPIKeyPaid.String,
+		},
+		CreatedAt: a.CreatedAt.UTC(),
+		UpdatedAt: a.UpdatedAt.UTC(),
+		Deleted:   a.Deleted,
 	}, nil
 }
 
@@ -206,6 +210,28 @@ func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, qtx *Qu
 	}
 
 	return nil
+}
+
+/* UpsertAccountIntegration saves or updates input AccountIntegrations in the database */
+func (pg *PostgresDriver) UpsertAccountIntegration(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error) {
+	time := time.Now()
+
+	accountIntegrations, err := pg.UpsertAccountIntegrations(ctx, UpsertAccountIntegrationsParams{
+		AccountID:          integrations.AccountID,
+		CovalentAPIKeyFree: newSQLNullString(integrations.CovalentAPIKeyFree),
+		CovalentAPIKeyPaid: newSQLNullString(integrations.CovalentAPIKeyPaid),
+		CreatedAt:          newSQLNullTime(time),
+		UpdatedAt:          newSQLNullTime(time),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AccountIntegrations{
+		AccountID:          accountIntegrations.AccountID,
+		CovalentAPIKeyFree: accountIntegrations.CovalentAPIKeyFree.String,
+		CovalentAPIKeyPaid: accountIntegrations.CovalentAPIKeyPaid.String,
+	}, nil
 }
 
 /* ----- postgresdriver Account Delete Methods ----- */
@@ -560,5 +586,13 @@ func (json AccountUserAccess) toOutput() *types.AccountUserAccess {
 		UserID:    json.UserID,
 		RoleName:  json.RoleName,
 		Accepted:  json.Accepted,
+	}
+}
+
+func (j AccountIntegration) toOutput() *types.AccountIntegrations {
+	return &types.AccountIntegrations{
+		AccountID:          j.AccountID,
+		CovalentAPIKeyFree: j.CovalentAPIKeyFree.String,
+		CovalentAPIKeyPaid: j.CovalentAPIKeyPaid.String,
 	}
 }

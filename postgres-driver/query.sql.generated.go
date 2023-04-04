@@ -932,6 +932,8 @@ WITH user_auth_agg AS (
     GROUP BY user_id
 )
 SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     json_agg(
         json_build_object(
             'user_id',
@@ -948,6 +950,7 @@ SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.par
     ) AS users
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
     LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
@@ -955,7 +958,9 @@ WHERE (
         $1::BOOLEAN
         OR a.deleted = false
     )
-GROUP BY a.id
+GROUP BY a.id,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid
 `
 
 type SelectAccountsRow struct {
@@ -968,6 +973,8 @@ type SelectAccountsRow struct {
 	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deleted_at"`
+	CovalentAPIKeyFree      sql.NullString    `json:"covalent_api_key_free"`
+	CovalentAPIKeyPaid      sql.NullString    `json:"covalent_api_key_paid"`
 	Users                   json.RawMessage   `json:"users"`
 }
 
@@ -990,6 +997,8 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 			&i.UpdatedAt,
 			&i.Deleted,
 			&i.DeletedAt,
+			&i.CovalentAPIKeyFree,
+			&i.CovalentAPIKeyPaid,
 			&i.Users,
 		); err != nil {
 			return nil, err
@@ -1791,6 +1800,60 @@ func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAc
 		arg.AccountID,
 	)
 	return err
+}
+
+const upsertAccountIntegrations = `-- name: UpsertAccountIntegrations :one
+INSERT INTO account_integrations (
+        account_id,
+        covalent_api_key_free,
+        covalent_api_key_paid,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5) ON CONFLICT (account_id) DO
+UPDATE
+SET covalent_api_key_free = CASE
+        WHEN EXCLUDED.covalent_api_key_free IS NOT NULL THEN EXCLUDED.covalent_api_key_free
+        ELSE account_integrations.covalent_api_key_free
+    END,
+    covalent_api_key_paid = CASE
+        WHEN EXCLUDED.covalent_api_key_paid IS NOT NULL THEN EXCLUDED.covalent_api_key_paid
+        ELSE account_integrations.covalent_api_key_paid
+    END,
+    created_at = CASE
+        WHEN EXCLUDED.created_at IS NOT NULL THEN EXCLUDED.created_at
+        ELSE account_integrations.created_at
+    END,
+    updated_at = EXCLUDED.updated_at
+RETURNING id, account_id, covalent_api_key_free, covalent_api_key_paid, created_at, updated_at
+`
+
+type UpsertAccountIntegrationsParams struct {
+	AccountID          types.AccountID `json:"account_id"`
+	CovalentAPIKeyFree sql.NullString  `json:"covalent_api_key_free"`
+	CovalentAPIKeyPaid sql.NullString  `json:"covalent_api_key_paid"`
+	CreatedAt          sql.NullTime    `json:"created_at"`
+	UpdatedAt          sql.NullTime    `json:"updated_at"`
+}
+
+func (q *Queries) UpsertAccountIntegrations(ctx context.Context, arg UpsertAccountIntegrationsParams) (AccountIntegration, error) {
+	row := q.db.QueryRowContext(ctx, upsertAccountIntegrations,
+		arg.AccountID,
+		arg.CovalentAPIKeyFree,
+		arg.CovalentAPIKeyPaid,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i AccountIntegration
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.CovalentAPIKeyFree,
+		&i.CovalentAPIKeyPaid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const upsertChain = `-- name: UpsertChain :one

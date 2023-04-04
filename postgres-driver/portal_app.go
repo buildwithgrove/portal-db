@@ -484,6 +484,7 @@ func (json PortalApplication) toOutput() *types.PortalApp {
 
 func (json PortalApplicationAat) toOutput() *types.AAT {
 	return &types.AAT{
+		ID:              json.ID,
 		AppID:           json.ApplicationID,
 		Address:         json.Address,
 		PublicKey:       json.PublicKey,

@@ -77,6 +77,9 @@ var (
 				"user_2": AccountUserAccess[2],
 				"user_8": AccountUserAccess[8],
 			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_1",
+			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			PartnerThroughputLimit: 2_000,
 			PartnerAppLimit:        1,
@@ -91,6 +94,9 @@ var (
 				"user_4": AccountUserAccess[4],
 				"user_9": AccountUserAccess[9],
 				"user_2": AccountUserAccess[10],
+			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_2",
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
@@ -107,6 +113,9 @@ var (
 				"user_7":  AccountUserAccess[7],
 				"user_10": AccountUserAccess[12],
 			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_3",
+			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
 			PartnerAppLimit:        2,
@@ -118,6 +127,9 @@ var (
 			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
+			},
+			Integrations: types.AccountIntegrations{
+				CovalentAPIKeyFree: "covalent_api_key_4",
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 			PartnerThroughputLimit: 1_000,
@@ -600,6 +612,15 @@ var (
 					Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
 					Version:         "0.0.1",
 				},
+				"test_protocol_app_4": {
+					ID:              "test_protocol_app_4",
+					Address:         "test_eb2e5bcba557cfe8fa76fd7fff54f9d1",
+					PublicKey:       "test_f6a5d8690ecb669865bd752b7796a920",
+					ClientPublicKey: "test_6ee5ea553408f0895923fd1569dc5072",
+					PrivateKey:      "test_838d29d61a65401f7d56d084cb6e4783",
+					Signature:       "test_cf05cf9bb26111c548e88fb6157af708",
+					Version:         "0.0.1",
+				},
 			},
 			Settings: types.Settings{
 				Environment:       types.EnvironmentProduction,
@@ -666,6 +687,7 @@ var (
 		Staked:    false,
 		AATs: map[types.ProtocolAppID]types.AAT{
 			"test_protocol_app_1": {
+				ID:              "test_protocol_app_1",
 				Address:         "test_7d0cd2743543a6200e41224594954b06",
 				PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
 				ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",

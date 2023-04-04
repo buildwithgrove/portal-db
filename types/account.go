@@ -17,6 +17,7 @@ type (
 		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
 		PartnerThroughputLimit int32                        `json:"partnerThroughputLimit"`
 		PartnerAppLimit        int32                        `json:"partnerAppLimit"`
+		Integrations           AccountIntegrations          `json:"integrations"`
 		CreatedAt              time.Time                    `json:"createdAt"`
 		UpdatedAt              time.Time                    `json:"updatedAt"`
 		Deleted                bool                         `json:"deleted"`
@@ -34,6 +35,13 @@ type (
 		RoleName        RoleName            `json:"roleName"`
 		Accepted        bool                `json:"accepted"`
 		ProviderUserIDs map[AuthType]string `json:"providerUserIDs"`
+	}
+
+	// AccountUserAccess represents fields used for integrations with other platforms
+	AccountIntegrations struct {
+		AccountID          AccountID `json:"id,omitempty"`
+		CovalentAPIKeyFree string    `json:"covalentAPIKeyFree"`
+		CovalentAPIKeyPaid string    `json:"covalentAPIKeyPaid"`
 	}
 
 	// CreateAccountUserAccess contains all fields required to create a new Account User
@@ -103,4 +111,8 @@ func (a *Account) Table() Table {
 
 func (a *AccountUserAccess) Table() Table {
 	return TableAccountUserAccess
+}
+
+func (s *AccountIntegrations) Table() Table {
+	return TableAccountIntegrations
 }

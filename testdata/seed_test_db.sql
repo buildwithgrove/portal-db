@@ -114,6 +114,36 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
+INSERT INTO account_integrations (
+        account_id,
+        covalent_api_key_free,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'account_1',
+        'covalent_api_key_1',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'covalent_api_key_2',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'covalent_api_key_3',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_4',
+        'covalent_api_key_4',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
 -- Insert users
 INSERT INTO users (id, email, signed_up, created_at, updated_at)
 VALUES (
@@ -542,6 +572,16 @@ VALUES (
         'test_8663e187c19f3c6e27317eab4ed6d7d5',
         'test_328a9cf1b35085eeaa669aa858f6fba9',
         'test_c3cd8be16ba32e24dd49fdb0247fc9b8',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_4',
+        'test_app_3',
+        'test_eb2e5bcba557cfe8fa76fd7fff54f9d1',
+        'test_f6a5d8690ecb669865bd752b7796a920',
+        'test_838d29d61a65401f7d56d084cb6e4783',
+        'test_6ee5ea553408f0895923fd1569dc5072',
+        'test_cf05cf9bb26111c548e88fb6157af708',
         '0.0.1'
     );
 INSERT INTO portal_application_settings (

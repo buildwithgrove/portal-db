@@ -34,6 +34,7 @@ func ConvertToLegacyLoadBalancer(a types.PortalApp, account types.Account) types
 		UserID:            userID,
 		Applications:      ConvertToLegacyApplications(a, userID, account.Plan.Type, legacyDailyLimit),
 		Users:             users,
+		Integrations:      account.Integrations,
 		CreatedAt:         a.CreatedAt,
 		UpdatedAt:         a.UpdatedAt,
 		Gigastake:         a.Gigastake,
@@ -84,6 +85,39 @@ func ConvertToLegacyApplications(a types.PortalApp, userID string, planType type
 	}
 
 	return legacyApps
+}
+
+func ConvertToLegacyApplication(a types.PortalApp, account types.Account, protocolAppID types.ProtocolAppID) types.Application {
+	aat := a.AATs[protocolAppID]
+
+	return types.Application{
+		ID:              string(protocolAppID),
+		UserID:          account.LegacyUserID(),
+		Name:            a.Name,
+		GatewaySettings: ConvertToLegacyGatewaySettings(a),
+		GatewayAAT: types.GatewayAAT{
+			Address:              aat.Address,
+			ApplicationPublicKey: aat.PublicKey,
+			ApplicationSignature: aat.Signature,
+			ClientPublicKey:      aat.ClientPublicKey,
+			PrivateKey:           aat.PrivateKey,
+			Version:              aat.Version,
+		},
+		Limit: types.AppLimit{
+			PayPlan:     types.PayPlan{Type: account.Plan.Type, Limit: int(account.Plan.LegacyDailyLimit)},
+			CustomLimit: int(a.LegacyFields.CustomLimit),
+		},
+		NotificationSettings: types.NotificationSettings{
+			SignedUp:      a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventSignedUp],
+			Quarter:       a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventQuarter],
+			Half:          a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventHalf],
+			ThreeQuarters: a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventThreeQuarters],
+			Full:          a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventFull],
+		},
+		FirstDateSurpassed: a.LegacyFields.FirstDateSurpassed,
+		CreatedAt:          a.CreatedAt,
+		UpdatedAt:          a.UpdatedAt,
+	}
 }
 
 func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
@@ -206,16 +240,12 @@ func ConvertToLegacyPayPlan(c types.Plan) types.PayPlan {
 
 /* Legacy Struct to V2 Struct Adaptors */
 
-// Creates the struct with all fields needed to create a new Account, PortalApp & AAT
+// Creates the struct with all fields needed to create a new PortalApp & AAT
 // LoadBalancer must be sent to PHD containing its Application already defined inside PUB
 // This way the Account and PortalApp can be created in only one operation (no PHD client changes needed)
-func ConvertToV2AccountPortalAppAndAAT(lb types.LoadBalancer) (types.Account, types.PortalApp, types.AAT) {
+func ConvertToV2PortalAppAndAAT(lb types.LoadBalancer) (types.PortalApp, types.AAT) {
 	app := lb.Applications[0]
 	owner := lb.Users[0]
-
-	account := types.Account{ // Account ID is created inside postgresdriver
-		PlanType: types.PayPlanType(lb.Applications[0].Limit.PayPlan.Type),
-	}
 
 	portalApp := types.PortalApp{ // Portal App ID is created inside postgresdriver
 		Name:      lb.Name,
@@ -254,11 +284,11 @@ func ConvertToV2AccountPortalAppAndAAT(lb types.LoadBalancer) (types.Account, ty
 		Version:         app.GatewayAAT.Version,
 	}
 
-	return account, portalApp, aat
+	return portalApp, aat
 }
 
 // Converts the existing UpdateApplication struct to a new one that updates all relevant fields in the PortalApp
-func ConvertToV2UpdatePortalApp(u types.UpdateApplication, appID string) types.UpdatePortalApp {
+func ConvertToV2UpdatePortalApp(u types.UpdateApplication, lbID string) types.UpdatePortalApp {
 	var (
 		settings                             *types.UpdateAppSettings
 		notifications                        []types.UpdateAppNotifications
@@ -325,7 +355,7 @@ func ConvertToV2UpdatePortalApp(u types.UpdateApplication, appID string) types.U
 	}
 
 	return types.UpdatePortalApp{
-		AppID: types.PortalAppID(appID), Name: u.Name,
+		AppID: types.PortalAppID(lbID), Name: u.Name,
 		Settings: settings, Notifications: notifications, Whitelists: whitelists,
 	}
 }

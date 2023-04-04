@@ -290,6 +290,8 @@ WITH user_auth_agg AS (
     GROUP BY user_id
 )
 SELECT a.*,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
     json_agg(
         json_build_object(
             'user_id',
@@ -306,6 +308,7 @@ SELECT a.*,
     ) AS users
 FROM accounts AS a
     LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
     LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
@@ -313,7 +316,33 @@ WHERE (
         $1::BOOLEAN
         OR a.deleted = false
     )
-GROUP BY a.id;
+GROUP BY a.id,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid;
+-- name: UpsertAccountIntegrations :one
+INSERT INTO account_integrations (
+        account_id,
+        covalent_api_key_free,
+        covalent_api_key_paid,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5) ON CONFLICT (account_id) DO
+UPDATE
+SET covalent_api_key_free = CASE
+        WHEN EXCLUDED.covalent_api_key_free IS NOT NULL THEN EXCLUDED.covalent_api_key_free
+        ELSE account_integrations.covalent_api_key_free
+    END,
+    covalent_api_key_paid = CASE
+        WHEN EXCLUDED.covalent_api_key_paid IS NOT NULL THEN EXCLUDED.covalent_api_key_paid
+        ELSE account_integrations.covalent_api_key_paid
+    END,
+    created_at = CASE
+        WHEN EXCLUDED.created_at IS NOT NULL THEN EXCLUDED.created_at
+        ELSE account_integrations.created_at
+    END,
+    updated_at = EXCLUDED.updated_at
+RETURNING *;
 -- name: SelectUserPermissions :many
 SELECT aua.account_id,
     aua.user_id,
