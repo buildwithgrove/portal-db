@@ -25,14 +25,12 @@ func TestListen(t *testing.T) {
 					Action: types.ActionInsert,
 					Data: &types.Account{
 						ID:                     "account_5",
-						Name:                   "test_account_5",
 						PlanType:               "basic_plan",
 						PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
 						PartnerThroughputLimit: 6_000,
 						PartnerAppLimit:        1,
 						CreatedAt:              testdata.MockTimestamp,
 						UpdatedAt:              testdata.MockTimestamp,
-						LegacyLoadBalancerID:   "test_lb_f5ee77c7c58025231",
 					},
 				},
 				types.TableAccountUserAccess: {
@@ -162,11 +160,10 @@ func TestListen(t *testing.T) {
 					Table:  types.TableChainGigastakeRedirects,
 					Action: types.ActionUpdate,
 					Data: &types.GigastakeRedirect{
-						ChainID:              "0001",
-						AccountID:            "account_1",
-						Domain:               "pokt-rpc.gateway.pokt.network",
-						Alias:                "altruist-0001",
-						LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
+						ChainID:             "0001",
+						PortalApplicationID: "test_app_1",
+						Domain:              "pokt-rpc.gateway.pokt.network",
+						Alias:               "altruist-0001",
 					},
 				},
 				types.TableChainChecks: {

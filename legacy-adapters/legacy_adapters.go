@@ -11,10 +11,10 @@ import (
 )
 
 /* V2 Struct to Legacy Struct Adaptors */
-func ConvertToLegacyLoadBalancer(a types.Account) types.LoadBalancer {
+func ConvertToLegacyLoadBalancer(a types.PortalApp, account types.Account) types.LoadBalancer {
 	var users []types.UserAccess
 
-	for _, accountUser := range a.Users {
+	for _, accountUser := range account.Users {
 		users = append(users, types.UserAccess{
 			UserID:   string(accountUser.UserID),
 			RoleName: accountUser.RoleName,
@@ -25,52 +25,28 @@ func ConvertToLegacyLoadBalancer(a types.Account) types.LoadBalancer {
 
 	sortUsersByRole(users)
 
-	userID := a.LegacyUserID()
-	legacyDailyLimit := a.Plan.LegacyDailyLimit
-
-	var legacyApps []*types.Application
-	for _, portalApp := range a.PortalApps {
-		app := ConvertToLegacyApplication(*portalApp, userID, a.Plan.Type, legacyDailyLimit)
-		legacyApps = append(legacyApps, &app)
-	}
-
-	appData := &types.PortalApp{}
-	appData.LegacyFields = types.LegacyFields{}
-	if len(a.PortalApps) > 0 {
-		for _, portalApp := range a.PortalApps {
-			appData = portalApp
-			break
-		}
-	}
+	userID := account.LegacyUserID()
+	legacyDailyLimit := account.Plan.LegacyDailyLimit
 
 	return types.LoadBalancer{
-		ID:                a.LegacyLoadBalancerID,
+		ID:                string(a.ID),
 		Name:              a.Name,
 		UserID:            userID,
-		Applications:      legacyApps,
+		Applications:      ConvertToLegacyApplications(a, userID, account.Plan.Type, legacyDailyLimit),
 		Users:             users,
 		CreatedAt:         a.CreatedAt,
 		UpdatedAt:         a.UpdatedAt,
-		Gigastake:         appData.Gigastake,
-		RequestTimeout:    int(appData.LegacyFields.RequestTimeout),
-		GigastakeRedirect: appData.LegacyFields.GigastakeRedirect,
-		StickyOptions:     appData.LegacyFields.StickyOptions,
+		Gigastake:         a.Gigastake,
+		RequestTimeout:    int(a.LegacyFields.RequestTimeout),
+		GigastakeRedirect: a.LegacyFields.GigastakeRedirect,
+		StickyOptions:     a.LegacyFields.StickyOptions,
 	}
 }
 
-func ConvertToLegacyApplication(a types.PortalApp, userID string, planType types.PayPlanType, dailyLimit int32) types.Application {
-	return types.Application{
-		ID:     string(a.ID),
-		UserID: userID,
-		Name:   a.Name,
-		GatewayAAT: types.GatewayAAT{
-			Address:              a.AAT.Address,
-			ApplicationPublicKey: a.AAT.PublicKey,
-			ApplicationSignature: a.AAT.Signature,
-			ClientPublicKey:      a.AAT.ClientPublicKey,
-			PrivateKey:           a.AAT.PrivateKey,
-			Version:              a.AAT.Version,
-		},
+func ConvertToLegacyApplications(a types.PortalApp, userID string, planType types.PayPlanType, dailyLimit int32) []*types.Application {
+	baseApp := types.Application{
+		UserID:          userID,
+		Name:            a.Name,
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
 		Limit: types.AppLimit{
 			PayPlan:     types.PayPlan{Type: planType, Limit: int(dailyLimit)},
@@ -87,6 +63,27 @@ func ConvertToLegacyApplication(a types.PortalApp, userID string, planType types
 		CreatedAt:          a.CreatedAt,
 		UpdatedAt:          a.UpdatedAt,
 	}
+
+	var legacyApps []*types.Application
+
+	for appID, aat := range a.AATs {
+		app := baseApp
+
+		app.ID = string(appID)
+
+		app.GatewayAAT = types.GatewayAAT{
+			Address:              aat.Address,
+			ApplicationPublicKey: aat.PublicKey,
+			ApplicationSignature: aat.Signature,
+			ClientPublicKey:      aat.ClientPublicKey,
+			PrivateKey:           aat.PrivateKey,
+			Version:              aat.Version,
+		}
+
+		legacyApps = append(legacyApps, &app)
+	}
+
+	return legacyApps
 }
 
 func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
@@ -147,7 +144,7 @@ func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
 		redirects = append(redirects, types.Redirect{
 			Alias:          chainRedirect.Alias,
 			Domain:         string(chainRedirect.Domain),
-			LoadBalancerID: chainRedirect.LegacyLoadBalancerID,
+			LoadBalancerID: string(chainRedirect.PortalApplicationID),
 		})
 	}
 
@@ -209,30 +206,20 @@ func ConvertToLegacyPayPlan(c types.Plan) types.PayPlan {
 
 /* Legacy Struct to V2 Struct Adaptors */
 
-// Creates the struct with all fields needed to create a new Account & PortalApp
+// Creates the struct with all fields needed to create a new Account, PortalApp & AAT
 // LoadBalancer must be sent to PHD containing its Application already defined inside PUB
 // This way the Account and PortalApp can be created in only one operation (no PHD client changes needed)
-func ConvertToV2AccountAndPortalApp(lb types.LoadBalancer, lbID string) (types.Account, types.PortalApp) {
+func ConvertToV2AccountPortalAppAndAAT(lb types.LoadBalancer) (types.Account, types.PortalApp, types.AAT) {
 	app := lb.Applications[0]
 	owner := lb.Users[0]
 
-	account := types.Account{
-		Name:                 lb.Name,
-		PlanType:             types.PayPlanType(lb.Applications[0].Limit.PayPlan.Type),
-		LegacyLoadBalancerID: lbID,
+	account := types.Account{ // Account ID is created inside postgresdriver
+		PlanType: types.PayPlanType(lb.Applications[0].Limit.PayPlan.Type),
 	}
 
-	portalApp := types.PortalApp{
+	portalApp := types.PortalApp{ // Portal App ID is created inside postgresdriver
 		Name:      lb.Name,
 		Gigastake: lb.Gigastake,
-		AAT: types.AAT{
-			Address:         app.GatewayAAT.Address,
-			PublicKey:       app.GatewayAAT.ApplicationPublicKey,
-			ClientPublicKey: app.GatewayAAT.ClientPublicKey,
-			PrivateKey:      app.GatewayAAT.PrivateKey,
-			Signature:       app.GatewayAAT.ApplicationSignature,
-			Version:         app.GatewayAAT.Version,
-		},
 		Settings: types.Settings{
 			Environment: types.EnvironmentProduction,
 			SecretKey:   app.GatewaySettings.SecretKey,
@@ -258,7 +245,16 @@ func ConvertToV2AccountAndPortalApp(lb types.LoadBalancer, lbID string) (types.A
 		},
 	}
 
-	return account, portalApp
+	aat := types.AAT{ // AAT ID (ProtocolAppID) is created inside postgresdriver
+		Address:         app.GatewayAAT.Address,
+		PublicKey:       app.GatewayAAT.ApplicationPublicKey,
+		ClientPublicKey: app.GatewayAAT.ClientPublicKey,
+		PrivateKey:      app.GatewayAAT.PrivateKey,
+		Signature:       app.GatewayAAT.ApplicationSignature,
+		Version:         app.GatewayAAT.Version,
+	}
+
+	return account, portalApp, aat
 }
 
 // Converts the existing UpdateApplication struct to a new one that updates all relevant fields in the PortalApp
@@ -395,9 +391,9 @@ func ConvertToV2Chain(b types.Blockchain) types.Chain {
 	redirects := []types.GigastakeRedirect{}
 	for _, redirect := range b.Redirects {
 		redirects = append(redirects, types.GigastakeRedirect{
-			Domain:               types.RedirectDomain(redirect.Domain),
-			Alias:                redirect.Alias,
-			LegacyLoadBalancerID: redirect.LoadBalancerID,
+			PortalApplicationID: types.PortalAppID(redirect.LoadBalancerID),
+			Domain:              types.RedirectDomain(redirect.Domain),
+			Alias:               redirect.Alias,
 		})
 	}
 
@@ -468,9 +464,9 @@ func ConvertToV2UpdateChain(u types.UpdateBlockchain) types.Chain {
 
 func ConvertToV2Redirect(r types.Redirect) types.GigastakeRedirect {
 	return types.GigastakeRedirect{
-		LegacyLoadBalancerID: r.LoadBalancerID,
-		Alias:                r.Alias,
-		Domain:               types.RedirectDomain(r.Domain),
+		PortalApplicationID: types.PortalAppID(r.LoadBalancerID),
+		Alias:               r.Alias,
+		Domain:              types.RedirectDomain(r.Domain),
 	}
 }
 

@@ -42,13 +42,13 @@ func (ts *PGDriverTestSuite) Test_ReadChains() {
 
 func (ts *PGDriverTestSuite) Test_WriteChain() {
 	tests := []struct {
-		name            string
-		chain           types.Chain
-		testCreatedTime time.Time
-		altruistURL     types.AltruistURL
-		redirectDomain  types.RedirectDomain
-		redirectAccount types.AccountID
-		err             error
+		name              string
+		chain             types.Chain
+		testCreatedTime   time.Time
+		altruistURL       types.AltruistURL
+		redirectDomain    types.RedirectDomain
+		redirectPortalApp types.PortalAppID
+		err               error
 	}{
 		{
 			name:            "Should create a new Chain in the database",
@@ -78,13 +78,13 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			err:             fmt.Errorf(errInvalidRedirectDomain.Error(), "who did this"),
 		},
 		{
-			name:            "Should fail if any input Redirect has an invalid AccountID",
-			altruistURL:     "http://im.good.com",
-			redirectDomain:  "im.also.good.io",
-			redirectAccount: "account_47",
-			chain:           *testdata.TestCreateChain,
-			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errAccountDoesntExist.Error(), "account_47"),
+			name:              "Should fail if any input Redirect has an invalid PortalAppID",
+			altruistURL:       "http://im.good.com",
+			redirectDomain:    "im.also.good.io",
+			redirectPortalApp: "portal_app_47",
+			chain:             *testdata.TestCreateChain,
+			testCreatedTime:   testdata.MockTimestamp,
+			err:               fmt.Errorf(errPortalAppDoesntExist.Error(), "portal_app_47"),
 		},
 	}
 
@@ -96,8 +96,8 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			if test.redirectDomain != "" {
 				test.chain.Redirects[0].Domain = test.redirectDomain
 			}
-			if test.redirectAccount != "" {
-				test.chain.Redirects[0].AccountID = test.redirectAccount
+			if test.redirectPortalApp != "" {
+				test.chain.Redirects[0].PortalApplicationID = test.redirectPortalApp
 			}
 
 			createdChain, err := ts.driver.WriteChain(context.Background(), test.chain, test.testCreatedTime)
@@ -121,7 +121,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 		testCreatedTime    time.Time
 		altruistURL        types.AltruistURL
 		redirectDomain     types.RedirectDomain
-		redirectAccount    types.AccountID
+		redirectPortalApp  types.PortalAppID
 		err                error
 	}{
 		{
@@ -165,13 +165,13 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			err:             fmt.Errorf(errInvalidRedirectDomain.Error(), "who did this"),
 		},
 		{
-			name:            "Should fail if any input Redirect has an invalid AccountID",
-			altruistURL:     "http://im.good.com",
-			redirectDomain:  "im.also.good.io",
-			redirectAccount: "account_47",
-			chain:           *testdata.Chains[types.RelayChainID("0040")],
-			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errAccountDoesntExist.Error(), "account_47"),
+			name:              "Should fail if any input Redirect has an invalid PortalAppID",
+			altruistURL:       "http://im.good.com",
+			redirectDomain:    "im.also.good.io",
+			redirectPortalApp: "portal_app_47",
+			chain:             *testdata.Chains[types.RelayChainID("0040")],
+			testCreatedTime:   testdata.MockTimestamp,
+			err:               fmt.Errorf(errPortalAppDoesntExist.Error(), "portal_app_47"),
 		},
 	}
 
@@ -183,8 +183,8 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			if test.redirectDomain != "" {
 				test.chain.Redirects[0].Domain = test.redirectDomain
 			}
-			if test.redirectAccount != "" {
-				test.chain.Redirects[0].AccountID = test.redirectAccount
+			if test.redirectPortalApp != "" {
+				test.chain.Redirects[0].PortalApplicationID = test.redirectPortalApp
 			}
 
 			var testUpdate types.Chain
@@ -307,7 +307,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 				"redirects": [
 					{
 					  "chainID": "",
-					  "accountID": "account_1",
+					  "portalAppID": "test_app_1",
 					  "domain": "pokt-rpc-ultra.gateway.pokt.network",
 					  "alias": "altruist-0007"
 					}
@@ -334,7 +334,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 				},
 			},
 			redirects: []types.GigastakeRedirect{
-				{AccountID: "account_1", Alias: "altruist-0007", Domain: "pokt-rpc-ultra.gateway.pokt.network"},
+				{PortalApplicationID: "test_app_1", Alias: "altruist-0007", Domain: "pokt-rpc-ultra.gateway.pokt.network"},
 			},
 			checks: map[types.ChainCheckType]types.Check{},
 			err:    nil,
@@ -411,28 +411,28 @@ func (ts *PGDriverTestSuite) Test_SetChainActiveStatus() {
 
 func (ts *PGDriverTestSuite) Test_RemoveGigastakeRedirect() {
 	tests := []struct {
-		name      string
-		chainID   types.RelayChainID
-		accountID types.AccountID
-		domain    types.RedirectDomain
-		removed   bool
-		err       error
+		name        string
+		chainID     types.RelayChainID
+		portalAppID types.PortalAppID
+		domain      types.RedirectDomain
+		removed     bool
+		err         error
 	}{
 		{
-			name:      "Should remove an existing gigastake redirect",
-			chainID:   "0040",
-			accountID: "account_4",
-			domain:    "hmy-rpc.gateway.pokt.network",
-			removed:   true,
-			err:       nil,
+			name:        "Should remove an existing gigastake redirect",
+			chainID:     "0040",
+			portalAppID: "test_app_3",
+			domain:      "hmy-rpc.gateway.pokt.network",
+			removed:     true,
+			err:         nil,
 		},
 		{
-			name:      "Should fail if gigastake redirect does not exist",
-			chainID:   "0040",
-			accountID: "nonexistent_account",
-			domain:    "nonexistent_domain",
-			removed:   false,
-			err:       fmt.Errorf("Redirect with chain ID '%s', account ID '%s' and domain '%s' doesn't exist", "0040", "nonexistent_account", "nonexistent_domain"),
+			name:        "Should fail if gigastake redirect does not exist",
+			chainID:     "0040",
+			portalAppID: "nonexistent_account",
+			domain:      "nonexistent_domain",
+			removed:     false,
+			err:         fmt.Errorf("Redirect with chain ID '%s', portal app ID '%s' and domain '%s' doesn't exist", "0040", "nonexistent_account", "nonexistent_domain"),
 		},
 	}
 
@@ -440,22 +440,22 @@ func (ts *PGDriverTestSuite) Test_RemoveGigastakeRedirect() {
 		ts.Run(test.name, func() {
 			if test.removed {
 				redirectExists, err := ts.driver.CheckRedirectExists(context.Background(), CheckRedirectExistsParams{
-					ChainID:   test.chainID,
-					AccountID: test.accountID,
-					Domain:    test.domain,
+					ChainID:             test.chainID,
+					PortalApplicationID: test.portalAppID,
+					Domain:              test.domain,
 				})
 				ts.NoError(err)
 				ts.True(redirectExists)
 			}
 
-			err := ts.driver.RemoveGigastakeRedirect(context.Background(), test.chainID, test.accountID, test.domain)
+			err := ts.driver.RemoveGigastakeRedirect(context.Background(), test.chainID, test.portalAppID, test.domain)
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
 				redirectExists, err := ts.driver.CheckRedirectExists(context.Background(), CheckRedirectExistsParams{
-					ChainID:   test.chainID,
-					AccountID: test.accountID,
-					Domain:    test.domain,
+					ChainID:             test.chainID,
+					PortalApplicationID: test.portalAppID,
+					Domain:              test.domain,
 				})
 				ts.NoError(err)
 				ts.False(redirectExists)

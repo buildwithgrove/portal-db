@@ -1,8 +1,6 @@
 package legacyadapters
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"testing"
 
 	"github.com/pokt-foundation/portal-db/v2/testdata"
@@ -10,22 +8,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateTestAccountID() string {
-	bytes := make([]byte, 24/2)
-	_, _ = rand.Read(bytes)
-	return hex.EncodeToString(bytes)
-}
-
 func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
 		name                       string
+		portalApp                  types.PortalApp
 		account                    types.Account
 		expectedLegacyLoadBalancer types.LoadBalancer
 	}{
 		{
-			name:                       "Should convert a V2 Account struct to a legacy LoadBalancer struct",
+			name:                       "Should convert a V2 PortalApp & Account struct to a legacy LoadBalancer struct",
+			portalApp:                  *testdata.PortalApps["test_app_1"],
 			account:                    *testdata.V2Account,
 			expectedLegacyLoadBalancer: testdata.LegacyLoadBalancer,
 		},
@@ -33,7 +27,7 @@ func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legacyLoadBalancer := ConvertToLegacyLoadBalancer(test.account)
+			legacyLoadBalancer := ConvertToLegacyLoadBalancer(test.portalApp, test.account)
 			c.Equal(test.expectedLegacyLoadBalancer, legacyLoadBalancer)
 		})
 	}
@@ -43,27 +37,27 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
-		name                      string
-		portalApp                 types.PortalApp
-		userID                    string
-		planType                  types.PayPlanType
-		dailyLimit                int32
-		expectedLegacyApplication types.Application
+		name                       string
+		portalApp                  types.PortalApp
+		userID                     string
+		planType                   types.PayPlanType
+		dailyLimit                 int32
+		expectedLegacyApplications []*types.Application
 	}{
 		{
-			name:                      "Should convert a V2 PortalApp struct to a legacy Application struct",
-			portalApp:                 *testdata.PortalApps["test_app_1"],
-			userID:                    "auth0|james_holden",
-			planType:                  "basic_plan",
-			dailyLimit:                1_000,
-			expectedLegacyApplication: testdata.LegacyApplication,
+			name:                       "Should convert a V2 PortalApp struct to a legacy Application struct",
+			portalApp:                  *testdata.PortalApps["test_app_1"],
+			userID:                     "auth0|james_holden",
+			planType:                   "basic_plan",
+			dailyLimit:                 1_000,
+			expectedLegacyApplications: testdata.LegacyApplications,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legacyApplication := ConvertToLegacyApplication(test.portalApp, test.userID, test.planType, test.dailyLimit)
-			c.Equal(test.expectedLegacyApplication, legacyApplication)
+			legacyApplications := ConvertToLegacyApplications(test.portalApp, test.userID, test.planType, test.dailyLimit)
+			c.Equal(test.expectedLegacyApplications, legacyApplications)
 		})
 	}
 }
@@ -118,29 +112,29 @@ func Test_LegacyAdapators_ConvertToV2AccountAndPortalApp(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
-		name                string
-		loadBalancer        types.LoadBalancer
-		accountID           types.AccountID
-		expectedV2Account   types.Account
-		expectedV2PortalApp types.PortalApp
+		name                   string
+		loadBalancer           types.LoadBalancer
+		accountID              types.AccountID
+		expectedV2Account      types.Account
+		expectedV2PortalApp    types.PortalApp
+		expectedV2PortalAppAAT types.AAT
 	}{
 		{
-			name:                "Should convert a legacy LoadBalancer struct to V2 Account & PortalApp structs",
-			loadBalancer:        testdata.LegacyLoadBalancer,
-			accountID:           "account_1",
-			expectedV2Account:   testdata.V2CreateAccount,
-			expectedV2PortalApp: testdata.V2CreatePortalApp,
+			name:                   "Should convert a legacy LoadBalancer struct to V2 Account & PortalApp structs",
+			loadBalancer:           testdata.LegacyLoadBalancer,
+			accountID:              "account_1",
+			expectedV2Account:      testdata.V2CreateAccount,
+			expectedV2PortalApp:    testdata.V2CreatePortalApp,
+			expectedV2PortalAppAAT: testdata.V2CreatePortalAppAAT,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			testID := generateTestAccountID()
-			test.expectedV2Account.LegacyLoadBalancerID = testID
-
-			v2Account, v2PortalApp := ConvertToV2AccountAndPortalApp(test.loadBalancer, testID)
+			v2Account, v2PortalApp, v2AAT := ConvertToV2AccountPortalAppAndAAT(test.loadBalancer)
 			c.Equal(test.expectedV2Account, v2Account)
 			c.Equal(test.expectedV2PortalApp, v2PortalApp)
+			c.Equal(test.expectedV2PortalAppAAT, v2AAT)
 		})
 	}
 }
@@ -190,7 +184,7 @@ func Test_LegacyAdapators_ConvertToV2Chain(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			v2Chain := ConvertToV2Chain(test.blockchain)
-			v2Chain.Redirects[0].AccountID = "account_1"
+			v2Chain.Redirects[0].PortalApplicationID = "test_app_1"
 			c.Equal(test.expectedV2Chain, v2Chain)
 		})
 	}
@@ -245,7 +239,7 @@ func Test_LegacyAdapators_ConvertToV2Redirect(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			v2Redirect := ConvertToV2Redirect(test.redirect)
-			v2Redirect.AccountID = "account_1"
+			v2Redirect.PortalApplicationID = "test_app_1"
 			c.Equal(test.expectedV2Redirect, v2Redirect)
 		})
 	}

@@ -96,7 +96,6 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 			table:  types.TableAccounts,
 			input: Account{
 				ID:                      account.ID,
-				Name:                    account.Name,
 				PlanType:                account.PlanType,
 				PartnerChainIDs:         partnerChainIDs,
 				PartnerThroughputLimit:  newSQLNullInt32(account.PartnerThroughputLimit, true),
@@ -104,7 +103,6 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 				CreatedAt:               account.CreatedAt,
 				UpdatedAt:               account.UpdatedAt,
 				Deleted:                 account.Deleted,
-				LbID:                    account.LegacyLoadBalancerID,
 			},
 		})
 	}
@@ -155,17 +153,23 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 	}
 
 	if sideTablesAction != "" {
+		aat := types.AAT{}
+		for _, portalAAT := range portalApp.AATs {
+			aat = portalAAT
+		}
+
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
 			table:  types.TableAppAATs,
 			input: PortalApplicationAat{
 				ApplicationID:   portalApp.ID,
-				Address:         portalApp.AAT.Address,
-				PublicKey:       portalApp.AAT.PublicKey,
-				ClientPublicKey: portalApp.AAT.ClientPublicKey,
-				PrivateKey:      portalApp.AAT.PrivateKey,
-				Signature:       portalApp.AAT.Signature,
-				Version:         portalApp.AAT.Version,
+				ID:              aat.ID,
+				Address:         aat.Address,
+				PublicKey:       aat.PublicKey,
+				ClientPublicKey: aat.ClientPublicKey,
+				PrivateKey:      aat.PrivateKey,
+				Signature:       aat.Signature,
+				Version:         aat.Version,
 			},
 		})
 
@@ -284,11 +288,10 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 				action: sideTablesAction,
 				table:  types.TableChainGigastakeRedirects,
 				input: ChainGigastakeRedirect{
-					ChainID:   chain.ID,
-					AccountID: redirect.AccountID,
-					Alias:     redirect.Alias,
-					Domain:    redirect.Domain,
-					LbID:      redirect.LegacyLoadBalancerID,
+					ChainID:             chain.ID,
+					PortalApplicationID: redirect.PortalApplicationID,
+					Alias:               redirect.Alias,
+					Domain:              redirect.Domain,
 				},
 			})
 		}

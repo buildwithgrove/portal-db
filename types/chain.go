@@ -92,17 +92,13 @@ type (
 		AuthType ChainAuthType `json:"authType"`
 	}
 	GigastakeRedirect struct {
-		ChainID   RelayChainID   `json:"chainID,omitempty"`
-		AccountID AccountID      `json:"accountID"`
-		Domain    RedirectDomain `json:"domain"`
-		Alias     string         `json:"alias"`
+		ChainID             RelayChainID   `json:"chainID,omitempty"`
+		PortalApplicationID PortalAppID    `json:"portalAppID"`
+		Domain              RedirectDomain `json:"domain"`
+		Alias               string         `json:"alias"`
 
-		// TODO - remove when v2 migration finished
-		// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
-		LegacyLoadBalancerID string `json:"legacyLoadBalancerID"`
-
-		// GigastakeAccount is set inside PHD
-		GigastakeAccount *Account `json:"gigastakeAccount"`
+		// GigastakePortalApp is set inside PHD
+		GigastakePortalApp *PortalApp `json:"gigastakePortalApp"`
 	}
 	Check struct {
 		ChainID    RelayChainID   `json:"chainID,omitempty"`

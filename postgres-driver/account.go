@@ -24,7 +24,7 @@ type (
 var (
 	errInvalidRoleName           = errors.New("error invalid role name set")
 	errPayPlanDoesntExist        = errors.New("error pay plan '%s' does not exist")
-	errAccountDoesntExist        = errors.New("error account does not exists for account ID '%s'")
+	errAccountDoesntExist        = errors.New("error account does not exist for account ID '%s'")
 	errAccountUserDoesntExist    = errors.New("error user ID '%s' does not exist for account ID '%s'")
 	errCannotDeleteOwner         = errors.New("error cannot delete user ID '%s' for account ID '%s' because this user is the current account owner")
 	errCannotTransferNotAccepted = errors.New("error cannot transfer ownership to user ID '%s' for account ID '%s' because the user has not accepted their invite")
@@ -78,7 +78,6 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	return &types.Account{
 		ID:                     a.ID,
-		Name:                   a.Name,
 		PlanType:               a.PlanType,
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
@@ -87,8 +86,6 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		CreatedAt:              a.CreatedAt.UTC(),
 		UpdatedAt:              a.UpdatedAt.UTC(),
 		Deleted:                a.Deleted,
-		// TODO - remove when v2 migration finished
-		LegacyLoadBalancerID: a.LbID,
 	}, nil
 }
 
@@ -141,12 +138,9 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        account.ID,
-		Name:      account.Name,
 		PlanType:  account.PlanType,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
-		// TODO - remove when v2 migration finished
-		LbID: account.LegacyLoadBalancerID,
 	})
 	if err != nil {
 		return nil, err
@@ -209,38 +203,6 @@ func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, qtx *Qu
 	}
 	if !userExists {
 		return fmt.Errorf(errUserDoesntExist.Error(), creatorID)
-	}
-
-	return nil
-}
-
-/* ----- postgresdriver Account Update Methods ----- */
-
-// UpdateAccount updates a single Account in the database
-func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) error {
-	err := pg.validateUpdateAccountInput(ctx, update.AccountID)
-	if err != nil {
-		return err
-	}
-
-	params := UpdateAccountQueryParams{ID: update.AccountID, Name: update.Name, UpdatedAt: updatedAt}
-
-	err = pg.UpdateAccountQuery(ctx, params)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// validateUpdateAccountInput validates the input to update an existing Account
-func (pg *PostgresDriver) validateUpdateAccountInput(ctx context.Context, accountID types.AccountID) error {
-	accountExists, err := pg.CheckAccountExists(ctx, accountID)
-	if err != nil {
-		return err
-	}
-	if !accountExists {
-		return fmt.Errorf(errAccountDoesntExist.Error(), accountID)
 	}
 
 	return nil
@@ -582,7 +544,6 @@ func (json Account) toOutput() *types.Account {
 
 	return &types.Account{
 		ID:                     json.ID,
-		Name:                   json.Name,
 		PlanType:               json.PlanType,
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: json.PartnerThroughputLimit.Int32,
@@ -590,7 +551,6 @@ func (json Account) toOutput() *types.Account {
 		CreatedAt:              json.CreatedAt,
 		UpdatedAt:              json.UpdatedAt,
 		Deleted:                json.Deleted,
-		LegacyLoadBalancerID:   json.LbID,
 	}
 }
 

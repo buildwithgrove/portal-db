@@ -93,12 +93,14 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 	tests := []struct {
 		name            string
 		portalApp       types.PortalApp
+		aat             types.AAT
 		testCreatedTime time.Time
 		err             error
 	}{
 		{
 			name:            "Should create a new PortalApp in the database",
 			portalApp:       *testdata.TestCreatePortalApp,
+			aat:             testdata.TestCreatePortalAppAAT,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
@@ -106,10 +108,11 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			createdPortalApp, err := ts.driver.WritePortalApp(context.Background(), test.portalApp, test.testCreatedTime)
+			createdPortalApp, err := ts.driver.WritePortalApp(context.Background(), test.portalApp, test.aat, test.testCreatedTime)
 			ts.Equal(test.err, err)
 
 			test.portalApp.ID = createdPortalApp.ID
+			test.portalApp.AATs = createdPortalApp.AATs
 			ts.Equal(&test.portalApp, createdPortalApp)
 
 			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
@@ -276,7 +279,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			// Create new portal app for test case
 			createApp := *testdata.TestUpdatePortalApp
 			createApp.Name = fmt.Sprintf("test-update-portal-app-%d", i+1)
-			createdPortalApp, err := ts.driver.WritePortalApp(context.Background(), createApp, testdata.MockTimestamp)
+			createdPortalApp, err := ts.driver.WritePortalApp(context.Background(), createApp, testdata.TestCreatePortalAppAAT, testdata.MockTimestamp)
 			ts.NoError(err)
 
 			// Update created portal app for test case

@@ -71,7 +71,6 @@ var (
 	Accounts = map[types.AccountID]*types.Account{
 		"account_1": {
 			ID:       "account_1",
-			Name:     "test_account_1",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_1": AccountUserAccess[1],
@@ -83,12 +82,9 @@ var (
 			PartnerAppLimit:        1,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
-			// TODO - remove when v2 migration finished
-			LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		},
 		"account_2": {
 			ID:       "account_2",
-			Name:     "test_account_2",
 			PlanType: types.PayPlanType("pro_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_3": AccountUserAccess[3],
@@ -101,12 +97,9 @@ var (
 			PartnerAppLimit:        3,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
-			// TODO - remove when v2 migration finished
-			LegacyLoadBalancerID: "test_lb_d2c7361fd9c5dff7",
 		},
 		"account_3": {
 			ID:       "account_3",
-			Name:     "test_account_3",
 			PlanType: types.PayPlanType("startup_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_5":  AccountUserAccess[5],
@@ -119,12 +112,9 @@ var (
 			PartnerAppLimit:        2,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
-			// TODO - remove when v2 migration finished
-			LegacyLoadBalancerID: "test_lb_4b874c457f73c4e9",
 		},
 		"account_4": {
 			ID:       "account_4",
-			Name:     "test_account_4",
 			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -134,12 +124,9 @@ var (
 			PartnerAppLimit:        2,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
-			// TODO - remove when v2 migration finished
-			LegacyLoadBalancerID: "test_lb_746e04231640556a",
 		},
 		"account_5": {
 			ID:       "account_5",
-			Name:     "test_account_5",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -149,19 +136,14 @@ var (
 			PartnerAppLimit:        1,
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
-			// TODO - remove when v2 migration finished
-			LegacyLoadBalancerID: "test_lb_f5ee77c7c58025231",
 		},
 	}
 
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
-		Name:      "test_create_account_1",
 		PlanType:  types.PayPlanType("developer_plan"),
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
-		// TODO - remove when v2 migration finished
-		LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
 	}
 
 	AccountUserAccess = map[int]types.AccountUserAccess{
@@ -487,13 +469,16 @@ var (
 			Name:      "pokt_app_123",
 			Gigastake: true,
 			Staked:    false,
-			AAT: types.AAT{
-				Address:         "test_34715cae753e67c75fbb340442e7de8e",
-				PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
-				ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
-				PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
-				Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
-				Version:         "0.0.1",
+			AATs: map[types.ProtocolAppID]types.AAT{
+				"test_protocol_app_1": {
+					ID:              "test_protocol_app_1",
+					Address:         "test_34715cae753e67c75fbb340442e7de8e",
+					PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
+					ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
+					PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
+					Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+					Version:         "0.0.1",
+				},
 			},
 			Settings: types.Settings{
 				Environment:       types.EnvironmentProduction,
@@ -545,13 +530,16 @@ var (
 			Name:      "pokt_app_456",
 			Gigastake: false,
 			Staked:    true,
-			AAT: types.AAT{
-				Address:         "test_8237c72345f12d1b1a8b64a1a7f66fa4",
-				PublicKey:       "test_8237c72345f12d1b1a8b64a1a7f66fa4",
-				ClientPublicKey: "test_04c71d90a92f40416b6f1d7d8af17e02",
-				PrivateKey:      "test_2e83c836a29b423a47d8e18c779fd422",
-				Signature:       "test_f48d33b30ddaf60a1e5bb50d2ba8da5a",
-				Version:         "0.0.1",
+			AATs: map[types.ProtocolAppID]types.AAT{
+				"test_protocol_app_2": {
+					ID:              "test_protocol_app_2",
+					Address:         "test_8237c72345f12d1b1a8b64a1a7f66fa4",
+					PublicKey:       "test_8237c72345f12d1b1a8b64a1a7f66fa4",
+					ClientPublicKey: "test_04c71d90a92f40416b6f1d7d8af17e02",
+					PrivateKey:      "test_2e83c836a29b423a47d8e18c779fd422",
+					Signature:       "test_f48d33b30ddaf60a1e5bb50d2ba8da5a",
+					Version:         "0.0.1",
+				},
 			},
 			Settings: types.Settings{
 				Environment:       types.EnvironmentProduction,
@@ -602,13 +590,16 @@ var (
 			Name:      "pokt_app_789",
 			Gigastake: false,
 			Staked:    true,
-			AAT: types.AAT{
-				Address:         "test_b5e07928fc80083c13ad0201b81bae9b",
-				PublicKey:       "test_f608500e4fe3e09014fe2411b4a560b5",
-				ClientPublicKey: "test_328a9cf1b35085eeaa669aa858f6fba9",
-				PrivateKey:      "test_8663e187c19f3c6e27317eab4ed6d7d5",
-				Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
-				Version:         "0.0.1",
+			AATs: map[types.ProtocolAppID]types.AAT{
+				"test_protocol_app_3": {
+					ID:              "test_protocol_app_3",
+					Address:         "test_b5e07928fc80083c13ad0201b81bae9b",
+					PublicKey:       "test_f608500e4fe3e09014fe2411b4a560b5",
+					ClientPublicKey: "test_328a9cf1b35085eeaa669aa858f6fba9",
+					PrivateKey:      "test_8663e187c19f3c6e27317eab4ed6d7d5",
+					Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
+					Version:         "0.0.1",
+				},
 			},
 			Settings: types.Settings{
 				Environment:       types.EnvironmentProduction,
@@ -634,14 +625,7 @@ var (
 		Name:      "create_pokt_app_1",
 		Gigastake: true,
 		Staked:    false,
-		AAT: types.AAT{
-			Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
-			PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
-			ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
-			PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
-			Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
-			Version:         "0.0.1",
-		},
+
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
@@ -664,6 +648,15 @@ var (
 		},
 	}
 
+	TestCreatePortalAppAAT = types.AAT{
+		Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
+		PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
+		ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
+		PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
+		Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
+		Version:         "0.0.1",
+	}
+
 	// TestUpdatePortalApp app used to test updates of PortalApps
 	TestUpdatePortalApp = &types.PortalApp{
 		ID:        "test_app_update_b03ca84c",
@@ -671,13 +664,15 @@ var (
 		Name:      "", // name set in test
 		Gigastake: true,
 		Staked:    false,
-		AAT: types.AAT{
-			Address:         "test_7d0cd2743543a6200e41224594954b06",
-			PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
-			ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
-			PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
-			Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
-			Version:         "0.0.1",
+		AATs: map[types.ProtocolAppID]types.AAT{
+			"test_protocol_app_1": {
+				Address:         "test_7d0cd2743543a6200e41224594954b06",
+				PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
+				ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
+				PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
+				Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
+				Version:         "0.0.1",
+			},
 		},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
@@ -719,9 +714,7 @@ var (
 			},
 			Redirects: []types.GigastakeRedirect{
 				{
-					AccountID: "account_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
-					// TODO - remove when v2 migration finished
-					LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
+					PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
 				},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
@@ -753,11 +746,7 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{
-					AccountID: "account_2", Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network",
-					// TODO - remove when v2 migration finished
-					LegacyLoadBalancerID: "test_lb_d2c7361fd9c5dff7",
-				},
+				{PortalApplicationID: "test_app_2", Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -787,11 +776,7 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{
-					AccountID: "account_3", Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network",
-					// TODO - remove when v2 migration finished
-					LegacyLoadBalancerID: "test_lb_4b874c457f73c4e9",
-				},
+				{PortalApplicationID: "test_app_3", Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -855,11 +840,7 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{
-					AccountID: "account_4", Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network",
-					// TODO - remove when v2 migration finished
-					LegacyLoadBalancerID: "test_lb_746e04231640556a",
-				},
+				{PortalApplicationID: "test_app_3", Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -895,11 +876,7 @@ var (
 			},
 		},
 		Redirects: []types.GigastakeRedirect{
-			{
-				AccountID: "account_5", Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network",
-				// TODO - remove when v2 migration finished
-				LegacyLoadBalancerID: "test_lb_da650ea8aa53ecd5",
-			},
+			{PortalApplicationID: "test_app_1", Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
@@ -1016,11 +993,7 @@ var (
 			},
 		},
 		Redirects: []types.GigastakeRedirect{
-			{
-				AccountID: "account_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
-				// TODO - remove when v2 migration finished
-				LegacyLoadBalancerID: "test_lb_5c6f50bc30b530a8",
-			},
+			{PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
@@ -1061,7 +1034,7 @@ var (
 			},
 		},
 		Redirects: []types.GigastakeRedirect{
-			{AccountID: "account_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
+			{PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
@@ -1093,10 +1066,8 @@ var (
 	/* ----- Legacy Data ----- */
 
 	V2Account = &types.Account{
-		ID:                   "account_1",
-		Name:                 "test_legacy_lb_1",
-		LegacyLoadBalancerID: "test_lb_3127flsdhfoi323f",
-		PlanType:             types.PayPlanType("basic_plan"),
+		ID:       "account_1",
+		PlanType: types.PayPlanType("basic_plan"),
 		Users: map[types.UserID]types.AccountUserAccess{
 			"user_1": AccountUserAccess[1],
 			"user_2": AccountUserAccess[2],
@@ -1116,8 +1087,8 @@ var (
 	}
 
 	LegacyLoadBalancer = types.LoadBalancer{
-		ID:                "test_lb_3127flsdhfoi323f",
-		Name:              "test_legacy_lb_1",
+		ID:                "test_app_1",
+		Name:              "pokt_app_123",
 		UserID:            "auth0|james_holden",
 		ApplicationIDs:    []string(nil),
 		RequestTimeout:    5000,
@@ -1129,7 +1100,7 @@ var (
 			StickyMax:     300,
 			Stickiness:    true,
 		},
-		Applications: []*types.Application{&LegacyApplication},
+		Applications: LegacyApplications,
 		Users: []types.UserAccess{
 			{
 				UserID:   "user_1",
@@ -1154,41 +1125,43 @@ var (
 		UpdatedAt: MockTimestamp,
 	}
 
-	LegacyApplication = types.Application{
-		ID:                 "test_app_1",
-		UserID:             "auth0|james_holden",
-		Name:               "pokt_app_123",
-		FirstDateSurpassed: MockTimestamp,
-		GatewayAAT: types.GatewayAAT{
-			Address:              "test_34715cae753e67c75fbb340442e7de8e",
-			ApplicationPublicKey: "test_34715cae753e67c75fbb340442e7de8e",
-			ApplicationSignature: "test_1dc39a2e5a84a35bf030969a0b3231f7",
-			ClientPublicKey:      "test_89a3af6a587aec02cfade6f5000424c2",
-			PrivateKey:           "test_11b8d394ca331d7c7a71ca1896d630f6",
-			Version:              "0.0.1",
+	LegacyApplications = []*types.Application{
+		{
+			ID:                 "test_protocol_app_1",
+			UserID:             "auth0|james_holden",
+			Name:               "pokt_app_123",
+			FirstDateSurpassed: MockTimestamp,
+			GatewayAAT: types.GatewayAAT{
+				Address:              "test_34715cae753e67c75fbb340442e7de8e",
+				ApplicationPublicKey: "test_34715cae753e67c75fbb340442e7de8e",
+				ApplicationSignature: "test_1dc39a2e5a84a35bf030969a0b3231f7",
+				ClientPublicKey:      "test_89a3af6a587aec02cfade6f5000424c2",
+				PrivateKey:           "test_11b8d394ca331d7c7a71ca1896d630f6",
+				Version:              "0.0.1",
+			},
+			GatewaySettings: types.GatewaySettings{
+				SecretKey:            "test_40f482d91a5ef2300ebb4e2308c",
+				SecretKeyRequired:    true,
+				WhitelistOrigins:     []string{"https://test.com"},
+				WhitelistUserAgents:  []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+				WhitelistBlockchains: []string{"0053"},
+				WhitelistContracts:   []types.WhitelistContracts{{BlockchainID: "0001", Contracts: []string{"0x1234567890abcdef"}}},
+				WhitelistMethods:     []types.WhitelistMethods{{BlockchainID: "0001", Methods: []string{"GET"}}},
+			},
+			Limit: types.AppLimit{
+				PayPlan:     types.PayPlan{Type: "basic_plan", Limit: 1_000},
+				CustomLimit: 0,
+			},
+			NotificationSettings: types.NotificationSettings{
+				SignedUp:      false,
+				Quarter:       true,
+				Half:          false,
+				ThreeQuarters: true,
+				Full:          true,
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
 		},
-		GatewaySettings: types.GatewaySettings{
-			SecretKey:            "test_40f482d91a5ef2300ebb4e2308c",
-			SecretKeyRequired:    true,
-			WhitelistOrigins:     []string{"https://test.com"},
-			WhitelistUserAgents:  []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
-			WhitelistBlockchains: []string{"0053"},
-			WhitelistContracts:   []types.WhitelistContracts{{BlockchainID: "0001", Contracts: []string{"0x1234567890abcdef"}}},
-			WhitelistMethods:     []types.WhitelistMethods{{BlockchainID: "0001", Methods: []string{"GET"}}},
-		},
-		Limit: types.AppLimit{
-			PayPlan:     types.PayPlan{Type: "basic_plan", Limit: 1_000},
-			CustomLimit: 0,
-		},
-		NotificationSettings: types.NotificationSettings{
-			SignedUp:      false,
-			Quarter:       true,
-			Half:          false,
-			ThreeQuarters: true,
-			Full:          true,
-		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
 	}
 
 	LegacyBlockchain = types.Blockchain{
@@ -1203,9 +1176,9 @@ var (
 		Active:            true,
 		Redirects: []types.Redirect{
 			{
+				LoadBalancerID: "test_app_1",
 				Alias:          "altruist-0001",
 				Domain:         "pokt-rpc.gateway.pokt.network",
-				LoadBalancerID: "test_lb_5c6f50bc30b530a8",
 			},
 		},
 		SyncCheckOptions: types.SyncCheckOptions{
@@ -1243,23 +1216,14 @@ var (
 	}
 
 	V2CreateAccount = types.Account{
-		Name:     "test_legacy_lb_1",
 		PlanType: types.PayPlanType("basic_plan"),
 	}
 
 	V2CreatePortalApp = types.PortalApp{
-		Name:      "test_legacy_lb_1",
+		Name:      "pokt_app_123",
 		Gigastake: true,
 		Staked:    false,
 		AccountID: "",
-		AAT: types.AAT{
-			Address:         "test_34715cae753e67c75fbb340442e7de8e",
-			PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
-			ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
-			PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
-			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
-			Version:         "0.0.1",
-		},
 		Settings: types.Settings{
 			Environment:       "production",
 			SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
@@ -1288,6 +1252,15 @@ var (
 				Stickiness:    true,
 			},
 		},
+	}
+
+	V2CreatePortalAppAAT = types.AAT{
+		Address:         "test_34715cae753e67c75fbb340442e7de8e",
+		PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
+		ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
+		PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
+		Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+		Version:         "0.0.1",
 	}
 
 	V2UpdatePortalApp = types.UpdatePortalApp{

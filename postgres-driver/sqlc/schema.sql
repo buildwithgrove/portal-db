@@ -63,7 +63,6 @@ CREATE TABLE user_roles (
 -- Accounts Tables
 CREATE TABLE accounts (
     id VARCHAR(10) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
     plan_type VARCHAR(25) NOT NULL REFERENCES pay_plans(plan_type),
     partner_chain_ids VARCHAR(4) ARRAY,
     partner_throughput_limit INT,
@@ -71,9 +70,7 @@ CREATE TABLE accounts (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
-    deleted_at TIMESTAMPTZ NULL,
-    -- legacy field
-    lb_id VARCHAR NOT NULL
+    deleted_at TIMESTAMPTZ NULL
 );
 CREATE TABLE account_user_access (
     id SERIAL PRIMARY KEY,
@@ -87,6 +84,15 @@ CREATE TABLE account_user_access (
 );
 CREATE UNIQUE INDEX idx_account_owner_constraint ON account_user_access (account_id)
 WHERE role_name = 'OWNER';
+CREATE TABLE IF NOT EXISTS account_integrations (
+	id INT GENERATED ALWAYS AS IDENTITY,
+	account_id VARCHAR(10) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+	covalent_api_key_free VARCHAR UNIQUE,
+	covalent_api_key_paid VARCHAR UNIQUE,
+	created_at TIMESTAMP NULL,
+	updated_at TIMESTAMP NULL,
+	PRIMARY KEY (id)
+);
 -- Chains Tables
 CREATE TABLE chains (
     id VARCHAR(4) PRIMARY KEY,
@@ -114,18 +120,6 @@ CREATE TABLE chain_altruists (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (chain_id, url)
-);
-CREATE TABLE chain_gigastake_redirects (
-    id SERIAL PRIMARY KEY,
-    chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
-    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id),
-    alias VARCHAR(100) NOT NULL,
-    domain VARCHAR(100) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (chain_id, account_id, domain),
-    -- legacy field
-    lb_id VARCHAR NOT NULL
 );
 CREATE TABLE chain_checks (
     id SERIAL PRIMARY KEY,
@@ -161,8 +155,8 @@ CREATE TABLE chain_checks (
 );
 -- Portal Application Tables
 CREATE TABLE portal_applications (
-    id VARCHAR(24) PRIMARY KEY,
-    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id),
+    id VARCHAR(24) PRIMARY KEY UNIQUE,
+    account_id VARCHAR(10) REFERENCES accounts(id),
     name VARCHAR(255) NOT NULL,
     gigastake BOOLEAN NOT NULL,
     staked BOOLEAN NOT NULL,
@@ -190,8 +184,8 @@ CREATE TABLE IF NOT EXISTS stickiness_options (
     PRIMARY KEY (id)
 );
 CREATE TABLE portal_application_aats (
-    id SERIAL PRIMARY KEY,
-    application_id VARCHAR(24) NOT NULL UNIQUE REFERENCES portal_applications(id) ON DELETE CASCADE,
+    id VARCHAR(24) PRIMARY KEY,
+    application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
     address VARCHAR(40) NOT NULL,
     public_key VARCHAR(64) NOT NULL,
     client_public_key VARCHAR(64) NOT NULL,
@@ -241,6 +235,17 @@ CREATE TABLE portal_application_whitelists (
 );
 CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_application_whitelists (application_id, value, type)
 WHERE chain_id IS NULL;
+-- Chain Gigastakes Redirect Table must be created after Portal Applications table
+CREATE TABLE chain_gigastake_redirects (
+    id SERIAL PRIMARY KEY,
+    chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
+    portal_application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id),
+    alias VARCHAR(100) NOT NULL,
+    domain VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (chain_id, portal_application_id, domain)
+);
 -- Blocked Contracts Tables
 CREATE TABLE global_blocked_contracts (
     id SERIAL PRIMARY KEY,

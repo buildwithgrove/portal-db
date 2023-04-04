@@ -404,7 +404,6 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 
 type Account struct {
 	ID                      types.AccountID   `json:"id"`
-	Name                    string            `json:"name"`
 	PlanType                types.PayPlanType `json:"plan_type"`
 	PartnerChainIDs         []string          `json:"partner_chain_ids"`
 	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
@@ -413,7 +412,15 @@ type Account struct {
 	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deleted_at"`
-	LbID                    string            `json:"lb_id"`
+}
+
+type AccountIntegration struct {
+	ID                 int32          `json:"id"`
+	AccountID          string         `json:"account_id"`
+	CovalentApiKeyFree sql.NullString `json:"covalent_api_key_free"`
+	CovalentApiKeyPaid sql.NullString `json:"covalent_api_key_paid"`
+	CreatedAt          sql.NullTime   `json:"created_at"`
+	UpdatedAt          sql.NullTime   `json:"updated_at"`
 }
 
 type AccountUserAccess struct {
@@ -467,14 +474,13 @@ type ChainCheck struct {
 }
 
 type ChainGigastakeRedirect struct {
-	ID        int32                `json:"id"`
-	ChainID   types.RelayChainID   `json:"chain_id"`
-	AccountID types.AccountID      `json:"account_id"`
-	Alias     string               `json:"alias"`
-	Domain    types.RedirectDomain `json:"domain"`
-	CreatedAt time.Time            `json:"created_at"`
-	UpdatedAt time.Time            `json:"updated_at"`
-	LbID      string               `json:"lb_id"`
+	ID                  int32                `json:"id"`
+	ChainID             types.RelayChainID   `json:"chain_id"`
+	PortalApplicationID types.PortalAppID    `json:"portal_application_id"`
+	Alias               string               `json:"alias"`
+	Domain              types.RedirectDomain `json:"domain"`
+	CreatedAt           time.Time            `json:"created_at"`
+	UpdatedAt           time.Time            `json:"updated_at"`
 }
 
 type GlobalBlockedContract struct {
@@ -513,14 +519,14 @@ type PortalApplication struct {
 }
 
 type PortalApplicationAat struct {
-	ID              int32             `json:"id"`
-	ApplicationID   types.PortalAppID `json:"application_id"`
-	Address         string            `json:"address"`
-	PublicKey       string            `json:"public_key"`
-	ClientPublicKey string            `json:"client_public_key"`
-	PrivateKey      string            `json:"private_key"`
-	Signature       string            `json:"signature"`
-	Version         string            `json:"version"`
+	ID              types.ProtocolAppID `json:"id"`
+	ApplicationID   types.PortalAppID   `json:"application_id"`
+	Address         string              `json:"address"`
+	PublicKey       string              `json:"public_key"`
+	ClientPublicKey string              `json:"client_public_key"`
+	PrivateKey      string              `json:"private_key"`
+	Signature       string              `json:"signature"`
+	Version         string              `json:"version"`
 }
 
 type PortalApplicationNotification struct {

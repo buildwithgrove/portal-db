@@ -20,7 +20,7 @@ type (
 
 	gigastakeRedirectDBRow struct {
 		ChainID              string `json:"chain_id"`
-		AccountID            string `json:"account_id"`
+		PortalApplicationID  string `json:"portal_application_id"`
 		Alias                string `json:"alias"`
 		Domain               string `json:"domain"`
 		LegacyLoadBalancerID string `json:"lb_id"`
@@ -41,6 +41,7 @@ var (
 	errInvalidRedirectDomain = errors.New("error redirect domain '%s' is an invalid domain")
 	errChainExists           = errors.New("error chain already exists for chain ID '%s'")
 	errChainDoesntExist      = errors.New("error chain does not exist for chain ID '%s'")
+	errPortalAppDoesntExist  = errors.New("error portal app does not exist for ID '%s'")
 )
 
 /* ----- postgresdriver Chain Read Methods ----- */
@@ -133,13 +134,9 @@ func (c *SelectChainsRow) toGigastakeRedirects() ([]types.GigastakeRedirect, err
 
 	for i, redirectRow := range redirectRows {
 		redirects[i] = types.GigastakeRedirect{
-			AccountID: types.AccountID(redirectRow.AccountID),
-			Domain:    types.RedirectDomain(redirectRow.Domain),
-			Alias:     redirectRow.Alias,
-
-			// TODO - remove when v2 migration finished
-			// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
-			LegacyLoadBalancerID: redirectRow.LegacyLoadBalancerID,
+			PortalApplicationID: types.PortalAppID(redirectRow.PortalApplicationID),
+			Domain:              types.RedirectDomain(redirectRow.Domain),
+			Alias:               redirectRow.Alias,
 		}
 	}
 
@@ -267,14 +264,12 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 	}
 	for _, redirect := range chain.Redirects {
 		err = qtx.UpsertChainGigastakeRedirect(ctx, UpsertChainGigastakeRedirectParams{
-			ChainID:   createdChainID,
-			AccountID: redirect.AccountID,
-			Alias:     redirect.Alias,
-			Domain:    redirect.Domain,
-			CreatedAt: chain.CreatedAt,
-			UpdatedAt: chain.CreatedAt,
-			// TODO remove legacy fields when migration to V2 schema complete
-			LbID: redirect.LegacyLoadBalancerID,
+			ChainID:             createdChainID,
+			PortalApplicationID: redirect.PortalApplicationID,
+			Alias:               redirect.Alias,
+			Domain:              redirect.Domain,
+			CreatedAt:           chain.CreatedAt,
+			UpdatedAt:           chain.CreatedAt,
 		})
 		if err != nil {
 			return err
@@ -311,12 +306,12 @@ func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, 
 		if !redirect.Domain.IsValid() {
 			return fmt.Errorf(errInvalidRedirectDomain.Error(), redirect.Domain)
 		}
-		accountExists, err := qtx.CheckAccountExists(ctx, redirect.AccountID)
+		portalAppExists, err := qtx.CheckPortalAppExists(ctx, redirect.PortalApplicationID)
 		if err != nil {
 			return err
 		}
-		if !accountExists {
-			return fmt.Errorf(errAccountDoesntExist.Error(), redirect.AccountID)
+		if !portalAppExists {
+			return fmt.Errorf(errPortalAppDoesntExist.Error(), redirect.PortalApplicationID)
 		}
 	}
 
@@ -355,7 +350,7 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 	if chain.Redirects != nil {
 		deleteRedirectParams := DeleteUnusedChainGigastakeRedirectsParams{ChainID: chain.ID}
 		for _, redirect := range chain.Redirects {
-			deleteRedirectParams.AccountIDs = append(deleteRedirectParams.AccountIDs, string(redirect.AccountID))
+			deleteRedirectParams.PortalApplicationIDs = append(deleteRedirectParams.PortalApplicationIDs, string(redirect.PortalApplicationID))
 		}
 		err := qtx.DeleteUnusedChainGigastakeRedirects(ctx, deleteRedirectParams)
 		if err != nil {
@@ -396,20 +391,20 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 	return activeStatus, nil
 }
 
-func (pg *PostgresDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, accountID types.AccountID, domain types.RedirectDomain) error {
+func (pg *PostgresDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.RedirectDomain) error {
 	redirectExists, err := pg.CheckRedirectExists(ctx, CheckRedirectExistsParams{
-		ChainID:   chainID,
-		AccountID: accountID,
-		Domain:    domain,
+		ChainID:             chainID,
+		PortalApplicationID: portalApplicationID,
+		Domain:              domain,
 	})
 	if err != nil {
 		return err
 	}
 	if !redirectExists {
-		return fmt.Errorf("Redirect with chain ID '%s', account ID '%s' and domain '%s' doesn't exist", chainID, accountID, domain)
+		return fmt.Errorf("Redirect with chain ID '%s', portal app ID '%s' and domain '%s' doesn't exist", chainID, portalApplicationID, domain)
 	}
 
-	err = pg.DeleteGigastakeRedirect(ctx, DeleteGigastakeRedirectParams{ChainID: chainID, AccountID: accountID, Domain: domain})
+	err = pg.DeleteGigastakeRedirect(ctx, DeleteGigastakeRedirectParams{ChainID: chainID, PortalApplicationID: portalApplicationID, Domain: domain})
 	if err != nil {
 		return err
 	}
@@ -458,10 +453,9 @@ func (json ChainCheck) toOutput() *types.Check {
 
 func (r ChainGigastakeRedirect) toOutput() *types.GigastakeRedirect {
 	return &types.GigastakeRedirect{
-		ChainID:              r.ChainID,
-		AccountID:            r.AccountID,
-		Domain:               r.Domain,
-		Alias:                r.Alias,
-		LegacyLoadBalancerID: r.LbID,
+		ChainID:             r.ChainID,
+		PortalApplicationID: r.PortalApplicationID,
+		Domain:              r.Domain,
+		Alias:               r.Alias,
 	}
 }

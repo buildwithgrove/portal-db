@@ -14,13 +14,15 @@ var testPortalApplication = PortalApp{
 	Name:      "test_portal_app_123",
 	Gigastake: true,
 	AccountID: "account_1",
-	AAT: AAT{
-		Address:         "test_34715cae753e67c75fbb340442e7de8e",
-		PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
-		ClientPublicKey: "test_9e9ca4fe13725d412003f4bc518f6974",
-		PrivateKey:      "test_89a3af6a587aec02cfade6f5000424c2",
-		Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
-		Version:         "0.0.1",
+	AATs: map[ProtocolAppID]AAT{
+		"test_protocol_app_1": {
+			Address:         "test_34715cae753e67c75fbb340442e7de8e",
+			PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
+			ClientPublicKey: "test_9e9ca4fe13725d412003f4bc518f6974",
+			PrivateKey:      "test_89a3af6a587aec02cfade6f5000424c2",
+			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+			Version:         "0.0.1",
+		},
 	},
 	Settings: Settings{
 		Environment:       EnvironmentProduction,

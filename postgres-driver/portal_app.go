@@ -16,11 +16,22 @@ type (
 		Value        string              `json:"value"`
 		BlockchainID string              `json:"chain_id"`
 	}
+	aatDBRow struct {
+		ID              types.ProtocolAppID `json:"id"`
+		ApplicationID   types.PortalAppID   `json:"application_id"`
+		Address         string              `json:"address"`
+		PublicKey       string              `json:"public_key"`
+		ClientPublicKey string              `json:"client_public_key"`
+		PrivateKey      string              `json:"private_key"`
+		Signature       string              `json:"signature"`
+		Version         string              `json:"version"`
+	}
 )
 
 var (
 	errUnmarshallingWhitelists    = errors.New("error unmarshalling whitelists")
 	errUnmarshallingNotifications = errors.New("error unmarshalling notifications")
+	errUnmarshallingAATs          = errors.New("error unmarshalling AATs")
 )
 
 /* ----- postgresdriver PortalApp Read Methods ----- */
@@ -47,6 +58,15 @@ func (pg *PostgresDriver) ReadPortalApps(ctx context.Context, options types.Driv
 
 // toPortalApp converts PortalApp SELECT output to PortalApp struct
 func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
+	var appAATs map[types.ProtocolAppID]types.AAT
+	if len(string(a.AATs)) > 2 { // length of empty JSON array in bytes
+		aats, err := a.toAATs()
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", errUnmarshallingAATs, err)
+		}
+		appAATs = aats
+	}
+
 	var appWhitelists types.Whitelists
 	if len(string(a.Whitelists)) > 2 { // length of empty JSON array in bytes
 		whitelists, err := a.toWhitelists()
@@ -83,27 +103,45 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		Name:      a.Name,
 		Gigastake: a.Gigastake,
 		Staked:    a.Staked,
-		AAT: types.AAT{
-			Address:         a.Address.String,
-			PublicKey:       a.PublicKey.String,
-			ClientPublicKey: a.ClientPublicKey.String,
-			PrivateKey:      a.PrivateKey.String,
-			Signature:       a.Signature.String,
-			Version:         a.Version.String,
-		},
 		Settings: types.Settings{
 			Environment:       types.Environment(a.Environment.Environment),
 			SecretKey:         a.SecretKey.String,
 			SecretKeyRequired: a.SecretKeyRequired.Bool,
 		},
-		Notifications: notifications,
+		AATs:          appAATs,
 		Whitelists:    appWhitelists,
+		Notifications: notifications,
 		CreatedAt:     a.CreatedAt.UTC(),
 		UpdatedAt:     a.UpdatedAt.UTC(),
 		Deleted:       a.Deleted,
 		// TODO remove legacy fields when migration to V2 schema complete
 		LegacyFields: legacyFields,
 	}, nil
+}
+
+// toAATs converts AATs from DB rows to map-based PortalApp.AATs struct
+func (a *SelectPortalApplicationsRow) toAATs() (map[types.ProtocolAppID]types.AAT, error) {
+	var dbAATs map[types.ProtocolAppID]aatDBRow
+
+	if err := json.Unmarshal(a.AATs, &dbAATs); err != nil {
+		return nil, err
+	}
+
+	aats := make(map[types.ProtocolAppID]types.AAT, len(dbAATs))
+
+	for protocolAppID, dbAAT := range dbAATs {
+		aats[protocolAppID] = types.AAT{
+			ID:              protocolAppID,
+			Address:         dbAAT.Address,
+			PublicKey:       dbAAT.PublicKey,
+			ClientPublicKey: dbAAT.ClientPublicKey,
+			PrivateKey:      dbAAT.PrivateKey,
+			Signature:       dbAAT.Signature,
+			Version:         dbAAT.Version,
+		}
+	}
+
+	return aats, nil
 }
 
 // toWhitelists converts whitelists from DB rows to map-based PortalApp.Whitelists struct
@@ -151,15 +189,20 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 
 // WritePortalApp creates a single PortalApp in the database, including its AAT and Settings rows
 // TEMP - also create its legacy StickinessOptions table (TODO remove when V2 migration completed)
-func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, createdAt time.Time) (*types.PortalApp, error) {
-	id, err := pg.generateID(ctx)
+func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, aat types.AAT, createdAt time.Time) (*types.PortalApp, error) {
+	portalAppID, protocolAppID, err := pg.generatePortalAppIDs(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	portalApp.ID = types.PortalAppID(id)
+	portalApp.ID = portalAppID
 	portalApp.CreatedAt = createdAt
 	portalApp.UpdatedAt = createdAt
+
+	aat.ID = protocolAppID
+	portalApp.AATs = map[types.ProtocolAppID]types.AAT{
+		protocolAppID: aat,
+	}
 
 	tx, err := pg.DB.Begin()
 	if err != nil {
@@ -188,12 +231,13 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	}
 	_, err = qtx.InsertPortalApplicationAAT(ctx, InsertPortalApplicationAATParams{
 		ApplicationID:   portalApp.ID,
-		Address:         portalApp.AAT.Address,
-		PublicKey:       portalApp.AAT.PublicKey,
-		PrivateKey:      portalApp.AAT.PrivateKey,
-		ClientPublicKey: portalApp.AAT.ClientPublicKey,
-		Signature:       portalApp.AAT.Signature,
-		Version:         portalApp.AAT.Version,
+		ID:              aat.ID,
+		Address:         aat.Address,
+		PublicKey:       aat.PublicKey,
+		PrivateKey:      aat.PrivateKey,
+		ClientPublicKey: aat.ClientPublicKey,
+		Signature:       aat.Signature,
+		Version:         aat.Version,
 	})
 	if err != nil {
 		return nil, err
@@ -226,6 +270,25 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	}
 
 	return &portalApp, nil
+}
+
+func (pg *PostgresDriver) generatePortalAppIDs(ctx context.Context) (types.PortalAppID, types.ProtocolAppID, error) {
+	portalAppID, err := pg.generateID(ctx)
+	if err != nil {
+		return "", "", err
+	}
+	protocolAppID, err := pg.generateID(ctx)
+	if err != nil {
+		return "", "", err
+	}
+	for protocolAppID == portalAppID { // Ensure the protocol app ID cannot match the portal app ID
+		protocolAppID, err = pg.generateID(ctx)
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	return types.PortalAppID(portalAppID), types.ProtocolAppID(portalAppID), nil
 }
 
 /* ----- postgresdriver PortalApp Update Methods ----- */
