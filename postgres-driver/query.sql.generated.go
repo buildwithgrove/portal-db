@@ -733,7 +733,7 @@ RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, delet
 
 type InsertPortalApplicationParams struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          types.AccountID   `json:"account_id"`
+	AccountID          sql.NullString    `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`
@@ -1299,7 +1299,7 @@ GROUP BY p.id,
 
 type SelectPortalApplicationsRow struct {
 	ID                 types.PortalAppID `json:"id"`
-	AccountID          types.AccountID   `json:"account_id"`
+	AccountID          sql.NullString    `json:"account_id"`
 	Name               string            `json:"name"`
 	Gigastake          bool              `json:"gigastake"`
 	Staked             bool              `json:"staked"`

@@ -99,7 +99,7 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 
 	return &types.PortalApp{
 		ID:        types.PortalAppID(a.ID),
-		AccountID: types.AccountID(a.AccountID),
+		AccountID: types.AccountID(a.AccountID.String),
 		Name:      a.Name,
 		Gigastake: a.Gigastake,
 		Staked:    a.Staked,
@@ -214,7 +214,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 	_, err = qtx.InsertPortalApplication(ctx, InsertPortalApplicationParams{
 		ID:        portalApp.ID,
-		AccountID: portalApp.AccountID,
+		AccountID: newSQLNullString(string(portalApp.AccountID)),
 		Name:      portalApp.Name,
 		Gigastake: portalApp.Gigastake,
 		Staked:    portalApp.Staked,
@@ -466,7 +466,7 @@ func (pg *PostgresDriver) SetPortalAppDeleted(ctx context.Context, portalAppID t
 func (json PortalApplication) toOutput() *types.PortalApp {
 	return &types.PortalApp{
 		ID:        json.ID,
-		AccountID: types.AccountID(json.AccountID),
+		AccountID: types.AccountID(json.AccountID.String),
 		Name:      json.Name,
 		Gigastake: json.Gigastake,
 		Staked:    json.Staked,

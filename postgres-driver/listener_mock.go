@@ -137,7 +137,7 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 			table:  types.TablePortalApps,
 			input: PortalApplication{
 				ID:                 portalApp.ID,
-				AccountID:          (portalApp.AccountID),
+				AccountID:          newSQLNullString(string(portalApp.AccountID)),
 				Name:               portalApp.Name,
 				Gigastake:          portalApp.Gigastake,
 				Staked:             portalApp.Staked,
