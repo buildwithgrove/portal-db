@@ -35,7 +35,7 @@ func (q *Queries) ActivateBlockchain(ctx context.Context, arg ActivateBlockchain
 const checkAccountIDExists = `-- name: CheckAccountIDExists :one
 SELECT EXISTS(
         SELECT 1
-        FROM loadbalancers
+        FROM user_access
         WHERE account_id = $1
     )
 `
@@ -113,6 +113,26 @@ type DeleteUserAccessParams struct {
 func (q *Queries) DeleteUserAccess(ctx context.Context, arg DeleteUserAccessParams) error {
 	_, err := q.db.ExecContext(ctx, deleteUserAccess, arg.Email, arg.LbID)
 	return err
+}
+
+const getPreviousOwner = `-- name: GetPreviousOwner :one
+SELECT account_id,
+    email
+FROM user_access
+WHERE lb_id = $1
+    AND role_name = 'OWNER'
+`
+
+type GetPreviousOwnerRow struct {
+	AccountID sql.NullString `json:"accountID"`
+	Email     string         `json:"email"`
+}
+
+func (q *Queries) GetPreviousOwner(ctx context.Context, lbID string) (GetPreviousOwnerRow, error) {
+	row := q.db.QueryRowContext(ctx, getPreviousOwner, lbID)
+	var i GetPreviousOwnerRow
+	err := row.Scan(&i.AccountID, &i.Email)
+	return i, err
 }
 
 const getUserAccessAccepted = `-- name: GetUserAccessAccepted :one
@@ -378,7 +398,6 @@ INSERT into loadbalancers (
         request_timeout,
         gigastake,
         gigastake_redirect,
-        account_id,
         created_at,
         updated_at
     )
@@ -390,8 +409,7 @@ VALUES (
         $5,
         $6,
         $7,
-        $8,
-        $9
+        $8
     )
 `
 
@@ -402,7 +420,6 @@ type InsertLoadBalancerParams struct {
 	RequestTimeout    sql.NullInt32  `json:"requestTimeout"`
 	Gigastake         sql.NullBool   `json:"gigastake"`
 	GigastakeRedirect sql.NullBool   `json:"gigastakeRedirect"`
-	AccountID         sql.NullString `json:"accountID"`
 	CreatedAt         sql.NullTime   `json:"createdAt"`
 	UpdatedAt         sql.NullTime   `json:"updatedAt"`
 }
@@ -415,7 +432,6 @@ func (q *Queries) InsertLoadBalancer(ctx context.Context, arg InsertLoadBalancer
 		arg.RequestTimeout,
 		arg.Gigastake,
 		arg.GigastakeRedirect,
-		arg.AccountID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -636,6 +652,45 @@ func (q *Queries) InsertUserAccessNoConflict(ctx context.Context, arg InsertUser
 		arg.Accepted,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+	)
+	return err
+}
+
+const insertUserAccessOwner = `-- name: InsertUserAccessOwner :exec
+INSERT INTO user_access (
+        lb_id,
+        role_name,
+        user_id,
+        email,
+        accepted,
+        created_at,
+        updated_at,
+        account_id
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+`
+
+type InsertUserAccessOwnerParams struct {
+	LbID      string         `json:"lbID"`
+	RoleName  types.RoleName `json:"roleName"`
+	UserID    sql.NullString `json:"userID"`
+	Email     string         `json:"email"`
+	Accepted  bool           `json:"accepted"`
+	CreatedAt sql.NullTime   `json:"createdAt"`
+	UpdatedAt sql.NullTime   `json:"updatedAt"`
+	AccountID sql.NullString `json:"accountID"`
+}
+
+func (q *Queries) InsertUserAccessOwner(ctx context.Context, arg InsertUserAccessOwnerParams) error {
+	_, err := q.db.ExecContext(ctx, insertUserAccessOwner,
+		arg.LbID,
+		arg.RoleName,
+		arg.UserID,
+		arg.Email,
+		arg.Accepted,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.AccountID,
 	)
 	return err
 }
@@ -1063,11 +1118,11 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
     so.duration AS s_duration,
     so.sticky_max AS s_sticky_max,
     so.stickiness AS s_stickiness,
     so.origins AS s_origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
@@ -1076,8 +1131,10 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
+    LEFT JOIN user_access AS uac ON lb.lb_id = uac.lb_id
+    AND uac.role_name = 'OWNER'
+    LEFT JOIN account_integrations AS ai ON uac.account_id = ai.account_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
                 json_build_object(
@@ -1103,11 +1160,11 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
     so.origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     user_access.ua
@@ -1121,11 +1178,11 @@ type SelectLoadBalancersRow struct {
 	Gigastake          sql.NullBool    `json:"gigastake"`
 	GigastakeRedirect  sql.NullBool    `json:"gigastakeRedirect"`
 	UserID             sql.NullString  `json:"userID"`
-	AccountID          sql.NullString  `json:"accountID"`
 	SDuration          sql.NullString  `json:"sDuration"`
 	SStickyMax         sql.NullInt32   `json:"sStickyMax"`
 	SStickiness        sql.NullBool    `json:"sStickiness"`
 	SOrigins           []string        `json:"sOrigins"`
+	AccountID          sql.NullString  `json:"accountID"`
 	CovalentApiKeyFree sql.NullString  `json:"covalentApiKeyFree"`
 	CovalentApiKeyPaid sql.NullString  `json:"covalentApiKeyPaid"`
 	AppIds             []byte          `json:"appIds"`
@@ -1150,11 +1207,11 @@ func (q *Queries) SelectLoadBalancers(ctx context.Context) ([]SelectLoadBalancer
 			&i.Gigastake,
 			&i.GigastakeRedirect,
 			&i.UserID,
-			&i.AccountID,
 			&i.SDuration,
 			&i.SStickyMax,
 			&i.SStickiness,
 			pq.Array(&i.SOrigins),
+			&i.AccountID,
 			&i.CovalentApiKeyFree,
 			&i.CovalentApiKeyPaid,
 			&i.AppIds,
@@ -1394,11 +1451,11 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
-    so.duration,
-    so.sticky_max,
-    so.stickiness,
-    so.origins,
+    so.duration AS s_duration,
+    so.sticky_max AS s_sticky_max,
+    so.stickiness AS s_stickiness,
+    so.origins AS s_origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
@@ -1407,8 +1464,10 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
+    LEFT JOIN user_access AS uac ON lb.lb_id = uac.lb_id
+    AND uac.role_name = 'OWNER'
+    LEFT JOIN account_integrations AS ai ON uac.account_id = ai.account_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
                 json_build_object(
@@ -1435,14 +1494,15 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
     so.origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     user_access.ua
+ORDER BY lb.lb_id ASC
 `
 
 type SelectOneLoadBalancerRow struct {
@@ -1452,11 +1512,11 @@ type SelectOneLoadBalancerRow struct {
 	Gigastake          sql.NullBool    `json:"gigastake"`
 	GigastakeRedirect  sql.NullBool    `json:"gigastakeRedirect"`
 	UserID             sql.NullString  `json:"userID"`
+	SDuration          sql.NullString  `json:"sDuration"`
+	SStickyMax         sql.NullInt32   `json:"sStickyMax"`
+	SStickiness        sql.NullBool    `json:"sStickiness"`
+	SOrigins           []string        `json:"sOrigins"`
 	AccountID          sql.NullString  `json:"accountID"`
-	Duration           sql.NullString  `json:"duration"`
-	StickyMax          sql.NullInt32   `json:"stickyMax"`
-	Stickiness         sql.NullBool    `json:"stickiness"`
-	Origins            []string        `json:"origins"`
 	CovalentApiKeyFree sql.NullString  `json:"covalentApiKeyFree"`
 	CovalentApiKeyPaid sql.NullString  `json:"covalentApiKeyPaid"`
 	AppIds             []byte          `json:"appIds"`
@@ -1475,11 +1535,11 @@ func (q *Queries) SelectOneLoadBalancer(ctx context.Context, lbID string) (Selec
 		&i.Gigastake,
 		&i.GigastakeRedirect,
 		&i.UserID,
+		&i.SDuration,
+		&i.SStickyMax,
+		&i.SStickiness,
+		pq.Array(&i.SOrigins),
 		&i.AccountID,
-		&i.Duration,
-		&i.StickyMax,
-		&i.Stickiness,
-		pq.Array(&i.Origins),
 		&i.CovalentApiKeyFree,
 		&i.CovalentApiKeyPaid,
 		&i.AppIds,
@@ -1596,6 +1656,24 @@ func (q *Queries) SetUserAccessAccepted(ctx context.Context, arg SetUserAccessAc
 		arg.Accepted,
 		arg.UpdatedAt,
 	)
+	return err
+}
+
+const updateAccountIDNullOldOwner = `-- name: UpdateAccountIDNullOldOwner :exec
+UPDATE user_access
+SET account_id = NULL,
+    role_name = 'ADMIN'
+WHERE lb_id = $1
+    AND email = $2
+`
+
+type UpdateAccountIDNullOldOwnerParams struct {
+	LbID  string `json:"lbID"`
+	Email string `json:"email"`
+}
+
+func (q *Queries) UpdateAccountIDNullOldOwner(ctx context.Context, arg UpdateAccountIDNullOldOwnerParams) error {
+	_, err := q.db.ExecContext(ctx, updateAccountIDNullOldOwner, arg.LbID, arg.Email)
 	return err
 }
 
@@ -1716,7 +1794,8 @@ func (q *Queries) UpdateSyncCheckOptions(ctx context.Context, arg UpdateSyncChec
 const updateUserAccess = `-- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),
-    updated_at = $4
+    account_id = COALESCE($4, ua.account_id),
+    updated_at = $5
 WHERE ua.email = $1
     AND ua.lb_id = $2
 `
@@ -1725,6 +1804,7 @@ type UpdateUserAccessParams struct {
 	Email     string         `json:"email"`
 	LbID      string         `json:"lbID"`
 	RoleName  types.RoleName `json:"roleName"`
+	AccountID sql.NullString `json:"accountID"`
 	UpdatedAt sql.NullTime   `json:"updatedAt"`
 }
 
@@ -1733,6 +1813,7 @@ func (q *Queries) UpdateUserAccess(ctx context.Context, arg UpdateUserAccessPara
 		arg.Email,
 		arg.LbID,
 		arg.RoleName,
+		arg.AccountID,
 		arg.UpdatedAt,
 	)
 	return err

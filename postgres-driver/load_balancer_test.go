@@ -232,10 +232,10 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 					RequestTimeout:    sql.NullInt32{Valid: true, Int32: 5000},
 					Gigastake:         sql.NullBool{Valid: true, Bool: true},
 					GigastakeRedirect: sql.NullBool{Valid: true, Bool: true},
-					Duration:          sql.NullString{Valid: true, String: "70"},
-					StickyMax:         sql.NullInt32{Valid: true, Int32: 400},
-					Stickiness:        sql.NullBool{Valid: true, Bool: true},
-					Origins:           []string{"chrome-extension://"},
+					SDuration:         sql.NullString{Valid: true, String: "70"},
+					SStickyMax:        sql.NullInt32{Valid: true, Int32: 400},
+					SStickiness:       sql.NullBool{Valid: true, Bool: true},
+					SOrigins:          []string{"chrome-extension://"},
 					Users:             json.RawMessage(`[{"email": "owner4@test.com", "userID": "test_user_47fhsd75jd756sh", "accepted": true, "roleName": "OWNER"}]`),
 				},
 				err: nil,
@@ -276,10 +276,10 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 							ts.Equal(test.expectedLB.RequestTimeout, loadBalancer.RequestTimeout)
 							ts.Equal(test.expectedLB.Gigastake, loadBalancer.Gigastake)
 							ts.Equal(test.expectedLB.GigastakeRedirect, loadBalancer.GigastakeRedirect)
-							ts.Equal(test.expectedLB.Duration, loadBalancer.Duration)
-							ts.Equal(test.expectedLB.Origins, loadBalancer.Origins)
-							ts.Equal(test.expectedLB.StickyMax, loadBalancer.StickyMax)
-							ts.Equal(test.expectedLB.Stickiness, loadBalancer.Stickiness)
+							ts.Equal(test.expectedLB.SDuration, loadBalancer.SDuration)
+							ts.Equal(test.expectedLB.SOrigins, loadBalancer.SOrigins)
+							ts.Equal(test.expectedLB.SStickyMax, loadBalancer.SStickyMax)
+							ts.Equal(test.expectedLB.SStickiness, loadBalancer.SStickiness)
 							ts.Equal(test.expectedLB.CovalentApiKeyFree, loadBalancer.CovalentApiKeyFree)
 							ts.Equal(test.expectedLB.Users, loadBalancer.Users)
 							ts.Len(loadBalancer.AccountID.String, 8)
@@ -500,11 +500,11 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 					},
 				},
 				expectedAfterUpdate: SelectOneLoadBalancerRow{
-					Name:       sql.NullString{Valid: true, String: "pokt_app_updated"},
-					Duration:   sql.NullString{Valid: true, String: "100"},
-					StickyMax:  sql.NullInt32{Valid: true, Int32: 500},
-					Stickiness: sql.NullBool{Valid: true, Bool: false},
-					Origins:    []string{"chrome-extension://", "test-ext://"},
+					Name:        sql.NullString{Valid: true, String: "pokt_app_updated"},
+					SDuration:   sql.NullString{Valid: true, String: "100"},
+					SStickyMax:  sql.NullInt32{Valid: true, Int32: 500},
+					SStickiness: sql.NullBool{Valid: true, Bool: false},
+					SOrigins:    []string{"chrome-extension://", "test-ext://"},
 				},
 				err: nil,
 			},
@@ -518,11 +518,11 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 					},
 				},
 				expectedAfterUpdate: SelectOneLoadBalancerRow{
-					Name:       sql.NullString{Valid: true, String: "pokt_app_updated_2"},
-					Duration:   sql.NullString{Valid: true, String: "100"},
-					StickyMax:  sql.NullInt32{Valid: true, Int32: 400},
-					Stickiness: sql.NullBool{Valid: true, Bool: true},
-					Origins:    []string{"chrome-extension://"},
+					Name:        sql.NullString{Valid: true, String: "pokt_app_updated_2"},
+					SDuration:   sql.NullString{Valid: true, String: "100"},
+					SStickyMax:  sql.NullInt32{Valid: true, Int32: 400},
+					SStickiness: sql.NullBool{Valid: true, Bool: true},
+					SOrigins:    []string{"chrome-extension://"},
 				},
 				err: nil,
 			},
@@ -533,11 +533,11 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 					Name: "pokt_app_updated_3",
 				},
 				expectedAfterUpdate: SelectOneLoadBalancerRow{
-					Name:       sql.NullString{Valid: true, String: "pokt_app_updated_3"},
-					Duration:   sql.NullString{Valid: true, String: "20"},
-					StickyMax:  sql.NullInt32{Valid: true, Int32: 600},
-					Stickiness: sql.NullBool{Valid: true, Bool: false},
-					Origins:    []string{"test-extension://", "test-extension2://"},
+					Name:        sql.NullString{Valid: true, String: "pokt_app_updated_3"},
+					SDuration:   sql.NullString{Valid: true, String: "20"},
+					SStickyMax:  sql.NullInt32{Valid: true, Int32: 600},
+					SStickiness: sql.NullBool{Valid: true, Bool: false},
+					SOrigins:    []string{"test-extension://", "test-extension2://"},
 				},
 				err: nil,
 			},
@@ -550,11 +550,11 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 					},
 				},
 				expectedAfterUpdate: SelectOneLoadBalancerRow{
-					Name:       sql.NullString{Valid: true, String: "pokt_app_updated_3"},
-					Duration:   sql.NullString{Valid: true, String: "20"},
-					StickyMax:  sql.NullInt32{Valid: true, Int32: 600},
-					Stickiness: sql.NullBool{Valid: true, Bool: false},
-					Origins:    []string{"chrome-extension://", "test-ext://"},
+					Name:        sql.NullString{Valid: true, String: "pokt_app_updated_3"},
+					SDuration:   sql.NullString{Valid: true, String: "20"},
+					SStickyMax:  sql.NullInt32{Valid: true, Int32: 600},
+					SStickiness: sql.NullBool{Valid: true, Bool: false},
+					SOrigins:    []string{"chrome-extension://", "test-ext://"},
 				},
 				err: nil,
 			},
@@ -570,10 +570,10 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 			lbAfterUpdate, err := ts.driver.SelectOneLoadBalancer(testCtx, test.loadBalancerID)
 			ts.Equal(test.err, err)
 			ts.Equal(test.expectedAfterUpdate.Name, lbAfterUpdate.Name)
-			ts.Equal(test.expectedAfterUpdate.Duration, lbAfterUpdate.Duration)
-			ts.Equal(test.expectedAfterUpdate.Origins, lbAfterUpdate.Origins)
-			ts.Equal(test.expectedAfterUpdate.StickyMax, lbAfterUpdate.StickyMax)
-			ts.Equal(test.expectedAfterUpdate.Stickiness, lbAfterUpdate.Stickiness)
+			ts.Equal(test.expectedAfterUpdate.SDuration, lbAfterUpdate.SDuration)
+			ts.Equal(test.expectedAfterUpdate.SOrigins, lbAfterUpdate.SOrigins)
+			ts.Equal(test.expectedAfterUpdate.SStickyMax, lbAfterUpdate.SStickyMax)
+			ts.Equal(test.expectedAfterUpdate.SStickiness, lbAfterUpdate.SStickiness)
 		}
 	})
 
@@ -584,6 +584,7 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 			userRoleInput         types.RoleName
 			expectedUsersJSON     json.RawMessage
 			expectedUsers         []types.UserAccess
+			transferOwner         bool
 			err                   error
 		}{
 			{
@@ -631,6 +632,45 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				err: nil,
 			},
 			{
+				name:              "Should update the RoleName of a UserAccess to OWNER",
+				lbIDInput:         "test_lb_34987u329rfn23f",
+				emailInput:        "admin1@test.com",
+				userRoleInput:     types.RoleOwner,
+				expectedUsersJSON: json.RawMessage(`[{"email": "member1@test.com", "userID": "test_user_member1234", "accepted": true, "roleName": "MEMBER"}, {"email": "member5@test.com", "userID": null, "accepted": false, "roleName": "MEMBER"}, {"email": "member6@test.com", "userID": null, "accepted": false, "roleName": "MEMBER"}, {"email": "owner1@test.com", "userID": "test_user_1dbffbdfeeb225", "accepted": true, "roleName": "ADMIN"}, {"email": "admin1@test.com", "userID": "test_user_admin1234", "accepted": true, "roleName": "OWNER"}]`),
+				expectedUsers: []types.UserAccess{
+					{
+						UserID:   "test_user_member1234",
+						RoleName: types.RoleMember,
+						Email:    "member1@test.com",
+						Accepted: true,
+					},
+					{
+						RoleName: types.RoleMember,
+						Email:    "member5@test.com",
+						Accepted: false,
+					},
+					{
+						RoleName: types.RoleMember,
+						Email:    "member6@test.com",
+						Accepted: false,
+					},
+					{
+						UserID:   "test_user_1dbffbdfeeb225",
+						RoleName: types.RoleAdmin,
+						Email:    "owner1@test.com",
+						Accepted: true,
+					},
+					{
+						UserID:   "test_user_admin1234",
+						RoleName: types.RoleOwner,
+						Email:    "admin1@test.com",
+						Accepted: true,
+					},
+				},
+				transferOwner: true,
+				err:           nil,
+			},
+			{
 				name:       "Should fail if user email not provided",
 				lbIDInput:  "test_lb_34gg4g43g34g5hh",
 				emailInput: "",
@@ -667,6 +707,8 @@ func (ts *PGDriverTestSuite) Test_WriteTests() {
 				err = json.Unmarshal(loadBalancer.Users, &users)
 				ts.NoError(err)
 				ts.Equal(test.expectedUsers, users)
+
+				ts.Len(loadBalancer.AccountID.String, 8)
 			}
 		}
 	})
