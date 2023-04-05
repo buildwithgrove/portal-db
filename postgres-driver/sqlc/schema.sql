@@ -76,7 +76,6 @@ CREATE TABLE IF NOT EXISTS loadbalancers (
 	gigastake_redirect BOOLEAN,
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
-	account_id VARCHAR(10) UNIQUE,
 	PRIMARY KEY (id)
 );
 -- Will be migrated to V2 but creating here for the time being
@@ -108,11 +107,16 @@ CREATE TABLE IF NOT EXISTS user_access (
 	accepted BOOLEAN NOT NULL,
 	created_at TIMESTAMP NULL,
 	updated_at TIMESTAMP NULL,
+	account_id VARCHAR(10) UNIQUE,
+	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES loadbalancers(lb_id),
+	CONSTRAINT fk_role FOREIGN KEY(role_name) REFERENCES user_roles(name),
+	CONSTRAINT chk_account_id CHECK (
+		(role_name = 'OWNER' AND account_id IS NOT NULL) OR
+		(role_name <> 'OWNER' AND account_id IS NULL)
+	),
 	PRIMARY KEY (id),
 	UNIQUE (lb_id, user_id),
-	UNIQUE (lb_id, email),
-	CONSTRAINT fk_lb FOREIGN KEY(lb_id) REFERENCES loadbalancers(lb_id),
-	CONSTRAINT fk_role FOREIGN KEY(role_name) REFERENCES user_roles(name)
+	UNIQUE (lb_id, email)
 );
 -- Applications
 CREATE TABLE IF NOT EXISTS applications (

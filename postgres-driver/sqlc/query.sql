@@ -587,7 +587,7 @@ WHERE application_id = $1;
 -- name: CheckAccountIDExists :one
 SELECT EXISTS(
         SELECT 1
-        FROM loadbalancers
+        FROM user_access
         WHERE account_id = $1
     );
 -- name: SelectLoadBalancers :many
@@ -597,11 +597,11 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
     so.duration AS s_duration,
     so.sticky_max AS s_sticky_max,
     so.stickiness AS s_stickiness,
     so.origins AS s_origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
@@ -610,8 +610,10 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
+    LEFT JOIN user_access AS uac ON lb.lb_id = uac.lb_id
+    AND uac.role_name = 'OWNER'
+    LEFT JOIN account_integrations AS ai ON uac.account_id = ai.account_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
                 json_build_object(
@@ -637,11 +639,11 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
     so.origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     user_access.ua
@@ -653,11 +655,11 @@ SELECT lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
-    so.duration,
-    so.sticky_max,
-    so.stickiness,
-    so.origins,
+    so.duration AS s_duration,
+    so.sticky_max AS s_sticky_max,
+    so.stickiness AS s_stickiness,
+    so.origins AS s_origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     STRING_AGG(la.app_id, ',') AS app_ids,
@@ -666,8 +668,10 @@ SELECT lb.lb_id,
     lb.updated_at
 FROM loadbalancers AS lb
     LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN account_integrations AS ai ON lb.account_id = ai.account_id
     LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
+    LEFT JOIN user_access AS uac ON lb.lb_id = uac.lb_id
+    AND uac.role_name = 'OWNER'
+    LEFT JOIN account_integrations AS ai ON uac.account_id = ai.account_id
     LEFT JOIN LATERAL (
         SELECT jsonb_agg(
                 json_build_object(
@@ -694,14 +698,15 @@ GROUP BY lb.lb_id,
     lb.gigastake,
     lb.gigastake_redirect,
     lb.user_id,
-    lb.account_id,
     so.duration,
     so.sticky_max,
     so.stickiness,
     so.origins,
+    uac.account_id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
-    user_access.ua;
+    user_access.ua
+ORDER BY lb.lb_id ASC;
 -- name: SelectUserRoles :many
 SELECT ua.lb_id,
     ua.user_id,
@@ -719,7 +724,6 @@ INSERT into loadbalancers (
         request_timeout,
         gigastake,
         gigastake_redirect,
-        account_id,
         created_at,
         updated_at
     )
@@ -731,8 +735,7 @@ VALUES (
         $5,
         $6,
         $7,
-        $8,
-        $9
+        $8
     );
 -- name: InsertStickinessOptions :exec
 INSERT INTO stickiness_options (
@@ -767,6 +770,18 @@ SET covalent_api_key_free = CASE
     END,
     updated_at = EXCLUDED.updated_at
 RETURNING *;
+-- name: InsertUserAccessOwner :exec
+INSERT INTO user_access (
+        lb_id,
+        role_name,
+        user_id,
+        email,
+        accepted,
+        created_at,
+        updated_at,
+        account_id
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
 -- name: InsertUserAccess :exec
 INSERT INTO user_access (
         lb_id,
@@ -797,9 +812,22 @@ WHERE email = $1
 -- name: UpdateUserAccess :exec
 UPDATE user_access as ua
 SET role_name = COALESCE($3, ua.role_name),
-    updated_at = $4
+    account_id = COALESCE($4, ua.account_id),
+    updated_at = $5
 WHERE ua.email = $1
     AND ua.lb_id = $2;
+-- name: GetPreviousOwner :one
+SELECT account_id,
+    email
+FROM user_access
+WHERE lb_id = $1
+    AND role_name = 'OWNER';
+-- name: UpdateAccountIDNullOldOwner :exec
+UPDATE user_access
+SET account_id = NULL,
+    role_name = 'ADMIN'
+WHERE lb_id = $1
+    AND email = $2;
 -- name: SetUserAccessAccepted :exec
 UPDATE user_access as ua
 SET user_id = $3,

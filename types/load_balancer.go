@@ -30,8 +30,8 @@ type (
 		Gigastake         bool                `json:"gigastake"`
 		GigastakeRedirect bool                `json:"gigastakeRedirect"`
 		StickyOptions     StickyOptions       `json:"stickinessOptions"`
-		Applications      []*Application      `json:"applications"`
 		Integrations      AccountIntegrations `json:"integrations"`
+		Applications      []*Application      `json:"applications"`
 		Users             []UserAccess        `json:"users"`
 		CreatedAt         time.Time           `json:"createdAt"`
 		UpdatedAt         time.Time           `json:"updatedAt"`
