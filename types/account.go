@@ -12,7 +12,6 @@ type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
 		ID                     AccountID                    `json:"id"`
-		Name                   string                       `json:"name"`
 		PlanType               PayPlanType                  `json:"planType"`
 		Users                  map[UserID]AccountUserAccess `json:"users"`
 		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
@@ -26,10 +25,6 @@ type (
 		// PortalApps and Plan are set inside PHD
 		PortalApps map[PortalAppID]*PortalApp `json:"portalApps"`
 		Plan       *Plan                      `json:"payPlan"`
-
-		// TODO - remove when v2 migration finished
-		// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
-		LegacyLoadBalancerID string `json:"legacyLoadBalancerID"`
 	}
 
 	// AccountUserAccess represents a single Portal user's role for a single Account

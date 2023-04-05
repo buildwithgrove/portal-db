@@ -62,75 +62,57 @@ VALUES (
 -- Insert accounts
 INSERT INTO accounts (
         id,
-        name,
         plan_type,
         partner_chain_ids,
         partner_throughput_limit,
         partner_application_limit,
         created_at,
-        updated_at,
-        -- legacy field
-        lb_id
+        updated_at
     )
 VALUES (
         'account_1',
-        'test_account_1',
         'basic_plan',
         ARRAY ['0001', '0053'],
         2000,
         1,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_5c6f50bc30b530a8'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'account_2',
-        'test_account_2',
         'pro_plan',
         ARRAY ['0001', '0053','0021', '0064'],
         5000,
         3,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_d2c7361fd9c5dff7'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'account_3',
-        'test_account_3',
         'startup_plan',
         ARRAY ['0001', '0053', '0064', '0034'],
         1000,
         2,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_4b874c457f73c4e9'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'account_4',
-        'test_account_4',
         'enterprise_plan',
         ARRAY ['0001'],
         1000,
         2,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_746e04231640556a'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'account_5',
-        'test_account_5',
         'basic_plan',
         ARRAY ['0006', '0040'],
         6000,
         1,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_f5ee77c7c58025231'
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO account_integrations (
         account_id,
@@ -553,6 +535,7 @@ VALUES (
         '{ "https://example.com", "https://test.com" }'
     );
 INSERT INTO portal_application_aats (
+        id,
         application_id,
         address,
         public_key,
@@ -562,6 +545,7 @@ INSERT INTO portal_application_aats (
         version
     )
 VALUES (
+        'test_protocol_app_1',
         'test_app_1',
         'test_34715cae753e67c75fbb340442e7de8e',
         'test_34715cae753e67c75fbb340442e7de8e',
@@ -571,6 +555,7 @@ VALUES (
         '0.0.1'
     ),
     (
+        'test_protocol_app_2',
         'test_app_2',
         'test_8237c72345f12d1b1a8b64a1a7f66fa4',
         'test_8237c72345f12d1b1a8b64a1a7f66fa4',
@@ -580,12 +565,23 @@ VALUES (
         '0.0.1'
     ),
     (
+        'test_protocol_app_3',
         'test_app_3',
         'test_b5e07928fc80083c13ad0201b81bae9b',
         'test_f608500e4fe3e09014fe2411b4a560b5',
         'test_8663e187c19f3c6e27317eab4ed6d7d5',
         'test_328a9cf1b35085eeaa669aa858f6fba9',
         'test_c3cd8be16ba32e24dd49fdb0247fc9b8',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_4',
+        'test_app_3',
+        'test_eb2e5bcba557cfe8fa76fd7fff54f9d1',
+        'test_f6a5d8690ecb669865bd752b7796a920',
+        'test_838d29d61a65401f7d56d084cb6e4783',
+        'test_6ee5ea553408f0895923fd1569dc5072',
+        'test_cf05cf9bb26111c548e88fb6157af708',
         '0.0.1'
     );
 INSERT INTO portal_application_settings (
@@ -862,53 +858,43 @@ VALUES (
     );
 INSERT INTO chain_gigastake_redirects (
         chain_id,
-        account_id,
+        portal_application_id,
         alias,
         domain,
         created_at,
-        updated_at,
-        -- legacy field
-        lb_id
+        updated_at
     )
 VALUES (
         '0001',
-        'account_1',
+        'test_app_1',
         'altruist-0001',
         'pokt-rpc.gateway.pokt.network',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_5c6f50bc30b530a8'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         '0053',
-        'account_2',
+        'test_app_2',
         'altruist-0053',
         'op-rpc.gateway.pokt.network',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_d2c7361fd9c5dff7'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         '0021',
-        'account_3',
+        'test_app_3',
         'altruist-0021',
         'eth-rpc.gateway.pokt.network',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_4b874c457f73c4e9'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         '0040',
-        'account_4',
+        'test_app_3',
         'altruist-0040',
         'hmy-rpc.gateway.pokt.network',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        -- legacy field
-        'test_lb_746e04231640556a'
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO chain_checks (
         chain_id,

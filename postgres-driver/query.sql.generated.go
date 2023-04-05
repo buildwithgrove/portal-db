@@ -131,6 +131,10 @@ SELECT EXISTS (
                 WHERE portal_applications.id = $1::VARCHAR
                 UNION ALL
                 SELECT id
+                FROM portal_application_aats
+                WHERE portal_application_aats.id = $1::VARCHAR
+                UNION ALL
+                SELECT id
                 FROM accounts
                 WHERE accounts.id = $1::VARCHAR
                 UNION ALL
@@ -163,24 +167,40 @@ func (q *Queries) CheckPlanTypeExists(ctx context.Context, planType types.PayPla
 	return exists, err
 }
 
+const checkPortalAppExists = `-- name: CheckPortalAppExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM portal_applications
+        WHERE id = $1
+            AND deleted = false
+    )
+`
+
+func (q *Queries) CheckPortalAppExists(ctx context.Context, id types.PortalAppID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkPortalAppExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkRedirectExists = `-- name: CheckRedirectExists :one
 SELECT EXISTS(
         SELECT 1
         FROM chain_gigastake_redirects
         WHERE chain_id = $1
-            AND account_id = $2
+            AND portal_application_id = $2
             AND domain = $3
     )
 `
 
 type CheckRedirectExistsParams struct {
-	ChainID   types.RelayChainID   `json:"chain_id"`
-	AccountID types.AccountID      `json:"account_id"`
-	Domain    types.RedirectDomain `json:"domain"`
+	ChainID             types.RelayChainID   `json:"chain_id"`
+	PortalApplicationID types.PortalAppID    `json:"portal_application_id"`
+	Domain              types.RedirectDomain `json:"domain"`
 }
 
 func (q *Queries) CheckRedirectExists(ctx context.Context, arg CheckRedirectExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkRedirectExists, arg.ChainID, arg.AccountID, arg.Domain)
+	row := q.db.QueryRowContext(ctx, checkRedirectExists, arg.ChainID, arg.PortalApplicationID, arg.Domain)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -325,18 +345,18 @@ func (q *Queries) DeleteAccountUser(ctx context.Context, arg DeleteAccountUserPa
 const deleteGigastakeRedirect = `-- name: DeleteGigastakeRedirect :exec
 DELETE FROM chain_gigastake_redirects
 WHERE chain_id = $1
-    AND account_id = $2
+    AND portal_application_id = $2
     and domain = $3
 `
 
 type DeleteGigastakeRedirectParams struct {
-	ChainID   types.RelayChainID   `json:"chain_id"`
-	AccountID types.AccountID      `json:"account_id"`
-	Domain    types.RedirectDomain `json:"domain"`
+	ChainID             types.RelayChainID   `json:"chain_id"`
+	PortalApplicationID types.PortalAppID    `json:"portal_application_id"`
+	Domain              types.RedirectDomain `json:"domain"`
 }
 
 func (q *Queries) DeleteGigastakeRedirect(ctx context.Context, arg DeleteGigastakeRedirectParams) error {
-	_, err := q.db.ExecContext(ctx, deleteGigastakeRedirect, arg.ChainID, arg.AccountID, arg.Domain)
+	_, err := q.db.ExecContext(ctx, deleteGigastakeRedirect, arg.ChainID, arg.PortalApplicationID, arg.Domain)
 	return err
 }
 
@@ -396,18 +416,18 @@ func (q *Queries) DeleteUnusedChainChecks(ctx context.Context, arg DeleteUnusedC
 const deleteUnusedChainGigastakeRedirects = `-- name: DeleteUnusedChainGigastakeRedirects :exec
 DELETE FROM chain_gigastake_redirects
 WHERE chain_id = $1
-    AND account_id NOT IN (
+    AND portal_application_id NOT IN (
         SELECT unnest($2::VARCHAR [])
     )
 `
 
 type DeleteUnusedChainGigastakeRedirectsParams struct {
-	ChainID    types.RelayChainID `json:"chain_id"`
-	AccountIDs []string           `json:"account_ids"`
+	ChainID              types.RelayChainID `json:"chain_id"`
+	PortalApplicationIDs []string           `json:"portal_application_ids"`
 }
 
 func (q *Queries) DeleteUnusedChainGigastakeRedirects(ctx context.Context, arg DeleteUnusedChainGigastakeRedirectsParams) error {
-	_, err := q.db.ExecContext(ctx, deleteUnusedChainGigastakeRedirects, arg.ChainID, pq.Array(arg.AccountIDs))
+	_, err := q.db.ExecContext(ctx, deleteUnusedChainGigastakeRedirects, arg.ChainID, pq.Array(arg.PortalApplicationIDs))
 	return err
 }
 
@@ -503,39 +523,31 @@ func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.User
 const insertAccount = `-- name: InsertAccount :one
 INSERT INTO accounts (
         id,
-        name,
         plan_type,
         created_at,
-        updated_at,
-        -- legacy field
-        lb_id
+        updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, name, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at, lb_id
+VALUES ($1, $2, $3, $4)
+RETURNING id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
 `
 
 type InsertAccountParams struct {
 	ID        types.AccountID   `json:"id"`
-	Name      string            `json:"name"`
 	PlanType  types.PayPlanType `json:"plan_type"`
 	CreatedAt time.Time         `json:"created_at"`
 	UpdatedAt time.Time         `json:"updated_at"`
-	LbID      string            `json:"lb_id"`
 }
 
 func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (Account, error) {
 	row := q.db.QueryRowContext(ctx, insertAccount,
 		arg.ID,
-		arg.Name,
 		arg.PlanType,
 		arg.CreatedAt,
 		arg.UpdatedAt,
-		arg.LbID,
 	)
 	var i Account
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
 		&i.PlanType,
 		pq.Array(&i.PartnerChainIDs),
 		&i.PartnerThroughputLimit,
@@ -544,7 +556,6 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 		&i.UpdatedAt,
 		&i.Deleted,
 		&i.DeletedAt,
-		&i.LbID,
 	)
 	return i, err
 }
@@ -769,6 +780,7 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 
 const insertPortalApplicationAAT = `-- name: InsertPortalApplicationAAT :one
 INSERT INTO portal_application_aats (
+        id,
         application_id,
         address,
         public_key,
@@ -777,22 +789,24 @@ INSERT INTO portal_application_aats (
         signature,
         version
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING id, application_id, address, public_key, client_public_key, private_key, signature, version
 `
 
 type InsertPortalApplicationAATParams struct {
-	ApplicationID   types.PortalAppID `json:"application_id"`
-	Address         string            `json:"address"`
-	PublicKey       string            `json:"public_key"`
-	PrivateKey      string            `json:"private_key"`
-	ClientPublicKey string            `json:"client_public_key"`
-	Signature       string            `json:"signature"`
-	Version         string            `json:"version"`
+	ID              types.ProtocolAppID `json:"id"`
+	ApplicationID   types.PortalAppID   `json:"application_id"`
+	Address         string              `json:"address"`
+	PublicKey       string              `json:"public_key"`
+	PrivateKey      string              `json:"private_key"`
+	ClientPublicKey string              `json:"client_public_key"`
+	Signature       string              `json:"signature"`
+	Version         string              `json:"version"`
 }
 
 func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (PortalApplicationAat, error) {
 	row := q.db.QueryRowContext(ctx, insertPortalApplicationAAT,
+		arg.ID,
 		arg.ApplicationID,
 		arg.Address,
 		arg.PublicKey,
@@ -917,7 +931,7 @@ WITH user_auth_agg AS (
     FROM user_auth_providers
     GROUP BY user_id
 )
-SELECT a.id, a.name, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at, a.lb_id,
+SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     json_agg(
@@ -951,7 +965,6 @@ GROUP BY a.id,
 
 type SelectAccountsRow struct {
 	ID                      types.AccountID   `json:"id"`
-	Name                    string            `json:"name"`
 	PlanType                types.PayPlanType `json:"plan_type"`
 	PartnerChainIDs         []string          `json:"partner_chain_ids"`
 	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
@@ -960,7 +973,6 @@ type SelectAccountsRow struct {
 	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deleted_at"`
-	LbID                    string            `json:"lb_id"`
 	CovalentAPIKeyFree      sql.NullString    `json:"covalent_api_key_free"`
 	CovalentAPIKeyPaid      sql.NullString    `json:"covalent_api_key_paid"`
 	Users                   json.RawMessage   `json:"users"`
@@ -977,7 +989,6 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 		var i SelectAccountsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Name,
 			&i.PlanType,
 			pq.Array(&i.PartnerChainIDs),
 			&i.PartnerThroughputLimit,
@@ -986,7 +997,6 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 			&i.UpdatedAt,
 			&i.Deleted,
 			&i.DeletedAt,
-			&i.LbID,
 			&i.CovalentAPIKeyFree,
 			&i.CovalentAPIKeyPaid,
 			&i.Users,
@@ -1187,12 +1197,6 @@ func (q *Queries) SelectPlans(ctx context.Context) ([]SelectPlansRow, error) {
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
 SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
-    paa.address,
-    paa.public_key,
-    paa.private_key,
-    paa.client_public_key,
-    paa.signature,
-    paa.version,
     pas.secret_key,
     pas.secret_key_required,
     pas.monthly_relay_limit,
@@ -1205,6 +1209,30 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.update
     pso.stickiness,
     -- legacy field
     pso.origins,
+    COALESCE(
+        (
+            SELECT json_object_agg(
+                    paa.id,
+                    json_build_object(
+                        'address',
+                        paa.address,
+                        'public_key',
+                        paa.public_key,
+                        'private_key',
+                        paa.private_key,
+                        'client_public_key',
+                        paa.client_public_key,
+                        'signature',
+                        paa.signature,
+                        'version',
+                        paa.version
+                    )
+                )
+            FROM portal_application_aats paa
+            WHERE paa.application_id = p.id
+        ),
+        '[]'::json
+    )::json AS aats,
     COALESCE(
         (
             SELECT json_object_agg(
@@ -1252,7 +1280,6 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.update
         '[]'::json
     )::json AS whitelists
 FROM portal_applications p
-    LEFT JOIN portal_application_aats paa ON p.id = paa.application_id
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id -- legacy table
     LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
 WHERE (
@@ -1260,12 +1287,6 @@ WHERE (
         OR p.deleted = false
     )
 GROUP BY p.id,
-    paa.address,
-    paa.public_key,
-    paa.private_key,
-    paa.client_public_key,
-    paa.signature,
-    paa.version,
     pas.secret_key,
     pas.secret_key_required,
     pas.monthly_relay_limit,
@@ -1290,12 +1311,6 @@ type SelectPortalApplicationsRow struct {
 	GigastakeRedirect  sql.NullBool      `json:"gigastake_redirect"`
 	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
 	CustomLimit        sql.NullInt32     `json:"custom_limit"`
-	Address            sql.NullString    `json:"address"`
-	PublicKey          sql.NullString    `json:"public_key"`
-	PrivateKey         sql.NullString    `json:"private_key"`
-	ClientPublicKey    sql.NullString    `json:"client_public_key"`
-	Signature          sql.NullString    `json:"signature"`
-	Version            sql.NullString    `json:"version"`
 	SecretKey          sql.NullString    `json:"secret_key"`
 	SecretKeyRequired  sql.NullBool      `json:"secret_key_required"`
 	MonthlyRelayLimit  sql.NullInt32     `json:"monthly_relay_limit"`
@@ -1304,6 +1319,7 @@ type SelectPortalApplicationsRow struct {
 	StickyMax          sql.NullInt32     `json:"sticky_max"`
 	Stickiness         sql.NullBool      `json:"stickiness"`
 	Origins            []string          `json:"origins"`
+	AATs               json.RawMessage   `json:"aats"`
 	Notifications      json.RawMessage   `json:"notifications"`
 	Whitelists         json.RawMessage   `json:"whitelists"`
 }
@@ -1331,12 +1347,6 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, dollar_1 bool) (
 			&i.GigastakeRedirect,
 			&i.FirstDateSurpassed,
 			&i.CustomLimit,
-			&i.Address,
-			&i.PublicKey,
-			&i.PrivateKey,
-			&i.ClientPublicKey,
-			&i.Signature,
-			&i.Version,
 			&i.SecretKey,
 			&i.SecretKeyRequired,
 			&i.MonthlyRelayLimit,
@@ -1345,6 +1355,7 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, dollar_1 bool) (
 			&i.StickyMax,
 			&i.Stickiness,
 			pq.Array(&i.Origins),
+			&i.AATs,
 			&i.Notifications,
 			&i.Whitelists,
 		); err != nil {
@@ -1477,24 +1488,6 @@ WHERE account_user_access.account_id = $1
 
 func (q *Queries) UpdateAccountOwnerToAdmin(ctx context.Context, accountID types.AccountID) error {
 	_, err := q.db.ExecContext(ctx, updateAccountOwnerToAdmin, accountID)
-	return err
-}
-
-const updateAccountQuery = `-- name: UpdateAccountQuery :exec
-UPDATE accounts
-SET name = COALESCE($2, accounts.name),
-    updated_at = $3
-WHERE id = $1
-`
-
-type UpdateAccountQueryParams struct {
-	ID        types.AccountID `json:"id"`
-	Name      string          `json:"name"`
-	UpdatedAt time.Time       `json:"updated_at"`
-}
-
-func (q *Queries) UpdateAccountQuery(ctx context.Context, arg UpdateAccountQueryParams) error {
-	_, err := q.db.ExecContext(ctx, updateAccountQuery, arg.ID, arg.Name, arg.UpdatedAt)
 	return err
 }
 
@@ -2038,15 +2031,13 @@ func (q *Queries) UpsertChainCheck(ctx context.Context, arg UpsertChainCheckPara
 const upsertChainGigastakeRedirect = `-- name: UpsertChainGigastakeRedirect :exec
 INSERT INTO chain_gigastake_redirects (
         chain_id,
-        account_id,
+        portal_application_id,
         alias,
         domain,
         created_at,
-        updated_at,
-        -- legacy field
-        lb_id
+        updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, account_id, domain) DO
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (chain_id, portal_application_id, domain) DO
 UPDATE
 SET chain_id = COALESCE(
         EXCLUDED.chain_id,
@@ -2057,30 +2048,26 @@ SET chain_id = COALESCE(
         EXCLUDED.domain,
         chain_gigastake_redirects.domain
     ),
-    updated_at = EXCLUDED.updated_at,
-    -- legacy field
-    lb_id = EXCLUDED.lb_id
+    updated_at = EXCLUDED.updated_at
 `
 
 type UpsertChainGigastakeRedirectParams struct {
-	ChainID   types.RelayChainID   `json:"chain_id"`
-	AccountID types.AccountID      `json:"account_id"`
-	Alias     string               `json:"alias"`
-	Domain    types.RedirectDomain `json:"domain"`
-	CreatedAt time.Time            `json:"created_at"`
-	UpdatedAt time.Time            `json:"updated_at"`
-	LbID      string               `json:"lb_id"`
+	ChainID             types.RelayChainID   `json:"chain_id"`
+	PortalApplicationID types.PortalAppID    `json:"portal_application_id"`
+	Alias               string               `json:"alias"`
+	Domain              types.RedirectDomain `json:"domain"`
+	CreatedAt           time.Time            `json:"created_at"`
+	UpdatedAt           time.Time            `json:"updated_at"`
 }
 
 func (q *Queries) UpsertChainGigastakeRedirect(ctx context.Context, arg UpsertChainGigastakeRedirectParams) error {
 	_, err := q.db.ExecContext(ctx, upsertChainGigastakeRedirect,
 		arg.ChainID,
-		arg.AccountID,
+		arg.PortalApplicationID,
 		arg.Alias,
 		arg.Domain,
 		arg.CreatedAt,
 		arg.UpdatedAt,
-		arg.LbID,
 	)
 	return err
 }

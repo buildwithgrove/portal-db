@@ -41,7 +41,7 @@ type (
 
 	Writer interface {
 		/* WritePortalApp saves input PortalApp to the database. */
-		WritePortalApp(ctx context.Context, portalApp types.PortalApp, createdAt time.Time) (*types.PortalApp, error)
+		WritePortalApp(ctx context.Context, portalApp types.PortalApp, aat types.AAT, createdAt time.Time) (*types.PortalApp, error)
 		/* UpdateLoadBalancer updates PortalApp and related table rows. */
 		UpdatePortalApp(ctx context.Context, update types.UpdatePortalApp, updatedAt time.Time) error
 		/* SetPortalAppDeleted sets the portal app Deleted field to true. */
@@ -58,8 +58,6 @@ type (
 
 		/* WriteAccount saves input Account to the database. */
 		WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error)
-		/* UpdateAccount updates a single Account in the database. */
-		UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) error
 		/* UpsertAccountIntegration adds or updates the Account Integrations for a single Account. */
 		UpsertAccountIntegration(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error)
 		/* SetAccountDeleted sets the Account Deleted field to true. */
@@ -81,7 +79,7 @@ type (
 		/* ActivateChain toggles Chain.Active field on or off. */
 		SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error)
 		/* RemoveGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
-		RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, accountID types.AccountID, domain types.RedirectDomain) error
+		RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.RedirectDomain) error
 
 		/* WriteBlockedContract adds a new blocked address to the global blocked contracts table. */
 		WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error

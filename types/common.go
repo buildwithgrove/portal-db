@@ -8,6 +8,7 @@ type (
 	UserID         string
 	RelayChainID   string
 	PortalAppID    string
+	ProtocolAppID  string
 	Email          string
 	BlockedAddress string
 )

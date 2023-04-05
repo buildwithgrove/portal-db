@@ -7,6 +7,10 @@ SELECT EXISTS (
                 WHERE portal_applications.id = @id::VARCHAR
                 UNION ALL
                 SELECT id
+                FROM portal_application_aats
+                WHERE portal_application_aats.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
                 FROM accounts
                 WHERE accounts.id = @id::VARCHAR
                 UNION ALL
@@ -26,12 +30,6 @@ SELECT plan_type,
 FROM pay_plans;
 -- name: SelectPortalApplications :many
 SELECT p.*,
-    paa.address,
-    paa.public_key,
-    paa.private_key,
-    paa.client_public_key,
-    paa.signature,
-    paa.version,
     pas.secret_key,
     pas.secret_key_required,
     pas.monthly_relay_limit,
@@ -44,6 +42,30 @@ SELECT p.*,
     pso.stickiness,
     -- legacy field
     pso.origins,
+    COALESCE(
+        (
+            SELECT json_object_agg(
+                    paa.id,
+                    json_build_object(
+                        'address',
+                        paa.address,
+                        'public_key',
+                        paa.public_key,
+                        'private_key',
+                        paa.private_key,
+                        'client_public_key',
+                        paa.client_public_key,
+                        'signature',
+                        paa.signature,
+                        'version',
+                        paa.version
+                    )
+                )
+            FROM portal_application_aats paa
+            WHERE paa.application_id = p.id
+        ),
+        '[]'::json
+    )::json AS aats,
     COALESCE(
         (
             SELECT json_object_agg(
@@ -91,7 +113,6 @@ SELECT p.*,
         '[]'::json
     )::json AS whitelists
 FROM portal_applications p
-    LEFT JOIN portal_application_aats paa ON p.id = paa.application_id
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id -- legacy table
     LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
 WHERE (
@@ -99,12 +120,6 @@ WHERE (
         OR p.deleted = false
     )
 GROUP BY p.id,
-    paa.address,
-    paa.public_key,
-    paa.private_key,
-    paa.client_public_key,
-    paa.signature,
-    paa.version,
     pas.secret_key,
     pas.secret_key_required,
     pas.monthly_relay_limit,
@@ -153,6 +168,7 @@ VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
 INSERT INTO portal_application_aats (
+        id,
         application_id,
         address,
         public_key,
@@ -161,7 +177,7 @@ INSERT INTO portal_application_aats (
         signature,
         version
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 -- name: InsertPortalApplicationSetting :one
 INSERT INTO portal_application_settings (
@@ -303,11 +319,6 @@ WHERE (
 GROUP BY a.id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid;
--- name: UpdateAccountQuery :exec
-UPDATE accounts
-SET name = COALESCE($2, accounts.name),
-    updated_at = $3
-WHERE id = $1;
 -- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
         account_id,
@@ -348,14 +359,11 @@ FROM user_auth_providers;
 -- name: InsertAccount :one
 INSERT INTO accounts (
         id,
-        name,
         plan_type,
         created_at,
-        updated_at,
-        -- legacy field
-        lb_id
+        updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 -- name: DeleteAccount :exec
 UPDATE accounts
@@ -374,7 +382,7 @@ SELECT EXISTS(
         SELECT 1
         FROM chain_gigastake_redirects
         WHERE chain_id = $1
-            AND account_id = $2
+            AND portal_application_id = $2
             AND domain = $3
     );
 -- name: CheckPlanTypeExists :one
@@ -395,6 +403,13 @@ WHERE email = $1;
 SELECT EXISTS(
         SELECT 1
         FROM accounts
+        WHERE id = $1
+            AND deleted = false
+    );
+-- name: CheckPortalAppExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM portal_applications
         WHERE id = $1
             AND deleted = false
     );
@@ -685,15 +700,13 @@ WHERE chain_id = $1
 -- name: UpsertChainGigastakeRedirect :exec
 INSERT INTO chain_gigastake_redirects (
         chain_id,
-        account_id,
+        portal_application_id,
         alias,
         domain,
         created_at,
-        updated_at,
-        -- legacy field
-        lb_id
+        updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, account_id, domain) DO
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (chain_id, portal_application_id, domain) DO
 UPDATE
 SET chain_id = COALESCE(
         EXCLUDED.chain_id,
@@ -704,19 +717,17 @@ SET chain_id = COALESCE(
         EXCLUDED.domain,
         chain_gigastake_redirects.domain
     ),
-    updated_at = EXCLUDED.updated_at,
-    -- legacy field
-    lb_id = EXCLUDED.lb_id;
+    updated_at = EXCLUDED.updated_at;
 -- name: DeleteUnusedChainGigastakeRedirects :exec
 DELETE FROM chain_gigastake_redirects
 WHERE chain_id = $1
-    AND account_id NOT IN (
-        SELECT unnest(@account_ids::VARCHAR [])
+    AND portal_application_id NOT IN (
+        SELECT unnest(@portal_application_ids::VARCHAR [])
     );
 -- name: DeleteGigastakeRedirect :exec
 DELETE FROM chain_gigastake_redirects
 WHERE chain_id = $1
-    AND account_id = $2
+    AND portal_application_id = $2
     and domain = $3;
 -- name: UpsertChainCheck :exec
 INSERT INTO chain_checks (

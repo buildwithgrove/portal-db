@@ -108,64 +108,6 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_UpdateAccount() {
-	tests := []struct {
-		name      string
-		accountID types.AccountID
-		update    types.UpdateAccount
-		err       error
-	}{
-		{
-			name:      "Should update account name successfully",
-			accountID: testdata.Accounts["account_1"].ID,
-			update: types.UpdateAccount{
-				AccountID: testdata.Accounts["account_1"].ID,
-				Name:      "Updated Account",
-			},
-			err: nil,
-		},
-		{
-			name:      "Should update account name back to original successfully",
-			accountID: testdata.Accounts["account_1"].ID,
-			update: types.UpdateAccount{
-				AccountID: testdata.Accounts["account_1"].ID,
-				Name:      testdata.Accounts["account_1"].Name,
-			},
-			err: nil,
-		},
-		{
-			name:      "Should fail if account does not exist",
-			accountID: "account_347",
-			update: types.UpdateAccount{
-				AccountID: "account_347",
-				Name:      "Non-existent Account",
-			},
-			err: fmt.Errorf(errAccountDoesntExist.Error(), "account_347"),
-		},
-	}
-
-	for _, test := range tests {
-		ts.Run(test.name, func() {
-			err := ts.driver.UpdateAccount(context.Background(), test.update, testdata.MockTimestamp)
-			ts.Equal(test.err, err)
-
-			if test.err == nil {
-				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: false})
-				ts.NoError(err)
-				exists := false
-				for _, account := range accounts {
-					if account.ID == test.accountID {
-						exists = true
-						ts.Equal(test.update.Name, account.Name)
-						break
-					}
-				}
-				ts.True(exists)
-			}
-		})
-	}
-}
-
 func (ts *PGDriverTestSuite) Test_UpsertAccountIntegration() {
 	tests := []struct {
 		name              string
@@ -539,7 +481,7 @@ func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
 				createdAccount, err := ts.driver.WriteAccount(
 					context.Background(),
 					"user_1",
-					types.Account{Name: "test_delete_account_1", PlanType: types.PayPlanType("developer_plan")},
+					types.Account{PlanType: types.PayPlanType("developer_plan")},
 					testdata.MockTimestamp,
 				)
 				ts.NoError(err)

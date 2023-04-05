@@ -263,13 +263,13 @@ func (_m *MockDriver) RemoveBlockedContract(ctx context.Context, blockedAddress 
 	return r0
 }
 
-// RemoveGigastakeRedirect provides a mock function with given fields: ctx, chainID, accountID, domain
-func (_m *MockDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, accountID types.AccountID, domain types.RedirectDomain) error {
-	ret := _m.Called(ctx, chainID, accountID, domain)
+// RemoveGigastakeRedirect provides a mock function with given fields: ctx, chainID, portalApplicationID, domain
+func (_m *MockDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.RedirectDomain) error {
+	ret := _m.Called(ctx, chainID, portalApplicationID, domain)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, types.AccountID, types.RedirectDomain) error); ok {
-		r0 = rf(ctx, chainID, accountID, domain)
+	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, types.PortalAppID, types.RedirectDomain) error); ok {
+		r0 = rf(ctx, chainID, portalApplicationID, domain)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -354,20 +354,6 @@ func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccount
 	return r0
 }
 
-// UpdateAccount provides a mock function with given fields: ctx, update, updatedAt
-func (_m *MockDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) error {
-	ret := _m.Called(ctx, update, updatedAt)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAccount, time.Time) error); ok {
-		r0 = rf(ctx, update, updatedAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UpdateBlockedContractActive provides a mock function with given fields: ctx, blockedAddress, active, updatedAt
 func (_m *MockDriver) UpdateBlockedContractActive(ctx context.Context, blockedAddress types.BlockedAddress, active bool, updatedAt time.Time) error {
 	ret := _m.Called(ctx, blockedAddress, active, updatedAt)
@@ -422,6 +408,29 @@ func (_m *MockDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, up
 	}
 
 	return r0
+}
+
+// UpsertAccountIntegration provides a mock function with given fields: ctx, integrations
+func (_m *MockDriver) UpsertAccountIntegration(ctx context.Context, integrations types.AccountIntegrations) (*types.AccountIntegrations, error) {
+	ret := _m.Called(ctx, integrations)
+
+	var r0 *types.AccountIntegrations
+	if rf, ok := ret.Get(0).(func(context.Context, types.AccountIntegrations) *types.AccountIntegrations); ok {
+		r0 = rf(ctx, integrations)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.AccountIntegrations)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.AccountIntegrations) error); ok {
+		r1 = rf(ctx, integrations)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // WriteAccount provides a mock function with given fields: ctx, creatorID, account, createdAt
@@ -507,13 +516,13 @@ func (_m *MockDriver) WriteChain(ctx context.Context, chain types.Chain, created
 	return r0, r1
 }
 
-// WritePortalApp provides a mock function with given fields: ctx, portalApp, createdAt
-func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, createdAt time.Time) (*types.PortalApp, error) {
-	ret := _m.Called(ctx, portalApp, createdAt)
+// WritePortalApp provides a mock function with given fields: ctx, portalApp, aat, createdAt
+func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, aat types.AAT, createdAt time.Time) (*types.PortalApp, error) {
+	ret := _m.Called(ctx, portalApp, aat, createdAt)
 
 	var r0 *types.PortalApp
-	if rf, ok := ret.Get(0).(func(context.Context, types.PortalApp, time.Time) *types.PortalApp); ok {
-		r0 = rf(ctx, portalApp, createdAt)
+	if rf, ok := ret.Get(0).(func(context.Context, types.PortalApp, types.AAT, time.Time) *types.PortalApp); ok {
+		r0 = rf(ctx, portalApp, aat, createdAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*types.PortalApp)
@@ -521,8 +530,8 @@ func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp types.Portal
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.PortalApp, time.Time) error); ok {
-		r1 = rf(ctx, portalApp, createdAt)
+	if rf, ok := ret.Get(1).(func(context.Context, types.PortalApp, types.AAT, time.Time) error); ok {
+		r1 = rf(ctx, portalApp, aat, createdAt)
 	} else {
 		r1 = ret.Error(1)
 	}

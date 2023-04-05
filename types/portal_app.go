@@ -79,9 +79,9 @@ type (
 		Gigastake     bool                                 `json:"gigastake"`
 		Staked        bool                                 `json:"staked"`
 		AccountID     AccountID                            `json:"accountID"`
-		AAT           AAT                                  `json:"aat"`
 		Settings      Settings                             `json:"settings"`
 		Whitelists    Whitelists                           `json:"whitelists"`
+		AATs          map[ProtocolAppID]AAT                `json:"aat"`
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
@@ -111,13 +111,14 @@ type (
 	}
 
 	AAT struct {
-		AppID           PortalAppID `json:"appID,omitempty"`
-		Address         string      `json:"address"`
-		PublicKey       string      `json:"publicKey"`
-		ClientPublicKey string      `json:"clientPublicKey"`
-		PrivateKey      string      `json:"privateKey"`
-		Signature       string      `json:"signature"`
-		Version         string      `json:"version"`
+		ID              ProtocolAppID `json:"id"`
+		AppID           PortalAppID   `json:"appID,omitempty"`
+		Address         string        `json:"address"`
+		PublicKey       string        `json:"publicKey"`
+		ClientPublicKey string        `json:"clientPublicKey"`
+		PrivateKey      string        `json:"privateKey"`
+		Signature       string        `json:"signature"`
+		Version         string        `json:"version"`
 	}
 
 	Settings struct {
