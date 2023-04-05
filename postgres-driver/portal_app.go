@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -38,16 +37,12 @@ var (
 /* ----- postgresdriver PortalApp Read Methods ----- */
 
 // ReadApplications returns all Applications in the database as PortalApp structs
-// ReadApplications returns all Applications in the database as PortalApp structs
 func (pg *PostgresDriver) ReadPortalApps(ctx context.Context, options types.DriverOptions) (map[types.PortalAppID]*types.PortalApp, error) {
-	start := time.Now()
 	dbPortalApps, err := pg.SelectPortalApplications(ctx, options.IncludeDeleted)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("SelectPortalApplications took %v", time.Since(start))
 
-	start = time.Now()
 	portalApps := make(map[types.PortalAppID]*types.PortalApp, len(dbPortalApps))
 	for _, dbPortalApp := range dbPortalApps {
 		portalApp, err := dbPortalApp.toPortalApp()
@@ -57,7 +52,6 @@ func (pg *PostgresDriver) ReadPortalApps(ctx context.Context, options types.Driv
 
 		portalApps[dbPortalApp.ID] = portalApp
 	}
-	log.Printf("Converting database records to PortalApp structs took %v", time.Since(start))
 
 	return portalApps, nil
 }
