@@ -1,7 +1,6 @@
 package postgresdriver
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -424,17 +423,6 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, email, lbID s
 	}
 
 	return nil
-}
-
-func PrettyString(label string, thing interface{}) {
-	jsonThing, _ := json.Marshal(thing)
-	str := string(jsonThing)
-
-	var prettyJSON bytes.Buffer
-	_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
-	output := prettyJSON.String()
-
-	fmt.Println(label, output)
 }
 
 /* AcceptUserAccess sets the User ID and the Accepted field to true for a UserAccess row */
