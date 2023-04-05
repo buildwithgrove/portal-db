@@ -1,7 +1,6 @@
 package postgresdriver
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -176,8 +175,8 @@ func (p *PostgresDriver) WriteLoadBalancer(ctx context.Context, loadBalancer *ty
 		}
 	}
 
-	loadBalancer.Users[0].RoleName = types.RoleOwner                                                // The first User will be the OWNER of the LoadBalancer
-	err = qtx.InsertUserAccess(ctx, extractInsertUserAccess(id, loadBalancer.Users[0], true, time)) // New LB owners always start with accepted = true
+	loadBalancer.Users[0].RoleName = types.RoleOwner                                                 // The first User will be the OWNER of the LoadBalancer
+	err = qtx.InsertUserAccessOwner(ctx, extractInsertUserAccessOwner(id, loadBalancer, true, time)) // New LB owners always start with accepted = true
 	if err != nil {
 		return nil, err
 	}
@@ -208,8 +207,6 @@ func extractInsertLoadBalancer(loadBalancer *types.LoadBalancer) InsertLoadBalan
 		GigastakeRedirect: newSQLNullBool(&loadBalancer.GigastakeRedirect),
 		CreatedAt:         newSQLNullTime(loadBalancer.CreatedAt),
 		UpdatedAt:         newSQLNullTime(loadBalancer.UpdatedAt),
-		// Note: here in prep for the V2 migration, needed for Covalent API keys
-		AccountID: newSQLNullString(loadBalancer.AccountID),
 	}
 }
 
@@ -226,8 +223,10 @@ func (i *InsertStickinessOptionsParams) isNotNull() bool {
 	return i.Duration.Valid || len(i.Origins) > 0 || i.StickyMax.Valid
 }
 
-func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted bool, createdAt time.Time) InsertUserAccessParams {
-	return InsertUserAccessParams{
+func extractInsertUserAccessOwner(lbID string, loadBalancer *types.LoadBalancer, accepted bool, createdAt time.Time) InsertUserAccessOwnerParams {
+	userAccess := loadBalancer.Users[0]
+
+	return InsertUserAccessOwnerParams{
 		LbID:      lbID,
 		UserID:    newSQLNullString(userAccess.UserID),
 		RoleName:  userAccess.RoleName,
@@ -235,17 +234,9 @@ func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted 
 		Accepted:  accepted,
 		CreatedAt: newSQLNullTime(createdAt),
 		UpdatedAt: newSQLNullTime(createdAt),
+		// Note: here in prep for the V2 migration, needed for Covalent API keys
+		AccountID: newSQLNullString(loadBalancer.AccountID),
 	}
-}
-func PrettyString(label string, thing interface{}) {
-	jsonThing, _ := json.Marshal(thing)
-	str := string(jsonThing)
-
-	var prettyJSON bytes.Buffer
-	_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
-	output := prettyJSON.String()
-
-	fmt.Println(label, output)
 }
 
 /* UpsertLoadBalancerIntegrations saves or updates input AccountIntegrations in the database */
@@ -270,7 +261,7 @@ func (p *PostgresDriver) UpsertLoadBalancerIntegrations(ctx context.Context, int
 	}, nil
 }
 
-/* WriteLoadBalancerUser saves input LoadBalancer to the database */
+/* WriteLoadBalancerUser saves input UserAccess to the database */
 func (p *PostgresDriver) WriteLoadBalancerUser(ctx context.Context, lbID string, userAccess types.UserAccess) error {
 	if lbID == "" {
 		return ErrMissingLBID
@@ -294,6 +285,18 @@ func (p *PostgresDriver) WriteLoadBalancerUser(ctx context.Context, lbID string,
 	}
 
 	return nil
+}
+
+func extractInsertUserAccess(lbID string, userAccess types.UserAccess, accepted bool, createdAt time.Time) InsertUserAccessParams {
+	return InsertUserAccessParams{
+		LbID:      lbID,
+		UserID:    newSQLNullString(userAccess.UserID),
+		RoleName:  userAccess.RoleName,
+		Email:     userAccess.Email,
+		Accepted:  accepted,
+		CreatedAt: newSQLNullTime(createdAt),
+		UpdatedAt: newSQLNullTime(createdAt),
+	}
 }
 
 /* UpdateLoadBalancer updates LoadBalancer and related table rows */
@@ -364,6 +367,15 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, email, lbID s
 	if lbID == "" {
 		return ErrMissingLBID
 	}
+
+	tx, err := p.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	qtx := p.WithTx(tx)
+
 	// Block setting a user's role to owner if they have not yet accepted their invitation
 	if roleName == types.RoleOwner {
 		accepted, err := p.GetUserAccessAccepted(ctx, GetUserAccessAcceptedParams{Email: email, LbID: lbID})
@@ -382,7 +394,30 @@ func (p *PostgresDriver) UpdateUserAccessRole(ctx context.Context, email, lbID s
 		UpdatedAt: newSQLNullTime(time.Now()),
 	}
 
-	err := p.UpdateUserAccess(ctx, params)
+	if roleName == types.RoleOwner {
+		// Covalant Update: If the new role is owner, we need to transfer the account_id column for the
+		// new owner then set the old owner_id columns account_id to null.
+		ownerRow, err := qtx.GetPreviousOwner(ctx, lbID)
+		if err != nil {
+			return err
+		}
+
+		params.AccountID = ownerRow.AccountID
+
+		err = qtx.UpdateAccountIDNullOldOwner(ctx,
+			UpdateAccountIDNullOldOwnerParams{LbID: lbID, Email: ownerRow.Email},
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = qtx.UpdateUserAccess(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
@@ -460,7 +495,6 @@ type (
 		RequestTimeout    int    `json:"request_timeout"`
 		Gigastake         bool   `json:"gigastake"`
 		GigastakeRedirect bool   `json:"gigastake_redirect"`
-		AccountID         string `json:"account_id"`
 		CreatedAt         string `json:"created_at"`
 		UpdatedAt         string `json:"updated_at"`
 	}
@@ -472,11 +506,12 @@ type (
 		Stickiness bool     `json:"stickiness"`
 	}
 	dbUserAccessJSON struct {
-		LbID     string `json:"lb_id"`
-		UserID   string `json:"user_id"`
-		RoleName string `json:"role_name"`
-		Email    string `json:"email"`
-		Accepted bool   `json:"accepted"`
+		LbID      string `json:"lb_id"`
+		UserID    string `json:"user_id"`
+		RoleName  string `json:"role_name"`
+		Email     string `json:"email"`
+		Accepted  bool   `json:"accepted"`
+		AccountID string `json:"account_id"`
 	}
 	dbAccountIntegrationsJSON struct {
 		AccountID          string `json:"account_id"`
@@ -493,7 +528,6 @@ func (j dbLoadBalancerJSON) toOutput() *types.LoadBalancer {
 		RequestTimeout:    j.RequestTimeout,
 		Gigastake:         j.Gigastake,
 		GigastakeRedirect: j.GigastakeRedirect,
-		AccountID:         j.AccountID,
 		CreatedAt:         psqlDateToTime(j.CreatedAt),
 		UpdatedAt:         psqlDateToTime(j.UpdatedAt),
 	}
@@ -509,11 +543,12 @@ func (j dbStickinessOptionsJSON) toOutput() *types.StickyOptions {
 }
 func (j dbUserAccessJSON) toOutput() *types.UserAccess {
 	return &types.UserAccess{
-		ID:       j.LbID,
-		UserID:   j.UserID,
-		RoleName: types.RoleName(j.RoleName),
-		Email:    j.Email,
-		Accepted: j.Accepted,
+		ID:        j.LbID,
+		UserID:    j.UserID,
+		RoleName:  types.RoleName(j.RoleName),
+		Email:     j.Email,
+		Accepted:  j.Accepted,
+		AccountID: j.AccountID,
 	}
 }
 func (j dbAccountIntegrationsJSON) toOutput() *types.AccountIntegrations {

@@ -30,8 +30,8 @@ type (
 		Gigastake         bool                `json:"gigastake"`
 		GigastakeRedirect bool                `json:"gigastakeRedirect"`
 		StickyOptions     StickyOptions       `json:"stickinessOptions"`
-		Applications      []*Application      `json:"applications"`
 		Integrations      AccountIntegrations `json:"integrations"`
+		Applications      []*Application      `json:"applications"`
 		Users             []UserAccess        `json:"users"`
 		CreatedAt         time.Time           `json:"createdAt"`
 		UpdatedAt         time.Time           `json:"updatedAt"`
@@ -50,11 +50,12 @@ type (
 		Stickiness    bool     `json:"stickiness"`
 	}
 	UserAccess struct {
-		ID       string   `json:"id,omitempty"`
-		UserID   string   `json:"userID"`
-		RoleName RoleName `json:"roleName"`
-		Email    string   `json:"email"`
-		Accepted bool     `json:"accepted"`
+		ID        string   `json:"id,omitempty"`
+		UserID    string   `json:"userID"`
+		RoleName  RoleName `json:"roleName"`
+		Email     string   `json:"email"`
+		Accepted  bool     `json:"accepted"`
+		AccountID string   `json:"accountID"`
 	}
 	/* Update structs */
 	UpdateLoadBalancer struct {
