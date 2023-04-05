@@ -1196,105 +1196,92 @@ func (q *Queries) SelectPlans(ctx context.Context) ([]SelectPlansRow, error) {
 }
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
+WITH aats_agg AS (
+    SELECT paa.application_id,
+        json_object_agg(
+            paa.id,
+            json_build_object(
+                'address',
+                paa.address,
+                'public_key',
+                paa.public_key,
+                'private_key',
+                paa.private_key,
+                'client_public_key',
+                paa.client_public_key,
+                'signature',
+                paa.signature,
+                'version',
+                paa.version
+            )
+        ) AS aats
+    FROM portal_application_aats paa
+    GROUP BY paa.application_id
+),
+notifications_agg AS (
+    SELECT pn.application_id,
+        json_object_agg(
+            pn.type,
+            json_build_object(
+                'active',
+                pn.active,
+                'destination',
+                pn.destination,
+                'trigger',
+                pn.trigger,
+                'events',
+                (
+                    SELECT json_object_agg(
+                            event,
+                            true
+                        )
+                    FROM (
+                            SELECT unnest(pn.events) AS event
+                        ) subquery
+                    WHERE event IS NOT NULL
+                )
+            )
+        ) AS notifications
+    FROM portal_application_notifications pn
+    GROUP BY pn.application_id
+),
+whitelists_agg AS (
+    SELECT paw.application_id,
+        json_agg(
+            json_build_object(
+                'type',
+                paw.type,
+                'value',
+                paw.value,
+                'chain_id',
+                paw.chain_id
+            )
+        ) AS whitelists
+    FROM portal_application_whitelists paw
+    GROUP BY paw.application_id
+)
 SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
     pas.secret_key,
     pas.secret_key_required,
     pas.monthly_relay_limit,
     pas.environment,
-    -- legacy field
     pso.duration,
-    -- legacy field
     pso.sticky_max,
-    -- legacy field
     pso.stickiness,
-    -- legacy field
     pso.origins,
-    COALESCE(
-        (
-            SELECT json_object_agg(
-                    paa.id,
-                    json_build_object(
-                        'address',
-                        paa.address,
-                        'public_key',
-                        paa.public_key,
-                        'private_key',
-                        paa.private_key,
-                        'client_public_key',
-                        paa.client_public_key,
-                        'signature',
-                        paa.signature,
-                        'version',
-                        paa.version
-                    )
-                )
-            FROM portal_application_aats paa
-            WHERE paa.application_id = p.id
-        ),
-        '[]'::json
-    )::json AS aats,
-    COALESCE(
-        (
-            SELECT json_object_agg(
-                    pn.type,
-                    json_build_object(
-                        'active',
-                        pn.active,
-                        'destination',
-                        pn.destination,
-                        'trigger',
-                        pn.trigger,
-                        'events',
-                        (
-                            SELECT json_object_agg(
-                                    event,
-                                    true
-                                )
-                            FROM (
-                                    SELECT unnest(pn.events) AS event
-                                ) subquery
-                            WHERE event IS NOT NULL
-                        )
-                    )
-                )
-            FROM portal_application_notifications pn
-            WHERE pn.application_id = p.id
-        ),
-        '[]'::json
-    )::json AS notifications,
-    COALESCE(
-        (
-            SELECT json_agg(
-                    json_build_object(
-                        'type',
-                        paw.type,
-                        'value',
-                        paw.value,
-                        'chain_id',
-                        paw.chain_id
-                    )
-                )
-            FROM portal_application_whitelists paw
-            WHERE paw.application_id = p.id
-        ),
-        '[]'::json
-    )::json AS whitelists
+    COALESCE(aats_agg.aats, '[]'::json) AS aats,
+    COALESCE(notifications_agg.notifications, '[]'::json) AS notifications,
+    COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists
 FROM portal_applications p
-    LEFT JOIN portal_application_settings pas ON p.id = pas.application_id -- legacy table
+    LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
     LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
+    LEFT JOIN aats_agg ON p.id = aats_agg.application_id
+    LEFT JOIN notifications_agg ON p.id = notifications_agg.application_id
+    LEFT JOIN whitelists_agg ON p.id = whitelists_agg.application_id
 WHERE (
         $1::BOOLEAN
         OR p.deleted = false
     )
-GROUP BY p.id,
-    pas.secret_key,
-    pas.secret_key_required,
-    pas.monthly_relay_limit,
-    pas.environment,
-    pso.duration,
-    pso.sticky_max,
-    pso.stickiness,
-    pso.origins
 `
 
 type SelectPortalApplicationsRow struct {
