@@ -216,8 +216,7 @@ INSERT INTO loadbalancers (
         gigastake,
         gigastake_redirect,
         created_at,
-        updated_at,
-        account_id
+        updated_at
     )
 VALUES (
         'test_lb_34987u329rfn23f',
@@ -227,8 +226,7 @@ VALUES (
         true,
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'account1'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'test_lb_3890ru23jfi32fj',
@@ -238,8 +236,7 @@ VALUES (
         true,
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'account2'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'test_lb_34gg4g43g34g5hh',
@@ -249,8 +246,7 @@ VALUES (
         false,
         false,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'account3'
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO stickiness_options (
         lb_id,
@@ -303,56 +299,64 @@ INSERT INTO user_access (
         role_name,
         user_id,
         email,
-        accepted
+        accepted,
+        account_id
     )
 VALUES (
         'test_lb_34987u329rfn23f',
         'OWNER',
         'test_user_1dbffbdfeeb225',
         'owner1@test.com',
-        true
+        true,
+        'account1'
     ),
     (
         'test_lb_34987u329rfn23f',
         'ADMIN',
         'test_user_admin1234',
         'admin1@test.com',
-        true
+        true,
+        NULL
     ),
     (
         'test_lb_34987u329rfn23f',
         'MEMBER',
         'test_user_member1234',
         'member1@test.com',
-        true
+        true,
+        NULL
     ),
     (
         'test_lb_3890ru23jfi32fj',
         'OWNER',
         'test_user_04228205bd261a',
         'owner2@test.com',
-        true
+        true,
+        'account2'
     ),
     (
         'test_lb_3890ru23jfi32fj',
         'ADMIN',
         'test_user_admin5678',
         'admin2@test.com',
-        true
+        true,
+        NULL
     ),
     (
         'test_lb_34gg4g43g34g5hh',
         'OWNER',
         'test_user_redirect233344',
         'owner3@test.com',
-        true
+        true,
+        'account3'
     ),
     (
         'test_lb_34gg4g43g34g5hh',
         'MEMBER',
         '',
         'member2@test.com',
-        false
+        false,
+        NULL
     );
 INSERT INTO lb_apps (lb_id, app_id)
 VALUES (
