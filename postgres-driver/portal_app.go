@@ -316,7 +316,7 @@ func (pg *PostgresDriver) generatePortalAppIDs(ctx context.Context) (types.Porta
 		}
 	}
 
-	return types.PortalAppID(portalAppID), types.ProtocolAppID(portalAppID), nil
+	return types.PortalAppID(portalAppID), types.ProtocolAppID(protocolAppID), nil
 }
 
 /* ----- postgresdriver PortalApp Update Methods ----- */
