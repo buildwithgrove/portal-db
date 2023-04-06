@@ -585,6 +585,7 @@ func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
 		AccountID: json.AccountID,
 		UserID:    json.UserID,
 		RoleName:  json.RoleName,
+		Email:     json.Email,
 		Accepted:  json.Accepted,
 	}
 }
