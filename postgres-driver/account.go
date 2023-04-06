@@ -623,6 +623,7 @@ type dbAccountUserAccess struct {
 	AccountID types.AccountID `json:"account_id"`
 	UserID    types.UserID    `json:"user_id"`
 	RoleName  types.RoleName  `json:"role_name"`
+	Email     types.Email     `json:"email"`
 	Accepted  bool            `json:"accepted"`
 	CreatedAt time.Time       `json:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at"`
