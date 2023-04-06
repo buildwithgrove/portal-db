@@ -735,9 +735,7 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{
-					PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
-				},
+				{PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -1338,7 +1336,7 @@ var (
 	}
 
 	LegacyRedirect = types.Redirect{
-		ChainID:        "0001",
+		BlockchainID:   "0001",
 		LoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		Domain:         "pokt-rpc.gateway.pokt.network",
 		Alias:          "altruist-0001",
