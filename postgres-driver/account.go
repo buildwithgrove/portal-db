@@ -154,10 +154,16 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	account.CreatedAt = createdAt
 	account.UpdatedAt = createdAt
 
+	userEmail, err := qtx.GetUserEmail(ctx, creatorID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Account creator becomes Account OWNER
 	owner, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
 		AccountID: createdAccount.ID,
 		UserID:    creatorID,
+		Email:     userEmail,
 		RoleName:  types.RoleOwner,
 		Accepted:  true,
 		CreatedAt: createdAt,
@@ -365,6 +371,7 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 ) (*types.AccountUserAccess, error) {
 	params := InsertAccountUserAccessParams{
 		UserID:    userID,
+		Email:     createAccountUser.Email,
 		AccountID: createAccountUser.AccountID,
 		RoleName:  createAccountUser.RoleName,
 		Accepted:  false,
@@ -585,7 +592,6 @@ func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
 		AccountID: json.AccountID,
 		UserID:    json.UserID,
 		RoleName:  json.RoleName,
-		Email:     json.Email,
 		Accepted:  json.Accepted,
 	}
 }
@@ -624,7 +630,6 @@ type dbAccountUserAccess struct {
 	AccountID types.AccountID `json:"account_id"`
 	UserID    types.UserID    `json:"user_id"`
 	RoleName  types.RoleName  `json:"role_name"`
-	Email     types.Email     `json:"email"`
 	Accepted  bool            `json:"accepted"`
 	CreatedAt time.Time       `json:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at"`

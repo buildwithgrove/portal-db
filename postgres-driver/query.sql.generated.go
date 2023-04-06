@@ -535,6 +535,19 @@ func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.User
 	return i, err
 }
 
+const getUserEmail = `-- name: GetUserEmail :one
+SELECT email
+FROM users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserEmail(ctx context.Context, id types.UserID) (types.Email, error) {
+	row := q.db.QueryRowContext(ctx, getUserEmail, id)
+	var email types.Email
+	err := row.Scan(&email)
+	return email, err
+}
+
 const insertAccount = `-- name: InsertAccount :one
 INSERT INTO accounts (
         id,
@@ -576,6 +589,13 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 }
 
 const insertAccountUserAccess = `-- name: InsertAccountUserAccess :one
+WITH updated_user AS (
+    UPDATE users
+    SET email = $7
+    WHERE id = $2
+    RETURNING id,
+        email
+)
 INSERT INTO account_user_access (
         account_id,
         user_id,
@@ -591,7 +611,7 @@ RETURNING account_user_access.user_id,
     COALESCE(
         (
             SELECT email
-            FROM users
+            FROM updated_user
             WHERE id = $2
         ),
         ''
@@ -610,6 +630,7 @@ type InsertAccountUserAccessParams struct {
 	Accepted  bool            `json:"accepted"`
 	CreatedAt time.Time       `json:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at"`
+	Email     types.Email     `json:"email"`
 }
 
 type InsertAccountUserAccessRow struct {
@@ -628,6 +649,7 @@ func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccount
 		arg.Accepted,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.Email,
 	)
 	var i InsertAccountUserAccessRow
 	err := row.Scan(

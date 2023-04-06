@@ -176,6 +176,10 @@ INSERT INTO portal_application_settings (
     )
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+-- name: GetUserEmail :one
+SELECT email
+FROM users
+WHERE id = $1;
 -- name: GetAccountOwnerEmail :one
 SELECT users.email
 FROM users
@@ -430,6 +434,13 @@ FROM account_user_access
 WHERE user_id = $1
     AND account_id = $2;
 -- name: InsertAccountUserAccess :one
+WITH updated_user AS (
+    UPDATE users
+    SET email = $7
+    WHERE id = $2
+    RETURNING id,
+        email
+)
 INSERT INTO account_user_access (
         account_id,
         user_id,
@@ -445,7 +456,7 @@ RETURNING account_user_access.user_id,
     COALESCE(
         (
             SELECT email
-            FROM users
+            FROM updated_user
             WHERE id = $2
         ),
         ''
