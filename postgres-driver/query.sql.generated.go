@@ -443,6 +443,21 @@ func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) (types.UserID
 	return id, err
 }
 
+const getAccountOwnerEmail = `-- name: GetAccountOwnerEmail :one
+SELECT users.email
+FROM users
+    JOIN account_user_access ON users.id = account_user_access.user_id
+WHERE account_user_access.role_name = 'OWNER'
+    AND account_user_access.account_id = $1
+`
+
+func (q *Queries) GetAccountOwnerEmail(ctx context.Context, accountID types.AccountID) (types.Email, error) {
+	row := q.db.QueryRowContext(ctx, getAccountOwnerEmail, accountID)
+	var email types.Email
+	err := row.Scan(&email)
+	return email, err
+}
+
 const getPortalUserID = `-- name: GetPortalUserID :one
 SELECT user_id
 FROM user_auth_providers

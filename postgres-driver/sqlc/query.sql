@@ -176,6 +176,12 @@ INSERT INTO portal_application_settings (
     )
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+-- name: GetAccountOwnerEmail :one
+SELECT users.email
+FROM users
+    JOIN account_user_access ON users.id = account_user_access.user_id
+WHERE account_user_access.role_name = 'OWNER'
+    AND account_user_access.account_id = $1;
 -- name: UpdatePortalAppName :exec
 UPDATE portal_applications
 SET name = $2,

@@ -252,6 +252,22 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	if err != nil {
 		return nil, err
 	}
+
+	accountOwnerEmail, _ := qtx.GetAccountOwnerEmail(ctx, portalApp.AccountID) // If email fetch fails email is empty string
+	err = qtx.UpdateUpsertPortalAppNotification(ctx, UpdateUpsertPortalAppNotificationParams{
+		ApplicationID: portalApp.ID,
+		Active:        true,
+		Type:          types.NotificationTypeEmail,
+		Destination:   string(accountOwnerEmail),
+		Events: []types.NotificationEvent{
+			types.NotificationEventSignedUp,
+			types.NotificationEventThreeQuarters,
+			types.NotificationEventFull,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
 	// TODO remove legacy fields when migration to V2 schema complete
 	_, err = qtx.InsertStickinessOption(ctx, InsertStickinessOptionParams{
 		LbID:       portalApp.ID,
@@ -262,6 +278,18 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	portalApp.Notifications = map[types.NotificationType]types.AppNotification{
+		types.NotificationTypeEmail: {
+			Active:      true,
+			Destination: string(accountOwnerEmail),
+			Events: map[types.NotificationEvent]bool{
+				types.NotificationEventSignedUp:      true,
+				types.NotificationEventThreeQuarters: true,
+				types.NotificationEventFull:          true,
+			},
+		},
 	}
 
 	err = tx.Commit()

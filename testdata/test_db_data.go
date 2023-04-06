@@ -652,6 +652,17 @@ var (
 			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
 			SecretKeyRequired: true,
 		},
+		Notifications: map[types.NotificationType]types.AppNotification{
+			types.NotificationTypeEmail: types.AppNotification{
+				Active:      true,
+				Destination: "ulfric.stormcloak123@test.com",
+				Events: map[types.NotificationEvent]bool{
+					types.NotificationEventSignedUp:      true,
+					types.NotificationEventThreeQuarters: true,
+					types.NotificationEventFull:          true,
+				},
+			},
+		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
 		// TODO remove legacy fields when migration to V2 schema complete
@@ -735,9 +746,7 @@ var (
 				},
 			},
 			Redirects: []types.GigastakeRedirect{
-				{
-					PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network",
-				},
+				{PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -1338,7 +1347,7 @@ var (
 	}
 
 	LegacyRedirect = types.Redirect{
-		ChainID:        "0001",
+		BlockchainID:   "0001",
 		LoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		Domain:         "pokt-rpc.gateway.pokt.network",
 		Alias:          "altruist-0001",

@@ -175,7 +175,7 @@ type (
 		UpdatedAt         time.Time        `json:"updatedAt"`
 	}
 	Redirect struct {
-		ChainID        string    `json:"chainID,omitempty"`
+		BlockchainID   string    `json:"blockchainID,omitempty"`
 		Alias          string    `json:"alias"`
 		Domain         string    `json:"domain"`
 		LoadBalancerID string    `json:"loadBalancerID"`
