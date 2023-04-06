@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestListen(t *testing.T) {
+func Test_Listen(t *testing.T) {
 	tests := []struct {
 		name                  string
 		content               types.SavedOnDB

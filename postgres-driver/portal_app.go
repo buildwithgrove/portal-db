@@ -463,10 +463,10 @@ func (pg *PostgresDriver) SetPortalAppDeleted(ctx context.Context, portalAppID t
 }
 
 /* ----- Used by Listener ----- */
-func (json PortalApplication) toOutput() *types.PortalApp {
+func (json dbPortalApplication) toOutput() *types.PortalApp {
 	return &types.PortalApp{
 		ID:        json.ID,
-		AccountID: types.AccountID(json.AccountID.String),
+		AccountID: types.AccountID(json.AccountID),
 		Name:      json.Name,
 		Gigastake: json.Gigastake,
 		Staked:    json.Staked,
@@ -474,15 +474,15 @@ func (json PortalApplication) toOutput() *types.PortalApp {
 		UpdatedAt: json.UpdatedAt,
 		Deleted:   json.Deleted,
 		LegacyFields: types.LegacyFields{
-			RequestTimeout:     json.RequestTimeout.Int32,
-			GigastakeRedirect:  json.GigastakeRedirect.Bool,
-			FirstDateSurpassed: json.FirstDateSurpassed.Time,
-			CustomLimit:        json.CustomLimit.Int32,
+			RequestTimeout:     json.RequestTimeout,
+			GigastakeRedirect:  json.GigastakeRedirect,
+			FirstDateSurpassed: json.FirstDateSurpassed,
+			CustomLimit:        json.CustomLimit,
 		},
 	}
 }
 
-func (json PortalApplicationAat) toOutput() *types.AAT {
+func (json dbPortalApplicationAAT) toOutput() *types.AAT {
 	return &types.AAT{
 		ID:              json.ID,
 		AppID:           json.ApplicationID,
@@ -495,7 +495,7 @@ func (json PortalApplicationAat) toOutput() *types.AAT {
 	}
 }
 
-func (json PortalApplicationSetting) toOutput() *types.Settings {
+func (json dbPortalApplicationSetting) toOutput() *types.Settings {
 	var favoritedChainIDs map[types.RelayChainID]struct{}
 	if len(json.FavoritedChainIDs) != 0 {
 		favoritedChainIDs = make(map[types.RelayChainID]struct{})
@@ -508,34 +508,34 @@ func (json PortalApplicationSetting) toOutput() *types.Settings {
 	return &types.Settings{
 		AppID:             json.ApplicationID,
 		Environment:       types.Environment(json.Environment),
-		SecretKey:         json.SecretKey.String,
-		SecretKeyRequired: json.SecretKeyRequired.Bool,
+		SecretKey:         json.SecretKey,
+		SecretKeyRequired: json.SecretKeyRequired,
 		FavoritedChainIDs: favoritedChainIDs,
 		MonthlyRelayLimit: json.MonthlyRelayLimit,
 	}
 }
 
-func (json PortalApplicationWhitelist) toOutput() *types.Whitelist {
+func (json dbPortalApplicationWhitelist) toOutput() *types.Whitelist {
 	return &types.Whitelist{
 		AppID:   json.ApplicationID,
 		Type:    json.Type,
 		Value:   json.Value,
-		ChainID: types.RelayChainID(json.ChainID.String),
+		ChainID: types.RelayChainID(json.ChainID),
 	}
 }
 
-func (json PortalApplicationNotification) toOutput() *types.AppNotification {
+func (json dbPortalApplicationNotification) toOutput() *types.AppNotification {
 	return &types.AppNotification{
 		AppID:       json.ApplicationID,
 		Type:        json.Type,
 		Active:      json.Active,
-		Destination: json.Destination.String,
-		Trigger:     json.Trigger.String,
+		Destination: json.Destination,
+		Trigger:     json.Trigger,
 		Events:      json.mapEvents(),
 	}
 }
 
-func (json PortalApplicationNotification) mapEvents() map[types.NotificationEvent]bool {
+func (json dbPortalApplicationNotification) mapEvents() map[types.NotificationEvent]bool {
 	events := make(map[types.NotificationEvent]bool)
 	for _, event := range json.Events {
 		events[event] = true
@@ -545,12 +545,79 @@ func (json PortalApplicationNotification) mapEvents() map[types.NotificationEven
 
 // TODO - remove when v2 migration finished
 // Fields required for compatibility with the old Portal API and Services (temporary)
-func (json StickinessOption) toOutput() *types.StickyOptions {
+func (json dbStickinessOption) toOutput() *types.StickyOptions {
 	return &types.StickyOptions{
 		ID:            string(json.LbID),
-		Duration:      json.Duration.String,
+		Duration:      json.Duration,
 		StickyOrigins: json.Origins,
-		StickyMax:     int(json.StickyMax.Int32),
-		Stickiness:    json.Stickiness.Bool,
+		StickyMax:     int(json.StickyMax),
+		Stickiness:    json.Stickiness,
 	}
+}
+
+type dbPortalApplication struct {
+	ID                 types.PortalAppID `json:"id"`
+	AccountID          string            `json:"account_id"`
+	Name               string            `json:"name"`
+	Gigastake          bool              `json:"gigastake"`
+	Staked             bool              `json:"staked"`
+	CreatedAt          time.Time         `json:"created_at"`
+	UpdatedAt          time.Time         `json:"updated_at"`
+	Deleted            bool              `json:"deleted"`
+	DeletedAt          time.Time         `json:"deleted_at"`
+	RequestTimeout     int32             `json:"request_timeout"`
+	GigastakeRedirect  bool              `json:"gigastake_redirect"`
+	FirstDateSurpassed time.Time         `json:"first_date_surpassed"`
+	CustomLimit        int32             `json:"custom_limit"`
+}
+
+type dbPortalApplicationAAT struct {
+	ID              types.ProtocolAppID `json:"id"`
+	ApplicationID   types.PortalAppID   `json:"application_id"`
+	Address         string              `json:"address"`
+	PublicKey       string              `json:"public_key"`
+	ClientPublicKey string              `json:"client_public_key"`
+	PrivateKey      string              `json:"private_key"`
+	Signature       string              `json:"signature"`
+	Version         string              `json:"version"`
+}
+
+type dbPortalApplicationNotification struct {
+	ID            int32                     `json:"id"`
+	ApplicationID types.PortalAppID         `json:"application_id"`
+	Active        bool                      `json:"active"`
+	Type          types.NotificationType    `json:"type"`
+	Destination   string                    `json:"destination"`
+	Trigger       string                    `json:"trigger"`
+	Events        []types.NotificationEvent `json:"events"`
+	UpdatedAt     time.Time                 `json:"updated_at"`
+}
+
+type dbPortalApplicationSetting struct {
+	ID                int32             `json:"id"`
+	ApplicationID     types.PortalAppID `json:"application_id"`
+	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
+	Environment       types.Environment `json:"environment"`
+	FavoritedChainIDs []string          `json:"favorited_chain_ids"`
+	SecretKey         string            `json:"secret_key"`
+	SecretKeyRequired bool              `json:"secret_key_required"`
+	UpdatedAt         time.Time         `json:"updated_at"`
+}
+
+type dbPortalApplicationWhitelist struct {
+	ID            int32               `json:"id"`
+	ApplicationID types.PortalAppID   `json:"application_id"`
+	Type          types.WhitelistType `json:"type"`
+	Value         string              `json:"value"`
+	ChainID       string              `json:"chain_id"`
+	CreatedAt     time.Time           `json:"created_at"`
+}
+
+type dbStickinessOption struct {
+	ID         int32             `json:"id"`
+	LbID       types.PortalAppID `json:"lb_id"`
+	Duration   string            `json:"duration"`
+	StickyMax  int32             `json:"sticky_max"`
+	Stickiness bool              `json:"stickiness"`
+	Origins    []string          `json:"origins"`
 }

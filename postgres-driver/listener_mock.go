@@ -94,12 +94,12 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 		inputs = append(inputs, inputStruct{
 			action: mainTableAction,
 			table:  types.TableAccounts,
-			input: Account{
+			input: dbAccount{
 				ID:                      account.ID,
 				PlanType:                account.PlanType,
 				PartnerChainIDs:         partnerChainIDs,
-				PartnerThroughputLimit:  newSQLNullInt32(account.PartnerThroughputLimit, true),
-				PartnerApplicationLimit: newSQLNullInt32(account.PartnerAppLimit, true),
+				PartnerThroughputLimit:  account.PartnerThroughputLimit,
+				PartnerApplicationLimit: account.PartnerAppLimit,
 				CreatedAt:               account.CreatedAt,
 				UpdatedAt:               account.UpdatedAt,
 				Deleted:                 account.Deleted,
@@ -112,7 +112,7 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
 				table:  types.TableAccountUserAccess,
-				input: AccountUserAccess{
+				input: dbAccountUserAccess{
 					AccountID: account.ID,
 					UserID:    userAccess.UserID,
 					RoleName:  userAccess.RoleName,
@@ -135,19 +135,19 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		inputs = append(inputs, inputStruct{
 			action: mainTableAction,
 			table:  types.TablePortalApps,
-			input: PortalApplication{
+			input: dbPortalApplication{
 				ID:                 portalApp.ID,
-				AccountID:          newSQLNullString(string(portalApp.AccountID)),
+				AccountID:          string(portalApp.AccountID),
 				Name:               portalApp.Name,
 				Gigastake:          portalApp.Gigastake,
 				Staked:             portalApp.Staked,
 				CreatedAt:          portalApp.CreatedAt,
 				UpdatedAt:          portalApp.UpdatedAt,
 				Deleted:            portalApp.Deleted,
-				RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
-				GigastakeRedirect:  newSQLNullBool(&portalApp.LegacyFields.GigastakeRedirect),
-				FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
-				CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
+				RequestTimeout:     portalApp.LegacyFields.RequestTimeout,
+				GigastakeRedirect:  portalApp.LegacyFields.GigastakeRedirect,
+				FirstDateSurpassed: portalApp.LegacyFields.FirstDateSurpassed,
+				CustomLimit:        portalApp.LegacyFields.CustomLimit,
 			},
 		})
 	}
@@ -161,7 +161,7 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
 			table:  types.TableAppAATs,
-			input: PortalApplicationAat{
+			input: dbPortalApplicationAAT{
 				ApplicationID:   portalApp.ID,
 				ID:              aat.ID,
 				Address:         aat.Address,
@@ -181,13 +181,13 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
 			table:  types.TableAppSettings,
-			input: PortalApplicationSetting{
+			input: dbPortalApplicationSetting{
 				ApplicationID:     portalApp.ID,
 				MonthlyRelayLimit: portalApp.Settings.MonthlyRelayLimit,
 				Environment:       portalApp.Settings.Environment,
 				FavoritedChainIDs: favoritedChainIDs,
-				SecretKey:         newSQLNullString(portalApp.Settings.SecretKey),
-				SecretKeyRequired: newSQLNullBool(&portalApp.Settings.SecretKeyRequired),
+				SecretKey:         portalApp.Settings.SecretKey,
+				SecretKeyRequired: portalApp.Settings.SecretKeyRequired,
 			},
 		})
 
@@ -195,7 +195,7 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
 				table:  types.TableAppWhitelists,
-				input: PortalApplicationWhitelist{
+				input: dbPortalApplicationWhitelist{
 					ApplicationID: portalApp.ID,
 					Type:          types.WhitelistTypeBlockchains,
 					Value:         string(chainID),
@@ -214,12 +214,12 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
 				table:  types.TableAppNotifications,
-				input: PortalApplicationNotification{
+				input: dbPortalApplicationNotification{
 					ApplicationID: portalApp.ID,
 					Active:        notification.Active,
 					Type:          notification.Type,
-					Destination:   newSQLNullString(notification.Destination),
-					Trigger:       newSQLNullString(notification.Trigger),
+					Destination:   notification.Destination,
+					Trigger:       notification.Trigger,
 					Events:        events,
 				},
 			})
@@ -228,11 +228,11 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
 			table:  types.TableStickinessOptions,
-			input: StickinessOption{
+			input: dbStickinessOption{
 				LbID:       portalApp.ID,
-				Duration:   newSQLNullString(portalApp.LegacyFields.StickyOptions.Duration),
-				StickyMax:  newSQLNullInt32(int32(portalApp.LegacyFields.StickyOptions.StickyMax), true),
-				Stickiness: newSQLNullBool(&portalApp.LegacyFields.StickyOptions.Stickiness),
+				Duration:   portalApp.LegacyFields.StickyOptions.Duration,
+				StickyMax:  int32(portalApp.LegacyFields.StickyOptions.StickyMax),
+				Stickiness: portalApp.LegacyFields.StickyOptions.Stickiness,
 				Origins:    portalApp.LegacyFields.StickyOptions.StickyOrigins,
 			},
 		})
@@ -251,15 +251,15 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 		inputs = append(inputs, inputStruct{
 			action: mainTableAction,
 			table:  types.TableChains,
-			input: Chain{
+			input: dbChain{
 				ID:             chain.ID,
 				Blockchain:     chain.Blockchain,
 				Description:    chain.Description,
 				EnforceResult:  chain.EnforceResult,
 				Ticker:         chain.Ticker,
-				Path:           newSQLNullString(chain.Path),
-				RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
-				LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
+				Path:           chain.Path,
+				RequestTimeout: chain.RequestTimeout,
+				LogLimitBlocks: chain.LogLimitBlocks,
 				ChainAliases:   chain.ChainAliases,
 				AllowedMethods: chain.AllowedMethods,
 				Active:         chain.Active,
@@ -274,10 +274,10 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
 				table:  types.TableChainAltruists,
-				input: ChainAltruist{
+				input: dbChainAltruist{
 					ChainID:  chain.ID,
 					URL:      altruist.URL,
-					Auth:     newSQLNullString(altruist.Auth),
+					Auth:     altruist.Auth,
 					AuthType: altruist.AuthType,
 				},
 			})
@@ -287,7 +287,7 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
 				table:  types.TableChainGigastakeRedirects,
-				input: ChainGigastakeRedirect{
+				input: dbChainGigastakeRedirect{
 					ChainID:             chain.ID,
 					PortalApplicationID: redirect.PortalApplicationID,
 					Alias:               redirect.Alias,
@@ -300,13 +300,13 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
 				table:  types.TableChainChecks,
-				input: ChainCheck{
+				input: dbChainCheck{
 					ChainID:    chain.ID,
 					Type:       check.Type,
-					Payload:    newSQLNullString(check.Payload),
-					ResultKey:  newSQLNullString(check.ResultKey),
-					Allowance:  newSQLNullInt32(check.Allowance, true),
-					EVMChainID: newSQLNullInt32(check.EVMChainID, true),
+					Payload:    check.Payload,
+					ResultKey:  check.ResultKey,
+					Allowance:  check.Allowance,
+					EVMChainID: check.EVMChainID,
 				},
 			})
 		}

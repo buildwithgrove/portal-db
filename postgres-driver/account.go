@@ -559,7 +559,7 @@ func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, us
 }
 
 /* ----- Used by Listener ----- */
-func (json Account) toOutput() *types.Account {
+func (json dbAccount) toOutput() *types.Account {
 	var partnerChainIDs map[types.RelayChainID]struct{}
 	if len(json.PartnerChainIDs) != 0 {
 		partnerChainIDs = make(map[types.RelayChainID]struct{})
@@ -572,15 +572,15 @@ func (json Account) toOutput() *types.Account {
 		ID:                     json.ID,
 		PlanType:               json.PlanType,
 		PartnerChainIDs:        partnerChainIDs,
-		PartnerThroughputLimit: json.PartnerThroughputLimit.Int32,
-		PartnerAppLimit:        json.PartnerApplicationLimit.Int32,
+		PartnerThroughputLimit: json.PartnerThroughputLimit,
+		PartnerAppLimit:        json.PartnerApplicationLimit,
 		CreatedAt:              json.CreatedAt,
 		UpdatedAt:              json.UpdatedAt,
 		Deleted:                json.Deleted,
 	}
 }
 
-func (json AccountUserAccess) toOutput() *types.AccountUserAccess {
+func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
 	return &types.AccountUserAccess{
 		AccountID: json.AccountID,
 		UserID:    json.UserID,
@@ -589,10 +589,41 @@ func (json AccountUserAccess) toOutput() *types.AccountUserAccess {
 	}
 }
 
-func (j AccountIntegration) toOutput() *types.AccountIntegrations {
+func (j dbAccountIntegration) toOutput() *types.AccountIntegrations {
 	return &types.AccountIntegrations{
 		AccountID:          j.AccountID,
-		CovalentAPIKeyFree: j.CovalentAPIKeyFree.String,
-		CovalentAPIKeyPaid: j.CovalentAPIKeyPaid.String,
+		CovalentAPIKeyFree: j.CovalentAPIKeyFree,
+		CovalentAPIKeyPaid: j.CovalentAPIKeyPaid,
 	}
+}
+
+type dbAccount struct {
+	ID                      types.AccountID   `json:"id"`
+	PlanType                types.PayPlanType `json:"plan_type"`
+	PartnerChainIDs         []string          `json:"partner_chain_ids"`
+	PartnerThroughputLimit  int32             `json:"partner_throughput_limit"`
+	PartnerApplicationLimit int32             `json:"partner_application_limit"`
+	CreatedAt               time.Time         `json:"created_at"`
+	UpdatedAt               time.Time         `json:"updated_at"`
+	Deleted                 bool              `json:"deleted"`
+	DeletedAt               time.Time         `json:"deleted_at"`
+}
+
+type dbAccountIntegration struct {
+	ID                 int32           `json:"id"`
+	AccountID          types.AccountID `json:"account_id"`
+	CovalentAPIKeyFree string          `json:"covalent_api_key_free"`
+	CovalentAPIKeyPaid string          `json:"covalent_api_key_paid"`
+	CreatedAt          time.Time       `json:"created_at"`
+	UpdatedAt          time.Time       `json:"updated_at"`
+}
+
+type dbAccountUserAccess struct {
+	ID        int32           `json:"id"`
+	AccountID types.AccountID `json:"account_id"`
+	UserID    types.UserID    `json:"user_id"`
+	RoleName  types.RoleName  `json:"role_name"`
+	Accepted  bool            `json:"accepted"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }

@@ -114,9 +114,17 @@ func (pg *PostgresDriver) RemoveBlockedContract(ctx context.Context, blockedAddr
 }
 
 /* ----- Used by Listener ----- */
-func (gbc GlobalBlockedContract) toOutput() *types.BlockedContract {
+func (gbc dbGlobalBlockedContract) toOutput() *types.BlockedContract {
 	return &types.BlockedContract{
 		BlockedAddress: gbc.BlockedAddress,
 		Active:         gbc.Active,
 	}
+}
+
+type dbGlobalBlockedContract struct {
+	ID             int32                `json:"id"`
+	BlockedAddress types.BlockedAddress `json:"blocked_address"`
+	Active         bool                 `json:"active"`
+	CreatedAt      time.Time            `json:"created_at"`
+	UpdatedAt      time.Time            `json:"updated_at"`
 }

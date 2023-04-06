@@ -20,7 +20,7 @@ type notification struct {
 
 func (n notification) parseAccountNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAccount Account
+	var dbAccount dbAccount
 	_ = json.Unmarshal(rawData, &dbAccount)
 
 	return &types.Notification{
@@ -32,7 +32,7 @@ func (n notification) parseAccountNotification() *types.Notification {
 
 func (n notification) parseAccountUserAccessNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAccountUser AccountUserAccess
+	var dbAccountUser dbAccountUserAccess
 	_ = json.Unmarshal(rawData, &dbAccountUser)
 
 	return &types.Notification{
@@ -44,7 +44,7 @@ func (n notification) parseAccountUserAccessNotification() *types.Notification {
 
 func (n notification) parseAccountIntegrationsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAccountIntegrations AccountIntegration
+	var dbAccountIntegrations dbAccountIntegration
 	_ = json.Unmarshal(rawData, &dbAccountIntegrations)
 
 	return &types.Notification{
@@ -56,7 +56,7 @@ func (n notification) parseAccountIntegrationsNotification() *types.Notification
 
 func (n notification) parsePortalAppNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbPortalApp PortalApplication
+	var dbPortalApp dbPortalApplication
 	_ = json.Unmarshal(rawData, &dbPortalApp)
 
 	return &types.Notification{
@@ -68,7 +68,7 @@ func (n notification) parsePortalAppNotification() *types.Notification {
 
 func (n notification) parseAATNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAAT PortalApplicationAat
+	var dbAAT dbPortalApplicationAAT
 	_ = json.Unmarshal(rawData, &dbAAT)
 
 	return &types.Notification{
@@ -80,7 +80,7 @@ func (n notification) parseAATNotification() *types.Notification {
 
 func (n notification) parseSettingsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAppSettings PortalApplicationSetting
+	var dbAppSettings dbPortalApplicationSetting
 	_ = json.Unmarshal(rawData, &dbAppSettings)
 
 	return &types.Notification{
@@ -92,7 +92,7 @@ func (n notification) parseSettingsNotification() *types.Notification {
 
 func (n notification) parseWhitelistNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAppWhitelist PortalApplicationWhitelist
+	var dbAppWhitelist dbPortalApplicationWhitelist
 	_ = json.Unmarshal(rawData, &dbAppWhitelist)
 
 	return &types.Notification{
@@ -104,7 +104,7 @@ func (n notification) parseWhitelistNotification() *types.Notification {
 
 func (n notification) parseAppNotificationNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAppNotification PortalApplicationNotification
+	var dbAppNotification dbPortalApplicationNotification
 	_ = json.Unmarshal(rawData, &dbAppNotification)
 
 	return &types.Notification{
@@ -116,7 +116,7 @@ func (n notification) parseAppNotificationNotification() *types.Notification {
 
 func (n notification) parseChainNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbChain Chain
+	var dbChain dbChain
 	_ = json.Unmarshal(rawData, &dbChain)
 
 	return &types.Notification{
@@ -128,7 +128,7 @@ func (n notification) parseChainNotification() *types.Notification {
 
 func (n notification) parseChainAltruistNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbChainAltruist ChainAltruist
+	var dbChainAltruist dbChainAltruist
 	_ = json.Unmarshal(rawData, &dbChainAltruist)
 
 	return &types.Notification{
@@ -140,7 +140,7 @@ func (n notification) parseChainAltruistNotification() *types.Notification {
 
 func (n notification) parseChainCheckNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbChainCheck ChainCheck
+	var dbChainCheck dbChainCheck
 	_ = json.Unmarshal(rawData, &dbChainCheck)
 
 	return &types.Notification{
@@ -152,7 +152,7 @@ func (n notification) parseChainCheckNotification() *types.Notification {
 
 func (n notification) parseGigastakeRedirectNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbRedirect ChainGigastakeRedirect
+	var dbRedirect dbChainGigastakeRedirect
 	_ = json.Unmarshal(rawData, &dbRedirect)
 
 	return &types.Notification{
@@ -164,7 +164,7 @@ func (n notification) parseGigastakeRedirectNotification() *types.Notification {
 
 func (n notification) parseUsersNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbUser User
+	var dbUser dbUser
 	_ = json.Unmarshal(rawData, &dbUser)
 
 	return &types.Notification{
@@ -176,7 +176,7 @@ func (n notification) parseUsersNotification() *types.Notification {
 
 func (n notification) parseUserAuthProviderNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbUserAuthProvider UserAuthProvider
+	var dbUserAuthProvider dbUserAuthProvider
 	_ = json.Unmarshal(rawData, &dbUserAuthProvider)
 
 	return &types.Notification{
@@ -188,7 +188,7 @@ func (n notification) parseUserAuthProviderNotification() *types.Notification {
 
 func (n notification) parsePayPlanNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbPayPlan PayPlan
+	var dbPayPlan dbPayPlan
 	_ = json.Unmarshal(rawData, &dbPayPlan)
 
 	return &types.Notification{
@@ -200,7 +200,7 @@ func (n notification) parsePayPlanNotification() *types.Notification {
 
 func (n notification) parseGlobalBlockedContractNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbBlockedContract GlobalBlockedContract
+	var dbBlockedContract dbGlobalBlockedContract
 	_ = json.Unmarshal(rawData, &dbBlockedContract)
 
 	return &types.Notification{
@@ -213,7 +213,7 @@ func (n notification) parseGlobalBlockedContractNotification() *types.Notificati
 // TODO - remove when v2 migration finished
 func (n notification) parseStickinessOptionsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbStickinessOptions StickinessOption
+	var dbStickinessOptions dbStickinessOption
 	_ = json.Unmarshal(rawData, &dbStickinessOptions)
 
 	return &types.Notification{

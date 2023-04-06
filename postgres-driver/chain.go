@@ -413,49 +413,99 @@ func (pg *PostgresDriver) RemoveGigastakeRedirect(ctx context.Context, chainID t
 }
 
 /* ----- Used by Listener ----- */
-func (json Chain) toOutput() *types.Chain {
+func (json dbChain) toOutput() *types.Chain {
 	return &types.Chain{
 		ID:             json.ID,
 		Blockchain:     json.Blockchain,
 		Description:    json.Description,
 		EnforceResult:  json.EnforceResult,
-		Path:           json.Path.String,
+		Path:           json.Path,
 		Ticker:         json.Ticker,
 		ChainAliases:   json.ChainAliases,
 		AllowedMethods: json.AllowedMethods,
-		LogLimitBlocks: json.LogLimitBlocks.Int32,
-		RequestTimeout: json.RequestTimeout.Int32,
+		LogLimitBlocks: json.LogLimitBlocks,
+		RequestTimeout: json.RequestTimeout,
 		Active:         json.Active,
 		CreatedAt:      json.CreatedAt,
 		UpdatedAt:      json.UpdatedAt,
 	}
 }
 
-func (json ChainAltruist) toOutput() *types.Altruist {
+func (json dbChainAltruist) toOutput() *types.Altruist {
 	return &types.Altruist{
 		ChainID:  json.ChainID,
 		URL:      json.URL,
-		Auth:     json.Auth.String,
+		Auth:     json.Auth,
 		AuthType: json.AuthType,
 	}
 }
 
-func (json ChainCheck) toOutput() *types.Check {
+func (json dbChainCheck) toOutput() *types.Check {
 	return &types.Check{
 		ChainID:    json.ChainID,
 		Type:       json.Type,
-		Payload:    json.Payload.String,
-		ResultKey:  json.ResultKey.String,
-		Allowance:  json.Allowance.Int32,
-		EVMChainID: json.EVMChainID.Int32,
+		Payload:    json.Payload,
+		ResultKey:  json.ResultKey,
+		Allowance:  json.Allowance,
+		EVMChainID: json.EVMChainID,
 	}
 }
 
-func (r ChainGigastakeRedirect) toOutput() *types.GigastakeRedirect {
+func (r dbChainGigastakeRedirect) toOutput() *types.GigastakeRedirect {
 	return &types.GigastakeRedirect{
 		ChainID:             r.ChainID,
 		PortalApplicationID: r.PortalApplicationID,
 		Domain:              r.Domain,
 		Alias:               r.Alias,
 	}
+}
+
+type dbChain struct {
+	ID             types.RelayChainID `json:"id"`
+	Blockchain     string             `json:"blockchain"`
+	Description    string             `json:"description"`
+	EnforceResult  string             `json:"enforce_result"`
+	Ticker         string             `json:"ticker"`
+	Path           string             `json:"path"`
+	RequestTimeout int32              `json:"request_timeout"`
+	LogLimitBlocks int32              `json:"log_limit_blocks"`
+	ChainAliases   []string           `json:"chain_aliases"`
+	AllowedMethods []string           `json:"allowed_methods"`
+	Active         bool               `json:"active"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	Deleted        bool               `json:"deleted"`
+	DeletedAt      time.Time          `json:"deleted_at"`
+}
+
+type dbChainAltruist struct {
+	ID        int32               `json:"id"`
+	ChainID   types.RelayChainID  `json:"chain_id"`
+	URL       types.AltruistURL   `json:"url"`
+	Auth      string              `json:"auth"`
+	AuthType  types.ChainAuthType `json:"auth_type"`
+	CreatedAt time.Time           `json:"created_at"`
+	UpdatedAt time.Time           `json:"updated_at"`
+}
+
+type dbChainCheck struct {
+	ID         int32                `json:"id"`
+	ChainID    types.RelayChainID   `json:"chain_id"`
+	Type       types.ChainCheckType `json:"type"`
+	Payload    string               `json:"payload"`
+	ResultKey  string               `json:"result_key"`
+	Allowance  int32                `json:"allowance"`
+	EVMChainID int32                `json:"evm_chain_id"`
+	CreatedAt  time.Time            `json:"created_at"`
+	UpdatedAt  time.Time            `json:"updated_at"`
+}
+
+type dbChainGigastakeRedirect struct {
+	ID                  int32                `json:"id"`
+	ChainID             types.RelayChainID   `json:"chain_id"`
+	PortalApplicationID types.PortalAppID    `json:"portal_application_id"`
+	Alias               string               `json:"alias"`
+	Domain              types.RedirectDomain `json:"domain"`
+	CreatedAt           time.Time            `json:"created_at"`
+	UpdatedAt           time.Time            `json:"updated_at"`
 }

@@ -2,6 +2,7 @@ package postgresdriver
 
 import (
 	"context"
+	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
@@ -48,7 +49,7 @@ func (p *SelectPlansRow) toPlan() (*types.Plan, error) {
 }
 
 /* ----- Used by Listener ----- */
-func (json PayPlan) toOutput() *types.Plan {
+func (json dbPayPlan) toOutput() *types.Plan {
 	chainIDs := make(map[types.RelayChainID]struct{})
 	for _, id := range json.ChainIDs {
 		chainIDs[types.RelayChainID(id)] = struct{}{}
@@ -60,6 +61,17 @@ func (json PayPlan) toOutput() *types.Plan {
 		MonthlyRelayLimit: json.MonthlyRelayLimit,
 		ThroughputLimit:   json.ThroughputLimit,
 		AppLimit:          json.ApplicationLimit,
-		LegacyDailyLimit:  json.DailyLimit.Int32,
+		LegacyDailyLimit:  json.DailyLimit,
 	}
+}
+
+type dbPayPlan struct {
+	PlanType          types.PayPlanType `json:"plan_type"`
+	ChainIDs          []string          `json:"chain_ids"`
+	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
+	ThroughputLimit   int32             `json:"throughput_limit"`
+	ApplicationLimit  int32             `json:"application_limit"`
+	CreatedAt         time.Time         `json:"created_at"`
+	UpdatedAt         time.Time         `json:"updated_at"`
+	DailyLimit        int32             `json:"daily_limit"`
 }

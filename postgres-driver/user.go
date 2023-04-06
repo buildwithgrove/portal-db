@@ -207,7 +207,7 @@ func (pg *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.Us
 }
 
 /* ----- Used by Listener ----- */
-func (json User) toOutput() *types.User {
+func (json dbUser) toOutput() *types.User {
 	return &types.User{
 		ID:        json.ID,
 		Email:     json.Email,
@@ -217,11 +217,29 @@ func (json User) toOutput() *types.User {
 	}
 }
 
-func (json UserAuthProvider) toOutput() *types.UserAuthProvider {
+func (json dbUserAuthProvider) toOutput() *types.UserAuthProvider {
 	return &types.UserAuthProvider{
 		ProviderUserID: json.ProviderUserID,
 		Type:           json.Type,
 		Provider:       json.Provider,
 		Federated:      json.Federated,
 	}
+}
+
+type dbUser struct {
+	ID        types.UserID `json:"id"`
+	Email     types.Email  `json:"email"`
+	SignedUp  bool         `json:"signed_up"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+}
+
+type dbUserAuthProvider struct {
+	ID             int32                `json:"id"`
+	UserID         types.UserID         `json:"user_id"`
+	Type           types.AuthType       `json:"type"`
+	Provider       types.AuthProvider   `json:"provider"`
+	ProviderUserID types.ProviderUserID `json:"provider_user_id"`
+	Federated      bool                 `json:"federated"`
+	CreatedAt      time.Time            `json:"created_at"`
 }
