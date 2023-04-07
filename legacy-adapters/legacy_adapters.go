@@ -316,12 +316,15 @@ func ConvertToV2UpdatePortalApp(u types.UpdateApplication, lbID string) types.Up
 		}
 
 		notifications = []types.UpdateAppNotifications{
-			{NotificationType: types.NotificationTypeEmail, Events: notificationEvents},
+			{Active: true, NotificationType: types.NotificationTypeEmail, Events: notificationEvents},
 		}
 	}
 
 	if u.GatewaySettings != nil {
-		settings = &types.UpdateAppSettings{SecretKey: u.GatewaySettings.SecretKey}
+		settings = &types.UpdateAppSettings{
+			SecretKey:   u.GatewaySettings.SecretKey,
+			Environment: types.EnvironmentProduction,
+		}
 		if u.GatewaySettings.SecretKeyRequired != nil {
 			settings.SecretKeyRequired = *u.GatewaySettings.SecretKeyRequired
 		}
@@ -355,8 +358,11 @@ func ConvertToV2UpdatePortalApp(u types.UpdateApplication, lbID string) types.Up
 	}
 
 	return types.UpdatePortalApp{
-		AppID: types.PortalAppID(lbID), Name: u.Name,
-		Settings: settings, Notifications: notifications, Whitelists: whitelists,
+		AppID:         types.PortalAppID(lbID),
+		Name:          u.Name,
+		Settings:      settings,
+		Notifications: notifications,
+		Whitelists:    whitelists,
 	}
 }
 
@@ -467,10 +473,14 @@ func parseAltruistURL(rawURL string) types.Altruist {
 	}
 }
 
-func ConvertToV2UpdateChain(u types.UpdateBlockchain) types.Chain {
-	allowance := *u.Allowance
+func ConvertToV2UpdateChain(blockchainID string, u types.UpdateBlockchain) types.Chain {
+	var allowance int32
+	if u.Allowance != nil {
+		allowance = int32(*u.Allowance)
+	}
+
 	checks := map[types.ChainCheckType]types.Check{
-		types.ChainCheckTypeSync: {Type: types.ChainCheckTypeSync, Payload: u.Body, ResultKey: u.ResultKey, Allowance: int32(allowance)},
+		types.ChainCheckTypeSync: {Type: types.ChainCheckTypeSync, Payload: u.Body, ResultKey: u.ResultKey, Allowance: allowance},
 	}
 	if u.ChainIDCheck != "" {
 		checks[types.ChainCheckTypeChain] = types.Check{Payload: u.ChainIDCheck}
@@ -479,6 +489,7 @@ func ConvertToV2UpdateChain(u types.UpdateBlockchain) types.Chain {
 	altruist := parseAltruistURL(u.Altruist)
 
 	return types.Chain{
+		ID:             types.RelayChainID(blockchainID),
 		Blockchain:     u.Blockchain,
 		Description:    u.Description,
 		EnforceResult:  u.EnforceResult,

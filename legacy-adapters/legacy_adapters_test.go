@@ -190,11 +190,13 @@ func Test_LegacyAdapators_ConvertToV2UpdateChain(t *testing.T) {
 
 	tests := []struct {
 		name                  string
+		blockchainID          string
 		updateBlockchain      types.UpdateBlockchain
 		expectedV2UpdateChain types.Chain
 	}{
 		{
 			name:                  "Should convert a legacy UpdateBlockchain struct to a V2 Chain struct for use in the update method",
+			blockchainID:          "0001",
 			updateBlockchain:      testdata.LegacyUpdateBlockchain,
 			expectedV2UpdateChain: testdata.UpdateChainTwo,
 		},
@@ -202,7 +204,7 @@ func Test_LegacyAdapators_ConvertToV2UpdateChain(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			v2UpdateChain := ConvertToV2UpdateChain(test.updateBlockchain)
+			v2UpdateChain := ConvertToV2UpdateChain(test.blockchainID, test.updateBlockchain)
 
 			// Set fields not used in the legacy update to reuse test struct
 			v2UpdateChain.ID = test.expectedV2UpdateChain.ID

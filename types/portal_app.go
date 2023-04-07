@@ -214,6 +214,20 @@ type (
 	Contract  string
 )
 
+func (a *PortalApp) AAT() AAT {
+	for _, aat := range a.AATs {
+		return aat
+	}
+	return AAT{}
+}
+
+func (a *PortalApp) ProtocolAppID() ProtocolAppID {
+	for _, aat := range a.AATs {
+		return aat.ID
+	}
+	return ""
+}
+
 // MonthlyLimit returns the monthly relay limit for a given application
 func (a *PortalApp) MonthlyLimit() int32 {
 	return a.Settings.MonthlyRelayLimit

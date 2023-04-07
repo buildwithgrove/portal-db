@@ -129,12 +129,12 @@ type (
 	}
 	WhitelistContracts struct {
 		ID           string   `json:"id,omitempty"`
-		BlockchainID string   `json:"chainID"`
+		BlockchainID string   `json:"blockchainID"`
 		Contracts    []string `json:"contracts"`
 	}
 	WhitelistMethods struct {
 		ID           string   `json:"id,omitempty"`
-		BlockchainID string   `json:"chainID"`
+		BlockchainID string   `json:"blockchainID"`
 		Methods      []string `json:"methods"`
 	}
 	AppLimit struct {

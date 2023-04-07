@@ -1295,12 +1295,16 @@ var (
 	}
 
 	V2UpdatePortalApp = types.UpdatePortalApp{
-		AppID:    "test_app_1",
-		Name:     "test_portal_app_123",
-		Settings: &types.UpdateAppSettings{SecretKey: "test_90210ac4bdd3423e24877d1ff92"},
+		AppID: "test_app_1",
+		Name:  "test_portal_app_123",
+		Settings: &types.UpdateAppSettings{
+			SecretKey:   "test_90210ac4bdd3423e24877d1ff92",
+			Environment: types.EnvironmentProduction,
+		},
 		Notifications: []types.UpdateAppNotifications{
 			{
 				NotificationType: types.NotificationTypeEmail,
+				Active:           true,
 				Events:           []types.NotificationEvent{"signedUp", "quarter", "threeQuarters"},
 			},
 		},
