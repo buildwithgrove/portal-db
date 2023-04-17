@@ -36,3 +36,12 @@ type (
 func (p *Plan) Table() Table {
 	return TablePayPlans
 }
+
+func (p PayPlanType) Valid() bool {
+	switch p {
+	case BasicPlan, DeveloperPlan, EnterprisePlan, ProPlan, StartupPlan:
+		return true
+	default:
+		return false
+	}
+}
