@@ -5,6 +5,14 @@ import "time"
 /* Enums */
 type PayPlanType string
 
+var (
+	BasicPlan      PayPlanType = "basic_plan"
+	DeveloperPlan  PayPlanType = "developer_plan"
+	EnterprisePlan PayPlanType = "enterprise_plan"
+	ProPlan        PayPlanType = "pro_plan"
+	StartupPlan    PayPlanType = "startup_plan"
+)
+
 /* Pay Plan Type and Methods */
 type (
 	Plan struct {
