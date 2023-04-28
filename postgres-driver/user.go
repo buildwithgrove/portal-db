@@ -122,6 +122,18 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		return types.UserID(""), err
 	}
 
+	newAccountInput := types.Account{PlanType: types.BasicPlan, CreatedAt: createdAt, UpdatedAt: createdAt}
+
+	_, err = pg.WriteAccount(ctx, createdUserID, newAccountInput, createdAt)
+	if err != nil {
+		_, derr := pg.DeletePortalUser(ctx, createdUserID)
+		if derr != nil {
+			return types.UserID(""), derr
+		}
+
+		return types.UserID(""), err
+	}
+
 	return types.UserID(createdUserID), nil
 }
 
