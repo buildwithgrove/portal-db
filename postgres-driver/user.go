@@ -122,7 +122,7 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		return types.UserID(""), err
 	}
 
-	newAccountInput := types.Account{PlanType: types.BasicPlan, CreatedAt: createdAt, UpdatedAt: createdAt}
+	newAccountInput := types.Account{PlanType: types.FreetierV0, CreatedAt: createdAt, UpdatedAt: createdAt}
 
 	_, err = pg.WriteAccount(ctx, createdUserID, newAccountInput, createdAt)
 	if err != nil {
