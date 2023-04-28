@@ -117,20 +117,28 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		UpdatedAt:      createdAt,
 	}
 
-	createdUserID, err := pg.CreateUserNewSignUp(ctx, params)
+	tx, err := pg.DB.Begin()
+	if err != nil {
+		return types.UserID(""), err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	qtx := pg.WithTx(tx)
+
+	createdUserID, err := qtx.CreateUserNewSignUp(ctx, params)
 	if err != nil {
 		return types.UserID(""), err
 	}
 
-	newAccountInput := types.Account{PlanType: types.FreetierV0, CreatedAt: createdAt, UpdatedAt: createdAt}
+	newAccountInput := InsertAccountParams{PlanType: types.FreetierV0, CreatedAt: createdAt, UpdatedAt: createdAt}
 
-	_, err = pg.WriteAccount(ctx, createdUserID, newAccountInput, createdAt)
+	_, err = qtx.InsertAccount(ctx, newAccountInput)
 	if err != nil {
-		_, derr := pg.DeletePortalUser(ctx, createdUserID)
-		if derr != nil {
-			return types.UserID(""), derr
-		}
+		return types.UserID(""), err
+	}
 
+	err = tx.Commit()
+	if err != nil {
 		return types.UserID(""), err
 	}
 
