@@ -94,15 +94,15 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 /* ----- postgresdriver User Create Methods ----- */
 
 // WriteUserNewSignUp creates a new portal User and UserAuthProviderin the DB from a CreateUser input when a new user signs up.
-func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.User, error) {
+func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (*types.User, error) {
 	err := pg.validateWriteUserNewSignUpInput(ctx, user)
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 
 	id, err := pg.generateID(ctx)
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 	userID := types.UserID(id)
 
@@ -119,7 +119,7 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	tx, err := pg.DB.Begin()
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 	defer func() { _ = tx.Rollback() }()
 
@@ -127,12 +127,12 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	createdUserID, err := qtx.CreateUserNewSignUp(ctx, params)
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 
 	id, err = pg.generateID(ctx)
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 	accountID := types.AccountID(id)
 
@@ -140,20 +140,20 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	_, err = qtx.InsertAccount(ctx, newAccountInput)
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 
 	createdUser, err := pg.ReadUserByUserID(ctx, createdUserID)
 	if err != nil {
-		return types.User{}, err
+		return nil, err
 	}
 
-	return *createdUser, nil
+	return createdUser, nil
 }
 
 // validateWriteUserNewSignUpInput validates the input to create a new User and User Auth Provider
