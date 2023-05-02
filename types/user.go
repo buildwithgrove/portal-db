@@ -96,6 +96,7 @@ type (
 	}
 	// UserAuthProvider represents a single auth provider for a user (eg. Auth0)
 	UserAuthProvider struct {
+		UserID         UserID         `json:"userID,omitempty"`
 		ProviderUserID ProviderUserID `json:"providerUserID"`
 		Type           AuthType       `json:"type"`
 		Provider       AuthProvider   `json:"provider"`

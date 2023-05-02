@@ -245,6 +245,7 @@ func (json dbUser) toOutput() *types.User {
 
 func (json dbUserAuthProvider) toOutput() *types.UserAuthProvider {
 	return &types.UserAuthProvider{
+		UserID:         json.UserID,
 		ProviderUserID: json.ProviderUserID,
 		Type:           json.Type,
 		Provider:       json.Provider,
