@@ -129,6 +129,13 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 				ts.NoError(err)
 				// if the account was created, ReadAccounts should have 1 more account
 				ts.Equal(len(originalAccounts)+1, len(accounts))
+
+				for accKey, account := range accounts {
+					if _, ok := originalAccounts[accKey]; !ok {
+						ts.NotEmpty(account.ID)
+						return
+					}
+				}
 			}
 		})
 	}
