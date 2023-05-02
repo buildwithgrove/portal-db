@@ -130,7 +130,13 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		return types.UserID(""), err
 	}
 
-	newAccountInput := InsertAccountParams{PlanType: types.FreetierV0, CreatedAt: createdAt, UpdatedAt: createdAt}
+	id, err = pg.generateID(ctx)
+	if err != nil {
+		return types.UserID(""), err
+	}
+	accountID := types.AccountID(id)
+
+	newAccountInput := InsertAccountParams{ID: accountID, PlanType: types.FreetierV0, CreatedAt: createdAt, UpdatedAt: createdAt}
 
 	_, err = qtx.InsertAccount(ctx, newAccountInput)
 	if err != nil {
