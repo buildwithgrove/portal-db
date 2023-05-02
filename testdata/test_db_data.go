@@ -44,7 +44,7 @@ var (
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 90_000_000,
 			ThroughputLimit:   5_000,
-			AppLimit:          3,
+			AppLimit:          5,
 			LegacyDailyLimit:  1_000,
 			CreatedAt:         MockTimestamp,
 		},
