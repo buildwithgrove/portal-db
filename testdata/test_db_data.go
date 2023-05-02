@@ -42,7 +42,7 @@ var (
 		types.PayPlanType("TEST_PLAN_90K"): {
 			Type:              types.PayPlanType("TEST_PLAN_90K"),
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 5_000_000,
+			MonthlyRelayLimit: 90_000_000,
 			ThroughputLimit:   5_000,
 			AppLimit:          2,
 			LegacyDailyLimit:  1_000,
