@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
+
+	v1Types "github.com/pokt-foundation/portal-db/types"
 )
 
 /*
@@ -35,53 +37,53 @@ var (
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 5_000_000,
 			ThroughputLimit:   5_000,
-			AppLimit:          2,
-			LegacyDailyLimit:  1_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  5_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("TEST_PLAN_90K"): {
 			Type:              types.PayPlanType("TEST_PLAN_90K"),
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 90_000_000,
-			ThroughputLimit:   5_000,
+			ThroughputLimit:   10_000,
 			AppLimit:          5,
-			LegacyDailyLimit:  1_000,
+			LegacyDailyLimit:  5_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("TEST_PLAN_10K"): {
 			Type:              types.PayPlanType("TEST_PLAN_10K"),
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 10_000_000,
-			ThroughputLimit:   5_000,
-			AppLimit:          2,
-			LegacyDailyLimit:  1_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  5_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("TEST_PLAN_V0"): {
 			Type:              types.PayPlanType("TEST_PLAN_V0"),
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 5_000_000,
-			ThroughputLimit:   5_000,
-			AppLimit:          2,
-			LegacyDailyLimit:  1_000,
+			MonthlyRelayLimit: 10_000_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  5_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("ENTERPRISE"): {
 			Type:              types.PayPlanType("ENTERPRISE"),
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 5_000_000,
-			ThroughputLimit:   5_000,
-			AppLimit:          2,
-			LegacyDailyLimit:  1_000,
+			MonthlyRelayLimit: 10_000_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  5_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("PAY_AS_YOU_GO_V0"): {
 			Type:              types.PayPlanType("PAY_AS_YOU_GO_V0"),
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 5_000_000,
-			ThroughputLimit:   5_000,
-			AppLimit:          2,
-			LegacyDailyLimit:  1_000,
+			MonthlyRelayLimit: 10_000_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  5_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("pro_plan"): {
@@ -582,7 +584,7 @@ var (
 				RequestTimeout:     5_000,
 				GigastakeRedirect:  true,
 				FirstDateSurpassed: MockTimestamp,
-				StickyOptions: types.StickyOptions{
+				StickyOptions: v1Types.StickyOptions{
 					Duration:      "60",
 					StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
 					StickyMax:     300,
@@ -642,7 +644,7 @@ var (
 				RequestTimeout:     10_000,
 				GigastakeRedirect:  false,
 				FirstDateSurpassed: MockTimestamp,
-				StickyOptions: types.StickyOptions{
+				StickyOptions: v1Types.StickyOptions{
 					Duration:      "30",
 					StickyOrigins: []string{"https://example.com", "https://test.com"},
 					StickyMax:     600,
@@ -725,7 +727,7 @@ var (
 			RequestTimeout:     15_000,
 			GigastakeRedirect:  true,
 			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: types.StickyOptions{
+			StickyOptions: v1Types.StickyOptions{
 				Duration:      "60",
 				StickyOrigins: []string{"https://pokt.network", "https://example.com"},
 				StickyMax:     1200,
@@ -773,7 +775,7 @@ var (
 			RequestTimeout:     5_000,
 			GigastakeRedirect:  true,
 			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: types.StickyOptions{
+			StickyOptions: v1Types.StickyOptions{
 				Duration:      "60",
 				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
 				StickyMax:     300,
@@ -1171,7 +1173,7 @@ var (
 		},
 	}
 
-	LegacyLoadBalancer = types.LoadBalancer{
+	LegacyLoadBalancer = v1Types.LoadBalancer{
 		ID:                "test_app_1",
 		Name:              "pokt_app_123",
 		UserID:            "auth0|james_holden",
@@ -1179,29 +1181,29 @@ var (
 		RequestTimeout:    5000,
 		Gigastake:         true,
 		GigastakeRedirect: true,
-		StickyOptions: types.StickyOptions{
+		StickyOptions: v1Types.StickyOptions{
 			Duration:      "60",
 			StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
 			StickyMax:     300,
 			Stickiness:    true,
 		},
 		Applications: LegacyApplications,
-		Users: []types.UserAccess{
+		Users: []v1Types.UserAccess{
 			{
 				UserID:   "user_1",
-				RoleName: types.RoleOwner,
+				RoleName: v1Types.RoleOwner,
 				Email:    "james.holden123@test.com",
 				Accepted: true,
 			},
 			{
 				UserID:   "user_2",
-				RoleName: types.RoleAdmin,
+				RoleName: v1Types.RoleAdmin,
 				Email:    "paul.atreides456@test.com",
 				Accepted: true,
 			},
 			{
 				UserID:   "user_8",
-				RoleName: types.RoleAdmin,
+				RoleName: v1Types.RoleAdmin,
 				Email:    "rick.deckard456@test.com",
 				Accepted: false,
 			},
@@ -1210,13 +1212,13 @@ var (
 		UpdatedAt: MockTimestamp,
 	}
 
-	LegacyApplications = []*types.Application{
+	LegacyApplications = []*v1Types.Application{
 		{
 			ID:                 "test_protocol_app_1",
 			UserID:             "auth0|james_holden",
 			Name:               "pokt_app_123",
 			FirstDateSurpassed: MockTimestamp,
-			GatewayAAT: types.GatewayAAT{
+			GatewayAAT: v1Types.GatewayAAT{
 				Address:              "test_34715cae753e67c75fbb340442e7de8e",
 				ApplicationPublicKey: "test_34715cae753e67c75fbb340442e7de8e",
 				ApplicationSignature: "test_1dc39a2e5a84a35bf030969a0b3231f7",
@@ -1224,20 +1226,20 @@ var (
 				PrivateKey:           "test_11b8d394ca331d7c7a71ca1896d630f6",
 				Version:              "0.0.1",
 			},
-			GatewaySettings: types.GatewaySettings{
+			GatewaySettings: v1Types.GatewaySettings{
 				SecretKey:            "test_40f482d91a5ef2300ebb4e2308c",
 				SecretKeyRequired:    true,
 				WhitelistOrigins:     []string{"https://test.com"},
 				WhitelistUserAgents:  []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
 				WhitelistBlockchains: []string{"0053"},
-				WhitelistContracts:   []types.WhitelistContracts{{BlockchainID: "0001", Contracts: []string{"0x1234567890abcdef"}}},
-				WhitelistMethods:     []types.WhitelistMethods{{BlockchainID: "0001", Methods: []string{"GET"}}},
+				WhitelistContracts:   []v1Types.WhitelistContracts{{BlockchainID: "0001", Contracts: []string{"0x1234567890abcdef"}}},
+				WhitelistMethods:     []v1Types.WhitelistMethods{{BlockchainID: "0001", Methods: []string{"GET"}}},
 			},
-			Limit: types.AppLimit{
-				PayPlan:     types.PayPlan{Type: "basic_plan", Limit: 1_000},
+			Limit: v1Types.AppLimit{
+				PayPlan:     v1Types.PayPlan{Type: "basic_plan", Limit: 1_000},
 				CustomLimit: 0,
 			},
-			NotificationSettings: types.NotificationSettings{
+			NotificationSettings: v1Types.NotificationSettings{
 				SignedUp:      false,
 				Quarter:       true,
 				Half:          false,
@@ -1249,7 +1251,7 @@ var (
 		},
 	}
 
-	LegacyBlockchain = types.Blockchain{
+	LegacyBlockchain = v1Types.Blockchain{
 		ID:                "0001",
 		Altruist:          "https://test_pocket:auth123456@altruist-0001.com:1234", // pragma: allowlist secret
 		Blockchain:        "mainnet",
@@ -1259,14 +1261,14 @@ var (
 		Ticker:            "POKT",
 		BlockchainAliases: []string{"mainnet"},
 		Active:            true,
-		Redirects: []types.Redirect{
+		Redirects: []v1Types.Redirect{
 			{
 				LoadBalancerID: "test_app_1",
 				Alias:          "altruist-0001",
 				Domain:         "pokt-rpc.gateway.pokt.network",
 			},
 		},
-		SyncCheckOptions: types.SyncCheckOptions{
+		SyncCheckOptions: v1Types.SyncCheckOptions{
 			Body:      "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"query\"}",
 			ResultKey: "result.sync_info",
 			Allowance: 1,
@@ -1275,29 +1277,29 @@ var (
 		UpdatedAt: MockTimestamp,
 	}
 
-	LegacyUpdateApplication = types.UpdateApplication{
+	LegacyUpdateApplication = v1Types.UpdateApplication{
 		Name: "test_portal_app_123",
-		GatewaySettings: &types.UpdateGatewaySettings{
+		GatewaySettings: &v1Types.UpdateGatewaySettings{
 			SecretKey:            "test_90210ac4bdd3423e24877d1ff92",
 			SecretKeyRequired:    boolToPointer(false),
 			WhitelistOrigins:     []string{"https://portalgun.io", "https://subdomain.example.com", "https://www.example.com"},
 			WhitelistBlockchains: []string{"0001", "0002", "003E", "0056"},
 			WhitelistUserAgents:  []string{"Brave", "Google Chrome", "Mozilla Firefox", "Netscape Navigator", "Safari"},
-			WhitelistContracts: []types.WhitelistContracts{
+			WhitelistContracts: []v1Types.WhitelistContracts{
 				{BlockchainID: "0001", Contracts: []string{"0xtest_2f78db6436527729929aaf6c616361de0f7", "0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"}},
 				{BlockchainID: "0002", Contracts: []string{"0xtest_1111117dc0aa78b770fa6a738034120c302", "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2"}},
 				{BlockchainID: "003E", Contracts: []string{"0xtest_0a85d5af5bf1d1762f925bdaddc4201f984", "0xtest_f958d2ee523a2206206994597c13d831ec7"}},
 				{BlockchainID: "0056", Contracts: []string{"0xtest_00000f279d81a1d3cc75430faa017fa5a2e", "0xtest_5068778dd592e39a122f4f5a5cf09c90fe2"}},
 			},
-			WhitelistMethods: []types.WhitelistMethods{
+			WhitelistMethods: []v1Types.WhitelistMethods{
 				{BlockchainID: "0001", Methods: []string{"GET", "POST", "PUT"}},
 				{BlockchainID: "0002", Methods: []string{"DELETE", "GET", "POST", "PUT"}},
 				{BlockchainID: "003E", Methods: []string{"GET"}},
 				{BlockchainID: "0056", Methods: []string{"GET", "POST"}},
 			},
 		},
-		Limit:                &types.AppLimit{PayPlan: types.PayPlan{Type: types.FreetierV0, Limit: 250_000}, CustomLimit: 0},
-		NotificationSettings: &types.UpdateNotificationSettings{SignedUp: boolToPointer(true), Quarter: boolToPointer(true), Half: boolToPointer(false), ThreeQuarters: boolToPointer(true), Full: boolToPointer(false)},
+		Limit:                &v1Types.AppLimit{PayPlan: v1Types.PayPlan{Type: v1Types.FreetierV0, Limit: 250_000}, CustomLimit: 0},
+		NotificationSettings: &v1Types.UpdateNotificationSettings{SignedUp: boolToPointer(true), Quarter: boolToPointer(true), Half: boolToPointer(false), ThreeQuarters: boolToPointer(true), Full: boolToPointer(false)},
 	}
 
 	V2CreateAccount = types.Account{
@@ -1330,7 +1332,7 @@ var (
 		LegacyFields: types.LegacyFields{
 			RequestTimeout:    5000,
 			GigastakeRedirect: true,
-			StickyOptions: types.StickyOptions{
+			StickyOptions: v1Types.StickyOptions{
 				Duration:      "60",
 				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
 				StickyMax:     300,
@@ -1391,7 +1393,7 @@ var (
 		},
 	}
 
-	LegacyUpdateBlockchain = types.UpdateBlockchain{
+	LegacyUpdateBlockchain = v1Types.UpdateBlockchain{
 		Blockchain:        "mainnet-ULTRA",
 		Description:       "Pocket Network Mainnet Original",
 		EnforceResult:     "JSON",
@@ -1404,23 +1406,23 @@ var (
 		Altruist:          "https://test_pocket:auth123456@altruist-0001-3.com:1234", // pragma: allowlist secret
 	}
 
-	LegacyRedirect = types.Redirect{
+	LegacyRedirect = v1Types.Redirect{
 		BlockchainID:   "0001",
 		LoadBalancerID: "test_lb_5c6f50bc30b530a8",
 		Domain:         "pokt-rpc.gateway.pokt.network",
 		Alias:          "altruist-0001",
 	}
 
-	LegacyUserAccess = types.UserAccess{
+	LegacyUserAccess = v1Types.UserAccess{
 		Email:    "james.holden123@test.com",
-		RoleName: types.RoleOwner,
+		RoleName: v1Types.RoleOwner,
 		Accepted: true,
 		UserID:   "james_holden_push_button",
 	}
 
-	LegacyUpdateUserAccess = types.UpdateUserAccess{
+	LegacyUpdateUserAccess = v1Types.UpdateUserAccess{
 		UserID:   "test_user_c66f399519ba23",
-		RoleName: types.RoleAdmin,
+		RoleName: v1Types.RoleAdmin,
 		Email:    "test_admin@user.com",
 	}
 )

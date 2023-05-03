@@ -6,11 +6,12 @@ import "time"
 type PayPlanType string
 
 var (
-	BasicPlan      PayPlanType = "basic_plan"
-	DeveloperPlan  PayPlanType = "developer_plan"
-	EnterprisePlan PayPlanType = "enterprise_plan"
-	ProPlan        PayPlanType = "pro_plan"
-	StartupPlan    PayPlanType = "startup_plan"
+	TestPlanV0   PayPlanType = "TEST_PLAN_V0"
+	TestPlan10K  PayPlanType = "TEST_PLAN_10K"
+	TestPlan90k  PayPlanType = "TEST_PLAN_90K"
+	FreetierV0   PayPlanType = "FREETIER_V0"
+	PayAsYouGoV0 PayPlanType = "PAY_AS_YOU_GO_V0"
+	Enterprise   PayPlanType = "ENTERPRISE"
 )
 
 /* Pay Plan Type and Methods */
@@ -39,7 +40,7 @@ func (p *Plan) Table() Table {
 
 func (p PayPlanType) Valid() bool {
 	switch p {
-	case BasicPlan, DeveloperPlan, EnterprisePlan, ProPlan, StartupPlan:
+	case TestPlanV0, TestPlan10K, TestPlan90k, FreetierV0, PayAsYouGoV0, Enterprise:
 		return true
 	default:
 		return false

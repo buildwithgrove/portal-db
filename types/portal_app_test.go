@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	// TODO - remove when v2 migration finished
+	v1Types "github.com/pokt-foundation/portal-db/types"
 )
 
 var testPortalApplication = PortalApp{
@@ -73,7 +76,7 @@ var testPortalApplication = PortalApp{
 		RequestTimeout:     5_000,
 		GigastakeRedirect:  true,
 		FirstDateSurpassed: time.Date(2023, time.February, 28, 15, 15, 15, 0, time.UTC),
-		StickyOptions: StickyOptions{
+		StickyOptions: v1Types.StickyOptions{
 			Duration:      "4000",
 			StickyOrigins: []string{"origin123"},
 			StickyMax:     4_000,

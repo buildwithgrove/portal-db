@@ -52,7 +52,7 @@ type (
 		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
 
 		/* WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input. */
-		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error)
+		WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (*types.User, types.AccountID, error)
 		/* DeletePortalUser deletes a portal User from the DB. WARNING will do a full delete in the case of users. */
 		DeletePortalUser(ctx context.Context, userID types.UserID) (types.UserID, error)
 

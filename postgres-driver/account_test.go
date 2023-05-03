@@ -446,7 +446,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_SetAccountDeleted() {
+func (ts *PGDriverTestSuite) Test_DeleteAccount() {
 	tests := []struct {
 		name                    string
 		accountID               types.AccountID

@@ -16,11 +16,17 @@ func (ts *PGDriverTestSuite) Test_ReadPlans() {
 		{
 			name: "Should return all plans from the database",
 			plans: map[types.PayPlanType]*types.Plan{
-				"basic_plan":      testdata.PayPlans["basic_plan"],
-				"pro_plan":        testdata.PayPlans["pro_plan"],
-				"startup_plan":    testdata.PayPlans["startup_plan"],
-				"developer_plan":  testdata.PayPlans["developer_plan"],
-				"enterprise_plan": testdata.PayPlans["enterprise_plan"],
+				"basic_plan":       testdata.PayPlans["basic_plan"],
+				"pro_plan":         testdata.PayPlans["pro_plan"],
+				"startup_plan":     testdata.PayPlans["startup_plan"],
+				"developer_plan":   testdata.PayPlans["developer_plan"],
+				"enterprise_plan":  testdata.PayPlans["enterprise_plan"],
+				"FREETIER_V0":      testdata.PayPlans["FREETIER_V0"],
+				"TEST_PLAN_90K":    testdata.PayPlans["TEST_PLAN_90K"],
+				"TEST_PLAN_10K":    testdata.PayPlans["TEST_PLAN_10K"],
+				"TEST_PLAN_V0":     testdata.PayPlans["TEST_PLAN_V0"],
+				"ENTERPRISE":       testdata.PayPlans["ENTERPRISE"],
+				"PAY_AS_YOU_GO_V0": testdata.PayPlans["PAY_AS_YOU_GO_V0"],
 			},
 			err: nil,
 		},
@@ -31,6 +37,7 @@ func (ts *PGDriverTestSuite) Test_ReadPlans() {
 			plans, err := ts.driver.ReadPlans(context.Background())
 			ts.Equal(test.err, err)
 			ts.Equal(test.plans, plans)
+
 		})
 	}
 }
