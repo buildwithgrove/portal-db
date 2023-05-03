@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -238,6 +239,49 @@ func (pg *PostgresDriver) UpsertAccountIntegration(ctx context.Context, integrat
 		CovalentAPIKeyFree: accountIntegrations.CovalentAPIKeyFree.String,
 		CovalentAPIKeyPaid: accountIntegrations.CovalentAPIKeyPaid.String,
 	}, nil
+}
+
+/* ----- postgresdriver Account Update Methods ----- */
+
+// UpdateAccount updates a single Account in the database's PlanType field
+func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) (*types.Account, error) {
+	err := pg.UpdateAccountFields(ctx, UpdateAccountFieldsParams{
+		ID:        update.AccountID,
+		PlanType:  update.PlanType,
+		UpdatedAt: updatedAt,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	accountResult, err := pg.SelectAccount(ctx, update.AccountID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") {
+			return nil, fmt.Errorf(errAccountDoesntExist.Error(), update.AccountID)
+		}
+		return nil, err
+	}
+
+	accountData := &SelectAccountsRow{
+		ID:                      accountResult.ID,
+		PlanType:                accountResult.PlanType,
+		PartnerChainIDs:         accountResult.PartnerChainIDs,
+		PartnerThroughputLimit:  accountResult.PartnerThroughputLimit,
+		PartnerApplicationLimit: accountResult.PartnerApplicationLimit,
+		CovalentAPIKeyFree:      accountResult.CovalentAPIKeyFree,
+		CovalentAPIKeyPaid:      accountResult.CovalentAPIKeyPaid,
+		Users:                   accountResult.Users,
+		CreatedAt:               accountResult.CreatedAt,
+		UpdatedAt:               accountResult.UpdatedAt,
+		Deleted:                 accountResult.Deleted,
+		DeletedAt:               accountResult.DeletedAt,
+	}
+	account, err := accountData.toAccount()
+	if err != nil {
+		return nil, err
+	}
+
+	return account, nil
 }
 
 /* ----- postgresdriver Account Delete Methods ----- */

@@ -301,6 +301,48 @@ WHERE (
 GROUP BY a.id,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid;
+-- name: SelectAccount :one
+WITH user_auth_agg AS (
+    SELECT user_id,
+        json_object_agg(type, provider_user_id) AS provider_user_ids
+    FROM user_auth_providers
+    GROUP BY user_id
+)
+SELECT a.*,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
+    json_agg(
+        json_build_object(
+            'user_id',
+            u.id,
+            'email',
+            u.email,
+            'role_name',
+            ur.role_name,
+            'accepted',
+            au.accepted,
+            'provider_user_ids',
+            uaa.provider_user_ids
+        )
+    ) AS users
+FROM accounts AS a
+    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
+    LEFT JOIN users AS u ON au.user_id = u.id
+    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
+    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
+WHERE a.id = $1
+GROUP BY a.id,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid;
+-- name: UpdateAccountFields :exec
+UPDATE accounts
+SET plan_type = COALESCE($1, plan_type),
+    partner_chain_ids = COALESCE($2, partner_chain_ids),
+    partner_throughput_limit = COALESCE($3, partner_throughput_limit),
+    partner_application_limit = COALESCE($4, partner_application_limit),
+    updated_at = $5
+WHERE id = $6;
 -- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
         account_id,

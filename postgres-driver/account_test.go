@@ -158,6 +158,45 @@ func (ts *PGDriverTestSuite) Test_UpsertAccountIntegration() {
 	}
 }
 
+func (ts *PGDriverTestSuite) Test_UpdateAccount() {
+	tests := []struct {
+		name    string
+		update  types.UpdateAccount
+		account *types.Account
+		err     error
+	}{
+		{
+			name: "Should update the account's PlanType field",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				PlanType:  types.Enterprise,
+			},
+			account: testdata.Accounts["account_1"],
+			err:     nil,
+		},
+		{
+			name: "Should fail if an invalid account ID is provided",
+			update: types.UpdateAccount{
+				AccountID: "account_8823",
+				PlanType:  types.Enterprise,
+			},
+			err: fmt.Errorf(errAccountDoesntExist.Error(), "account_8823"),
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			account, err := ts.driver.UpdateAccount(context.Background(), test.update, testdata.MockTimestamp)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				test.account.PlanType = test.update.PlanType
+				ts.Equal(test.account, account)
+			}
+		})
+	}
+}
+
 func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 	tests := []struct {
 		name                    string
