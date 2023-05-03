@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	// TODO - remove when v2 migration finished
 )
 
 var testPortalApplication = PortalApp{

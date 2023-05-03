@@ -3,6 +3,7 @@ package types
 import (
 	"sort"
 	"time"
+	// TODO - remove when v2 migration finished
 )
 
 /* Enums */

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
-	// TODO - remove when v2 migration finished
 )
 
 type (
