@@ -908,46 +908,6 @@ func (q *Queries) InsertPortalApplicationSetting(ctx context.Context, arg Insert
 	return i, err
 }
 
-const insertStickinessOption = `-- name: InsertStickinessOption :one
-INSERT INTO stickiness_options (
-        lb_id,
-        duration,
-        sticky_max,
-        stickiness,
-        origins
-    )
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, lb_id, duration, sticky_max, stickiness, origins
-`
-
-type InsertStickinessOptionParams struct {
-	LbID       types.PortalAppID `json:"lb_id"`
-	Duration   sql.NullString    `json:"duration"`
-	StickyMax  sql.NullInt32     `json:"sticky_max"`
-	Stickiness sql.NullBool      `json:"stickiness"`
-	Origins    []string          `json:"origins"`
-}
-
-func (q *Queries) InsertStickinessOption(ctx context.Context, arg InsertStickinessOptionParams) (StickinessOption, error) {
-	row := q.db.QueryRowContext(ctx, insertStickinessOption,
-		arg.LbID,
-		arg.Duration,
-		arg.StickyMax,
-		arg.Stickiness,
-		pq.Array(arg.Origins),
-	)
-	var i StickinessOption
-	err := row.Scan(
-		&i.ID,
-		&i.LbID,
-		&i.Duration,
-		&i.StickyMax,
-		&i.Stickiness,
-		pq.Array(&i.Origins),
-	)
-	return i, err
-}
-
 const removeGlobalBlockedContract = `-- name: RemoveGlobalBlockedContract :one
 DELETE FROM global_blocked_contracts
 WHERE blocked_address = $1
@@ -1302,16 +1262,11 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.update
     pas.secret_key_required,
     pas.monthly_relay_limit,
     pas.environment,
-    pso.duration,
-    pso.sticky_max,
-    pso.stickiness,
-    pso.origins,
     COALESCE(aats_agg.aats, '[]'::json) AS aats,
     COALESCE(notifications_agg.notifications, '[]'::json) AS notifications,
     COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists
 FROM portal_applications p
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
     LEFT JOIN aats_agg ON p.id = aats_agg.application_id
     LEFT JOIN notifications_agg ON p.id = notifications_agg.application_id
     LEFT JOIN whitelists_agg ON p.id = whitelists_agg.application_id
@@ -1339,10 +1294,6 @@ type SelectPortalApplicationsRow struct {
 	SecretKeyRequired  sql.NullBool      `json:"secret_key_required"`
 	MonthlyRelayLimit  sql.NullInt32     `json:"monthly_relay_limit"`
 	Environment        NullEnvironment   `json:"environment"`
-	Duration           sql.NullString    `json:"duration"`
-	StickyMax          sql.NullInt32     `json:"sticky_max"`
-	Stickiness         sql.NullBool      `json:"stickiness"`
-	Origins            []string          `json:"origins"`
 	AATs               json.RawMessage   `json:"aats"`
 	Notifications      json.RawMessage   `json:"notifications"`
 	Whitelists         json.RawMessage   `json:"whitelists"`
@@ -1375,10 +1326,6 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, dollar_1 bool) (
 			&i.SecretKeyRequired,
 			&i.MonthlyRelayLimit,
 			&i.Environment,
-			&i.Duration,
-			&i.StickyMax,
-			&i.Stickiness,
-			pq.Array(&i.Origins),
 			&i.AATs,
 			&i.Notifications,
 			&i.Whitelists,

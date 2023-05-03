@@ -584,12 +584,6 @@ var (
 				RequestTimeout:     5_000,
 				GigastakeRedirect:  true,
 				FirstDateSurpassed: MockTimestamp,
-				StickyOptions: v1Types.StickyOptions{
-					Duration:      "60",
-					StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-					StickyMax:     300,
-					Stickiness:    true,
-				},
 			},
 		},
 		"test_app_2": {
@@ -644,12 +638,6 @@ var (
 				RequestTimeout:     10_000,
 				GigastakeRedirect:  false,
 				FirstDateSurpassed: MockTimestamp,
-				StickyOptions: v1Types.StickyOptions{
-					Duration:      "30",
-					StickyOrigins: []string{"https://example.com", "https://test.com"},
-					StickyMax:     600,
-					Stickiness:    true,
-				},
 			},
 		},
 		"test_app_3": {
@@ -727,12 +715,6 @@ var (
 			RequestTimeout:     15_000,
 			GigastakeRedirect:  true,
 			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: v1Types.StickyOptions{
-				Duration:      "60",
-				StickyOrigins: []string{"https://pokt.network", "https://example.com"},
-				StickyMax:     1200,
-				Stickiness:    true,
-			},
 		},
 	}
 
@@ -775,12 +757,6 @@ var (
 			RequestTimeout:     5_000,
 			GigastakeRedirect:  true,
 			FirstDateSurpassed: MockTimestamp,
-			StickyOptions: v1Types.StickyOptions{
-				Duration:      "60",
-				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-				StickyMax:     300,
-				Stickiness:    true,
-			},
 		},
 	}
 
@@ -1181,13 +1157,7 @@ var (
 		RequestTimeout:    5000,
 		Gigastake:         true,
 		GigastakeRedirect: true,
-		StickyOptions: v1Types.StickyOptions{
-			Duration:      "60",
-			StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-			StickyMax:     300,
-			Stickiness:    true,
-		},
-		Applications: LegacyApplications,
+		Applications:      LegacyApplications,
 		Users: []v1Types.UserAccess{
 			{
 				UserID:   "user_1",
@@ -1332,12 +1302,6 @@ var (
 		LegacyFields: types.LegacyFields{
 			RequestTimeout:    5000,
 			GigastakeRedirect: true,
-			StickyOptions: v1Types.StickyOptions{
-				Duration:      "60",
-				StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-				StickyMax:     300,
-				Stickiness:    true,
-			},
 		},
 	}
 

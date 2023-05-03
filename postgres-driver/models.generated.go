@@ -560,15 +560,6 @@ type PortalApplicationWhitelist struct {
 	CreatedAt     time.Time           `json:"created_at"`
 }
 
-type StickinessOption struct {
-	ID         int32             `json:"id"`
-	LbID       types.PortalAppID `json:"lb_id"`
-	Duration   sql.NullString    `json:"duration"`
-	StickyMax  sql.NullInt32     `json:"sticky_max"`
-	Stickiness sql.NullBool      `json:"stickiness"`
-	Origins    []string          `json:"origins"`
-}
-
 type User struct {
 	ID        types.UserID `json:"id"`
 	Email     types.Email  `json:"email"`

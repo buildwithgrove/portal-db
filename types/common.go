@@ -62,10 +62,6 @@ const (
 
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 
-	// TODO - remove when v2 migration finished
-	// Table for compatibility with the old Portal API and Services (temporary)
-	TableStickinessOptions Table = "stickiness_options"
-
 	ActionInsert Action = "INSERT"
 	ActionUpdate Action = "UPDATE"
 	ActionDelete Action = "DELETE"

@@ -3,9 +3,7 @@ package types
 import (
 	"sort"
 	"time"
-
 	// TODO - remove when v2 migration finished
-	v1Types "github.com/pokt-foundation/portal-db/types"
 )
 
 /* Enums */
@@ -97,11 +95,10 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		CustomLimit        int32                 `json:"customLimit"`
-		RequestTimeout     int32                 `json:"requestTimeout"`
-		GigastakeRedirect  bool                  `json:"gigastakeRedirect"`
-		FirstDateSurpassed time.Time             `json:"firstDateSurpassed"`
-		StickyOptions      v1Types.StickyOptions `json:"stickyOptions"`
+		CustomLimit        int32     `json:"customLimit"`
+		RequestTimeout     int32     `json:"requestTimeout"`
+		GigastakeRedirect  bool      `json:"gigastakeRedirect"`
+		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
 	}
 
 	AAT struct {
