@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
-
 	// TODO - remove when v2 migration finished
-	v1Types "github.com/pokt-foundation/portal-db/types"
 )
 
 type (
@@ -92,12 +90,6 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		RequestTimeout:     a.RequestTimeout.Int32,
 		GigastakeRedirect:  a.GigastakeRedirect.Bool,
 		FirstDateSurpassed: a.FirstDateSurpassed.Time.UTC(),
-		StickyOptions: v1Types.StickyOptions{
-			Duration:      a.Duration.String,
-			StickyOrigins: a.Origins,
-			StickyMax:     int(a.StickyMax.Int32),
-			Stickiness:    a.Stickiness.Bool,
-		},
 	}
 
 	return &types.PortalApp{
@@ -267,17 +259,6 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 			types.NotificationEventThreeQuarters,
 			types.NotificationEventFull,
 		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	// TODO remove legacy fields when migration to V2 schema complete
-	_, err = qtx.InsertStickinessOption(ctx, InsertStickinessOptionParams{
-		LbID:       portalApp.ID,
-		Duration:   newSQLNullString(portalApp.LegacyFields.StickyOptions.Duration),
-		StickyMax:  newSQLNullInt32(int32(portalApp.LegacyFields.StickyOptions.StickyMax), true),
-		Stickiness: newSQLNullBool(&portalApp.LegacyFields.StickyOptions.Stickiness),
-		Origins:    portalApp.LegacyFields.StickyOptions.StickyOrigins,
 	})
 	if err != nil {
 		return nil, err

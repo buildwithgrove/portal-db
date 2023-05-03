@@ -98,16 +98,11 @@ SELECT p.*,
     pas.secret_key_required,
     pas.monthly_relay_limit,
     pas.environment,
-    pso.duration,
-    pso.sticky_max,
-    pso.stickiness,
-    pso.origins,
     COALESCE(aats_agg.aats, '[]'::json) AS aats,
     COALESCE(notifications_agg.notifications, '[]'::json) AS notifications,
     COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists
 FROM portal_applications p
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    LEFT JOIN stickiness_options pso ON p.id = pso.lb_id
     LEFT JOIN aats_agg ON p.id = aats_agg.application_id
     LEFT JOIN notifications_agg ON p.id = notifications_agg.application_id
     LEFT JOIN whitelists_agg ON p.id = whitelists_agg.application_id
@@ -142,16 +137,6 @@ VALUES (
         $10,
         $11
     )
-RETURNING *;
--- name: InsertStickinessOption :one
-INSERT INTO stickiness_options (
-        lb_id,
-        duration,
-        sticky_max,
-        stickiness,
-        origins
-    )
-VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
 INSERT INTO portal_application_aats (

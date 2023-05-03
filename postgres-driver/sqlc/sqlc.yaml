@@ -106,7 +106,3 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/v2/types.RedirectDomain"
           - column: "global_blocked_contracts.blocked_address"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.BlockedAddress"
-
-          # legacy table
-          - column: "stickiness_options.lb_id"
-            go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"

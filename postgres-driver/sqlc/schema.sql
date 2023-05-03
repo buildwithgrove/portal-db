@@ -173,16 +173,6 @@ CREATE TABLE portal_applications (
     -- legacy field
     custom_limit INT
 );
--- legacy table
-CREATE TABLE IF NOT EXISTS stickiness_options (
-    id INT GENERATED ALWAYS AS IDENTITY,
-    lb_id VARCHAR NOT NULL UNIQUE REFERENCES portal_applications(id) ON DELETE CASCADE,
-    duration TEXT,
-    sticky_max INT,
-    stickiness BOOLEAN,
-    origins VARCHAR [],
-    PRIMARY KEY (id)
-);
 CREATE TABLE portal_application_aats (
     id VARCHAR(24) PRIMARY KEY,
     application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
@@ -310,12 +300,6 @@ INSERT
     OR
 UPDATE
     OR DELETE ON portal_application_notifications FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER stickiness_options_notify_event
-AFTER
-INSERT
-    OR
-UPDATE
-    OR DELETE ON stickiness_options FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER accounts_notify_event
 AFTER
 INSERT

@@ -51,7 +51,6 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v
 		Gigastake:         a.Gigastake,
 		RequestTimeout:    int(a.LegacyFields.RequestTimeout),
 		GigastakeRedirect: a.LegacyFields.GigastakeRedirect,
-		StickyOptions:     a.LegacyFields.StickyOptions,
 	}
 }
 
@@ -282,7 +281,6 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 		LegacyFields: v2Types.LegacyFields{
 			RequestTimeout:    int32(lb.RequestTimeout),
 			GigastakeRedirect: lb.GigastakeRedirect,
-			StickyOptions:     lb.StickyOptions,
 		},
 	}
 

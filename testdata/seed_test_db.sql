@@ -572,27 +572,6 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
-INSERT INTO stickiness_options (
-        lb_id,
-        duration,
-        sticky_max,
-        stickiness,
-        origins
-    )
-VALUES (
-        'test_app_1',
-        60,
-        300,
-        true,
-        '{ "chrome-extension://", "moz-extension://" }'
-    ),
-    (
-        'test_app_2',
-        30,
-        600,
-        true,
-        '{ "https://example.com", "https://test.com" }'
-    );
 INSERT INTO portal_application_aats (
         id,
         application_id,
