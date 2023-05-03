@@ -11,6 +11,13 @@ import (
 	v2Types "github.com/pokt-foundation/portal-db/v2/types"
 )
 
+/*
+This package exists to convert to and from between the legacy (v1) and v2 types.
+It is used in PHD to enable the use of the new V2 schema in PHD without affecting upstream services.
+
+Once the V2 migration is completed this package may be removed from this repo.
+*/
+
 /* V2 Struct to Legacy Struct Adaptors */
 func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v1Types.LoadBalancer {
 	var users []v1Types.UserAccess

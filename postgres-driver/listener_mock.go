@@ -224,18 +224,6 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				},
 			})
 		}
-
-		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableStickinessOptions,
-			input: dbStickinessOption{
-				LbID:       portalApp.ID,
-				Duration:   portalApp.LegacyFields.StickyOptions.Duration,
-				StickyMax:  int32(portalApp.LegacyFields.StickyOptions.StickyMax),
-				Stickiness: portalApp.LegacyFields.StickyOptions.Stickiness,
-				Origins:    portalApp.LegacyFields.StickyOptions.StickyOrigins,
-			},
-		})
 	}
 
 	return inputs

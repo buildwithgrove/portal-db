@@ -540,24 +540,33 @@ func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp types.Portal
 }
 
 // WriteUserNewSignUp provides a mock function with given fields: ctx, user, createdAt
-func (_m *MockDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
+func (_m *MockDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (*types.User, types.AccountID, error) {
 	ret := _m.Called(ctx, user, createdAt)
 
-	var r0 types.UserID
-	if rf, ok := ret.Get(0).(func(context.Context, types.CreateUser, time.Time) types.UserID); ok {
+	var r0 *types.User
+	if rf, ok := ret.Get(0).(func(context.Context, types.CreateUser, time.Time) *types.User); ok {
 		r0 = rf(ctx, user, createdAt)
 	} else {
-		r0 = ret.Get(0).(types.UserID)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.User)
+		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.CreateUser, time.Time) error); ok {
+	var r1 types.AccountID
+	if rf, ok := ret.Get(1).(func(context.Context, types.CreateUser, time.Time) types.AccountID); ok {
 		r1 = rf(ctx, user, createdAt)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(types.AccountID)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, types.CreateUser, time.Time) error); ok {
+		r2 = rf(ctx, user, createdAt)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 type mockConstructorTestingTNewMockDriver interface {

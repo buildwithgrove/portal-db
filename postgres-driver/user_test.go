@@ -117,25 +117,19 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 		ts.Run(test.name, func() {
 			originalAccounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 			ts.NoError(err)
-			userID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
+			user, accountID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				user, err := ts.driver.ReadUserByUserID(context.Background(), userID)
-				ts.NoError(err)
-				test.user.ID = userID
+				test.user.ID = user.ID
 				ts.Equal(test.user, user)
+
+				ts.NotEmpty(accountID)
+
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
 				// if the account was created, ReadAccounts should have 1 more account
 				ts.Equal(len(originalAccounts)+1, len(accounts))
-
-				for accKey, account := range accounts {
-					if _, ok := originalAccounts[accKey]; !ok {
-						ts.NotEmpty(account.ID)
-						return
-					}
-				}
 			}
 		})
 	}
@@ -182,11 +176,13 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 	for _, test := range tests {
 		ts.Run(test.name, func() {
 			createdUserID := test.userID
+			var createdAccountID types.AccountID
 
 			if test.createUser.Email != "" { // if createUser set in test case use user ID from created User
-				userID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
+				user, accountID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
 				ts.Equal(test.err, err)
-				createdUserID = userID
+				createdUserID = user.ID
+				createdAccountID = accountID
 
 				if test.accountID != types.AccountID("") {
 					// if accountID set in test case then test deleting a user with an account
@@ -194,6 +190,7 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 						AccountID: test.accountID, Email: test.createUser.Email, RoleName: types.RoleMember,
 					}, testdata.MockTimestamp)
 					ts.Equal(test.err, err)
+
 					accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 					ts.NoError(err)
 					ts.Len(accounts[test.accountID].Users, test.numUsersBeforeDelete)
@@ -202,6 +199,10 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 
 			userID, err := ts.driver.DeletePortalUser(context.Background(), createdUserID)
 			ts.Equal(test.err, err)
+
+			// Clean up account created for test when new user created
+			err = ts.driver.DeleteAccount(context.Background(), DeleteAccountParams{ID: createdAccountID})
+			ts.NoError(err)
 
 			if test.err == nil {
 				_, err := ts.driver.ReadUserByUserID(context.Background(), userID)
@@ -217,7 +218,7 @@ func (ts *PGDriverTestSuite) Test_DeletePortalUser() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_ReadUserPermissions() {
+func (ts *PGDriverTestSuite) Test_AllReadUserPermissions() {
 	tests := []struct {
 		name                    string
 		expectedUserPermissions map[types.UserID]*types.UserPermissions

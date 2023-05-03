@@ -631,12 +631,3 @@ type dbPortalApplicationWhitelist struct {
 	ChainID       string              `json:"chain_id"`
 	CreatedAt     time.Time           `json:"created_at"`
 }
-
-type dbStickinessOption struct {
-	ID         int32             `json:"id"`
-	LbID       types.PortalAppID `json:"lb_id"`
-	Duration   string            `json:"duration"`
-	StickyMax  int32             `json:"sticky_max"`
-	Stickiness bool              `json:"stickiness"`
-	Origins    []string          `json:"origins"`
-}

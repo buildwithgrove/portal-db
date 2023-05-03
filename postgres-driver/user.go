@@ -94,15 +94,15 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 /* ----- postgresdriver User Create Methods ----- */
 
 // WriteUserNewSignUp creates a new portal User and UserAuthProviderin the DB from a CreateUser input when a new user signs up.
-func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (types.UserID, error) {
+func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.CreateUser, createdAt time.Time) (*types.User, types.AccountID, error) {
 	err := pg.validateWriteUserNewSignUpInput(ctx, user)
 	if err != nil {
-		return types.UserID(""), err
+		return nil, types.AccountID(""), err
 	}
 
 	id, err := pg.generateID(ctx)
 	if err != nil {
-		return types.UserID(""), err
+		return nil, types.AccountID(""), err
 	}
 	userID := types.UserID(id)
 
@@ -119,7 +119,7 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	tx, err := pg.DB.Begin()
 	if err != nil {
-		return types.UserID(""), err
+		return nil, types.AccountID(""), err
 	}
 	defer func() { _ = tx.Rollback() }()
 
@@ -127,28 +127,39 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	createdUserID, err := qtx.CreateUserNewSignUp(ctx, params)
 	if err != nil {
-		return types.UserID(""), err
+		return nil, types.AccountID(""), err
 	}
 
+	// When a new user is created, also create a default Account for them using the free plan
 	id, err = pg.generateID(ctx)
 	if err != nil {
-		return types.UserID(""), err
+		return nil, types.AccountID(""), err
 	}
 	accountID := types.AccountID(id)
 
-	newAccountInput := InsertAccountParams{ID: accountID, PlanType: types.FreetierV0, CreatedAt: createdAt, UpdatedAt: createdAt}
+	newAccountInput := InsertAccountParams{
+		ID:        accountID,
+		PlanType:  types.FreetierV0,
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+	}
 
-	_, err = qtx.InsertAccount(ctx, newAccountInput)
+	account, err := qtx.InsertAccount(ctx, newAccountInput)
 	if err != nil {
-		return types.UserID(""), err
+		return nil, types.AccountID(""), err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return types.UserID(""), err
+		return nil, types.AccountID(""), err
 	}
 
-	return types.UserID(createdUserID), nil
+	createdUser, err := pg.ReadUserByUserID(ctx, createdUserID)
+	if err != nil {
+		return nil, types.AccountID(""), err
+	}
+
+	return createdUser, account.ID, nil
 }
 
 // validateWriteUserNewSignUpInput validates the input to create a new User and User Auth Provider
