@@ -354,6 +354,29 @@ func (_m *MockDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccount
 	return r0
 }
 
+// UpdateAccount provides a mock function with given fields: ctx, update, updatedAt
+func (_m *MockDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) (*types.Account, error) {
+	ret := _m.Called(ctx, update, updatedAt)
+
+	var r0 *types.Account
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateAccount, time.Time) *types.Account); ok {
+		r0 = rf(ctx, update, updatedAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Account)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.UpdateAccount, time.Time) error); ok {
+		r1 = rf(ctx, update, updatedAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateBlockedContractActive provides a mock function with given fields: ctx, blockedAddress, active, updatedAt
 func (_m *MockDriver) UpdateBlockedContractActive(ctx context.Context, blockedAddress types.BlockedAddress, active bool, updatedAt time.Time) error {
 	ret := _m.Called(ctx, blockedAddress, active, updatedAt)

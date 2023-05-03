@@ -53,8 +53,8 @@ type (
 
 	// UpdateAccount contains all fields required to update an Account
 	UpdateAccount struct {
-		AccountID AccountID `json:"accountID"`
-		Name      string    `json:"name"`
+		AccountID AccountID   `json:"accountID"`
+		PlanType  PayPlanType `json:"planType"`
 	}
 
 	// UpdateAccountUserRole contains all fields required to update an Account User's Role

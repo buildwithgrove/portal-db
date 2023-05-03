@@ -921,6 +921,77 @@ func (q *Queries) RemoveGlobalBlockedContract(ctx context.Context, blockedAddres
 	return id, err
 }
 
+const selectAccount = `-- name: SelectAccount :one
+WITH user_auth_agg AS (
+    SELECT user_id,
+        json_object_agg(type, provider_user_id) AS provider_user_ids
+    FROM user_auth_providers
+    GROUP BY user_id
+)
+SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
+    json_agg(
+        json_build_object(
+            'user_id',
+            u.id,
+            'email',
+            u.email,
+            'role_name',
+            ur.role_name,
+            'accepted',
+            au.accepted,
+            'provider_user_ids',
+            uaa.provider_user_ids
+        )
+    ) AS users
+FROM accounts AS a
+    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
+    LEFT JOIN users AS u ON au.user_id = u.id
+    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
+    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
+WHERE a.id = $1
+GROUP BY a.id,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid
+`
+
+type SelectAccountRow struct {
+	ID                      types.AccountID   `json:"id"`
+	PlanType                types.PayPlanType `json:"plan_type"`
+	PartnerChainIDs         []string          `json:"partner_chain_ids"`
+	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
+	PartnerApplicationLimit sql.NullInt32     `json:"partner_application_limit"`
+	CreatedAt               time.Time         `json:"created_at"`
+	UpdatedAt               time.Time         `json:"updated_at"`
+	Deleted                 bool              `json:"deleted"`
+	DeletedAt               sql.NullTime      `json:"deleted_at"`
+	CovalentAPIKeyFree      sql.NullString    `json:"covalent_api_key_free"`
+	CovalentAPIKeyPaid      sql.NullString    `json:"covalent_api_key_paid"`
+	Users                   json.RawMessage   `json:"users"`
+}
+
+func (q *Queries) SelectAccount(ctx context.Context, id types.AccountID) (SelectAccountRow, error) {
+	row := q.db.QueryRowContext(ctx, selectAccount, id)
+	var i SelectAccountRow
+	err := row.Scan(
+		&i.ID,
+		&i.PlanType,
+		pq.Array(&i.PartnerChainIDs),
+		&i.PartnerThroughputLimit,
+		&i.PartnerApplicationLimit,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Deleted,
+		&i.DeletedAt,
+		&i.CovalentAPIKeyFree,
+		&i.CovalentAPIKeyPaid,
+		&i.Users,
+	)
+	return i, err
+}
+
 const selectAccounts = `-- name: SelectAccounts :many
 WITH user_auth_agg AS (
     SELECT user_id,
@@ -1442,6 +1513,37 @@ func (q *Queries) SetGlobalBlockedContractActive(ctx context.Context, arg SetGlo
 	var id int32
 	err := row.Scan(&id)
 	return id, err
+}
+
+const updateAccountFields = `-- name: UpdateAccountFields :exec
+UPDATE accounts
+SET plan_type = COALESCE($1, plan_type),
+    partner_chain_ids = COALESCE($2, partner_chain_ids),
+    partner_throughput_limit = COALESCE($3, partner_throughput_limit),
+    partner_application_limit = COALESCE($4, partner_application_limit),
+    updated_at = $5
+WHERE id = $6
+`
+
+type UpdateAccountFieldsParams struct {
+	PlanType                types.PayPlanType `json:"plan_type"`
+	PartnerChainIDs         []string          `json:"partner_chain_ids"`
+	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
+	PartnerApplicationLimit sql.NullInt32     `json:"partner_application_limit"`
+	UpdatedAt               time.Time         `json:"updated_at"`
+	ID                      types.AccountID   `json:"id"`
+}
+
+func (q *Queries) UpdateAccountFields(ctx context.Context, arg UpdateAccountFieldsParams) error {
+	_, err := q.db.ExecContext(ctx, updateAccountFields,
+		arg.PlanType,
+		pq.Array(arg.PartnerChainIDs),
+		arg.PartnerThroughputLimit,
+		arg.PartnerApplicationLimit,
+		arg.UpdatedAt,
+		arg.ID,
+	)
+	return err
 }
 
 const updateAccountOwnerToAdmin = `-- name: UpdateAccountOwnerToAdmin :exec
