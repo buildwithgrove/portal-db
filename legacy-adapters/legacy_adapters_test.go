@@ -3,8 +3,9 @@ package legacyadapters
 import (
 	"testing"
 
+	v1Types "github.com/pokt-foundation/portal-db/types"
 	"github.com/pokt-foundation/portal-db/v2/testdata"
-	"github.com/pokt-foundation/portal-db/v2/types"
+	v2Types "github.com/pokt-foundation/portal-db/v2/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,9 +14,9 @@ func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
 
 	tests := []struct {
 		name                       string
-		portalApp                  types.PortalApp
-		account                    types.Account
-		expectedLegacyLoadBalancer types.LoadBalancer
+		portalApp                  v2Types.PortalApp
+		account                    v2Types.Account
+		expectedLegacyLoadBalancer v1Types.LoadBalancer
 	}{
 		{
 			name:                       "Should convert a V2 PortalApp & Account struct to a legacy LoadBalancer struct",
@@ -38,11 +39,11 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 
 	tests := []struct {
 		name                       string
-		portalApp                  types.PortalApp
+		portalApp                  v2Types.PortalApp
 		userID                     string
-		planType                   types.PayPlanType
+		planType                   v2Types.PayPlanType
 		dailyLimit                 int32
-		expectedLegacyApplications []*types.Application
+		expectedLegacyApplications []*v1Types.Application
 	}{
 		{
 			name:                       "Should convert a V2 PortalApp struct to a legacy Application struct",
@@ -67,8 +68,8 @@ func Test_LegacyAdapators_ConvertToLegacyBlockchain(t *testing.T) {
 
 	tests := []struct {
 		name                     string
-		chain                    types.Chain
-		expectedLegacyBlockchain types.Blockchain
+		chain                    v2Types.Chain
+		expectedLegacyBlockchain v1Types.Blockchain
 	}{
 		{
 			name:                     "Should convert a V2 Chain struct to a legacy Blockchain struct",
@@ -90,13 +91,13 @@ func Test_LegacyAdapators_ConvertToLegacyPayPlan(t *testing.T) {
 
 	tests := []struct {
 		name                  string
-		plan                  types.Plan
-		expectedLegacyPayPlan types.PayPlan
+		plan                  v2Types.Plan
+		expectedLegacyPayPlan v1Types.PayPlan
 	}{
 		{
 			name:                  "Should convert a V2 Plan struct to a legacy PayPlan struct",
 			plan:                  *testdata.PayPlans["enterprise_plan"],
-			expectedLegacyPayPlan: types.PayPlan{Type: "enterprise_plan", Limit: 10_000},
+			expectedLegacyPayPlan: v1Types.PayPlan{Type: "enterprise_plan", Limit: 10_000},
 		},
 	}
 
@@ -113,9 +114,9 @@ func Test_LegacyAdapators_ConvertToV2PortalAppAndAAT(t *testing.T) {
 
 	tests := []struct {
 		name                   string
-		loadBalancer           types.LoadBalancer
-		expectedV2PortalApp    types.PortalApp
-		expectedV2PortalAppAAT types.AAT
+		loadBalancer           v1Types.LoadBalancer
+		expectedV2PortalApp    v2Types.PortalApp
+		expectedV2PortalAppAAT v2Types.AAT
 	}{
 		{
 			name:                   "Should convert a legacy LoadBalancer struct to V2 PortalApp & AAT structs",
@@ -140,8 +141,8 @@ func Test_LegacyAdapators_ConvertToV2UpdatePortalApp(t *testing.T) {
 	tests := []struct {
 		name                      string
 		appID                     string
-		updateApplication         types.UpdateApplication
-		expectedV2UpdatePortalApp types.UpdatePortalApp
+		updateApplication         v1Types.UpdateApplication
+		expectedV2UpdatePortalApp v2Types.UpdatePortalApp
 	}{
 		{
 			name:                      "Should convert a legacy UpdateApplication struct to a V2 UpdatePortalApp struct",
@@ -166,8 +167,8 @@ func Test_LegacyAdapators_ConvertToV2Chain(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		blockchain      types.Blockchain
-		expectedV2Chain types.Chain
+		blockchain      v1Types.Blockchain
+		expectedV2Chain v2Types.Chain
 	}{
 		{
 			name:            "Should convert a legacy Blockchain struct to a V2 Chain struct",
@@ -191,8 +192,8 @@ func Test_LegacyAdapators_ConvertToV2UpdateChain(t *testing.T) {
 	tests := []struct {
 		name                  string
 		blockchainID          string
-		updateBlockchain      types.UpdateBlockchain
-		expectedV2UpdateChain types.Chain
+		updateBlockchain      v1Types.UpdateBlockchain
+		expectedV2UpdateChain v2Types.Chain
 	}{
 		{
 			name:                  "Should convert a legacy UpdateBlockchain struct to a V2 Chain struct for use in the update method",
@@ -223,8 +224,8 @@ func Test_LegacyAdapators_ConvertToV2Redirect(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		redirect           types.Redirect
-		expectedV2Redirect types.GigastakeRedirect
+		redirect           v1Types.Redirect
+		expectedV2Redirect v2Types.GigastakeRedirect
 	}{
 		{
 			name:               "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
@@ -247,8 +248,8 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 
 	tests := []struct {
 		name                        string
-		userAccess                  types.UserAccess
-		expectedV2AccountUserAccess types.AccountUserAccess
+		userAccess                  v1Types.UserAccess
+		expectedV2AccountUserAccess v2Types.AccountUserAccess
 	}{
 		{
 			name:                        "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
@@ -263,8 +264,8 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 
 			// Set fields not used in the legacy update to reuse test struct
 			test.expectedV2AccountUserAccess.UserID = ""
-			delete(test.expectedV2AccountUserAccess.ProviderUserIDs, types.AuthTypeAuth0Github)
-			test.expectedV2AccountUserAccess.ProviderUserIDs[types.AuthTypeAuth0Username] = test.userAccess.UserID
+			delete(test.expectedV2AccountUserAccess.ProviderUserIDs, v2Types.AuthTypeAuth0Github)
+			test.expectedV2AccountUserAccess.ProviderUserIDs[v2Types.AuthTypeAuth0Username] = test.userAccess.UserID
 
 			c.Equal(test.expectedV2AccountUserAccess, v2AccountUserAccess)
 		})
@@ -278,16 +279,16 @@ func Test_LegacyAdapators_ConvertToV2UpdateAccountUserAccess(t *testing.T) {
 		name                        string
 		lbID                        string
 		userID                      string
-		userAccess                  types.UpdateUserAccess
-		expectedV2AccountUserAccess types.UpdateAccountUserRole
+		userAccess                  v1Types.UpdateUserAccess
+		expectedV2AccountUserAccess v2Types.UpdateAccountUserRole
 	}{
 		{
 			name:       "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
 			lbID:       "test_lb_3127flsdhfoi323f",
 			userID:     "user_123",
 			userAccess: testdata.LegacyUpdateUserAccess,
-			expectedV2AccountUserAccess: types.UpdateAccountUserRole{
-				RoleName:             types.RoleAdmin,
+			expectedV2AccountUserAccess: v2Types.UpdateAccountUserRole{
+				RoleName:             v2Types.RoleAdmin,
 				UserID:               "user_123",
 				LegacyLoadBalancerID: "test_lb_3127flsdhfoi323f",
 			},
@@ -297,7 +298,7 @@ func Test_LegacyAdapators_ConvertToV2UpdateAccountUserAccess(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			v2AccountUserAccess := ConvertToV2UpdateAccountUserAccess(test.userAccess, test.lbID, test.userID)
-			test.expectedV2AccountUserAccess.UserID = types.UserID(test.userID)
+			test.expectedV2AccountUserAccess.UserID = v2Types.UserID(test.userID)
 			c.Equal(test.expectedV2AccountUserAccess, v2AccountUserAccess)
 		})
 	}

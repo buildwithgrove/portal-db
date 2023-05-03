@@ -114,17 +114,6 @@ func Test_Listen(t *testing.T) {
 						Events:      map[types.NotificationEvent]bool{"full": true, "quarter": true, "threeQuarters": true},
 					},
 				},
-				types.TableStickinessOptions: {
-					Table:  types.TableStickinessOptions,
-					Action: types.ActionUpdate,
-					Data: &types.StickyOptions{
-						ID:            "test_app_1",
-						Duration:      "60",
-						StickyOrigins: []string{"chrome-extension://", "moz-extension://"},
-						StickyMax:     300,
-						Stickiness:    true,
-					},
-				},
 			},
 		},
 		{

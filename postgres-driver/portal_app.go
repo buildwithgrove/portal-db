@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
+
+	// TODO - remove when v2 migration finished
+	v1Types "github.com/pokt-foundation/portal-db/types"
 )
 
 type (
@@ -89,7 +92,7 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		RequestTimeout:     a.RequestTimeout.Int32,
 		GigastakeRedirect:  a.GigastakeRedirect.Bool,
 		FirstDateSurpassed: a.FirstDateSurpassed.Time.UTC(),
-		StickyOptions: types.StickyOptions{
+		StickyOptions: v1Types.StickyOptions{
 			Duration:      a.Duration.String,
 			StickyOrigins: a.Origins,
 			StickyMax:     int(a.StickyMax.Int32),
@@ -569,18 +572,6 @@ func (json dbPortalApplicationNotification) mapEvents() map[types.NotificationEv
 		events[event] = true
 	}
 	return events
-}
-
-// TODO - remove when v2 migration finished
-// Fields required for compatibility with the old Portal API and Services (temporary)
-func (json dbStickinessOption) toOutput() *types.StickyOptions {
-	return &types.StickyOptions{
-		ID:            string(json.LbID),
-		Duration:      json.Duration,
-		StickyOrigins: json.Origins,
-		StickyMax:     int(json.StickyMax),
-		Stickiness:    json.Stickiness,
-	}
 }
 
 type dbPortalApplication struct {

@@ -7,17 +7,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pokt-foundation/portal-db/v2/types"
+	v1Types "github.com/pokt-foundation/portal-db/types"
+	v2Types "github.com/pokt-foundation/portal-db/v2/types"
 )
 
 /* V2 Struct to Legacy Struct Adaptors */
-func ConvertToLegacyLoadBalancer(a types.PortalApp, account types.Account) types.LoadBalancer {
-	var users []types.UserAccess
+func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v1Types.LoadBalancer {
+	var users []v1Types.UserAccess
 
 	for _, accountUser := range account.Users {
-		users = append(users, types.UserAccess{
+		users = append(users, v1Types.UserAccess{
 			UserID:   string(accountUser.UserID),
-			RoleName: accountUser.RoleName,
+			RoleName: v1Types.RoleName(accountUser.RoleName),
 			Email:    string(accountUser.Email),
 			Accepted: accountUser.Accepted,
 		})
@@ -28,13 +29,16 @@ func ConvertToLegacyLoadBalancer(a types.PortalApp, account types.Account) types
 	userID := account.LegacyUserID()
 	legacyDailyLimit := account.Plan.LegacyDailyLimit
 
-	return types.LoadBalancer{
-		ID:                string(a.ID),
-		Name:              a.Name,
-		UserID:            userID,
-		Applications:      ConvertToLegacyApplications(a, userID, account.Plan.Type, legacyDailyLimit),
-		Users:             users,
-		Integrations:      account.Integrations,
+	return v1Types.LoadBalancer{
+		ID:           string(a.ID),
+		Name:         a.Name,
+		UserID:       userID,
+		Applications: ConvertToLegacyApplications(a, userID, account.Plan.Type, legacyDailyLimit),
+		Users:        users,
+		Integrations: v1Types.AccountIntegrations{
+			CovalentAPIKeyFree: account.Integrations.CovalentAPIKeyFree,
+			CovalentAPIKeyPaid: account.Integrations.CovalentAPIKeyPaid,
+		},
 		CreatedAt:         a.CreatedAt,
 		UpdatedAt:         a.UpdatedAt,
 		Gigastake:         a.Gigastake,
@@ -44,35 +48,35 @@ func ConvertToLegacyLoadBalancer(a types.PortalApp, account types.Account) types
 	}
 }
 
-func ConvertToLegacyApplications(a types.PortalApp, userID string, planType types.PayPlanType, dailyLimit int32) []*types.Application {
-	baseApp := types.Application{
+func ConvertToLegacyApplications(a v2Types.PortalApp, userID string, planType v2Types.PayPlanType, dailyLimit int32) []*v1Types.Application {
+	baseApp := v1Types.Application{
 		UserID:          userID,
 		Name:            a.Name,
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
-		Limit: types.AppLimit{
-			PayPlan:     types.PayPlan{Type: planType, Limit: int(dailyLimit)},
+		Limit: v1Types.AppLimit{
+			PayPlan:     v1Types.PayPlan{Type: v1Types.PayPlanType(planType), Limit: int(dailyLimit)},
 			CustomLimit: int(a.LegacyFields.CustomLimit),
 		},
-		NotificationSettings: types.NotificationSettings{
-			SignedUp:      a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventSignedUp],
-			Quarter:       a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventQuarter],
-			Half:          a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventHalf],
-			ThreeQuarters: a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventThreeQuarters],
-			Full:          a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventFull],
+		NotificationSettings: v1Types.NotificationSettings{
+			SignedUp:      a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventSignedUp],
+			Quarter:       a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventQuarter],
+			Half:          a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventHalf],
+			ThreeQuarters: a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventThreeQuarters],
+			Full:          a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventFull],
 		},
 		FirstDateSurpassed: a.LegacyFields.FirstDateSurpassed,
 		CreatedAt:          a.CreatedAt,
 		UpdatedAt:          a.UpdatedAt,
 	}
 
-	var legacyApps []*types.Application
+	var legacyApps []*v1Types.Application
 
 	for appID, aat := range a.AATs {
 		app := baseApp
 
 		app.ID = string(appID)
 
-		app.GatewayAAT = types.GatewayAAT{
+		app.GatewayAAT = v1Types.GatewayAAT{
 			Address:              aat.Address,
 			ApplicationPublicKey: aat.PublicKey,
 			ApplicationSignature: aat.Signature,
@@ -87,15 +91,15 @@ func ConvertToLegacyApplications(a types.PortalApp, userID string, planType type
 	return legacyApps
 }
 
-func ConvertToLegacyApplication(a types.PortalApp, account types.Account, protocolAppID types.ProtocolAppID) types.Application {
+func ConvertToLegacyApplication(a v2Types.PortalApp, account v2Types.Account, protocolAppID v2Types.ProtocolAppID) v1Types.Application {
 	aat := a.AATs[protocolAppID]
 
-	return types.Application{
+	return v1Types.Application{
 		ID:              string(protocolAppID),
 		UserID:          account.LegacyUserID(),
 		Name:            a.Name,
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
-		GatewayAAT: types.GatewayAAT{
+		GatewayAAT: v1Types.GatewayAAT{
 			Address:              aat.Address,
 			ApplicationPublicKey: aat.PublicKey,
 			ApplicationSignature: aat.Signature,
@@ -103,16 +107,16 @@ func ConvertToLegacyApplication(a types.PortalApp, account types.Account, protoc
 			PrivateKey:           aat.PrivateKey,
 			Version:              aat.Version,
 		},
-		Limit: types.AppLimit{
-			PayPlan:     types.PayPlan{Type: account.Plan.Type, Limit: int(account.Plan.LegacyDailyLimit)},
+		Limit: v1Types.AppLimit{
+			PayPlan:     v1Types.PayPlan{Type: v1Types.PayPlanType(account.Plan.Type), Limit: int(account.Plan.LegacyDailyLimit)},
 			CustomLimit: int(a.LegacyFields.CustomLimit),
 		},
-		NotificationSettings: types.NotificationSettings{
-			SignedUp:      a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventSignedUp],
-			Quarter:       a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventQuarter],
-			Half:          a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventHalf],
-			ThreeQuarters: a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventThreeQuarters],
-			Full:          a.Notifications[types.NotificationTypeEmail].Events[types.NotificationEventFull],
+		NotificationSettings: v1Types.NotificationSettings{
+			SignedUp:      a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventSignedUp],
+			Quarter:       a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventQuarter],
+			Half:          a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventHalf],
+			ThreeQuarters: a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventThreeQuarters],
+			Full:          a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventFull],
 		},
 		FirstDateSurpassed: a.LegacyFields.FirstDateSurpassed,
 		CreatedAt:          a.CreatedAt,
@@ -120,8 +124,8 @@ func ConvertToLegacyApplication(a types.PortalApp, account types.Account, protoc
 	}
 }
 
-func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
-	gatewaySettings := types.GatewaySettings{
+func ConvertToLegacyGatewaySettings(a v2Types.PortalApp) v1Types.GatewaySettings {
+	gatewaySettings := v1Types.GatewaySettings{
 		SecretKey:         a.Settings.SecretKey,
 		SecretKeyRequired: a.Settings.SecretKeyRequired,
 	}
@@ -147,7 +151,7 @@ func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
 			contractList = append(contractList, string(contract))
 		}
 		sort.Strings(contractList)
-		gatewaySettings.WhitelistContracts = append(gatewaySettings.WhitelistContracts, types.WhitelistContracts{
+		gatewaySettings.WhitelistContracts = append(gatewaySettings.WhitelistContracts, v1Types.WhitelistContracts{
 			BlockchainID: string(chainID), Contracts: contractList},
 		)
 	}
@@ -161,7 +165,7 @@ func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
 			methodList = append(methodList, string(method))
 		}
 		sort.Strings(methodList)
-		gatewaySettings.WhitelistMethods = append(gatewaySettings.WhitelistMethods, types.WhitelistMethods{
+		gatewaySettings.WhitelistMethods = append(gatewaySettings.WhitelistMethods, v1Types.WhitelistMethods{
 			BlockchainID: string(chainID), Methods: methodList},
 		)
 	}
@@ -172,10 +176,10 @@ func ConvertToLegacyGatewaySettings(a types.PortalApp) types.GatewaySettings {
 	return gatewaySettings
 }
 
-func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
-	var redirects []types.Redirect
+func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
+	var redirects []v1Types.Redirect
 	for _, chainRedirect := range c.Redirects {
-		redirects = append(redirects, types.Redirect{
+		redirects = append(redirects, v1Types.Redirect{
 			Alias:          chainRedirect.Alias,
 			Domain:         string(chainRedirect.Domain),
 			LoadBalancerID: string(chainRedirect.PortalApplicationID),
@@ -189,15 +193,15 @@ func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
 	}
 
 	var chainID string
-	if c.Checks[types.ChainCheckTypeChain].EVMChainID != 0 {
-		chainID = strconv.Itoa(int(c.Checks[types.ChainCheckTypeChain].EVMChainID))
+	if c.Checks[v2Types.ChainCheckTypeChain].EVMChainID != 0 {
+		chainID = strconv.Itoa(int(c.Checks[v2Types.ChainCheckTypeChain].EVMChainID))
 	}
 
-	return types.Blockchain{
+	return v1Types.Blockchain{
 		ID:                string(c.ID),
 		Blockchain:        c.Blockchain,
 		ChainID:           chainID,
-		ChainIDCheck:      c.Checks[types.ChainCheckTypeChain].Payload,
+		ChainIDCheck:      c.Checks[v2Types.ChainCheckTypeChain].Payload,
 		Description:       c.Description,
 		EnforceResult:     c.EnforceResult,
 		Path:              c.Path,
@@ -207,10 +211,10 @@ func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
 		RequestTimeout:    int(c.RequestTimeout),
 		Active:            c.Active,
 		Altruist:          altruistURL,
-		SyncCheckOptions: types.SyncCheckOptions{
-			Body:      c.Checks[types.ChainCheckTypeSync].Payload,
-			ResultKey: c.Checks[types.ChainCheckTypeSync].ResultKey,
-			Allowance: int(c.Checks[types.ChainCheckTypeSync].Allowance),
+		SyncCheckOptions: v1Types.SyncCheckOptions{
+			Body:      c.Checks[v2Types.ChainCheckTypeSync].Payload,
+			ResultKey: c.Checks[v2Types.ChainCheckTypeSync].ResultKey,
+			Allowance: int(c.Checks[v2Types.ChainCheckTypeSync].Allowance),
 		},
 		Redirects: redirects,
 		CreatedAt: c.CreatedAt,
@@ -218,11 +222,11 @@ func ConvertToLegacyBlockchain(c types.Chain) types.Blockchain {
 	}
 }
 
-func formatAltruistURL(altruist types.Altruist) string {
+func formatAltruistURL(altruist v2Types.Altruist) string {
 	formattedURL := string(altruist.URL)
 
 	// insert the basic auth into the altruist URL
-	if altruist.AuthType == types.ChainAuthTypeBasicAuth {
+	if altruist.AuthType == v2Types.ChainAuthTypeBasicAuth {
 		formattedURL = strings.Replace(formattedURL, "https://", "", 1)
 		formattedURL = fmt.Sprintf("https://%s@%s", altruist.Auth, formattedURL)
 		return formattedURL
@@ -231,9 +235,9 @@ func formatAltruistURL(altruist types.Altruist) string {
 	return formattedURL
 }
 
-func ConvertToLegacyPayPlan(c types.Plan) types.PayPlan {
-	return types.PayPlan{
-		Type:  c.Type,
+func ConvertToLegacyPayPlan(c v2Types.Plan) v1Types.PayPlan {
+	return v1Types.PayPlan{
+		Type:  v1Types.PayPlanType(c.Type),
 		Limit: int(c.LegacyDailyLimit),
 	}
 }
@@ -243,39 +247,39 @@ func ConvertToLegacyPayPlan(c types.Plan) types.PayPlan {
 // Creates the struct with all fields needed to create a new PortalApp & AAT
 // LoadBalancer must be sent to PHD containing its Application already defined inside PUB
 // This way the Account and PortalApp can be created in only one operation (no PHD client changes needed)
-func ConvertToV2PortalAppAndAAT(lb types.LoadBalancer) (types.PortalApp, types.AAT) {
+func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2Types.AAT) {
 	app := lb.Applications[0]
 	owner := lb.Users[0]
 
-	portalApp := types.PortalApp{ // Portal App ID is created inside postgresdriver
+	portalApp := v2Types.PortalApp{ // Portal App ID is created inside postgresdriver
 		Name:      lb.Name,
 		Gigastake: lb.Gigastake,
-		Settings: types.Settings{
-			Environment: types.EnvironmentProduction,
+		Settings: v2Types.Settings{
+			Environment: v2Types.EnvironmentProduction,
 			SecretKey:   app.GatewaySettings.SecretKey,
 		},
-		Notifications: map[types.NotificationType]types.AppNotification{
-			types.NotificationTypeEmail: {
+		Notifications: map[v2Types.NotificationType]v2Types.AppNotification{
+			v2Types.NotificationTypeEmail: {
 				Active:      true,
 				Destination: owner.Email,
-				Events: map[types.NotificationEvent]bool{
-					types.NotificationEventSignedUp:      app.NotificationSettings.SignedUp,
-					types.NotificationEventQuarter:       app.NotificationSettings.Quarter,
-					types.NotificationEventHalf:          app.NotificationSettings.Half,
-					types.NotificationEventThreeQuarters: app.NotificationSettings.ThreeQuarters,
-					types.NotificationEventFull:          app.NotificationSettings.Full,
+				Events: map[v2Types.NotificationEvent]bool{
+					v2Types.NotificationEventSignedUp:      app.NotificationSettings.SignedUp,
+					v2Types.NotificationEventQuarter:       app.NotificationSettings.Quarter,
+					v2Types.NotificationEventHalf:          app.NotificationSettings.Half,
+					v2Types.NotificationEventThreeQuarters: app.NotificationSettings.ThreeQuarters,
+					v2Types.NotificationEventFull:          app.NotificationSettings.Full,
 				},
 			},
 		},
 
-		LegacyFields: types.LegacyFields{
+		LegacyFields: v2Types.LegacyFields{
 			RequestTimeout:    int32(lb.RequestTimeout),
 			GigastakeRedirect: lb.GigastakeRedirect,
 			StickyOptions:     lb.StickyOptions,
 		},
 	}
 
-	aat := types.AAT{ // AAT ID (ProtocolAppID) is created inside postgresdriver
+	aat := v2Types.AAT{ // AAT ID (ProtocolAppID) is created inside postgresdriver
 		Address:         app.GatewayAAT.Address,
 		PublicKey:       app.GatewayAAT.ApplicationPublicKey,
 		ClientPublicKey: app.GatewayAAT.ClientPublicKey,
@@ -288,42 +292,42 @@ func ConvertToV2PortalAppAndAAT(lb types.LoadBalancer) (types.PortalApp, types.A
 }
 
 // Converts the existing UpdateApplication struct to a new one that updates all relevant fields in the PortalApp
-func ConvertToV2UpdatePortalApp(u types.UpdateApplication, lbID string) types.UpdatePortalApp {
+func ConvertToV2UpdatePortalApp(u v1Types.UpdateApplication, lbID string) v2Types.UpdatePortalApp {
 	var (
-		settings                             *types.UpdateAppSettings
-		notifications                        []types.UpdateAppNotifications
-		whitelists                           *types.WhitelistsObject
-		contractWhitelists, methodWhitelists []types.ChainIDWhitelists
+		settings                             *v2Types.UpdateAppSettings
+		notifications                        []v2Types.UpdateAppNotifications
+		whitelists                           *v2Types.WhitelistsObject
+		contractWhitelists, methodWhitelists []v2Types.ChainIDWhitelists
 	)
 
 	if u.NotificationSettings != nil {
-		notificationEvents := []types.NotificationEvent{}
+		notificationEvents := []v2Types.NotificationEvent{}
 
 		if u.NotificationSettings.SignedUp != nil && *u.NotificationSettings.SignedUp {
-			notificationEvents = append(notificationEvents, types.NotificationEventSignedUp)
+			notificationEvents = append(notificationEvents, v2Types.NotificationEventSignedUp)
 		}
 		if u.NotificationSettings.Quarter != nil && *u.NotificationSettings.Quarter {
-			notificationEvents = append(notificationEvents, types.NotificationEventQuarter)
+			notificationEvents = append(notificationEvents, v2Types.NotificationEventQuarter)
 		}
 		if u.NotificationSettings.Half != nil && *u.NotificationSettings.Half {
-			notificationEvents = append(notificationEvents, types.NotificationEventHalf)
+			notificationEvents = append(notificationEvents, v2Types.NotificationEventHalf)
 		}
 		if u.NotificationSettings.ThreeQuarters != nil && *u.NotificationSettings.ThreeQuarters {
-			notificationEvents = append(notificationEvents, types.NotificationEventThreeQuarters)
+			notificationEvents = append(notificationEvents, v2Types.NotificationEventThreeQuarters)
 		}
 		if u.NotificationSettings.Full != nil && *u.NotificationSettings.Full {
-			notificationEvents = append(notificationEvents, types.NotificationEventFull)
+			notificationEvents = append(notificationEvents, v2Types.NotificationEventFull)
 		}
 
-		notifications = []types.UpdateAppNotifications{
-			{Active: true, NotificationType: types.NotificationTypeEmail, Events: notificationEvents},
+		notifications = []v2Types.UpdateAppNotifications{
+			{Active: true, NotificationType: v2Types.NotificationTypeEmail, Events: notificationEvents},
 		}
 	}
 
 	if u.GatewaySettings != nil {
-		settings = &types.UpdateAppSettings{
+		settings = &v2Types.UpdateAppSettings{
 			SecretKey:   u.GatewaySettings.SecretKey,
-			Environment: types.EnvironmentProduction,
+			Environment: v2Types.EnvironmentProduction,
 		}
 		if u.GatewaySettings.SecretKeyRequired != nil {
 			settings.SecretKeyRequired = *u.GatewaySettings.SecretKeyRequired
@@ -332,33 +336,33 @@ func ConvertToV2UpdatePortalApp(u types.UpdateApplication, lbID string) types.Up
 		for _, chainContracts := range u.GatewaySettings.WhitelistContracts {
 			contracts := []string{}
 			contracts = append(contracts, chainContracts.Contracts...)
-			contractWhitelists = append(contractWhitelists, types.ChainIDWhitelists{
+			contractWhitelists = append(contractWhitelists, v2Types.ChainIDWhitelists{
 				ChainID: chainContracts.BlockchainID, Values: contracts,
 			})
 		}
 		for _, chainMethods := range u.GatewaySettings.WhitelistMethods {
 			methods := []string{}
 			methods = append(methods, chainMethods.Methods...)
-			methodWhitelists = append(methodWhitelists, types.ChainIDWhitelists{
+			methodWhitelists = append(methodWhitelists, v2Types.ChainIDWhitelists{
 				ChainID: chainMethods.BlockchainID, Values: methods,
 			})
 		}
 
-		whitelists = &types.WhitelistsObject{
-			AppWhitelists: [3]types.ApplicationWhitelists{
-				{Type: types.WhitelistTypeOrigins, Values: u.GatewaySettings.WhitelistOrigins},
-				{Type: types.WhitelistTypeUserAgents, Values: u.GatewaySettings.WhitelistUserAgents},
-				{Type: types.WhitelistTypeBlockchains, Values: u.GatewaySettings.WhitelistBlockchains},
+		whitelists = &v2Types.WhitelistsObject{
+			AppWhitelists: [3]v2Types.ApplicationWhitelists{
+				{Type: v2Types.WhitelistTypeOrigins, Values: u.GatewaySettings.WhitelistOrigins},
+				{Type: v2Types.WhitelistTypeUserAgents, Values: u.GatewaySettings.WhitelistUserAgents},
+				{Type: v2Types.WhitelistTypeBlockchains, Values: u.GatewaySettings.WhitelistBlockchains},
 			},
-			ChainWhitelists: [2]types.ChainWhitelists{
-				{Type: types.WhitelistTypeContracts, Values: contractWhitelists},
-				{Type: types.WhitelistTypeMethods, Values: methodWhitelists},
+			ChainWhitelists: [2]v2Types.ChainWhitelists{
+				{Type: v2Types.WhitelistTypeContracts, Values: contractWhitelists},
+				{Type: v2Types.WhitelistTypeMethods, Values: methodWhitelists},
 			},
 		}
 	}
 
-	return types.UpdatePortalApp{
-		AppID:         types.PortalAppID(lbID),
+	return v2Types.UpdatePortalApp{
+		AppID:         v2Types.PortalAppID(lbID),
 		Name:          u.Name,
 		Settings:      settings,
 		Notifications: notifications,
@@ -366,47 +370,47 @@ func ConvertToV2UpdatePortalApp(u types.UpdateApplication, lbID string) types.Up
 	}
 }
 
-func ConvertToV2AccountUserAccess(u types.UserAccess) types.AccountUserAccess {
+func ConvertToV2AccountUserAccess(u v1Types.UserAccess) v2Types.AccountUserAccess {
 	authType := getAuthType(u.UserID)
-	return types.AccountUserAccess{
-		Email:           types.Email(u.Email),
-		RoleName:        u.RoleName,
+	return v2Types.AccountUserAccess{
+		Email:           v2Types.Email(u.Email),
+		RoleName:        v2Types.RoleName(u.RoleName),
 		Accepted:        u.Accepted,
-		ProviderUserIDs: map[types.AuthType]string{authType: u.UserID},
+		ProviderUserIDs: map[v2Types.AuthType]string{authType: u.UserID},
 	}
 }
 
-func ConvertToV2UpdateAcceptAccountUserAccess(u types.UpdateUserAccess, accountID types.AccountID, userID types.UserID) types.UpdateAcceptAccountUser {
+func ConvertToV2UpdateAcceptAccountUserAccess(u v1Types.UpdateUserAccess, accountID v2Types.AccountID, userID v2Types.UserID) v2Types.UpdateAcceptAccountUser {
 	authType := getAuthType(u.UserID)
-	return types.UpdateAcceptAccountUser{
+	return v2Types.UpdateAcceptAccountUser{
 		AccountID:        accountID,
 		UserID:           userID,
 		AuthProviderType: authType,
-		ProviderUserID:   types.ProviderUserID(u.UserID),
+		ProviderUserID:   v2Types.ProviderUserID(u.UserID),
 	}
 }
 
-func ConvertToV2UpdateAccountUserAccess(u types.UpdateUserAccess, lbID string, userID string) types.UpdateAccountUserRole {
-	return types.UpdateAccountUserRole{
+func ConvertToV2UpdateAccountUserAccess(u v1Types.UpdateUserAccess, lbID string, userID string) v2Types.UpdateAccountUserRole {
+	return v2Types.UpdateAccountUserRole{
 		LegacyLoadBalancerID: lbID,
-		UserID:               types.UserID(userID),
-		RoleName:             u.RoleName,
+		UserID:               v2Types.UserID(userID),
+		RoleName:             v2Types.RoleName(u.RoleName),
 	}
 }
 
-func getAuthType(userID string) types.AuthType {
+func getAuthType(userID string) v2Types.AuthType {
 	switch {
 	case len(userID) == 24:
-		return types.AuthTypeAuth0Username
+		return v2Types.AuthTypeAuth0Username
 	default:
-		return types.AuthTypeAuth0Github
+		return v2Types.AuthTypeAuth0Github
 	}
 }
 
-func ConvertToV2Chain(b types.Blockchain) types.Chain {
-	checks := map[types.ChainCheckType]types.Check{
-		types.ChainCheckTypeSync: {
-			Type:      types.ChainCheckTypeSync,
+func ConvertToV2Chain(b v1Types.Blockchain) v2Types.Chain {
+	checks := map[v2Types.ChainCheckType]v2Types.Check{
+		v2Types.ChainCheckTypeSync: {
+			Type:      v2Types.ChainCheckTypeSync,
 			Payload:   b.SyncCheckOptions.Body,
 			ResultKey: b.SyncCheckOptions.ResultKey,
 			Allowance: int32(b.SyncCheckOptions.Allowance),
@@ -416,7 +420,7 @@ func ConvertToV2Chain(b types.Blockchain) types.Chain {
 		chainID, _ := strconv.Atoi(b.ChainID)
 		evmChainID := int32(chainID)
 
-		checks[types.ChainCheckTypeChain] = types.Check{
+		checks[v2Types.ChainCheckTypeChain] = v2Types.Check{
 			Payload:    b.ChainIDCheck,
 			EVMChainID: evmChainID,
 		}
@@ -424,17 +428,17 @@ func ConvertToV2Chain(b types.Blockchain) types.Chain {
 
 	altruist := parseAltruistURL(b.Altruist)
 
-	redirects := []types.GigastakeRedirect{}
+	redirects := []v2Types.GigastakeRedirect{}
 	for _, redirect := range b.Redirects {
-		redirects = append(redirects, types.GigastakeRedirect{
-			PortalApplicationID: types.PortalAppID(redirect.LoadBalancerID),
-			Domain:              types.RedirectDomain(redirect.Domain),
+		redirects = append(redirects, v2Types.GigastakeRedirect{
+			PortalApplicationID: v2Types.PortalAppID(redirect.LoadBalancerID),
+			Domain:              v2Types.RedirectDomain(redirect.Domain),
 			Alias:               redirect.Alias,
 		})
 	}
 
-	return types.Chain{
-		ID:             types.RelayChainID(b.ID),
+	return v2Types.Chain{
+		ID:             v2Types.RelayChainID(b.ID),
 		Blockchain:     b.Blockchain,
 		Description:    b.Description,
 		EnforceResult:  b.EnforceResult,
@@ -444,7 +448,7 @@ func ConvertToV2Chain(b types.Blockchain) types.Chain {
 		LogLimitBlocks: int32(b.LogLimitBlocks),
 		RequestTimeout: int32(b.RequestTimeout),
 		Active:         b.Active,
-		Altruists:      []types.Altruist{altruist},
+		Altruists:      []v2Types.Altruist{altruist},
 		Redirects:      redirects,
 		Checks:         checks,
 		CreatedAt:      b.CreatedAt,
@@ -452,44 +456,44 @@ func ConvertToV2Chain(b types.Blockchain) types.Chain {
 	}
 }
 
-func parseAltruistURL(rawURL string) types.Altruist {
+func parseAltruistURL(rawURL string) v2Types.Altruist {
 	parsedURL, _ := url.Parse(rawURL)
 
 	auth := ""
-	authType := types.ChainAuthTypeNone
+	authType := v2Types.ChainAuthTypeNone
 
 	if parsedURL.User != nil {
 		auth = parsedURL.User.String()
 		parsedURL.User = nil
-		authType = types.ChainAuthTypeBasicAuth
+		authType = v2Types.ChainAuthTypeBasicAuth
 	}
 
-	altruistURL := types.AltruistURL(strings.TrimPrefix(parsedURL.String(), "//"))
+	altruistURL := v2Types.AltruistURL(strings.TrimPrefix(parsedURL.String(), "//"))
 
-	return types.Altruist{
+	return v2Types.Altruist{
 		URL:      altruistURL,
 		Auth:     auth,
 		AuthType: authType,
 	}
 }
 
-func ConvertToV2UpdateChain(blockchainID string, u types.UpdateBlockchain) types.Chain {
+func ConvertToV2UpdateChain(blockchainID string, u v1Types.UpdateBlockchain) v2Types.Chain {
 	var allowance int32
 	if u.Allowance != nil {
 		allowance = int32(*u.Allowance)
 	}
 
-	checks := map[types.ChainCheckType]types.Check{
-		types.ChainCheckTypeSync: {Type: types.ChainCheckTypeSync, Payload: u.Body, ResultKey: u.ResultKey, Allowance: allowance},
+	checks := map[v2Types.ChainCheckType]v2Types.Check{
+		v2Types.ChainCheckTypeSync: {Type: v2Types.ChainCheckTypeSync, Payload: u.Body, ResultKey: u.ResultKey, Allowance: allowance},
 	}
 	if u.ChainIDCheck != "" {
-		checks[types.ChainCheckTypeChain] = types.Check{Payload: u.ChainIDCheck}
+		checks[v2Types.ChainCheckTypeChain] = v2Types.Check{Payload: u.ChainIDCheck}
 	}
 
 	altruist := parseAltruistURL(u.Altruist)
 
-	return types.Chain{
-		ID:             types.RelayChainID(blockchainID),
+	return v2Types.Chain{
+		ID:             v2Types.RelayChainID(blockchainID),
 		Blockchain:     u.Blockchain,
 		Description:    u.Description,
 		EnforceResult:  u.EnforceResult,
@@ -498,22 +502,22 @@ func ConvertToV2UpdateChain(blockchainID string, u types.UpdateBlockchain) types
 		ChainAliases:   u.BlockchainAliases,
 		LogLimitBlocks: int32(u.LogLimitBlocks),
 		RequestTimeout: int32(u.RequestTimeout),
-		Altruists:      []types.Altruist{altruist},
+		Altruists:      []v2Types.Altruist{altruist},
 		Checks:         checks,
 	}
 }
 
-func ConvertToV2Redirect(r types.Redirect) types.GigastakeRedirect {
-	return types.GigastakeRedirect{
-		PortalApplicationID: types.PortalAppID(r.LoadBalancerID),
+func ConvertToV2Redirect(r v1Types.Redirect) v2Types.GigastakeRedirect {
+	return v2Types.GigastakeRedirect{
+		PortalApplicationID: v2Types.PortalAppID(r.LoadBalancerID),
 		Alias:               r.Alias,
-		Domain:              types.RedirectDomain(r.Domain),
+		Domain:              v2Types.RedirectDomain(r.Domain),
 	}
 }
 
 /* Utils */
-func sortUsersByRole(users []types.UserAccess) {
-	roleWeight := map[types.RoleName]int{types.RoleOwner: 0, types.RoleAdmin: 1, types.RoleMember: 2}
+func sortUsersByRole(users []v1Types.UserAccess) {
+	roleWeight := map[v1Types.RoleName]int{v1Types.RoleOwner: 0, v1Types.RoleAdmin: 1, v1Types.RoleMember: 2}
 
 	sort.Slice(users, func(i, j int) bool {
 		if roleWeight[users[i].RoleName] != roleWeight[users[j].RoleName] {
