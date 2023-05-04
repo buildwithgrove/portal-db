@@ -108,6 +108,11 @@ type (
 		AuthProviderType AuthType       `json:"type"`
 		ProviderUserID   ProviderUserID `json:"providerUserID"`
 	}
+
+	CreateUserResponse struct {
+		User      User      `json:"user"`
+		AccountID AccountID `json:"accountID"`
+	}
 )
 
 /* UserPermissions Struct Definition and Methods */
