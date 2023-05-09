@@ -38,6 +38,7 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v
 
 	return v1Types.LoadBalancer{
 		ID:           string(a.ID),
+		AccountID:    string(account.ID),
 		Name:         a.Name,
 		UserID:       userID,
 		Applications: ConvertToLegacyApplications(a, userID, account.Plan.Type, legacyDailyLimit),
