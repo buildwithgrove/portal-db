@@ -1726,18 +1726,25 @@ func (q *Queries) UpdateInsertWhitelists(ctx context.Context, arg UpdateInsertWh
 const updatePortalAppName = `-- name: UpdatePortalAppName :exec
 UPDATE portal_applications
 SET name = $2,
-    updated_at = $3
+    custom_limit = $3,
+    updated_at = $4
 WHERE id = $1
 `
 
 type UpdatePortalAppNameParams struct {
-	ID        types.PortalAppID `json:"id"`
-	Name      string            `json:"name"`
-	UpdatedAt time.Time         `json:"updated_at"`
+	ID          types.PortalAppID `json:"id"`
+	Name        string            `json:"name"`
+	CustomLimit sql.NullInt32     `json:"custom_limit"`
+	UpdatedAt   time.Time         `json:"updated_at"`
 }
 
 func (q *Queries) UpdatePortalAppName(ctx context.Context, arg UpdatePortalAppNameParams) error {
-	_, err := q.db.ExecContext(ctx, updatePortalAppName, arg.ID, arg.Name, arg.UpdatedAt)
+	_, err := q.db.ExecContext(ctx, updatePortalAppName,
+		arg.ID,
+		arg.Name,
+		arg.CustomLimit,
+		arg.UpdatedAt,
+	)
 	return err
 }
 

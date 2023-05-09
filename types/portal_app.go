@@ -174,6 +174,8 @@ type (
 		Settings      *UpdateAppSettings       `json:"appSettings,omitempty"`
 		Notifications []UpdateAppNotifications `json:"notificationSettings,omitempty"`
 		Whitelists    *WhitelistsObject        `json:"whitelists,omitempty"`
+		// TODO - remove when v2 migration finished
+		CustomLimit int32 `json:"customLimit,omitempty"`
 	}
 
 	UpdateAppSettings struct {

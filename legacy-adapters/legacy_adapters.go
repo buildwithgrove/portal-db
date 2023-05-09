@@ -366,13 +366,19 @@ func ConvertToV2UpdatePortalApp(u v1Types.UpdateApplication, lbID string) v2Type
 		}
 	}
 
-	return v2Types.UpdatePortalApp{
+	update := v2Types.UpdatePortalApp{
 		AppID:         v2Types.PortalAppID(lbID),
 		Name:          u.Name,
 		Settings:      settings,
 		Notifications: notifications,
 		Whitelists:    whitelists,
 	}
+
+	if u.Limit != nil {
+		update.CustomLimit = int32(u.Limit.CustomLimit)
+	}
+
+	return update
 }
 
 func ConvertToV2AccountUserAccess(u v1Types.UserAccess) v2Types.AccountUserAccess {
