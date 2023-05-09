@@ -282,6 +282,7 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 		LegacyFields: v2Types.LegacyFields{
 			RequestTimeout:    int32(lb.RequestTimeout),
 			GigastakeRedirect: lb.GigastakeRedirect,
+			CustomLimit:       int32(app.Limit.CustomLimit),
 		},
 	}
 
