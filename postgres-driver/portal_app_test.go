@@ -140,6 +140,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				Settings:      testdata.UpdatePortalAppSettings,
 				Notifications: testdata.UpdatePortalAppNotifications,
 				Whitelists:    testdata.UpdatePortalAppWhitelists,
+				CustomLimit:   4_000_000,
 			},
 			testUpdateTime:  testdata.MockTimestamp,
 			testUpdatedName: "portal-app-updated",
@@ -317,6 +318,10 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
 			} else {
 				ts.Equal(createdPortalApp.Whitelists, updatedPortalApp.Whitelists)
+			}
+
+			if test.updatePortalApp.CustomLimit != 0 {
+				ts.Equal(test.updatePortalApp.CustomLimit, updatedPortalApp.LegacyFields.CustomLimit)
 			}
 		})
 	}

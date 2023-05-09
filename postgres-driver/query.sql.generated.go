@@ -1723,7 +1723,7 @@ func (q *Queries) UpdateInsertWhitelists(ctx context.Context, arg UpdateInsertWh
 	return err
 }
 
-const updatePortalAppName = `-- name: UpdatePortalAppName :exec
+const updatePortalAppFields = `-- name: UpdatePortalAppFields :exec
 UPDATE portal_applications
 SET name = $2,
     custom_limit = $3,
@@ -1731,15 +1731,15 @@ SET name = $2,
 WHERE id = $1
 `
 
-type UpdatePortalAppNameParams struct {
+type UpdatePortalAppFieldsParams struct {
 	ID          types.PortalAppID `json:"id"`
 	Name        string            `json:"name"`
 	CustomLimit sql.NullInt32     `json:"custom_limit"`
 	UpdatedAt   time.Time         `json:"updated_at"`
 }
 
-func (q *Queries) UpdatePortalAppName(ctx context.Context, arg UpdatePortalAppNameParams) error {
-	_, err := q.db.ExecContext(ctx, updatePortalAppName,
+func (q *Queries) UpdatePortalAppFields(ctx context.Context, arg UpdatePortalAppFieldsParams) error {
+	_, err := q.db.ExecContext(ctx, updatePortalAppFields,
 		arg.ID,
 		arg.Name,
 		arg.CustomLimit,
