@@ -315,10 +315,15 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 
 	qtx := pg.WithTx(tx)
 
-	if update.Name != "" {
-		err := qtx.UpdatePortalAppName(ctx, UpdatePortalAppNameParams{
-			ID: update.AppID, Name: update.Name, UpdatedAt: updatedAt,
-		})
+	if update.Name != "" || update.CustomLimit != 0 {
+		updateApp := UpdatePortalAppFieldsParams{ID: update.AppID, UpdatedAt: updatedAt}
+		if update.Name != "" {
+			updateApp.Name = update.Name
+		}
+		if update.CustomLimit != 0 {
+			updateApp.CustomLimit = newSQLNullInt32(update.CustomLimit, false)
+		}
+		err := qtx.UpdatePortalAppFields(ctx, updateApp)
 		if err != nil {
 			return err
 		}

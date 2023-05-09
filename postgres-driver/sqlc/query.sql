@@ -171,7 +171,7 @@ FROM users
     JOIN account_user_access ON users.id = account_user_access.user_id
 WHERE account_user_access.role_name = 'OWNER'
     AND account_user_access.account_id = $1;
--- name: UpdatePortalAppName :exec
+-- name: UpdatePortalAppFields :exec
 UPDATE portal_applications
 SET name = $2,
     custom_limit = $3,
