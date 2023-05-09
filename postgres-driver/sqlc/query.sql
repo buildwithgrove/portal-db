@@ -174,7 +174,8 @@ WHERE account_user_access.role_name = 'OWNER'
 -- name: UpdatePortalAppName :exec
 UPDATE portal_applications
 SET name = $2,
-    updated_at = $3
+    custom_limit = $3,
+    updated_at = $4
 WHERE id = $1;
 -- name: UpdatePortalAppSettings :exec
 UPDATE portal_application_settings
