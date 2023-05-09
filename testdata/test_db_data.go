@@ -1151,6 +1151,7 @@ var (
 
 	LegacyLoadBalancer = v1Types.LoadBalancer{
 		ID:                "test_app_1",
+		AccountID:         "account_1",
 		Name:              "pokt_app_123",
 		UserID:            "auth0|james_holden",
 		ApplicationIDs:    []string(nil),

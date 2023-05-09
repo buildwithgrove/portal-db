@@ -19,10 +19,10 @@ Once the V2 migration is completed this package may be removed from this repo.
 */
 
 /* V2 Struct to Legacy Struct Adaptors */
-func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v1Types.LoadBalancer {
+func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, lbUsers map[v2Types.UserID]v2Types.AccountUserAccess) v1Types.LoadBalancer {
 	var users []v1Types.UserAccess
 
-	for _, accountUser := range account.Users {
+	for _, accountUser := range lbUsers {
 		users = append(users, v1Types.UserAccess{
 			UserID:   string(accountUser.UserID),
 			RoleName: v1Types.RoleName(accountUser.RoleName),
