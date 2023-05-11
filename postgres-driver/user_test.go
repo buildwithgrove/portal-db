@@ -115,8 +115,6 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			originalAccounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
-			ts.NoError(err)
 			user, accountID, err := ts.driver.WriteUserNewSignUp(context.Background(), test.createUser, testdata.MockTimestamp)
 			ts.Equal(test.err, err)
 
@@ -128,8 +126,18 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
-				// if the account was created, ReadAccounts should have 1 more account
-				ts.Equal(len(originalAccounts)+1, len(accounts))
+				exists := false
+				for _, account := range accounts {
+					for _, user := range account.Users {
+						if user.UserID == test.user.ID {
+							exists = true
+							ts.Equal(types.RoleOwner, user.RoleName)
+							ts.Equal(test.createUser.Email, user.Email)
+							break
+						}
+					}
+				}
+				ts.True(exists)
 			}
 		})
 	}
