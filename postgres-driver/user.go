@@ -137,15 +137,32 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 	}
 	accountID := types.AccountID(id)
 
-	newAccountInput := InsertAccountParams{
+	account, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        accountID,
 		PlanType:  types.FreetierV0,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
+	})
+	if err != nil {
+		return nil, types.AccountID(""), err
 	}
 
-	account, err := qtx.InsertAccount(ctx, newAccountInput)
+	// New user is Account OWNER
+	owner, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
+		AccountID: accountID,
+		UserID:    createdUserID,
+		Email:     user.Email,
+		RoleName:  types.RoleOwner,
+		Accepted:  true,
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+	})
 	if err != nil {
+		return nil, types.AccountID(""), err
+	}
+
+	var providerUserIDs map[types.AuthType]string
+	if err := json.Unmarshal(owner.ProviderUserIDs, &providerUserIDs); err != nil {
 		return nil, types.AccountID(""), err
 	}
 
