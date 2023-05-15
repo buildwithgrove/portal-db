@@ -395,9 +395,8 @@ var (
 	}
 
 	TestCreateUser = types.CreateUser{
-		Email:            "commander.data@example.com",
-		AuthProviderType: types.AuthTypeAuth0Username,
-		ProviderUserID:   "auth0|commander_data",
+		Email:          "commander.data@example.com",
+		ProviderUserID: "auth0|commander_data",
 	}
 
 	UserPermissions = map[types.UserID]*types.UserPermissions{

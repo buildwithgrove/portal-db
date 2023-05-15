@@ -22,9 +22,10 @@ type (
 )
 
 var (
-	errUserDoesntExist         = errors.New("error user does not exist for portal ID '%s'")
-	errInvalidEmail            = errors.New("error email input is not a valid email address '%s'")
-	errInvalidAuthProviderType = errors.New("error invalid auth provider type '%s'")
+	errUserDoesntExist          = errors.New("error user does not exist for portal ID '%s'")
+	errInvalidEmail             = errors.New("error email input is not a valid email address '%s'")
+	errInvalidAuthProviderType  = errors.New("error invalid auth provider type '%s'")
+	errAuthProviderTypeNotFound = errors.New("error no auth provider type found")
 )
 
 // /* ----- postgresdriver User Read Methods ----- */
@@ -106,13 +107,15 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 	}
 	userID := types.UserID(id)
 
+	authType := user.ProviderUserID.AuthType()
+
 	params := CreateUserNewSignUpParams{
 		ID:             userID,
 		Email:          user.Email,
 		ProviderUserID: user.ProviderUserID,
-		Type:           user.AuthProviderType,
-		Provider:       user.AuthProviderType.Provider(),
-		Federated:      user.AuthProviderType.IsFederated(),
+		Type:           authType,
+		Provider:       authType.Provider(),
+		Federated:      authType.IsFederated(),
 		CreatedAt:      createdAt,
 		UpdatedAt:      createdAt,
 	}
@@ -184,8 +187,11 @@ func (pg *PostgresDriver) validateWriteUserNewSignUpInput(ctx context.Context, u
 	if !user.Email.IsValid() {
 		return fmt.Errorf(errInvalidEmail.Error(), user.Email)
 	}
-	if !user.AuthProviderType.IsValid() {
-		return fmt.Errorf(errInvalidAuthProviderType.Error(), user.AuthProviderType)
+	if !user.ProviderUserID.AuthType().IsValid() {
+		if user.ProviderUserID.AuthType() != types.AuthType("") {
+			return fmt.Errorf(errInvalidAuthProviderType.Error(), user.ProviderUserID.AuthType())
+		}
+		return errAuthProviderTypeNotFound
 	}
 
 	return nil
