@@ -75,9 +75,8 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 		{
 			name: "Should create a new portal User in the DB",
 			createUser: types.CreateUser{
-				Email:            "geralt.of.rivia623@example.com",
-				AuthProviderType: types.AuthTypeAuth0Username,
-				ProviderUserID:   "auth0|geralt_of_rivia",
+				Email:          "geralt.of.rivia623@example.com",
+				ProviderUserID: "auth0|geralt_of_rivia",
 			},
 			user: &types.User{
 				ID:       "", // user ID set in test case
@@ -106,10 +105,10 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 		{
 			name: "Should fail if an invalid auth provider type provided",
 			createUser: types.CreateUser{
-				Email:            "jar.jar.binks3@example.com",
-				AuthProviderType: types.AuthType("wrong_type"),
+				Email:          "jar.jar.binks3@example.com",
+				ProviderUserID: "wtf|jar_jar_binks",
 			},
-			err: fmt.Errorf(errInvalidAuthProviderType.Error(), types.AuthType("wrong_type")),
+			err: fmt.Errorf(errInvalidAuthProviderType.Error(), types.AuthType("wtf")),
 		},
 	}
 

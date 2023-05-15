@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -35,6 +36,25 @@ const (
 	RoleAdmin  RoleName = "ADMIN"
 	RoleMember RoleName = "MEMBER"
 )
+
+// Currently only Auth0 auth types (`auth0` & `github`) supported.
+// If new auth providers in addition to Auth0 are added in the future this
+// method will need to be updated to parse the ID to determine the auth type.
+func (pid ProviderUserID) AuthType() AuthType {
+	prefix := strings.Split(string(pid), "|")[0]
+
+	switch prefix {
+	case "auth0":
+		return AuthTypeAuth0Username
+	case "github":
+		return AuthTypeAuth0Github
+	default:
+		if prefix != "" {
+			return AuthType(prefix)
+		}
+		return ""
+	}
+}
 
 func (a AuthType) IsValid() bool {
 	switch a {
@@ -104,9 +124,8 @@ type (
 	}
 
 	CreateUser struct {
-		Email            Email          `json:"email"`
-		AuthProviderType AuthType       `json:"type"`
-		ProviderUserID   ProviderUserID `json:"providerUserID"`
+		Email          Email          `json:"email"`
+		ProviderUserID ProviderUserID `json:"providerUserID"`
 	}
 
 	CreateUserResponse struct {
