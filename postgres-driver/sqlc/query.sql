@@ -7,8 +7,8 @@ SELECT EXISTS (
                 WHERE portal_applications.id = @id::VARCHAR
                 UNION ALL
                 SELECT id
-                FROM portal_application_aats
-                WHERE portal_application_aats.id = @id::VARCHAR
+                FROM aats
+                WHERE aats.id = @id::VARCHAR
                 UNION ALL
                 SELECT id
                 FROM accounts
@@ -28,28 +28,46 @@ SELECT plan_type,
     created_at,
     daily_limit
 FROM pay_plans;
+-- name: SelectGigastakeApplications :many
+SELECT ga.id,
+    ga.aat_id,
+    ga.name,
+    ga.chain_id,
+    ga.chain_alias,
+    ga.created_at,
+    ga.updated_at,
+    ga.deleted,
+    a.gigastake,
+    a.address,
+    a.public_key,
+    a.client_public_key,
+    a.signature,
+    a.private_key,
+    a.version
+FROM gigastake_applications AS ga
+    JOIN aats AS a ON ga.aat_id = a.id;
 -- name: SelectPortalApplications :many
 WITH aats_agg AS (
-    SELECT paa.application_id,
+    SELECT aats.portal_application_id,
         json_object_agg(
-            paa.id,
+            aats.id,
             json_build_object(
                 'address',
-                paa.address,
+                aats.address,
                 'public_key',
-                paa.public_key,
+                aats.public_key,
                 'private_key',
-                paa.private_key,
+                aats.private_key,
                 'client_public_key',
-                paa.client_public_key,
+                aats.client_public_key,
                 'signature',
-                paa.signature,
+                aats.signature,
                 'version',
-                paa.version
+                aats.version
             )
         ) AS aats
-    FROM portal_application_aats paa
-    GROUP BY paa.application_id
+    FROM aats aats
+    GROUP BY aats.portal_application_id
 ),
 notifications_agg AS (
     SELECT pn.application_id,
@@ -103,7 +121,7 @@ SELECT p.*,
     COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists
 FROM portal_applications p
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    LEFT JOIN aats_agg ON p.id = aats_agg.application_id
+    LEFT JOIN aats_agg ON p.id = aats_agg.portal_application_id
     LEFT JOIN notifications_agg ON p.id = notifications_agg.application_id
     LEFT JOIN whitelists_agg ON p.id = whitelists_agg.application_id
 WHERE (
@@ -115,12 +133,9 @@ INSERT INTO portal_applications (
         id,
         account_id,
         name,
-        gigastake,
-        staked,
         created_at,
         updated_at,
         request_timeout,
-        gigastake_redirect,
         first_date_surpassed,
         custom_limit
     )
@@ -132,16 +147,14 @@ VALUES (
         $5,
         $6,
         $7,
-        $8,
-        $9,
-        $10,
-        $11
+        $8
     )
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
-INSERT INTO portal_application_aats (
+INSERT INTO aats (
         id,
-        application_id,
+        portal_application_id,
+        gigastake,
         address,
         public_key,
         private_key,
@@ -149,7 +162,7 @@ INSERT INTO portal_application_aats (
         signature,
         version
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+VALUES ($1, $2, false, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 -- name: InsertPortalApplicationSetting :one
 INSERT INTO portal_application_settings (
@@ -709,7 +722,10 @@ SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
     ),
     chain_aliases = COALESCE(EXCLUDED.chain_aliases, chains.chain_aliases),
     allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
-    gigastake_redirect_domains = COALESCE(EXCLUDED.gigastake_redirect_domains, chains.gigastake_redirect_domains),
+    gigastake_redirect_domains = COALESCE(
+        EXCLUDED.gigastake_redirect_domains,
+        chains.gigastake_redirect_domains
+    ),
     updated_at = EXCLUDED.updated_at
 RETURNING id;
 -- name: UpsertChainAltruist :exec

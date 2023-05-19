@@ -13,7 +13,6 @@ import (
 var testPortalApplication = PortalApp{
 	ID:        "test_app_1",
 	Name:      "test_portal_app_123",
-	Gigastake: true,
 	AccountID: "account_1",
 	AATs: map[ProtocolAppID]AAT{
 		"test_protocol_app_1": {
@@ -72,7 +71,6 @@ var testPortalApplication = PortalApp{
 	LegacyFields: LegacyFields{
 		CustomLimit:        0,
 		RequestTimeout:     5_000,
-		GigastakeRedirect:  true,
 		FirstDateSurpassed: time.Date(2023, time.February, 28, 15, 15, 15, 0, time.UTC),
 	},
 }

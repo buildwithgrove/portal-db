@@ -77,8 +77,6 @@ type (
 	PortalApp struct {
 		ID            PortalAppID                          `json:"id"`
 		Name          string                               `json:"name"`
-		Gigastake     bool                                 `json:"gigastake"`
-		Staked        bool                                 `json:"staked"`
 		AccountID     AccountID                            `json:"accountID"`
 		Settings      Settings                             `json:"settings"`
 		Whitelists    Whitelists                           `json:"whitelists"`
@@ -97,19 +95,7 @@ type (
 	LegacyFields struct {
 		CustomLimit        int32     `json:"customLimit"`
 		RequestTimeout     int32     `json:"requestTimeout"`
-		GigastakeRedirect  bool      `json:"gigastakeRedirect"`
 		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
-	}
-
-	AAT struct {
-		ID              ProtocolAppID `json:"id"`
-		AppID           PortalAppID   `json:"appID,omitempty"`
-		Address         string        `json:"address"`
-		PublicKey       string        `json:"publicKey"`
-		ClientPublicKey string        `json:"clientPublicKey"`
-		PrivateKey      string        `json:"privateKey"`
-		Signature       string        `json:"signature"`
-		Version         string        `json:"version"`
 	}
 
 	Settings struct {
@@ -387,10 +373,6 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 
 func (a *PortalApp) Table() Table {
 	return TablePortalApps
-}
-
-func (a *AAT) Table() Table {
-	return TableAppAATs
 }
 
 func (a *Settings) Table() Table {

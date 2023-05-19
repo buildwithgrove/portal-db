@@ -131,8 +131,8 @@ SELECT EXISTS (
                 WHERE portal_applications.id = $1::VARCHAR
                 UNION ALL
                 SELECT id
-                FROM portal_application_aats
-                WHERE portal_application_aats.id = $1::VARCHAR
+                FROM aats
+                WHERE aats.id = $1::VARCHAR
                 UNION ALL
                 SELECT id
                 FROM accounts
@@ -743,12 +743,9 @@ INSERT INTO portal_applications (
         id,
         account_id,
         name,
-        gigastake,
-        staked,
         created_at,
         updated_at,
         request_timeout,
-        gigastake_redirect,
         first_date_surpassed,
         custom_limit
     )
@@ -760,24 +757,18 @@ VALUES (
         $5,
         $6,
         $7,
-        $8,
-        $9,
-        $10,
-        $11
+        $8
     )
-RETURNING id, account_id, name, gigastake, staked, created_at, updated_at, deleted, deleted_at, request_timeout, gigastake_redirect, first_date_surpassed, custom_limit
+RETURNING id, account_id, name, created_at, updated_at, deleted, deleted_at, request_timeout, first_date_surpassed, custom_limit
 `
 
 type InsertPortalApplicationParams struct {
 	ID                 types.PortalAppID `json:"id"`
 	AccountID          sql.NullString    `json:"account_id"`
 	Name               string            `json:"name"`
-	Gigastake          bool              `json:"gigastake"`
-	Staked             bool              `json:"staked"`
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 	RequestTimeout     sql.NullInt32     `json:"request_timeout"`
-	GigastakeRedirect  sql.NullBool      `json:"gigastake_redirect"`
 	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
 	CustomLimit        sql.NullInt32     `json:"custom_limit"`
 }
@@ -787,12 +778,9 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 		arg.ID,
 		arg.AccountID,
 		arg.Name,
-		arg.Gigastake,
-		arg.Staked,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.RequestTimeout,
-		arg.GigastakeRedirect,
 		arg.FirstDateSurpassed,
 		arg.CustomLimit,
 	)
@@ -801,14 +789,11 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 		&i.ID,
 		&i.AccountID,
 		&i.Name,
-		&i.Gigastake,
-		&i.Staked,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
 		&i.DeletedAt,
 		&i.RequestTimeout,
-		&i.GigastakeRedirect,
 		&i.FirstDateSurpassed,
 		&i.CustomLimit,
 	)
@@ -816,9 +801,10 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 }
 
 const insertPortalApplicationAAT = `-- name: InsertPortalApplicationAAT :one
-INSERT INTO portal_application_aats (
+INSERT INTO aats (
         id,
-        application_id,
+        portal_application_id,
+        gigastake,
         address,
         public_key,
         private_key,
@@ -826,25 +812,25 @@ INSERT INTO portal_application_aats (
         signature,
         version
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, application_id, address, public_key, client_public_key, private_key, signature, version
+VALUES ($1, $2, false, $3, $4, $5, $6, $7, $8)
+RETURNING id, portal_application_id, gigastake, address, public_key, client_public_key, signature, private_key, version
 `
 
 type InsertPortalApplicationAATParams struct {
-	ID              types.ProtocolAppID `json:"id"`
-	ApplicationID   types.PortalAppID   `json:"application_id"`
-	Address         string              `json:"address"`
-	PublicKey       string              `json:"public_key"`
-	PrivateKey      string              `json:"private_key"`
-	ClientPublicKey string              `json:"client_public_key"`
-	Signature       string              `json:"signature"`
-	Version         string              `json:"version"`
+	ID                  types.ProtocolAppID `json:"id"`
+	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
+	Address             string              `json:"address"`
+	PublicKey           string              `json:"public_key"`
+	PrivateKey          sql.NullString      `json:"private_key"`
+	ClientPublicKey     string              `json:"client_public_key"`
+	Signature           string              `json:"signature"`
+	Version             string              `json:"version"`
 }
 
-func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (PortalApplicationAat, error) {
+func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (Aat, error) {
 	row := q.db.QueryRowContext(ctx, insertPortalApplicationAAT,
 		arg.ID,
-		arg.ApplicationID,
+		arg.PortalApplicationID,
 		arg.Address,
 		arg.PublicKey,
 		arg.PrivateKey,
@@ -852,15 +838,16 @@ func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPort
 		arg.Signature,
 		arg.Version,
 	)
-	var i PortalApplicationAat
+	var i Aat
 	err := row.Scan(
 		&i.ID,
-		&i.ApplicationID,
+		&i.PortalApplicationID,
+		&i.Gigastake,
 		&i.Address,
 		&i.PublicKey,
 		&i.ClientPublicKey,
-		&i.PrivateKey,
 		&i.Signature,
+		&i.PrivateKey,
 		&i.Version,
 	)
 	return i, err
@@ -1178,6 +1165,83 @@ func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]Sele
 	return items, nil
 }
 
+const selectGigastakeApplications = `-- name: SelectGigastakeApplications :many
+SELECT ga.id,
+    ga.aat_id,
+    ga.name,
+    ga.chain_id,
+    ga.chain_alias,
+    ga.created_at,
+    ga.updated_at,
+    ga.deleted,
+    a.gigastake,
+    a.address,
+    a.public_key,
+    a.client_public_key,
+    a.signature,
+    a.private_key,
+    a.version
+FROM gigastake_applications AS ga
+    JOIN aats AS a ON ga.aat_id = a.id
+`
+
+type SelectGigastakeApplicationsRow struct {
+	ID              int32               `json:"id"`
+	AATID           types.ProtocolAppID `json:"aat_id"`
+	Name            string              `json:"name"`
+	ChainID         string              `json:"chain_id"`
+	ChainAlias      string              `json:"chain_alias"`
+	CreatedAt       time.Time           `json:"created_at"`
+	UpdatedAt       time.Time           `json:"updated_at"`
+	Deleted         bool                `json:"deleted"`
+	Gigastake       bool                `json:"gigastake"`
+	Address         string              `json:"address"`
+	PublicKey       string              `json:"public_key"`
+	ClientPublicKey string              `json:"client_public_key"`
+	Signature       string              `json:"signature"`
+	PrivateKey      sql.NullString      `json:"private_key"`
+	Version         string              `json:"version"`
+}
+
+func (q *Queries) SelectGigastakeApplications(ctx context.Context) ([]SelectGigastakeApplicationsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectGigastakeApplications)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectGigastakeApplicationsRow
+	for rows.Next() {
+		var i SelectGigastakeApplicationsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AATID,
+			&i.Name,
+			&i.ChainID,
+			&i.ChainAlias,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Deleted,
+			&i.Gigastake,
+			&i.Address,
+			&i.PublicKey,
+			&i.ClientPublicKey,
+			&i.Signature,
+			&i.PrivateKey,
+			&i.Version,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectGlobalBlockedContract = `-- name: SelectGlobalBlockedContract :many
 SELECT id,
     blocked_address
@@ -1267,26 +1331,26 @@ func (q *Queries) SelectPlans(ctx context.Context) ([]SelectPlansRow, error) {
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
 WITH aats_agg AS (
-    SELECT paa.application_id,
+    SELECT aats.portal_application_id,
         json_object_agg(
-            paa.id,
+            aats.id,
             json_build_object(
                 'address',
-                paa.address,
+                aats.address,
                 'public_key',
-                paa.public_key,
+                aats.public_key,
                 'private_key',
-                paa.private_key,
+                aats.private_key,
                 'client_public_key',
-                paa.client_public_key,
+                aats.client_public_key,
                 'signature',
-                paa.signature,
+                aats.signature,
                 'version',
-                paa.version
+                aats.version
             )
         ) AS aats
-    FROM portal_application_aats paa
-    GROUP BY paa.application_id
+    FROM aats aats
+    GROUP BY aats.portal_application_id
 ),
 notifications_agg AS (
     SELECT pn.application_id,
@@ -1330,7 +1394,7 @@ whitelists_agg AS (
     FROM portal_application_whitelists paw
     GROUP BY paw.application_id
 )
-SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.request_timeout, p.gigastake_redirect, p.first_date_surpassed, p.custom_limit,
+SELECT p.id, p.account_id, p.name, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.request_timeout, p.first_date_surpassed, p.custom_limit,
     pas.secret_key,
     pas.secret_key_required,
     pas.monthly_relay_limit,
@@ -1340,7 +1404,7 @@ SELECT p.id, p.account_id, p.name, p.gigastake, p.staked, p.created_at, p.update
     COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists
 FROM portal_applications p
     LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
-    LEFT JOIN aats_agg ON p.id = aats_agg.application_id
+    LEFT JOIN aats_agg ON p.id = aats_agg.portal_application_id
     LEFT JOIN notifications_agg ON p.id = notifications_agg.application_id
     LEFT JOIN whitelists_agg ON p.id = whitelists_agg.application_id
 WHERE (
@@ -1353,14 +1417,11 @@ type SelectPortalApplicationsRow struct {
 	ID                 types.PortalAppID `json:"id"`
 	AccountID          sql.NullString    `json:"account_id"`
 	Name               string            `json:"name"`
-	Gigastake          bool              `json:"gigastake"`
-	Staked             bool              `json:"staked"`
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 	Deleted            bool              `json:"deleted"`
 	DeletedAt          sql.NullTime      `json:"deleted_at"`
 	RequestTimeout     sql.NullInt32     `json:"request_timeout"`
-	GigastakeRedirect  sql.NullBool      `json:"gigastake_redirect"`
 	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
 	CustomLimit        sql.NullInt32     `json:"custom_limit"`
 	SecretKey          sql.NullString    `json:"secret_key"`
@@ -1385,14 +1446,11 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, dollar_1 bool) (
 			&i.ID,
 			&i.AccountID,
 			&i.Name,
-			&i.Gigastake,
-			&i.Staked,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
 			&i.DeletedAt,
 			&i.RequestTimeout,
-			&i.GigastakeRedirect,
 			&i.FirstDateSurpassed,
 			&i.CustomLimit,
 			&i.SecretKey,
@@ -1982,7 +2040,10 @@ SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
     ),
     chain_aliases = COALESCE(EXCLUDED.chain_aliases, chains.chain_aliases),
     allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
-    gigastake_redirect_domains = COALESCE(EXCLUDED.gigastake_redirect_domains, chains.gigastake_redirect_domains),
+    gigastake_redirect_domains = COALESCE(
+        EXCLUDED.gigastake_redirect_domains,
+        chains.gigastake_redirect_domains
+    ),
     updated_at = EXCLUDED.updated_at
 RETURNING id
 `

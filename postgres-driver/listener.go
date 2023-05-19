@@ -221,7 +221,7 @@ func (n notification) parseNotification() *types.Notification {
 
 	case types.TablePortalApps:
 		return n.parsePortalAppNotification()
-	case types.TableAppAATs:
+	case types.TableAATs:
 		return n.parseAATNotification()
 	case types.TableAppSettings:
 		return n.parseSettingsNotification()

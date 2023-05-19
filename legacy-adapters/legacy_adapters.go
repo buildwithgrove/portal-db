@@ -49,9 +49,9 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, l
 		},
 		CreatedAt:         a.CreatedAt,
 		UpdatedAt:         a.UpdatedAt,
-		Gigastake:         a.Gigastake,
+		Gigastake:         false,
 		RequestTimeout:    int(a.LegacyFields.RequestTimeout),
-		GigastakeRedirect: a.LegacyFields.GigastakeRedirect,
+		GigastakeRedirect: true,
 	}
 }
 
@@ -259,8 +259,7 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 	owner := lb.Users[0]
 
 	portalApp := v2Types.PortalApp{ // Portal App ID is created inside postgresdriver
-		Name:      lb.Name,
-		Gigastake: lb.Gigastake,
+		Name: lb.Name,
 		Settings: v2Types.Settings{
 			Environment: v2Types.EnvironmentProduction,
 			SecretKey:   app.GatewaySettings.SecretKey,
@@ -280,9 +279,8 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 		},
 
 		LegacyFields: v2Types.LegacyFields{
-			RequestTimeout:    int32(lb.RequestTimeout),
-			GigastakeRedirect: lb.GigastakeRedirect,
-			CustomLimit:       int32(app.Limit.CustomLimit),
+			RequestTimeout: int32(lb.RequestTimeout),
+			CustomLimit:    int32(app.Limit.CustomLimit),
 		},
 	}
 

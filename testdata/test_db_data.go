@@ -534,8 +534,6 @@ var (
 			ID:        "test_app_1",
 			AccountID: "account_1",
 			Name:      "pokt_app_123",
-			Gigastake: true,
-			Staked:    false,
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_1": {
 					ID:              "test_protocol_app_1",
@@ -581,7 +579,6 @@ var (
 			LegacyFields: types.LegacyFields{
 				CustomLimit:        0,
 				RequestTimeout:     5_000,
-				GigastakeRedirect:  true,
 				FirstDateSurpassed: MockTimestamp,
 			},
 		},
@@ -589,8 +586,6 @@ var (
 			ID:        "test_app_2",
 			AccountID: "account_2",
 			Name:      "pokt_app_456",
-			Gigastake: false,
-			Staked:    true,
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_2": {
 					ID:              "test_protocol_app_2",
@@ -635,7 +630,6 @@ var (
 			LegacyFields: types.LegacyFields{
 				CustomLimit:        0,
 				RequestTimeout:     10_000,
-				GigastakeRedirect:  false,
 				FirstDateSurpassed: MockTimestamp,
 			},
 		},
@@ -643,8 +637,6 @@ var (
 			ID:        "test_app_3",
 			AccountID: "account_3",
 			Name:      "pokt_app_789",
-			Gigastake: false,
-			Staked:    true,
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_3": {
 					ID:              "test_protocol_app_3",
@@ -676,9 +668,65 @@ var (
 			LegacyFields: types.LegacyFields{
 				CustomLimit:        0,
 				RequestTimeout:     10_000,
-				GigastakeRedirect:  false,
 				FirstDateSurpassed: MockTimestamp,
 			},
+		},
+	}
+
+	GigastakeApps = map[types.ProtocolAppID]*types.GigastakeApp{
+		"test_gigastake_app_1": {
+			AATID:      "test_gigastake_app_1",
+			ChainID:    "0001",
+			ChainAlias: "pokt-mainnet",
+			Name:       "pokt_gigastake",
+			AAT: types.AAT{
+				ID:              "test_gigastake_app_1",
+				Gigastake:       true,
+				Address:         "test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5",
+				PublicKey:       "test_37a0e8437f5149dc98a9a5b207efc2d0",
+				PrivateKey:      "test_0a6df2b97ae546da83f1a90b9b0c1e83",
+				ClientPublicKey: "test_65c29f0cc82e418b81a528a0c0682a9f",
+				Signature:       "test_f22651fb566346fca30b605e5f46e3ca",
+				Version:         "0.0.1",
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"test_gigastake_app_2": {
+			AATID:      "test_gigastake_app_2",
+			ChainID:    "0053",
+			ChainAlias: "optimism-mainnet",
+			Name:       "optimism_gigastake",
+			AAT: types.AAT{
+				ID:              "test_gigastake_app_2",
+				Gigastake:       true,
+				Address:         "test_5c60d434db4e42d2b5d2ea6eeb8933c4",
+				PublicKey:       "test_a7e28f8d716541a0a332a5dc6b7e4e6e",
+				PrivateKey:      "test_86b9e8e14a784db8a0a4c2ee532b6a12",
+				ClientPublicKey: "test_ba4e53dada8f4f939048e56dc8f88f37",
+				Signature:       "test_52e991c26da841bc882ad3a3ee9ee964",
+				Version:         "0.0.1",
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"test_gigastake_app_3": {
+			AATID:      "test_gigastake_app_3",
+			ChainID:    "0040",
+			ChainAlias: "harmony-0",
+			Name:       "harmony_gigastake",
+			AAT: types.AAT{
+				ID:              "test_gigastake_app_3",
+				Gigastake:       true,
+				Address:         "test_e570c841d5cd4f6197e0428ed7c517fd",
+				PublicKey:       "test_4f805bbbf96c4a649efc3f4f95616f2e",
+				PrivateKey:      "test_25a9063b3b7b42148dc17033fbbab5c6",
+				ClientPublicKey: "test_789f9d6adcc846f1a079bf68237b5f5c",
+				Signature:       "test_01eac46efc9242a2be73879f1d09f1dc",
+				Version:         "0.0.1",
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
 		},
 	}
 
@@ -687,8 +735,6 @@ var (
 		ID:        "test_app_create_208r23r",
 		AccountID: "account_4",
 		Name:      "create_pokt_app_1",
-		Gigastake: true,
-		Staked:    false,
 
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
@@ -712,7 +758,6 @@ var (
 		LegacyFields: types.LegacyFields{
 			CustomLimit:        750_000,
 			RequestTimeout:     15_000,
-			GigastakeRedirect:  true,
 			FirstDateSurpassed: MockTimestamp,
 		},
 	}
@@ -731,8 +776,6 @@ var (
 		ID:        "test_app_update_b03ca84c",
 		AccountID: "account_1",
 		Name:      "", // name set in test
-		Gigastake: true,
-		Staked:    false,
 		AATs: map[types.ProtocolAppID]types.AAT{
 			"test_protocol_app_1": {
 				ID:              "test_protocol_app_1",
@@ -754,7 +797,6 @@ var (
 		LegacyFields: types.LegacyFields{
 			CustomLimit:        0,
 			RequestTimeout:     5_000,
-			GigastakeRedirect:  true,
 			FirstDateSurpassed: MockTimestamp,
 		},
 	}
@@ -1162,7 +1204,7 @@ var (
 		UserID:            "auth0|james_holden",
 		ApplicationIDs:    []string(nil),
 		RequestTimeout:    5000,
-		Gigastake:         true,
+		Gigastake:         false,
 		GigastakeRedirect: true,
 		Applications:      LegacyApplications,
 		Users: []v1Types.UserAccess{
@@ -1285,8 +1327,6 @@ var (
 
 	V2CreatePortalApp = types.PortalApp{
 		Name:      "pokt_app_123",
-		Gigastake: true,
-		Staked:    false,
 		AccountID: "",
 		Settings: types.Settings{
 			Environment:       "production",
@@ -1307,8 +1347,7 @@ var (
 			},
 		},
 		LegacyFields: types.LegacyFields{
-			RequestTimeout:    5000,
-			GigastakeRedirect: true,
+			RequestTimeout: 5000,
 		},
 	}
 

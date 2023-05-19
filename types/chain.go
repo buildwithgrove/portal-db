@@ -85,6 +85,9 @@ type (
 		UpdatedAt                time.Time                `json:"updatedAt"`
 		Deleted                  bool                     `json:"deleted"`
 
+		// GigastakeApps are set inside PHD
+		GigastakeApps []*GigastakeApp `json:"gigastakeApps,omitempty"`
+
 		// TODO Remove when V2 migration completed
 		// Kept here for backwards compatibility using Legacy adaptors
 		Redirects []GigastakeRedirect `json:"redirects,omitempty"`
