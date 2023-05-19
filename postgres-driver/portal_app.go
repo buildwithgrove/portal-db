@@ -85,6 +85,8 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 
 	// TODO remove legacy fields when migration to V2 schema complete
 	legacyFields := types.LegacyFields{
+		PlanType:           a.PlanType,
+		DailyLimit:         a.DailyLimit.Int32,
 		CustomLimit:        a.CustomLimit.Int32,
 		RequestTimeout:     a.RequestTimeout.Int32,
 		FirstDateSurpassed: a.FirstDateSurpassed.Time.UTC(),
@@ -210,8 +212,10 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		CreatedAt: portalApp.CreatedAt,
 		UpdatedAt: portalApp.UpdatedAt,
 		// TODO remove legacy fields when migration to V2 schema complete
-		RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
+		PlanType:           portalApp.LegacyFields.PlanType,
+		DailyLimit:         newSQLNullInt32(portalApp.LegacyFields.DailyLimit, true),
 		CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
+		RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
 		FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
 	})
 	if err != nil {
@@ -308,10 +312,16 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 
 	qtx := pg.WithTx(tx)
 
-	if update.Name != "" || update.CustomLimit != 0 {
+	if update.Name != "" || update.PlanType != "" || update.DailyLimit != 0 || update.CustomLimit != 0 {
 		updateApp := UpdatePortalAppFieldsParams{ID: update.AppID, UpdatedAt: updatedAt}
 		if update.Name != "" {
 			updateApp.Name = update.Name
+		}
+		if update.PlanType != "" {
+			updateApp.PlanType = string(update.PlanType)
+		}
+		if update.DailyLimit != 0 {
+			updateApp.DailyLimit = newSQLNullInt32(update.DailyLimit, false)
 		}
 		if update.CustomLimit != 0 {
 			updateApp.CustomLimit = newSQLNullInt32(update.CustomLimit, false)
@@ -482,9 +492,11 @@ func (json dbPortalApplication) toOutput() *types.PortalApp {
 		UpdatedAt: json.UpdatedAt,
 		Deleted:   json.Deleted,
 		LegacyFields: types.LegacyFields{
+			PlanType:           types.PayPlanType(json.PlanType),
+			DailyLimit:         json.DailyLimit,
+			CustomLimit:        json.CustomLimit,
 			RequestTimeout:     json.RequestTimeout,
 			FirstDateSurpassed: json.FirstDateSurpassed,
-			CustomLimit:        json.CustomLimit,
 		},
 	}
 }
@@ -560,6 +572,8 @@ type dbPortalApplication struct {
 	DeletedAt          time.Time         `json:"deleted_at"`
 	RequestTimeout     int32             `json:"request_timeout"`
 	FirstDateSurpassed time.Time         `json:"first_date_surpassed"`
+	PlanType           string            `json:"plan_type"`
+	DailyLimit         int32             `json:"daily_limit"`
 	CustomLimit        int32             `json:"custom_limit"`
 }
 

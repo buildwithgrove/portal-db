@@ -23,58 +23,14 @@ var (
 	/* ----- Read Data ----- */
 
 	PayPlans = map[types.PayPlanType]*types.Plan{
-		types.PayPlanType("basic_plan"): {
-			Type:              types.PayPlanType("basic_plan"),
-			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 5_000_000,
-			ThroughputLimit:   5_000,
-			AppLimit:          2,
-			LegacyDailyLimit:  1_000,
-			CreatedAt:         MockTimestamp,
-		},
+		// Actual plan types
 		types.PayPlanType("FREETIER_V0"): {
 			Type:              types.PayPlanType("FREETIER_V0"),
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 5_000_000,
 			ThroughputLimit:   5_000,
 			AppLimit:          5,
-			LegacyDailyLimit:  5_000,
-			CreatedAt:         MockTimestamp,
-		},
-		types.PayPlanType("TEST_PLAN_90K"): {
-			Type:              types.PayPlanType("TEST_PLAN_90K"),
-			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 90_000_000,
-			ThroughputLimit:   10_000,
-			AppLimit:          5,
-			LegacyDailyLimit:  5_000,
-			CreatedAt:         MockTimestamp,
-		},
-		types.PayPlanType("TEST_PLAN_10K"): {
-			Type:              types.PayPlanType("TEST_PLAN_10K"),
-			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 10_000_000,
-			ThroughputLimit:   10_000,
-			AppLimit:          5,
-			LegacyDailyLimit:  5_000,
-			CreatedAt:         MockTimestamp,
-		},
-		types.PayPlanType("TEST_PLAN_V0"): {
-			Type:              types.PayPlanType("TEST_PLAN_V0"),
-			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 10_000_000,
-			ThroughputLimit:   10_000,
-			AppLimit:          5,
-			LegacyDailyLimit:  5_000,
-			CreatedAt:         MockTimestamp,
-		},
-		types.PayPlanType("ENTERPRISE"): {
-			Type:              types.PayPlanType("ENTERPRISE"),
-			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-			MonthlyRelayLimit: 10_000_000,
-			ThroughputLimit:   10_000,
-			AppLimit:          5,
-			LegacyDailyLimit:  5_000,
+			LegacyDailyLimit:  250_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("PAY_AS_YOU_GO_V0"): {
@@ -83,7 +39,53 @@ var (
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
 			AppLimit:          5,
-			LegacyDailyLimit:  5_000,
+			LegacyDailyLimit:  0,
+			CreatedAt:         MockTimestamp,
+		},
+		types.PayPlanType("ENTERPRISE"): {
+			Type:              types.PayPlanType("ENTERPRISE"),
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+			MonthlyRelayLimit: 10_000_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  0,
+			CreatedAt:         MockTimestamp,
+		},
+		types.PayPlanType("TEST_PLAN_V0"): {
+			Type:              types.PayPlanType("TEST_PLAN_V0"),
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+			MonthlyRelayLimit: 10_000_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  0,
+			CreatedAt:         MockTimestamp,
+		},
+		types.PayPlanType("TEST_PLAN_10K"): {
+			Type:              types.PayPlanType("TEST_PLAN_10K"),
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+			MonthlyRelayLimit: 10_000_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  10_000,
+			CreatedAt:         MockTimestamp,
+		},
+		types.PayPlanType("TEST_PLAN_90K"): {
+			Type:              types.PayPlanType("TEST_PLAN_90K"),
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+			MonthlyRelayLimit: 90_000_000,
+			ThroughputLimit:   10_000,
+			AppLimit:          5,
+			LegacyDailyLimit:  90_000,
+			CreatedAt:         MockTimestamp,
+		},
+		// These plans just for testing purpose; they are not actual plans.
+		types.PayPlanType("basic_plan"): {
+			Type:              types.PayPlanType("basic_plan"),
+			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+			MonthlyRelayLimit: 5_000_000,
+			ThroughputLimit:   5_000,
+			AppLimit:          2,
+			LegacyDailyLimit:  1_000,
 			CreatedAt:         MockTimestamp,
 		},
 		types.PayPlanType("pro_plan"): {
@@ -577,6 +579,8 @@ var (
 			UpdatedAt: MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
+				PlanType:           types.FreetierV0,
+				DailyLimit:         250_000,
 				CustomLimit:        0,
 				RequestTimeout:     5_000,
 				FirstDateSurpassed: MockTimestamp,
@@ -628,6 +632,8 @@ var (
 			UpdatedAt: MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
+				PlanType:           types.PayAsYouGoV0,
+				DailyLimit:         0,
 				CustomLimit:        0,
 				RequestTimeout:     10_000,
 				FirstDateSurpassed: MockTimestamp,
@@ -666,7 +672,9 @@ var (
 			UpdatedAt: MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				CustomLimit:        0,
+				PlanType:           types.Enterprise,
+				DailyLimit:         0,
+				CustomLimit:        4_200_000,
 				RequestTimeout:     10_000,
 				FirstDateSurpassed: MockTimestamp,
 			},
@@ -756,7 +764,9 @@ var (
 		UpdatedAt: MockTimestamp,
 		// TODO remove legacy fields when migration to V2 schema complete
 		LegacyFields: types.LegacyFields{
-			CustomLimit:        750_000,
+			PlanType:           types.FreetierV0,
+			DailyLimit:         250_000,
+			CustomLimit:        0,
 			RequestTimeout:     15_000,
 			FirstDateSurpassed: MockTimestamp,
 		},
@@ -1074,6 +1084,14 @@ var (
 			},
 		},
 	}
+	UpdatePortalAppPlan = &types.LegacyFields{
+		PlanType:   types.PayAsYouGoV0,
+		DailyLimit: 0,
+	}
+	UpdatePortalAppEnterprisePlan = &types.LegacyFields{
+		PlanType:    types.Enterprise,
+		CustomLimit: 5_600_000,
+	}
 
 	UpdateChainOne = types.Chain{
 		ID:                       "0001",
@@ -1255,7 +1273,7 @@ var (
 				WhitelistMethods:     []v1Types.WhitelistMethods{{BlockchainID: "0001", Methods: []string{"GET"}}},
 			},
 			Limit: v1Types.AppLimit{
-				PayPlan:     v1Types.PayPlan{Type: "basic_plan", Limit: 1_000},
+				PayPlan:     v1Types.PayPlan{Type: "FREETIER_V0", Limit: 250_000},
 				CustomLimit: 0,
 			},
 			NotificationSettings: v1Types.NotificationSettings{

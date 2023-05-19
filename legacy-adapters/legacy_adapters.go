@@ -22,6 +22,7 @@ Once the V2 migration is completed this package may be removed from this repo.
 func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, lbUsers map[v2Types.UserID]v2Types.AccountUserAccess) v1Types.LoadBalancer {
 	var users []v1Types.UserAccess
 
+	// TODO update how users accessed once change made to account_user_access
 	for _, accountUser := range lbUsers {
 		users = append(users, v1Types.UserAccess{
 			UserID:   string(accountUser.UserID),
@@ -34,14 +35,13 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, l
 	sortUsersByRole(users)
 
 	userID := account.LegacyUserID()
-	legacyDailyLimit := account.Plan.LegacyDailyLimit
 
 	return v1Types.LoadBalancer{
 		ID:           string(a.ID),
 		AccountID:    string(account.ID),
 		Name:         a.Name,
 		UserID:       userID,
-		Applications: ConvertToLegacyApplications(a, userID, account.Plan.Type, legacyDailyLimit),
+		Applications: ConvertToLegacyApplications(a, userID),
 		Users:        users,
 		Integrations: v1Types.AccountIntegrations{
 			CovalentAPIKeyFree: account.Integrations.CovalentAPIKeyFree,
@@ -55,13 +55,13 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, l
 	}
 }
 
-func ConvertToLegacyApplications(a v2Types.PortalApp, userID string, planType v2Types.PayPlanType, dailyLimit int32) []*v1Types.Application {
+func ConvertToLegacyApplications(a v2Types.PortalApp, userID string) []*v1Types.Application {
 	baseApp := v1Types.Application{
 		UserID:          userID,
 		Name:            a.Name,
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
 		Limit: v1Types.AppLimit{
-			PayPlan:     v1Types.PayPlan{Type: v1Types.PayPlanType(planType), Limit: int(dailyLimit)},
+			PayPlan:     v1Types.PayPlan{Type: v1Types.PayPlanType(a.LegacyFields.PlanType), Limit: int(a.LegacyFields.DailyLimit)},
 			CustomLimit: int(a.LegacyFields.CustomLimit),
 		},
 		NotificationSettings: v1Types.NotificationSettings{
@@ -98,12 +98,12 @@ func ConvertToLegacyApplications(a v2Types.PortalApp, userID string, planType v2
 	return legacyApps
 }
 
-func ConvertToLegacyApplication(a v2Types.PortalApp, account v2Types.Account, protocolAppID v2Types.ProtocolAppID) v1Types.Application {
+func ConvertToLegacyApplication(a v2Types.PortalApp, userID string, protocolAppID v2Types.ProtocolAppID) v1Types.Application {
 	aat := a.AATs[protocolAppID]
 
 	return v1Types.Application{
 		ID:              string(protocolAppID),
-		UserID:          account.LegacyUserID(),
+		UserID:          userID,
 		Name:            a.Name,
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
 		GatewayAAT: v1Types.GatewayAAT{
@@ -115,7 +115,7 @@ func ConvertToLegacyApplication(a v2Types.PortalApp, account v2Types.Account, pr
 			Version:              aat.Version,
 		},
 		Limit: v1Types.AppLimit{
-			PayPlan:     v1Types.PayPlan{Type: v1Types.PayPlanType(account.Plan.Type), Limit: int(account.Plan.LegacyDailyLimit)},
+			PayPlan:     v1Types.PayPlan{Type: v1Types.PayPlanType(a.LegacyFields.PlanType), Limit: int(a.LegacyFields.DailyLimit)},
 			CustomLimit: int(a.LegacyFields.CustomLimit),
 		},
 		NotificationSettings: v1Types.NotificationSettings{

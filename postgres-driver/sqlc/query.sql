@@ -137,6 +137,11 @@ INSERT INTO portal_applications (
         updated_at,
         request_timeout,
         first_date_surpassed,
+        -- legacy field
+        plan_type,
+        -- legacy field
+        daily_limit,
+        -- legacy field
         custom_limit
     )
 VALUES (
@@ -147,7 +152,9 @@ VALUES (
         $5,
         $6,
         $7,
-        $8
+        $8,
+        $9,
+        $10
     )
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
@@ -186,8 +193,10 @@ WHERE account_user_access.role_name = 'OWNER'
     AND account_user_access.account_id = $1;
 -- name: UpdatePortalAppFields :exec
 UPDATE portal_applications
-SET name = $2,
-    custom_limit = $3,
+SET name = COALESCE(NULLIF(@name::VARCHAR, ''), name),
+    plan_type = COALESCE(NULLIF(@plan_type::VARCHAR, ''), plan_type),
+    daily_limit = COALESCE($2, daily_limit),
+    custom_limit = COALESCE($3, custom_limit),
     updated_at = $4
 WHERE id = $1;
 -- name: UpdatePortalAppSettings :exec

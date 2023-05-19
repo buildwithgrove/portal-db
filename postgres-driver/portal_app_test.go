@@ -131,6 +131,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 		testUpdatedSettings      types.Settings
 		testUpdatedNotifications map[types.NotificationType]types.AppNotification
 		testUpdatedWhitelists    types.Whitelists
+		testUpdatedLegacyFields  types.LegacyFields
 		err                      error
 	}{
 		{
@@ -140,7 +141,8 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				Settings:      testdata.UpdatePortalAppSettings,
 				Notifications: testdata.UpdatePortalAppNotifications,
 				Whitelists:    testdata.UpdatePortalAppWhitelists,
-				CustomLimit:   4_000_000,
+				PlanType:      testdata.UpdatePortalAppPlan.PlanType,
+				DailyLimit:    testdata.UpdatePortalAppPlan.DailyLimit,
 			},
 			testUpdateTime:  testdata.MockTimestamp,
 			testUpdatedName: "portal-app-updated",
@@ -190,6 +192,10 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 					"003E": {"GET": {}},
 					"0056": {"GET": {}, "POST": {}},
 				},
+			},
+			testUpdatedLegacyFields: types.LegacyFields{
+				PlanType:   types.PayAsYouGoV0,
+				DailyLimit: 0,
 			},
 			err: nil,
 		},
@@ -273,6 +279,32 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			},
 			err: nil,
 		},
+		{
+			name: "Should update a new PortalApp in the database with a new plan",
+			updatePortalApp: types.UpdatePortalApp{
+				PlanType:   testdata.UpdatePortalAppPlan.PlanType,
+				DailyLimit: testdata.UpdatePortalAppPlan.DailyLimit,
+			},
+			testUpdateTime: testdata.MockTimestamp,
+			testUpdatedLegacyFields: types.LegacyFields{
+				PlanType:   types.PayAsYouGoV0,
+				DailyLimit: 0,
+			},
+			err: nil,
+		},
+		{
+			name: "Should update a new PortalApp in the database with an Enterprise plan",
+			updatePortalApp: types.UpdatePortalApp{
+				PlanType:   testdata.UpdatePortalAppEnterprisePlan.PlanType,
+				DailyLimit: testdata.UpdatePortalAppEnterprisePlan.DailyLimit,
+			},
+			testUpdateTime: testdata.MockTimestamp,
+			testUpdatedLegacyFields: types.LegacyFields{
+				PlanType:    types.Enterprise,
+				CustomLimit: 5_600_000,
+			},
+			err: nil,
+		},
 	}
 
 	for i, test := range tests {
@@ -320,8 +352,14 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				ts.Equal(createdPortalApp.Whitelists, updatedPortalApp.Whitelists)
 			}
 
+			if test.updatePortalApp.PlanType != "" {
+				ts.Equal(test.testUpdatedLegacyFields.PlanType, updatedPortalApp.LegacyFields.PlanType)
+			}
+			if test.updatePortalApp.DailyLimit != 0 {
+				ts.Equal(test.testUpdatedLegacyFields.DailyLimit, updatedPortalApp.LegacyFields.DailyLimit)
+			}
 			if test.updatePortalApp.CustomLimit != 0 {
-				ts.Equal(test.updatePortalApp.CustomLimit, updatedPortalApp.LegacyFields.CustomLimit)
+				ts.Equal(test.testUpdatedLegacyFields.CustomLimit, updatedPortalApp.LegacyFields.CustomLimit)
 			}
 		})
 	}

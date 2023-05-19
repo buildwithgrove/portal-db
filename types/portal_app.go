@@ -93,9 +93,11 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		CustomLimit        int32     `json:"customLimit"`
-		RequestTimeout     int32     `json:"requestTimeout"`
-		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
+		PlanType           PayPlanType `json:"planType"`
+		DailyLimit         int32       `json:"dailyLimit"`
+		CustomLimit        int32       `json:"customLimit"`
+		RequestTimeout     int32       `json:"requestTimeout"`
+		FirstDateSurpassed time.Time   `json:"firstDateSurpassed"`
 	}
 
 	Settings struct {
@@ -161,7 +163,9 @@ type (
 		Notifications []UpdateAppNotifications `json:"notificationSettings,omitempty"`
 		Whitelists    *WhitelistsObject        `json:"whitelists,omitempty"`
 		// TODO - remove when v2 migration finished
-		CustomLimit int32 `json:"customLimit,omitempty"`
+		PlanType    PayPlanType `json:"planType,omitempty"`
+		DailyLimit  int32       `json:"dailyLimit,omitempty"`
+		CustomLimit int32       `json:"customLimit,omitempty"`
 	}
 
 	UpdateAppSettings struct {

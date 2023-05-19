@@ -168,6 +168,10 @@ CREATE TABLE portal_applications (
     -- legacy field
     first_date_surpassed TIMESTAMPTZ,
     -- legacy field
+    plan_type VARCHAR(25),
+    -- legacy field
+    daily_limit INT,
+    -- legacy field
     custom_limit INT
 );
 CREATE TABLE portal_application_settings (

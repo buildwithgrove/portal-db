@@ -537,6 +537,8 @@ type PortalApplication struct {
 	DeletedAt          sql.NullTime      `json:"deleted_at"`
 	RequestTimeout     sql.NullInt32     `json:"request_timeout"`
 	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
+	PlanType           types.PayPlanType `json:"plan_type"`
+	DailyLimit         sql.NullInt32     `json:"daily_limit"`
 	CustomLimit        sql.NullInt32     `json:"custom_limit"`
 }
 

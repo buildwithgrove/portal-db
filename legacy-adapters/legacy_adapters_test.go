@@ -41,23 +41,19 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 		name                       string
 		portalApp                  v2Types.PortalApp
 		userID                     string
-		planType                   v2Types.PayPlanType
-		dailyLimit                 int32
 		expectedLegacyApplications []*v1Types.Application
 	}{
 		{
 			name:                       "Should convert a V2 PortalApp struct to a legacy Application struct",
 			portalApp:                  *testdata.PortalApps["test_app_1"],
 			userID:                     "auth0|james_holden",
-			planType:                   "basic_plan",
-			dailyLimit:                 1_000,
 			expectedLegacyApplications: testdata.LegacyApplications,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legacyApplications := ConvertToLegacyApplications(test.portalApp, test.userID, test.planType, test.dailyLimit)
+			legacyApplications := ConvertToLegacyApplications(test.portalApp, test.userID)
 			c.Equal(test.expectedLegacyApplications, legacyApplications)
 		})
 	}
@@ -96,8 +92,8 @@ func Test_LegacyAdapators_ConvertToLegacyPayPlan(t *testing.T) {
 	}{
 		{
 			name:                  "Should convert a V2 Plan struct to a legacy PayPlan struct",
-			plan:                  *testdata.PayPlans["enterprise_plan"],
-			expectedLegacyPayPlan: v1Types.PayPlan{Type: "enterprise_plan", Limit: 10_000},
+			plan:                  *testdata.PayPlans["ENTERPRISE"],
+			expectedLegacyPayPlan: v1Types.PayPlan{Type: "ENTERPRISE", Limit: 0},
 		},
 	}
 
