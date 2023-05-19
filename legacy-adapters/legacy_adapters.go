@@ -49,9 +49,9 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, l
 		},
 		CreatedAt:         a.CreatedAt,
 		UpdatedAt:         a.UpdatedAt,
-		Gigastake:         a.Gigastake,
+		Gigastake:         false,
 		RequestTimeout:    int(a.LegacyFields.RequestTimeout),
-		GigastakeRedirect: a.LegacyFields.GigastakeRedirect,
+		GigastakeRedirect: true,
 	}
 }
 
@@ -259,8 +259,7 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 	owner := lb.Users[0]
 
 	portalApp := v2Types.PortalApp{ // Portal App ID is created inside postgresdriver
-		Name:      lb.Name,
-		Gigastake: lb.Gigastake,
+		Name: lb.Name,
 		Settings: v2Types.Settings{
 			Environment: v2Types.EnvironmentProduction,
 			SecretKey:   app.GatewaySettings.SecretKey,
@@ -280,9 +279,8 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 		},
 
 		LegacyFields: v2Types.LegacyFields{
-			RequestTimeout:    int32(lb.RequestTimeout),
-			GigastakeRedirect: lb.GigastakeRedirect,
-			CustomLimit:       int32(app.Limit.CustomLimit),
+			RequestTimeout: int32(lb.RequestTimeout),
+			CustomLimit:    int32(app.Limit.CustomLimit),
 		},
 	}
 
@@ -441,6 +439,8 @@ func ConvertToV2Chain(b v1Types.Blockchain) v2Types.Chain {
 
 	altruist := parseAltruistURL(b.Altruist)
 
+	domains := []v2Types.RedirectDomain{}
+
 	redirects := []v2Types.GigastakeRedirect{}
 	for _, redirect := range b.Redirects {
 		redirects = append(redirects, v2Types.GigastakeRedirect{
@@ -448,24 +448,27 @@ func ConvertToV2Chain(b v1Types.Blockchain) v2Types.Chain {
 			Domain:              v2Types.RedirectDomain(redirect.Domain),
 			Alias:               redirect.Alias,
 		})
+
+		domains = append(domains, v2Types.RedirectDomain(redirect.Domain))
 	}
 
 	return v2Types.Chain{
-		ID:             v2Types.RelayChainID(b.ID),
-		Blockchain:     b.Blockchain,
-		Description:    b.Description,
-		EnforceResult:  b.EnforceResult,
-		Path:           b.Path,
-		Ticker:         b.Ticker,
-		ChainAliases:   b.BlockchainAliases,
-		LogLimitBlocks: int32(b.LogLimitBlocks),
-		RequestTimeout: int32(b.RequestTimeout),
-		Active:         b.Active,
-		Altruists:      []v2Types.Altruist{altruist},
-		Redirects:      redirects,
-		Checks:         checks,
-		CreatedAt:      b.CreatedAt,
-		UpdatedAt:      b.UpdatedAt,
+		ID:                       v2Types.RelayChainID(b.ID),
+		Blockchain:               b.Blockchain,
+		Description:              b.Description,
+		EnforceResult:            b.EnforceResult,
+		Path:                     b.Path,
+		Ticker:                   b.Ticker,
+		ChainAliases:             b.BlockchainAliases,
+		LogLimitBlocks:           int32(b.LogLimitBlocks),
+		RequestTimeout:           int32(b.RequestTimeout),
+		Active:                   b.Active,
+		Altruists:                []v2Types.Altruist{altruist},
+		GigastakeRedirectDomains: domains,
+		Redirects:                redirects,
+		Checks:                   checks,
+		CreatedAt:                b.CreatedAt,
+		UpdatedAt:                b.UpdatedAt,
 	}
 }
 

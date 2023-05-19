@@ -402,6 +402,18 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 	return string(ns.WhitelistType), nil
 }
 
+type Aat struct {
+	ID                  types.ProtocolAppID `json:"id"`
+	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
+	Gigastake           bool                `json:"gigastake"`
+	Address             string              `json:"address"`
+	PublicKey           string              `json:"public_key"`
+	ClientPublicKey     string              `json:"client_public_key"`
+	Signature           string              `json:"signature"`
+	PrivateKey          sql.NullString      `json:"private_key"`
+	Version             string              `json:"version"`
+}
+
 type Account struct {
 	ID                      types.AccountID   `json:"id"`
 	PlanType                types.PayPlanType `json:"plan_type"`
@@ -434,21 +446,22 @@ type AccountUserAccess struct {
 }
 
 type Chain struct {
-	ID             types.RelayChainID `json:"id"`
-	Blockchain     string             `json:"blockchain"`
-	Description    string             `json:"description"`
-	EnforceResult  string             `json:"enforce_result"`
-	Ticker         string             `json:"ticker"`
-	Path           sql.NullString     `json:"path"`
-	RequestTimeout sql.NullInt32      `json:"request_timeout"`
-	LogLimitBlocks sql.NullInt32      `json:"log_limit_blocks"`
-	ChainAliases   []string           `json:"chain_aliases"`
-	AllowedMethods []string           `json:"allowed_methods"`
-	Active         bool               `json:"active"`
-	CreatedAt      time.Time          `json:"created_at"`
-	UpdatedAt      time.Time          `json:"updated_at"`
-	Deleted        sql.NullBool       `json:"deleted"`
-	DeletedAt      sql.NullTime       `json:"deleted_at"`
+	ID                       types.RelayChainID `json:"id"`
+	Blockchain               string             `json:"blockchain"`
+	Description              string             `json:"description"`
+	EnforceResult            string             `json:"enforce_result"`
+	Ticker                   string             `json:"ticker"`
+	Path                     sql.NullString     `json:"path"`
+	RequestTimeout           sql.NullInt32      `json:"request_timeout"`
+	LogLimitBlocks           sql.NullInt32      `json:"log_limit_blocks"`
+	ChainAliases             []string           `json:"chain_aliases"`
+	AllowedMethods           []string           `json:"allowed_methods"`
+	GigastakeRedirectDomains []string           `json:"gigastake_redirect_domains"`
+	Active                   bool               `json:"active"`
+	CreatedAt                time.Time          `json:"created_at"`
+	UpdatedAt                time.Time          `json:"updated_at"`
+	Deleted                  sql.NullBool       `json:"deleted"`
+	DeletedAt                sql.NullTime       `json:"deleted_at"`
 }
 
 type ChainAltruist struct {
@@ -483,6 +496,18 @@ type ChainGigastakeRedirect struct {
 	UpdatedAt           time.Time            `json:"updated_at"`
 }
 
+type GigastakeApplication struct {
+	ID         int32               `json:"id"`
+	AATID      types.ProtocolAppID `json:"aat_id"`
+	Name       string              `json:"name"`
+	ChainID    string              `json:"chain_id"`
+	ChainAlias string              `json:"chain_alias"`
+	CreatedAt  time.Time           `json:"created_at"`
+	UpdatedAt  time.Time           `json:"updated_at"`
+	Deleted    bool                `json:"deleted"`
+	DeletedAt  sql.NullTime        `json:"deleted_at"`
+}
+
 type GlobalBlockedContract struct {
 	ID             int32                `json:"id"`
 	BlockedAddress types.BlockedAddress `json:"blocked_address"`
@@ -506,27 +531,13 @@ type PortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
 	AccountID          sql.NullString    `json:"account_id"`
 	Name               string            `json:"name"`
-	Gigastake          bool              `json:"gigastake"`
-	Staked             bool              `json:"staked"`
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 	Deleted            bool              `json:"deleted"`
 	DeletedAt          sql.NullTime      `json:"deleted_at"`
 	RequestTimeout     sql.NullInt32     `json:"request_timeout"`
-	GigastakeRedirect  sql.NullBool      `json:"gigastake_redirect"`
 	FirstDateSurpassed sql.NullTime      `json:"first_date_surpassed"`
 	CustomLimit        sql.NullInt32     `json:"custom_limit"`
-}
-
-type PortalApplicationAat struct {
-	ID              types.ProtocolAppID `json:"id"`
-	ApplicationID   types.PortalAppID   `json:"application_id"`
-	Address         string              `json:"address"`
-	PublicKey       string              `json:"public_key"`
-	ClientPublicKey string              `json:"client_public_key"`
-	PrivateKey      string              `json:"private_key"`
-	Signature       string              `json:"signature"`
-	Version         string              `json:"version"`
 }
 
 type PortalApplicationNotification struct {

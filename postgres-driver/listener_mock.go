@@ -139,13 +139,10 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				ID:                 portalApp.ID,
 				AccountID:          string(portalApp.AccountID),
 				Name:               portalApp.Name,
-				Gigastake:          portalApp.Gigastake,
-				Staked:             portalApp.Staked,
 				CreatedAt:          portalApp.CreatedAt,
 				UpdatedAt:          portalApp.UpdatedAt,
 				Deleted:            portalApp.Deleted,
 				RequestTimeout:     portalApp.LegacyFields.RequestTimeout,
-				GigastakeRedirect:  portalApp.LegacyFields.GigastakeRedirect,
 				FirstDateSurpassed: portalApp.LegacyFields.FirstDateSurpassed,
 				CustomLimit:        portalApp.LegacyFields.CustomLimit,
 			},
@@ -160,7 +157,7 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
-			table:  types.TableAppAATs,
+			table:  types.TableAATs,
 			input: dbPortalApplicationAAT{
 				ApplicationID:   portalApp.ID,
 				ID:              aat.ID,

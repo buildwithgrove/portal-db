@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
-	// TODO - remove when v2 migration finished
 )
 
 type (
@@ -37,7 +36,7 @@ var (
 
 /* ----- postgresdriver PortalApp Read Methods ----- */
 
-// ReadApplications returns all Applications in the database as PortalApp structs
+// ReadPortalApps returns all portal applications in the database as PortalApp structs
 func (pg *PostgresDriver) ReadPortalApps(ctx context.Context, options types.DriverOptions) (map[types.PortalAppID]*types.PortalApp, error) {
 	dbPortalApps, err := pg.SelectPortalApplications(ctx, options.IncludeDeleted)
 	if err != nil {
@@ -88,7 +87,6 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 	legacyFields := types.LegacyFields{
 		CustomLimit:        a.CustomLimit.Int32,
 		RequestTimeout:     a.RequestTimeout.Int32,
-		GigastakeRedirect:  a.GigastakeRedirect.Bool,
 		FirstDateSurpassed: a.FirstDateSurpassed.Time.UTC(),
 	}
 
@@ -96,8 +94,6 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		ID:        types.PortalAppID(a.ID),
 		AccountID: types.AccountID(a.AccountID.String),
 		Name:      a.Name,
-		Gigastake: a.Gigastake,
-		Staked:    a.Staked,
 		Settings: types.Settings{
 			Environment:       types.Environment(a.Environment.Environment),
 			SecretKey:         a.SecretKey.String,
@@ -211,28 +207,25 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		ID:        portalApp.ID,
 		AccountID: newSQLNullString(string(portalApp.AccountID)),
 		Name:      portalApp.Name,
-		Gigastake: portalApp.Gigastake,
-		Staked:    portalApp.Staked,
 		CreatedAt: portalApp.CreatedAt,
 		UpdatedAt: portalApp.UpdatedAt,
 		// TODO remove legacy fields when migration to V2 schema complete
 		RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
 		CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
-		GigastakeRedirect:  newSQLNullBool(&portalApp.LegacyFields.GigastakeRedirect),
 		FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
 	})
 	if err != nil {
 		return nil, err
 	}
 	_, err = qtx.InsertPortalApplicationAAT(ctx, InsertPortalApplicationAATParams{
-		ApplicationID:   portalApp.ID,
-		ID:              aat.ID,
-		Address:         aat.Address,
-		PublicKey:       aat.PublicKey,
-		PrivateKey:      aat.PrivateKey,
-		ClientPublicKey: aat.ClientPublicKey,
-		Signature:       aat.Signature,
-		Version:         aat.Version,
+		PortalApplicationID: portalApp.ID,
+		ID:                  aat.ID,
+		Address:             aat.Address,
+		PublicKey:           aat.PublicKey,
+		ClientPublicKey:     aat.ClientPublicKey,
+		Signature:           aat.Signature,
+		Version:             aat.Version,
+		PrivateKey:          newSQLNullString(aat.PrivateKey),
 	})
 	if err != nil {
 		return nil, err
@@ -485,14 +478,11 @@ func (json dbPortalApplication) toOutput() *types.PortalApp {
 		ID:        json.ID,
 		AccountID: types.AccountID(json.AccountID),
 		Name:      json.Name,
-		Gigastake: json.Gigastake,
-		Staked:    json.Staked,
 		CreatedAt: json.CreatedAt,
 		UpdatedAt: json.UpdatedAt,
 		Deleted:   json.Deleted,
 		LegacyFields: types.LegacyFields{
 			RequestTimeout:     json.RequestTimeout,
-			GigastakeRedirect:  json.GigastakeRedirect,
 			FirstDateSurpassed: json.FirstDateSurpassed,
 			CustomLimit:        json.CustomLimit,
 		},
@@ -502,7 +492,7 @@ func (json dbPortalApplication) toOutput() *types.PortalApp {
 func (json dbPortalApplicationAAT) toOutput() *types.AAT {
 	return &types.AAT{
 		ID:              json.ID,
-		AppID:           json.ApplicationID,
+		PortalAppID:     json.ApplicationID,
 		Address:         json.Address,
 		PublicKey:       json.PublicKey,
 		ClientPublicKey: json.ClientPublicKey,
@@ -564,14 +554,11 @@ type dbPortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
 	AccountID          string            `json:"account_id"`
 	Name               string            `json:"name"`
-	Gigastake          bool              `json:"gigastake"`
-	Staked             bool              `json:"staked"`
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 	Deleted            bool              `json:"deleted"`
 	DeletedAt          time.Time         `json:"deleted_at"`
 	RequestTimeout     int32             `json:"request_timeout"`
-	GigastakeRedirect  bool              `json:"gigastake_redirect"`
 	FirstDateSurpassed time.Time         `json:"first_date_surpassed"`
 	CustomLimit        int32             `json:"custom_limit"`
 }

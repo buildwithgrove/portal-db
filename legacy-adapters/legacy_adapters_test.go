@@ -211,6 +211,7 @@ func Test_LegacyAdapators_ConvertToV2UpdateChain(t *testing.T) {
 			v2UpdateChain.ID = test.expectedV2UpdateChain.ID
 			v2UpdateChain.Active = test.expectedV2UpdateChain.Active
 			v2UpdateChain.Redirects = test.expectedV2UpdateChain.Redirects
+			v2UpdateChain.GigastakeRedirectDomains = test.expectedV2UpdateChain.GigastakeRedirectDomains
 			v2UpdateChain.CreatedAt = test.expectedV2UpdateChain.CreatedAt
 			v2UpdateChain.UpdatedAt = test.expectedV2UpdateChain.UpdatedAt
 

@@ -15,6 +15,7 @@ overrides:
       aats: "AATs"
       covalent_api_key_free: "CovalentAPIKeyFree"
       covalent_api_key_paid: "CovalentAPIKeyPaid"
+      aat_id: "AATID"
 
 sql:
   - schema: "schema.sql"
@@ -54,9 +55,11 @@ sql:
           # ID type Overrides
           - column: "portal_applications.id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"
-          - column: "portal_application_aats.id"
+          - column: "aats.id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.ProtocolAppID"
-          - column: "portal_application_aats.application_id"
+          - column: "gigastake_applications.aat_id"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.ProtocolAppID"
+          - column: "aats.portal_application_id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"
           - column: "portal_application_settings.application_id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"

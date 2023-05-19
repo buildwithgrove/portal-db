@@ -105,6 +105,7 @@ CREATE TABLE chains (
     log_limit_blocks INT,
     chain_aliases VARCHAR(100) ARRAY,
     allowed_methods VARCHAR(10) ARRAY,
+    gigastake_redirect_domains VARCHAR(100) ARRAY,
     active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -158,8 +159,6 @@ CREATE TABLE portal_applications (
     id VARCHAR(24) PRIMARY KEY UNIQUE,
     account_id VARCHAR(10) REFERENCES accounts(id),
     name VARCHAR(255) NOT NULL,
-    gigastake BOOLEAN NOT NULL,
-    staked BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
@@ -167,21 +166,9 @@ CREATE TABLE portal_applications (
     -- legacy field
     request_timeout INT,
     -- legacy field
-    gigastake_redirect BOOLEAN,
-    -- legacy field
     first_date_surpassed TIMESTAMPTZ,
     -- legacy field
     custom_limit INT
-);
-CREATE TABLE portal_application_aats (
-    id VARCHAR(24) PRIMARY KEY,
-    application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
-    address VARCHAR(40) NOT NULL,
-    public_key VARCHAR(64) NOT NULL,
-    client_public_key VARCHAR(64) NOT NULL,
-    private_key VARCHAR(400) NOT NULL,
-    signature VARCHAR(128) NOT NULL,
-    version VARCHAR(10) NOT NULL
 );
 CREATE TABLE portal_application_settings (
     id SERIAL PRIMARY KEY,
@@ -225,6 +212,31 @@ CREATE TABLE portal_application_whitelists (
 );
 CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_application_whitelists (application_id, value, type)
 WHERE chain_id IS NULL;
+-- AATs Table
+CREATE TABLE IF NOT EXISTS aats (
+    id VARCHAR(24) PRIMARY KEY,
+    portal_application_id VARCHAR(24) NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
+    gigastake BOOLEAN NOT NULL,
+    address VARCHAR(40) NOT NULL,
+    public_key VARCHAR(64) NOT NULL,
+    client_public_key VARCHAR(64) NOT NULL,
+    signature VARCHAR(128) NOT NULL,
+    private_key VARCHAR(400) NULL,
+    version VARCHAR(10) NOT NULL
+);
+-- Gigastake Applications Table
+CREATE TABLE IF NOT EXISTS gigastake_applications (
+    id SERIAL PRIMARY KEY,
+    aat_id VARCHAR(24) NOT NULL UNIQUE REFERENCES aats(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    chain_id VARCHAR(4) NOT NULL REFERENCES chains(id),
+    chain_alias VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    deleted_at TIMESTAMPTZ NULL
+);
+-- TODO remove chain_gigastake_redirects when V2 migration finished
 -- Chain Gigastakes Redirect Table must be created after Portal Applications table
 CREATE TABLE chain_gigastake_redirects (
     id SERIAL PRIMARY KEY,
@@ -276,12 +288,6 @@ INSERT
     OR
 UPDATE
     OR DELETE ON portal_applications FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER portal_application_aats_notify_event
-AFTER
-INSERT
-    OR
-UPDATE
-    OR DELETE ON portal_application_aats FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER portal_application_settings_notify_event
 AFTER
 INSERT
@@ -300,6 +306,18 @@ INSERT
     OR
 UPDATE
     OR DELETE ON portal_application_notifications FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER aats_notify_event
+AFTER
+INSERT
+    OR
+UPDATE
+    OR DELETE ON aats FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER gigastake_applications_notify_event
+AFTER
+INSERT
+    OR
+UPDATE
+    OR DELETE ON gigastake_applications FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER accounts_notify_event
 AFTER
 INSERT

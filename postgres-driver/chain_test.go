@@ -209,17 +209,18 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 
 func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 	tests := []struct {
-		name                string
-		chainID             types.RelayChainID
-		chainJSON           string
-		testCreatedTime     time.Time
-		description, ticker string
-		aliases             []string
-		requestTimeout      int32
-		altruists           []types.Altruist
-		redirects           []types.GigastakeRedirect
-		checks              map[types.ChainCheckType]types.Check
-		err                 error
+		name                     string
+		chainID                  types.RelayChainID
+		chainJSON                string
+		testCreatedTime          time.Time
+		description, ticker      string
+		aliases                  []string
+		requestTimeout           int32
+		altruists                []types.Altruist
+		redirects                []types.GigastakeRedirect
+		checks                   map[types.ChainCheckType]types.Check
+		gigastakeRedirectDomains []types.RedirectDomain
+		err                      error
 	}{
 		{
 			name:    "Should update only fields that are present in the JSON",
@@ -228,11 +229,12 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 				"id": "0001",
 				"description": "Pocket Network Meganet",
 				"ticker": "POKT-MEGA",
-				"blockchainAliases": [
+				"chainAliases": [
 				  "mainnet-mega",
 				  "mainnet-ultra"
 				],
 				"requestTimeout": 5000,
+				"gigastakeRedirectDomains": ["pokt-rpc.gateway.pokt.network"],
 				"altruists": [
 				  {
 					"chainID": "",
@@ -277,7 +279,8 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 					Allowance: 1,
 				},
 			},
-			err: nil,
+			gigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network"},
+			err:                      nil,
 		},
 		{
 			name:    "Should update only fields that are present in the JSON again",
@@ -286,7 +289,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 				"id": "0001",
 				"description": "Pocket Network Ultranet",
 				"ticker": "POKT-ULTRA",
-				"blockchainAliases": [
+				"chainAliases": [
 				  "mainnet-ultra"
 				],
 				"requestTimeout": 10000,
@@ -312,6 +315,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 					  "alias": "altruist-0007"
 					}
 				],
+				"gigastakeRedirectDomains": ["pokt-rpc.gateway.pokt.network"],
 				"chainChecks": {},
 				"createdAt": "2023-03-16T00:00:00Z",
 				"updatedAt": "2023-03-16T00:00:00Z"
@@ -336,8 +340,9 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 			redirects: []types.GigastakeRedirect{
 				{PortalApplicationID: "test_app_1", Alias: "altruist-0007", Domain: "pokt-rpc-ultra.gateway.pokt.network"},
 			},
-			checks: map[types.ChainCheckType]types.Check{},
-			err:    nil,
+			checks:                   map[types.ChainCheckType]types.Check{},
+			gigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network"},
+			err:                      nil,
 		},
 	}
 
@@ -362,6 +367,7 @@ func (ts *PGDriverTestSuite) Test_UpdateChainJSON() {
 				ts.Equal(test.altruists, chain.Altruists)
 				ts.Equal(test.redirects, chain.Redirects)
 				ts.Equal(test.checks, chain.Checks)
+				ts.Equal(test.gigastakeRedirectDomains, chain.GigastakeRedirectDomains)
 			}
 		})
 	}

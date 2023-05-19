@@ -41,10 +41,13 @@ type (
 
 const (
 	TablePortalApps       Table = "portal_applications"
-	TableAppAATs          Table = "portal_application_aats"
 	TableAppSettings      Table = "portal_application_settings"
 	TableAppWhitelists    Table = "portal_application_whitelists"
 	TableAppNotifications Table = "portal_application_notifications"
+
+	TableAATs Table = "aats"
+
+	TableGigastakeApplications Table = "gigastake_applications"
 
 	TableAccounts            Table = "accounts"
 	TableAccountUserAccess   Table = "account_user_access"

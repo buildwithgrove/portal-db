@@ -56,25 +56,22 @@ func Test_Listen(t *testing.T) {
 						ID:        "test_app_1",
 						AccountID: "account_1",
 						Name:      "pokt_app_123",
-						Gigastake: true,
-						Staked:    false,
 						CreatedAt: testdata.MockTimestamp,
 						UpdatedAt: testdata.MockTimestamp,
 						Deleted:   false,
 						LegacyFields: types.LegacyFields{
 							CustomLimit:        0,
 							RequestTimeout:     5000,
-							GigastakeRedirect:  true,
 							FirstDateSurpassed: testdata.MockTimestamp,
 						},
 					},
 				},
-				types.TableAppAATs: {
-					Table:  types.TableAppAATs,
+				types.TableAATs: {
+					Table:  types.TableAATs,
 					Action: types.ActionUpdate,
 					Data: &types.AAT{
 						ID:              "test_protocol_app_1",
-						AppID:           "test_app_1",
+						PortalAppID:     "test_app_1",
 						Address:         "test_34715cae753e67c75fbb340442e7de8e",
 						PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
 						ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
