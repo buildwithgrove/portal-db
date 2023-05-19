@@ -130,7 +130,7 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 					for _, user := range account.Users {
 						if user.UserID == test.user.ID {
 							exists = true
-							ts.Equal(types.RoleOwner, user.RoleName)
+							ts.True(user.Owner)
 							ts.Equal(test.createUser.Email, user.Email)
 							break
 						}

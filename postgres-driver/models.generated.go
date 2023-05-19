@@ -436,13 +436,14 @@ type AccountIntegration struct {
 }
 
 type AccountUserAccess struct {
-	ID        int32           `json:"id"`
-	AccountID types.AccountID `json:"account_id"`
-	UserID    types.UserID    `json:"user_id"`
-	RoleName  types.RoleName  `json:"role_name"`
-	Accepted  bool            `json:"accepted"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
+	ID                  int32           `json:"id"`
+	AccountID           types.AccountID `json:"account_id"`
+	UserID              types.UserID    `json:"user_id"`
+	PortalApplicationID sql.NullString  `json:"portal_application_id"`
+	RoleName            types.RoleName  `json:"role_name"`
+	Accepted            bool            `json:"accepted"`
+	CreatedAt           time.Time       `json:"created_at"`
+	UpdatedAt           time.Time       `json:"updated_at"`
 }
 
 type Chain struct {

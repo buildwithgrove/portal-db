@@ -27,14 +27,15 @@ type (
 		Plan       *Plan                      `json:"payPlan"`
 	}
 
-	// AccountUserAccess represents a single Portal user's role for a single Account
+	// AccountUserAccess represents a single Portal user for a single Account
 	AccountUserAccess struct {
-		AccountID       AccountID           `json:"accountID,omitempty"`
-		UserID          UserID              `json:"userID"`
-		Email           Email               `json:"email"`
-		RoleName        RoleName            `json:"roleName"`
-		Accepted        bool                `json:"accepted"`
-		ProviderUserIDs map[AuthType]string `json:"providerUserIDs"`
+		AccountID              AccountID                   `json:"accountID,omitempty"`
+		UserID                 UserID                      `json:"userID"`
+		Email                  Email                       `json:"email"`
+		Owner                  bool                        `json:"owner"`
+		Accepted               bool                        `json:"accepted"`
+		ProviderUserIDs        map[AuthType]ProviderUserID `json:"providerUserIDs"`
+		PortalApplicationRoles map[PortalAppID]RoleName    `json:"portalApplicationRoles"`
 	}
 
 	// AccountUserAccess represents fields used for integrations with other platforms
@@ -79,8 +80,8 @@ type (
 // LegacyUserID returns the legacy user ID for an Account
 func (a *Account) LegacyUserID() string {
 	for _, user := range a.Users {
-		if user.RoleName == RoleOwner {
-			var userID string
+		if user.Owner {
+			var userID ProviderUserID
 			// in case user has two auth providers, default to using their Auth0 Username/PW ID
 			switch {
 			case user.ProviderUserIDs[AuthTypeAuth0Username] != "":
@@ -88,7 +89,7 @@ func (a *Account) LegacyUserID() string {
 			default:
 				userID = user.ProviderUserIDs[AuthTypeAuth0Github]
 			}
-			return userID
+			return string(userID)
 		}
 	}
 	return ""
@@ -97,7 +98,7 @@ func (a *Account) LegacyUserID() string {
 // GetOwnerEmail returns the Email of the Application OWNER
 func (a *Account) GetOwner() (AccountUserAccess, error) {
 	for _, userAccess := range a.Users {
-		if userAccess.RoleName == RoleOwner {
+		if userAccess.Owner {
 			return userAccess, nil
 		}
 	}

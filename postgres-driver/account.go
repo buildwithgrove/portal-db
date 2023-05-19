@@ -14,11 +14,12 @@ import (
 
 type (
 	userAccessDBRow struct {
-		UserID          string                    `json:"user_id"`
-		Email           string                    `json:"email"`
-		RoleName        string                    `json:"role_name"`
-		Accepted        bool                      `json:"accepted"`
-		ProviderUserIDs map[types.AuthType]string `json:"provider_user_ids"`
+		UserID                 string                                  `json:"user_id"`
+		Email                  string                                  `json:"email"`
+		Owner                  bool                                    `json:"owner"`
+		Accepted               bool                                    `json:"accepted"`
+		ProviderUserIDs        map[types.AuthType]types.ProviderUserID `json:"provider_user_ids"`
+		PortalApplicationRoles map[types.PortalAppID]types.RoleName    `json:"portal_application_roles"`
 	}
 )
 
@@ -107,11 +108,12 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 	for _, user := range userRows {
 		users[types.UserID(user.UserID)] = types.AccountUserAccess{
-			UserID:          types.UserID(user.UserID),
-			Email:           types.Email(user.Email),
-			RoleName:        types.RoleName(user.RoleName),
-			Accepted:        user.Accepted,
-			ProviderUserIDs: user.ProviderUserIDs,
+			UserID:                 types.UserID(user.UserID),
+			Email:                  types.Email(user.Email),
+			Owner:                  user.Owner,
+			Accepted:               user.Accepted,
+			ProviderUserIDs:        user.ProviderUserIDs,
+			PortalApplicationRoles: user.PortalApplicationRoles,
 		}
 	}
 
@@ -174,7 +176,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 		return nil, err
 	}
 
-	var providerUserIDs map[types.AuthType]string
+	var providerUserIDs map[types.AuthType]types.ProviderUserID
 	if err := json.Unmarshal(owner.ProviderUserIDs, &providerUserIDs); err != nil {
 		return nil, err
 	}
@@ -189,7 +191,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 		types.UserID(owner.UserID): {
 			UserID:          types.UserID(owner.UserID),
 			Email:           types.Email(owner.UserEmail),
-			RoleName:        owner.RoleName,
+			Owner:           true,
 			Accepted:        owner.Accepted,
 			ProviderUserIDs: providerUserIDs,
 		},
@@ -400,7 +402,7 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 	return &types.AccountUserAccess{
 		UserID:   types.UserID(user.UserID),
 		Email:    types.Email(user.UserEmail.String),
-		RoleName: user.RoleName,
+		Owner:    false,
 		Accepted: user.Accepted,
 	}, nil
 }
@@ -428,7 +430,7 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 		return nil, err
 	}
 
-	var providerUserIDs map[types.AuthType]string
+	var providerUserIDs map[types.AuthType]types.ProviderUserID
 	if err := json.Unmarshal(user.ProviderUserIDs, &providerUserIDs); err != nil {
 		return nil, err
 	}
@@ -436,7 +438,7 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 	return &types.AccountUserAccess{
 		UserID:          types.UserID(user.UserID),
 		Email:           types.Email(user.UserEmail),
-		RoleName:        user.RoleName,
+		Owner:           false,
 		Accepted:        user.Accepted,
 		ProviderUserIDs: providerUserIDs,
 	}, nil
@@ -632,12 +634,18 @@ func (json dbAccount) toOutput() *types.Account {
 }
 
 func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
-	return &types.AccountUserAccess{
+	user := &types.AccountUserAccess{
 		AccountID: json.AccountID,
 		UserID:    json.UserID,
-		RoleName:  json.RoleName,
 		Accepted:  json.Accepted,
 	}
+	if json.RoleName == types.RoleOwner {
+		user.Owner = true
+	} else {
+		user.PortalApplicationRoles[json.PortalApplicationID] = json.RoleName
+	}
+
+	return user
 }
 
 func (j dbAccountIntegration) toOutput() *types.AccountIntegrations {
@@ -670,11 +678,12 @@ type dbAccountIntegration struct {
 }
 
 type dbAccountUserAccess struct {
-	ID        int32           `json:"id"`
-	AccountID types.AccountID `json:"account_id"`
-	UserID    types.UserID    `json:"user_id"`
-	RoleName  types.RoleName  `json:"role_name"`
-	Accepted  bool            `json:"accepted"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
+	ID                  int32             `json:"id"`
+	AccountID           types.AccountID   `json:"account_id"`
+	UserID              types.UserID      `json:"user_id"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
+	RoleName            types.RoleName    `json:"role_name"`
+	Accepted            bool              `json:"accepted"`
+	CreatedAt           time.Time         `json:"created_at"`
+	UpdatedAt           time.Time         `json:"updated_at"`
 }

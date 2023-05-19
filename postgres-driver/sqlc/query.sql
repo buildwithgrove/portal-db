@@ -293,6 +293,15 @@ WITH user_auth_agg AS (
         json_object_agg(type, provider_user_id) AS provider_user_ids
     FROM user_auth_providers
     GROUP BY user_id
+),
+app_role_agg AS (
+    SELECT user_id,
+        account_id,
+        json_object_agg(portal_application_id, role_name) AS portal_application_roles
+    FROM account_user_access
+    WHERE portal_application_id IS NOT NULL
+    GROUP BY user_id,
+        account_id
 )
 SELECT a.*,
     ai.covalent_api_key_free,
@@ -303,12 +312,17 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
-            'role_name',
-            ur.role_name,
+            'owner',
+            CASE
+                WHEN au.role_name = 'OWNER' THEN true
+                ELSE false
+            END,
             'accepted',
             au.accepted,
             'provider_user_ids',
-            uaa.provider_user_ids
+            uaa.provider_user_ids,
+            'portal_application_roles',
+            ara.portal_application_roles
         )
     ) AS users
 FROM accounts AS a
@@ -317,6 +331,8 @@ FROM accounts AS a
     LEFT JOIN users AS u ON au.user_id = u.id
     LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
     LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
+    LEFT JOIN app_role_agg AS ara ON u.id = ara.user_id
+    AND a.id = ara.account_id
 WHERE (
         $1::BOOLEAN
         OR a.deleted = false
@@ -494,12 +510,13 @@ WITH updated_user AS (
 INSERT INTO account_user_access (
         account_id,
         user_id,
+        portal_application_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, '', $3, $4, $5, $6)
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
     account_user_access.accepted,
@@ -532,6 +549,7 @@ WITH inserted_user AS (
 INSERT INTO account_user_access (
         account_id,
         user_id,
+        portal_application_id,
         role_name,
         accepted,
         created_at,
@@ -543,6 +561,7 @@ VALUES (
             SELECT id
             FROM inserted_user
         ),
+        '',
         $6,
         false,
         $3,

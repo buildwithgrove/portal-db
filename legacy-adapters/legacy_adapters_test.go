@@ -262,7 +262,7 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 			// Set fields not used in the legacy update to reuse test struct
 			test.expectedV2AccountUserAccess.UserID = ""
 			delete(test.expectedV2AccountUserAccess.ProviderUserIDs, v2Types.AuthTypeAuth0Github)
-			test.expectedV2AccountUserAccess.ProviderUserIDs[v2Types.AuthTypeAuth0Username] = test.userAccess.UserID
+			test.expectedV2AccountUserAccess.ProviderUserIDs[v2Types.AuthTypeAuth0Username] = v2Types.ProviderUserID(test.userAccess.UserID)
 
 			c.Equal(test.expectedV2AccountUserAccess, v2AccountUserAccess)
 		})

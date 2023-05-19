@@ -39,7 +39,7 @@ func Test_Listen(t *testing.T) {
 					Data: &types.AccountUserAccess{
 						AccountID: "account_5",
 						UserID:    "user_4",
-						RoleName:  types.RoleOwner,
+						Owner:     true,
 						Accepted:  true,
 					},
 				},

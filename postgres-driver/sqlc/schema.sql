@@ -72,18 +72,6 @@ CREATE TABLE accounts (
     deleted BOOLEAN NOT NULL DEFAULT false,
     deleted_at TIMESTAMPTZ NULL
 );
-CREATE TABLE account_user_access (
-    id SERIAL PRIMARY KEY,
-    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    user_id VARCHAR(10) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role_name VARCHAR(25) NOT NULL REFERENCES user_roles(role_name),
-    accepted BOOLEAN NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (account_id, user_id)
-);
-CREATE UNIQUE INDEX idx_account_owner_constraint ON account_user_access (account_id)
-WHERE role_name = 'OWNER';
 CREATE TABLE IF NOT EXISTS account_integrations (
     id INT GENERATED ALWAYS AS IDENTITY,
     account_id VARCHAR(10) NOT NULL UNIQUE REFERENCES accounts(id) ON DELETE CASCADE,
@@ -216,6 +204,29 @@ CREATE TABLE portal_application_whitelists (
 );
 CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_application_whitelists (application_id, value, type)
 WHERE chain_id IS NULL;
+CREATE TABLE account_user_access (
+    id SERIAL PRIMARY KEY,
+    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    user_id VARCHAR(10) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    portal_application_id VARCHAR(24) REFERENCES portal_applications(id) ON DELETE CASCADE,
+    role_name VARCHAR(25) NOT NULL REFERENCES user_roles(role_name),
+    accepted BOOLEAN NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (account_id, user_id, portal_application_id),
+    CONSTRAINT owner_application_check CHECK (
+        (
+            role_name = 'OWNER'
+            AND portal_application_id IS NULL
+        )
+        OR (
+            role_name <> 'OWNER'
+            AND portal_application_id IS NOT NULL
+        )
+    )
+);
+CREATE UNIQUE INDEX idx_account_owner_constraint ON account_user_access (account_id)
+WHERE role_name = 'OWNER';
 -- AATs Table
 CREATE TABLE IF NOT EXISTS aats (
     id VARCHAR(24) PRIMARY KEY,
