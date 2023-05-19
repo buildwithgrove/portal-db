@@ -441,6 +441,8 @@ func ConvertToV2Chain(b v1Types.Blockchain) v2Types.Chain {
 
 	altruist := parseAltruistURL(b.Altruist)
 
+	domains := []v2Types.RedirectDomain{}
+
 	redirects := []v2Types.GigastakeRedirect{}
 	for _, redirect := range b.Redirects {
 		redirects = append(redirects, v2Types.GigastakeRedirect{
@@ -448,24 +450,27 @@ func ConvertToV2Chain(b v1Types.Blockchain) v2Types.Chain {
 			Domain:              v2Types.RedirectDomain(redirect.Domain),
 			Alias:               redirect.Alias,
 		})
+
+		domains = append(domains, v2Types.RedirectDomain(redirect.Domain))
 	}
 
 	return v2Types.Chain{
-		ID:             v2Types.RelayChainID(b.ID),
-		Blockchain:     b.Blockchain,
-		Description:    b.Description,
-		EnforceResult:  b.EnforceResult,
-		Path:           b.Path,
-		Ticker:         b.Ticker,
-		ChainAliases:   b.BlockchainAliases,
-		LogLimitBlocks: int32(b.LogLimitBlocks),
-		RequestTimeout: int32(b.RequestTimeout),
-		Active:         b.Active,
-		Altruists:      []v2Types.Altruist{altruist},
-		Redirects:      redirects,
-		Checks:         checks,
-		CreatedAt:      b.CreatedAt,
-		UpdatedAt:      b.UpdatedAt,
+		ID:                       v2Types.RelayChainID(b.ID),
+		Blockchain:               b.Blockchain,
+		Description:              b.Description,
+		EnforceResult:            b.EnforceResult,
+		Path:                     b.Path,
+		Ticker:                   b.Ticker,
+		ChainAliases:             b.BlockchainAliases,
+		LogLimitBlocks:           int32(b.LogLimitBlocks),
+		RequestTimeout:           int32(b.RequestTimeout),
+		Active:                   b.Active,
+		Altruists:                []v2Types.Altruist{altruist},
+		GigastakeRedirectDomains: domains,
+		Redirects:                redirects,
+		Checks:                   checks,
+		CreatedAt:                b.CreatedAt,
+		UpdatedAt:                b.UpdatedAt,
 	}
 }
 

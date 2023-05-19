@@ -434,21 +434,22 @@ type AccountUserAccess struct {
 }
 
 type Chain struct {
-	ID             types.RelayChainID `json:"id"`
-	Blockchain     string             `json:"blockchain"`
-	Description    string             `json:"description"`
-	EnforceResult  string             `json:"enforce_result"`
-	Ticker         string             `json:"ticker"`
-	Path           sql.NullString     `json:"path"`
-	RequestTimeout sql.NullInt32      `json:"request_timeout"`
-	LogLimitBlocks sql.NullInt32      `json:"log_limit_blocks"`
-	ChainAliases   []string           `json:"chain_aliases"`
-	AllowedMethods []string           `json:"allowed_methods"`
-	Active         bool               `json:"active"`
-	CreatedAt      time.Time          `json:"created_at"`
-	UpdatedAt      time.Time          `json:"updated_at"`
-	Deleted        sql.NullBool       `json:"deleted"`
-	DeletedAt      sql.NullTime       `json:"deleted_at"`
+	ID                       types.RelayChainID `json:"id"`
+	Blockchain               string             `json:"blockchain"`
+	Description              string             `json:"description"`
+	EnforceResult            string             `json:"enforce_result"`
+	Ticker                   string             `json:"ticker"`
+	Path                     sql.NullString     `json:"path"`
+	RequestTimeout           sql.NullInt32      `json:"request_timeout"`
+	LogLimitBlocks           sql.NullInt32      `json:"log_limit_blocks"`
+	ChainAliases             []string           `json:"chain_aliases"`
+	AllowedMethods           []string           `json:"allowed_methods"`
+	GigastakeRedirectDomains []string           `json:"gigastake_redirect_domains"`
+	Active                   bool               `json:"active"`
+	CreatedAt                time.Time          `json:"created_at"`
+	UpdatedAt                time.Time          `json:"updated_at"`
+	Deleted                  sql.NullBool       `json:"deleted"`
+	DeletedAt                sql.NullTime       `json:"deleted_at"`
 }
 
 type ChainAltruist struct {

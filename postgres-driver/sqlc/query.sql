@@ -677,6 +677,7 @@ INSERT INTO chains (
         log_limit_blocks,
         chain_aliases,
         allowed_methods,
+        gigastake_redirect_domains,
         created_at,
         updated_at
     )
@@ -692,7 +693,8 @@ VALUES (
         $9,
         $10,
         $11,
-        $12
+        $12,
+        $13
     ) ON CONFLICT (id) DO
 UPDATE
 SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
@@ -707,6 +709,7 @@ SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
     ),
     chain_aliases = COALESCE(EXCLUDED.chain_aliases, chains.chain_aliases),
     allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
+    gigastake_redirect_domains = COALESCE(EXCLUDED.gigastake_redirect_domains, chains.gigastake_redirect_domains),
     updated_at = EXCLUDED.updated_at
 RETURNING id;
 -- name: UpsertChainAltruist :exec

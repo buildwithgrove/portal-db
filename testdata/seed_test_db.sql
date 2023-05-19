@@ -773,6 +773,7 @@ INSERT INTO chains (
         log_limit_blocks,
         request_timeout,
         active,
+        gigastake_redirect_domains,
         created_at,
         updated_at
     )
@@ -787,6 +788,7 @@ VALUES (
         0,
         0,
         true,
+        ARRAY ['pokt-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -801,6 +803,7 @@ VALUES (
         100000,
         0,
         true,
+        ARRAY ['op-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -815,6 +818,7 @@ VALUES (
         100000,
         0,
         true,
+        ARRAY ['eth-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -829,6 +833,7 @@ VALUES (
         100000,
         60000,
         false,
+        NULL,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -843,6 +848,7 @@ VALUES (
         0,
         0,
         true,
+        ARRAY ['hmy-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );

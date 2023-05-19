@@ -67,23 +67,27 @@ func (r RedirectDomain) IsValid() bool {
 /* Chain Struct and Methods */
 type (
 	Chain struct {
-		ID             RelayChainID             `json:"id"`
-		Blockchain     string                   `json:"blockchain"`
-		Description    string                   `json:"description"`
-		EnforceResult  string                   `json:"enforceResult"`
-		Path           string                   `json:"path"`
-		Ticker         string                   `json:"ticker"`
-		ChainAliases   []string                 `json:"blockchainAliases"`
-		AllowedMethods []string                 `json:"allowedMethods"`
-		LogLimitBlocks int32                    `json:"logLimitBlocks"`
-		RequestTimeout int32                    `json:"requestTimeout"`
-		Active         bool                     `json:"active"`
-		Altruists      []Altruist               `json:"altruists,omitempty"`
-		Redirects      []GigastakeRedirect      `json:"redirects,omitempty"`
-		Checks         map[ChainCheckType]Check `json:"chainChecks,omitempty"`
-		CreatedAt      time.Time                `json:"createdAt"`
-		UpdatedAt      time.Time                `json:"updatedAt"`
-		Deleted        bool                     `json:"deleted"`
+		ID                       RelayChainID             `json:"id"`
+		Blockchain               string                   `json:"blockchain"`
+		Description              string                   `json:"description"`
+		EnforceResult            string                   `json:"enforceResult"`
+		Path                     string                   `json:"path"`
+		Ticker                   string                   `json:"ticker"`
+		ChainAliases             []string                 `json:"chainAliases"`
+		AllowedMethods           []string                 `json:"allowedMethods"`
+		LogLimitBlocks           int32                    `json:"logLimitBlocks"`
+		RequestTimeout           int32                    `json:"requestTimeout"`
+		Active                   bool                     `json:"active"`
+		Altruists                []Altruist               `json:"altruists,omitempty"`
+		Checks                   map[ChainCheckType]Check `json:"chainChecks,omitempty"`
+		GigastakeRedirectDomains []RedirectDomain         `json:"gigastakeRedirectDomains"`
+		CreatedAt                time.Time                `json:"createdAt"`
+		UpdatedAt                time.Time                `json:"updatedAt"`
+		Deleted                  bool                     `json:"deleted"`
+
+		// TODO Remove when V2 migration completed
+		// Kept here for backwards compatibility using Legacy adaptors
+		Redirects []GigastakeRedirect `json:"redirects,omitempty"`
 	}
 	Altruist struct {
 		ChainID  RelayChainID  `json:"chainID,omitempty"`
@@ -91,6 +95,8 @@ type (
 		Auth     string        `json:"auth"`
 		AuthType ChainAuthType `json:"authType"`
 	}
+	// TODO Remove when V2 migration completed
+	// Kept here for backwards compatibility using Legacy adaptors
 	GigastakeRedirect struct {
 		ChainID             RelayChainID   `json:"chainID,omitempty"`
 		PortalApplicationID PortalAppID    `json:"portalAppID"`

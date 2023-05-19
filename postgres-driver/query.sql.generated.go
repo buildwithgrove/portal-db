@@ -1083,7 +1083,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 }
 
 const selectChains = `-- name: SelectChains :many
-SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.request_timeout, c.log_limit_blocks, c.chain_aliases, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
+SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.request_timeout, c.log_limit_blocks, c.chain_aliases, c.allowed_methods, c.gigastake_redirect_domains, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
     COALESCE(
         json_agg(DISTINCT ca) FILTER (
             WHERE ca.id IS NOT NULL
@@ -1114,24 +1114,25 @@ GROUP BY c.id
 `
 
 type SelectChainsRow struct {
-	ID                      types.RelayChainID `json:"id"`
-	Blockchain              string             `json:"blockchain"`
-	Description             string             `json:"description"`
-	EnforceResult           string             `json:"enforce_result"`
-	Ticker                  string             `json:"ticker"`
-	Path                    sql.NullString     `json:"path"`
-	RequestTimeout          sql.NullInt32      `json:"request_timeout"`
-	LogLimitBlocks          sql.NullInt32      `json:"log_limit_blocks"`
-	ChainAliases            []string           `json:"chain_aliases"`
-	AllowedMethods          []string           `json:"allowed_methods"`
-	Active                  bool               `json:"active"`
-	CreatedAt               time.Time          `json:"created_at"`
-	UpdatedAt               time.Time          `json:"updated_at"`
-	Deleted                 sql.NullBool       `json:"deleted"`
-	DeletedAt               sql.NullTime       `json:"deleted_at"`
-	ChainAltruists          json.RawMessage    `json:"chain_altruists"`
-	ChainGigastakeRedirects json.RawMessage    `json:"chain_gigastake_redirects"`
-	ChainChecks             json.RawMessage    `json:"chain_checks"`
+	ID                       types.RelayChainID `json:"id"`
+	Blockchain               string             `json:"blockchain"`
+	Description              string             `json:"description"`
+	EnforceResult            string             `json:"enforce_result"`
+	Ticker                   string             `json:"ticker"`
+	Path                     sql.NullString     `json:"path"`
+	RequestTimeout           sql.NullInt32      `json:"request_timeout"`
+	LogLimitBlocks           sql.NullInt32      `json:"log_limit_blocks"`
+	ChainAliases             []string           `json:"chain_aliases"`
+	AllowedMethods           []string           `json:"allowed_methods"`
+	GigastakeRedirectDomains []string           `json:"gigastake_redirect_domains"`
+	Active                   bool               `json:"active"`
+	CreatedAt                time.Time          `json:"created_at"`
+	UpdatedAt                time.Time          `json:"updated_at"`
+	Deleted                  sql.NullBool       `json:"deleted"`
+	DeletedAt                sql.NullTime       `json:"deleted_at"`
+	ChainAltruists           json.RawMessage    `json:"chain_altruists"`
+	ChainGigastakeRedirects  json.RawMessage    `json:"chain_gigastake_redirects"`
+	ChainChecks              json.RawMessage    `json:"chain_checks"`
 }
 
 func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]SelectChainsRow, error) {
@@ -1154,6 +1155,7 @@ func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]Sele
 			&i.LogLimitBlocks,
 			pq.Array(&i.ChainAliases),
 			pq.Array(&i.AllowedMethods),
+			pq.Array(&i.GigastakeRedirectDomains),
 			&i.Active,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -1948,6 +1950,7 @@ INSERT INTO chains (
         log_limit_blocks,
         chain_aliases,
         allowed_methods,
+        gigastake_redirect_domains,
         created_at,
         updated_at
     )
@@ -1963,7 +1966,8 @@ VALUES (
         $9,
         $10,
         $11,
-        $12
+        $12,
+        $13
     ) ON CONFLICT (id) DO
 UPDATE
 SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
@@ -1978,23 +1982,25 @@ SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
     ),
     chain_aliases = COALESCE(EXCLUDED.chain_aliases, chains.chain_aliases),
     allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
+    gigastake_redirect_domains = COALESCE(EXCLUDED.gigastake_redirect_domains, chains.gigastake_redirect_domains),
     updated_at = EXCLUDED.updated_at
 RETURNING id
 `
 
 type UpsertChainParams struct {
-	ID             types.RelayChainID `json:"id"`
-	Blockchain     string             `json:"blockchain"`
-	Description    string             `json:"description"`
-	EnforceResult  string             `json:"enforce_result"`
-	Path           sql.NullString     `json:"path"`
-	Ticker         string             `json:"ticker"`
-	RequestTimeout sql.NullInt32      `json:"request_timeout"`
-	LogLimitBlocks sql.NullInt32      `json:"log_limit_blocks"`
-	ChainAliases   []string           `json:"chain_aliases"`
-	AllowedMethods []string           `json:"allowed_methods"`
-	CreatedAt      time.Time          `json:"created_at"`
-	UpdatedAt      time.Time          `json:"updated_at"`
+	ID                       types.RelayChainID `json:"id"`
+	Blockchain               string             `json:"blockchain"`
+	Description              string             `json:"description"`
+	EnforceResult            string             `json:"enforce_result"`
+	Path                     sql.NullString     `json:"path"`
+	Ticker                   string             `json:"ticker"`
+	RequestTimeout           sql.NullInt32      `json:"request_timeout"`
+	LogLimitBlocks           sql.NullInt32      `json:"log_limit_blocks"`
+	ChainAliases             []string           `json:"chain_aliases"`
+	AllowedMethods           []string           `json:"allowed_methods"`
+	GigastakeRedirectDomains []string           `json:"gigastake_redirect_domains"`
+	CreatedAt                time.Time          `json:"created_at"`
+	UpdatedAt                time.Time          `json:"updated_at"`
 }
 
 func (q *Queries) UpsertChain(ctx context.Context, arg UpsertChainParams) (types.RelayChainID, error) {
@@ -2009,6 +2015,7 @@ func (q *Queries) UpsertChain(ctx context.Context, arg UpsertChainParams) (types
 		arg.LogLimitBlocks,
 		pq.Array(arg.ChainAliases),
 		pq.Array(arg.AllowedMethods),
+		pq.Array(arg.GigastakeRedirectDomains),
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)

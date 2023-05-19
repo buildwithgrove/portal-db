@@ -761,14 +761,15 @@ var (
 
 	Chains = map[types.RelayChainID]*types.Chain{
 		"0001": {
-			ID:            "0001",
-			Blockchain:    "mainnet",
-			Description:   "Pocket Network Mainnet",
-			EnforceResult: "JSON",
-			Path:          "/v1/query/height",
-			Ticker:        "POKT",
-			ChainAliases:  []string{"mainnet"},
-			Active:        true,
+			ID:                       "0001",
+			Blockchain:               "mainnet",
+			Description:              "Pocket Network Mainnet",
+			EnforceResult:            "JSON",
+			Path:                     "/v1/query/height",
+			Ticker:                   "POKT",
+			ChainAliases:             []string{"mainnet"},
+			Active:                   true,
+			GigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network"},
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0001.com:1234",
@@ -791,15 +792,16 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"0053": {
-			ID:             "0053",
-			Blockchain:     "optimism-mainnet",
-			Description:    "Optimism Mainnet",
-			EnforceResult:  "JSON",
-			Ticker:         "OP",
-			ChainAliases:   []string{"optimism-mainnet"},
-			LogLimitBlocks: 100000,
-			RequestTimeout: 0,
-			Active:         true,
+			ID:                       "0053",
+			Blockchain:               "optimism-mainnet",
+			Description:              "Optimism Mainnet",
+			EnforceResult:            "JSON",
+			Ticker:                   "OP",
+			ChainAliases:             []string{"optimism-mainnet"},
+			LogLimitBlocks:           100000,
+			RequestTimeout:           0,
+			Active:                   true,
+			GigastakeRedirectDomains: []types.RedirectDomain{"op-rpc.gateway.pokt.network"},
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0053.com:1234",
@@ -822,14 +824,15 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"0021": {
-			ID:             "0021",
-			Blockchain:     "eth-mainnet",
-			Description:    "Ethereum Mainnet",
-			EnforceResult:  "JSON",
-			Ticker:         "ETH",
-			ChainAliases:   []string{"eth-mainnet"},
-			LogLimitBlocks: 100000,
-			Active:         true,
+			ID:                       "0021",
+			Blockchain:               "eth-mainnet",
+			Description:              "Ethereum Mainnet",
+			EnforceResult:            "JSON",
+			Ticker:                   "ETH",
+			ChainAliases:             []string{"eth-mainnet"},
+			LogLimitBlocks:           100000,
+			Active:                   true,
+			GigastakeRedirectDomains: []types.RedirectDomain{"eth-rpc.gateway.pokt.network"},
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0021.com:1234",
@@ -887,13 +890,14 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"0040": {
-			ID:            "0040",
-			Blockchain:    "harmony-0",
-			Description:   "Harmony Shard 0",
-			EnforceResult: "JSON",
-			Ticker:        "HMY",
-			ChainAliases:  []string{"harmony-0"},
-			Active:        true,
+			ID:                       "0040",
+			Blockchain:               "harmony-0",
+			Description:              "Harmony Shard 0",
+			EnforceResult:            "JSON",
+			Ticker:                   "HMY",
+			ChainAliases:             []string{"harmony-0"},
+			Active:                   true,
+			GigastakeRedirectDomains: []types.RedirectDomain{"hmy-rpc.gateway.pokt.network"},
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0040.com:1234",
@@ -919,12 +923,13 @@ var (
 
 	// TestCreateChain used to test creation of Chains
 	TestCreateChain = &types.Chain{
-		ID:            "0006",
-		Blockchain:    "solana-mainnet",
-		Description:   "Solana",
-		EnforceResult: "JSON",
-		Ticker:        "SOL",
-		ChainAliases:  []string{"solana-mainnet"},
+		ID:                       "0006",
+		Blockchain:               "solana-mainnet",
+		Description:              "Solana",
+		EnforceResult:            "JSON",
+		Ticker:                   "SOL",
+		ChainAliases:             []string{"solana-mainnet"},
+		GigastakeRedirectDomains: []types.RedirectDomain{"sol-rpc.gateway.pokt.network"},
 		Altruists: []types.Altruist{
 			{
 				URL:      "https://test-rpc.solana-1.io:1234",
@@ -1029,14 +1034,15 @@ var (
 	}
 
 	UpdateChainOne = types.Chain{
-		ID:            "0001",
-		Blockchain:    "mainnet-NEW",
-		Description:   "Pocket Network Mainnet Update",
-		EnforceResult: "JSON",
-		Path:          "/v1/query/height/wow",
-		Ticker:        "POKT-123",
-		ChainAliases:  []string{"mainnet"},
-		Active:        true,
+		ID:                       "0001",
+		Blockchain:               "mainnet-NEW",
+		Description:              "Pocket Network Mainnet Update",
+		EnforceResult:            "JSON",
+		Path:                     "/v1/query/height/wow",
+		Ticker:                   "POKT-123",
+		ChainAliases:             []string{"mainnet"},
+		Active:                   true,
+		GigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network", "pokt-mainnet.gateway.pokt.network"},
 		Altruists: []types.Altruist{
 			{
 				URL:      "https://altruist-0001.com:1234",
@@ -1080,14 +1086,15 @@ var (
 		UpdatedAt: MockTimestamp,
 	}
 	UpdateChainTwo = types.Chain{
-		ID:            "0001",
-		Blockchain:    "mainnet-ULTRA",
-		Description:   "Pocket Network Mainnet Original",
-		EnforceResult: "JSON",
-		Path:          "/v1/query/height/wow",
-		Ticker:        "POKT-456",
-		ChainAliases:  []string{"mainnet-again"},
-		Active:        true,
+		ID:                       "0001",
+		Blockchain:               "mainnet-ULTRA",
+		Description:              "Pocket Network Mainnet Original",
+		EnforceResult:            "JSON",
+		Path:                     "/v1/query/height/wow",
+		Ticker:                   "POKT-456",
+		ChainAliases:             []string{"mainnet-again"},
+		Active:                   true,
+		GigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network"},
 		Altruists: []types.Altruist{
 			{
 				URL:      "https://altruist-0001-3.com:1234",

@@ -105,6 +105,7 @@ CREATE TABLE chains (
     log_limit_blocks INT,
     chain_aliases VARCHAR(100) ARRAY,
     allowed_methods VARCHAR(10) ARRAY,
+    gigastake_redirect_domains VARCHAR(100) ARRAY,
     active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
