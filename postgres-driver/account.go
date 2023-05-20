@@ -14,12 +14,10 @@ import (
 
 type (
 	userAccessDBRow struct {
-		UserID                 string                                  `json:"user_id"`
-		Email                  string                                  `json:"email"`
-		Owner                  bool                                    `json:"owner"`
-		Accepted               bool                                    `json:"accepted"`
-		ProviderUserIDs        map[types.AuthType]types.ProviderUserID `json:"provider_user_ids"`
-		PortalApplicationRoles map[types.PortalAppID]types.RoleName    `json:"portal_application_roles"`
+		UserID         string                               `json:"user_id"`
+		Email          string                               `json:"email"`
+		Accepted       bool                                 `json:"accepted"`
+		PortalAppRoles map[types.PortalAppID]types.RoleName `json:"portal_application_roles"`
 	}
 )
 
@@ -66,7 +64,6 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	var partnerChainIDs map[types.RelayChainID]struct{}
 	if len(a.PartnerChainIDs) != 0 {
-
 		partnerChainIDs = make(map[types.RelayChainID]struct{}, len(a.PartnerChainIDs))
 		for _, chainID := range a.PartnerChainIDs {
 			partnerChainIDs[types.RelayChainID(chainID)] = struct{}{}
@@ -80,6 +77,7 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	return &types.Account{
 		ID:                     a.ID,
+		OwnerID:                a.OwnerID,
 		PlanType:               a.PlanType,
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
@@ -104,16 +102,32 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 		return users, err
 	}
 
-	users = make(map[types.UserID]types.AccountUserAccess, len(userRows))
+	users = make(map[types.UserID]types.AccountUserAccess)
 
+	// Assign account OWNER
+	owner := types.AccountUserAccess{
+		UserID:   types.UserID(a.OwnerID),
+		Email:    types.Email(a.OwnerEmail.String),
+		Accepted: true,
+	}
+	for _, portalAppID := range a.OwnerPortalApplicationIds {
+		if owner.PortalAppRoles == nil {
+			owner.PortalAppRoles = make(map[types.PortalAppID]types.RoleName)
+		}
+		owner.PortalAppRoles[types.PortalAppID(portalAppID)] = types.RoleOwner
+	}
+
+	users[types.UserID(a.OwnerID)] = owner
+
+	// Assign account ADMIN/MEMBERs
 	for _, user := range userRows {
-		users[types.UserID(user.UserID)] = types.AccountUserAccess{
-			UserID:                 types.UserID(user.UserID),
-			Email:                  types.Email(user.Email),
-			Owner:                  user.Owner,
-			Accepted:               user.Accepted,
-			ProviderUserIDs:        user.ProviderUserIDs,
-			PortalApplicationRoles: user.PortalApplicationRoles,
+		if user.UserID != "" {
+			users[types.UserID(user.UserID)] = types.AccountUserAccess{
+				UserID:         types.UserID(user.UserID),
+				Email:          types.Email(user.Email),
+				Accepted:       user.Accepted,
+				PortalAppRoles: user.PortalAppRoles,
+			}
 		}
 	}
 
@@ -124,15 +138,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-	tx, err := pg.DB.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = tx.Rollback() }()
-
-	qtx := pg.WithTx(tx)
-
-	err = pg.validateWriteAccountInput(ctx, qtx, creatorID, account)
+	err := pg.validateWriteAccountInput(ctx, creatorID, account)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +149,9 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	}
 	account.ID = types.AccountID(id)
 
-	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
+	createdAccount, err := pg.InsertAccount(ctx, InsertAccountParams{
 		ID:        account.ID,
+		OwnerID:   creatorID,
 		PlanType:  account.PlanType,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
@@ -157,43 +164,17 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	account.CreatedAt = createdAt
 	account.UpdatedAt = createdAt
 
-	userEmail, err := qtx.GetUserEmail(ctx, creatorID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Account creator becomes Account OWNER
-	owner, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
-		AccountID: createdAccount.ID,
-		UserID:    creatorID,
-		Email:     userEmail,
-		RoleName:  types.RoleOwner,
-		Accepted:  true,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var providerUserIDs map[types.AuthType]types.ProviderUserID
-	if err := json.Unmarshal(owner.ProviderUserIDs, &providerUserIDs); err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
+	userEmail, err := pg.GetUserEmail(ctx, creatorID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Assign OWNER to returned Account struct
 	account.Users = map[types.UserID]types.AccountUserAccess{
-		types.UserID(owner.UserID): {
-			UserID:          types.UserID(owner.UserID),
-			Email:           types.Email(owner.UserEmail),
-			Owner:           true,
-			Accepted:        owner.Accepted,
-			ProviderUserIDs: providerUserIDs,
+		types.UserID(creatorID): {
+			UserID:   types.UserID(creatorID),
+			Email:    types.Email(userEmail),
+			Accepted: true,
 		},
 	}
 
@@ -201,8 +182,8 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 }
 
 // validateWriteAccountInput validates the input to create a new Account
-func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, qtx *Queries, creatorID types.UserID, account types.Account) error {
-	planExists, err := qtx.CheckPlanTypeExists(ctx, account.PlanType)
+func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, creatorID types.UserID, account types.Account) error {
+	planExists, err := pg.CheckPlanTypeExists(ctx, account.PlanType)
 	if err != nil {
 		return err
 	}
@@ -210,7 +191,7 @@ func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, qtx *Qu
 		return fmt.Errorf(errPayPlanDoesntExist.Error(), account.PlanType)
 	}
 
-	userExists, err := qtx.CheckUserExists(ctx, creatorID)
+	userExists, err := pg.CheckUserExists(ctx, creatorID)
 	if err != nil {
 		return err
 	}
@@ -265,18 +246,21 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 	}
 
 	accountData := &SelectAccountsRow{
-		ID:                      accountResult.ID,
-		PlanType:                accountResult.PlanType,
-		PartnerChainIDs:         accountResult.PartnerChainIDs,
-		PartnerThroughputLimit:  accountResult.PartnerThroughputLimit,
-		PartnerApplicationLimit: accountResult.PartnerApplicationLimit,
-		CovalentAPIKeyFree:      accountResult.CovalentAPIKeyFree,
-		CovalentAPIKeyPaid:      accountResult.CovalentAPIKeyPaid,
-		Users:                   accountResult.Users,
-		CreatedAt:               accountResult.CreatedAt,
-		UpdatedAt:               accountResult.UpdatedAt,
-		Deleted:                 accountResult.Deleted,
-		DeletedAt:               accountResult.DeletedAt,
+		ID:                        accountResult.ID,
+		OwnerID:                   accountResult.OwnerID,
+		OwnerEmail:                accountResult.OwnerEmail,
+		OwnerPortalApplicationIds: accountResult.OwnerPortalApplicationIds,
+		PlanType:                  accountResult.PlanType,
+		PartnerChainIDs:           accountResult.PartnerChainIDs,
+		PartnerThroughputLimit:    accountResult.PartnerThroughputLimit,
+		PartnerApplicationLimit:   accountResult.PartnerApplicationLimit,
+		CovalentAPIKeyFree:        accountResult.CovalentAPIKeyFree,
+		CovalentAPIKeyPaid:        accountResult.CovalentAPIKeyPaid,
+		Users:                     accountResult.Users,
+		CreatedAt:                 accountResult.CreatedAt,
+		UpdatedAt:                 accountResult.UpdatedAt,
+		Deleted:                   accountResult.Deleted,
+		DeletedAt:                 accountResult.DeletedAt,
 	}
 	account, err := accountData.toAccount()
 	if err != nil {
@@ -387,7 +371,6 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 
 	params := InsertAccountUserAccessNoUserParams{
 		ID:        userID,
-		AccountID: createAccountUser.AccountID,
 		Email:     createAccountUser.Email,
 		RoleName:  createAccountUser.RoleName,
 		CreatedAt: createdAt,
@@ -402,7 +385,6 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 	return &types.AccountUserAccess{
 		UserID:   types.UserID(user.UserID),
 		Email:    types.Email(user.UserEmail.String),
-		Owner:    false,
 		Accepted: user.Accepted,
 	}, nil
 }
@@ -418,7 +400,6 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 	params := InsertAccountUserAccessParams{
 		UserID:    userID,
 		Email:     createAccountUser.Email,
-		AccountID: createAccountUser.AccountID,
 		RoleName:  createAccountUser.RoleName,
 		Accepted:  false,
 		CreatedAt: createdAt,
@@ -436,11 +417,9 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 	}
 
 	return &types.AccountUserAccess{
-		UserID:          types.UserID(user.UserID),
-		Email:           types.Email(user.UserEmail),
-		Owner:           false,
-		Accepted:        user.Accepted,
-		ProviderUserIDs: providerUserIDs,
+		UserID:   types.UserID(user.UserID),
+		Email:    types.Email(user.UserEmail),
+		Accepted: user.Accepted,
 	}, nil
 }
 
@@ -463,7 +442,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 
 	if updateAccountUser.RoleName == types.RoleOwner {
 		// if transferring ownership of an account the former OWNER becomes an ADMIN
-		err = qtx.UpdateAccountOwnerToAdmin(ctx, updateAccountUser.AccountID)
+		err = qtx.UpdateAccountOwnerToAdmin(ctx, updateAccountUser.PortalAppID)
 		if err != nil {
 
 			return err
@@ -471,10 +450,10 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 	}
 
 	params := UpdateAccountUserRoleParams{
-		AccountID: updateAccountUser.AccountID,
-		UserID:    updateAccountUser.UserID,
-		RoleName:  updateAccountUser.RoleName,
-		UpdatedAt: updatedAt,
+		PortalApplicationID: updateAccountUser.PortalAppID,
+		UserID:              updateAccountUser.UserID,
+		RoleName:            updateAccountUser.RoleName,
+		UpdatedAt:           updatedAt,
 	}
 
 	err = qtx.UpdateAccountUserRole(ctx, params)
@@ -496,7 +475,7 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, q
 		return errInvalidRoleName
 	}
 
-	existsParams := CheckAccountUserExistsParams{UserID: updateAccountUser.UserID, AccountID: updateAccountUser.AccountID}
+	existsParams := CheckAccountUserExistsParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
 	accountUserExists, err := qtx.CheckAccountUserExists(ctx, existsParams)
 	if err != nil {
 		return err
@@ -507,7 +486,7 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, q
 
 	// cannot transfer OWNER to a user who has not accepted their invite
 	if updateAccountUser.RoleName == types.RoleOwner {
-		acceptedParams := CheckAccountUserAcceptedParams{UserID: updateAccountUser.UserID, AccountID: updateAccountUser.AccountID}
+		acceptedParams := CheckAccountUserAcceptedParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
 		userAccepted, err := qtx.CheckAccountUserAccepted(ctx, acceptedParams)
 		if err != nil {
 			return err
@@ -537,12 +516,12 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 	}
 
 	params := UpdateUserAcceptedInviteParams{
-		AccountID:      acceptAccountUser.AccountID,
-		UserID:         acceptAccountUser.UserID,
-		ProviderUserID: acceptAccountUser.ProviderUserID,
-		Type:           acceptAccountUser.AuthProviderType,
-		Provider:       acceptAccountUser.AuthProviderType.Provider(),
-		Federated:      acceptAccountUser.AuthProviderType.IsFederated(),
+		PortalApplicationID: acceptAccountUser.PortalAppID,
+		UserID:              acceptAccountUser.UserID,
+		ProviderUserID:      acceptAccountUser.ProviderUserID,
+		Type:                acceptAccountUser.AuthProviderType,
+		Provider:            acceptAccountUser.AuthProviderType.Provider(),
+		Federated:           acceptAccountUser.AuthProviderType.IsFederated(),
 	}
 
 	err = qtx.UpdateUserAcceptedInvite(ctx, params)
@@ -564,13 +543,13 @@ func (pg *PostgresDriver) validateUpdateAcceptAccountUserInput(ctx context.Conte
 		return fmt.Errorf(errInvalidAuthProviderType.Error(), acceptAccountUser.AuthProviderType)
 	}
 
-	existsParams := CheckAccountUserExistsParams{UserID: acceptAccountUser.UserID, AccountID: acceptAccountUser.AccountID}
+	existsParams := CheckAccountUserExistsParams{UserID: acceptAccountUser.UserID, PortalApplicationID: acceptAccountUser.PortalAppID}
 	accountUserExists, err := qtx.CheckAccountUserExists(ctx, existsParams)
 	if err != nil {
 		return err
 	}
 	if !accountUserExists {
-		return fmt.Errorf(errAccountUserDoesntExist.Error(), acceptAccountUser.UserID, acceptAccountUser.AccountID)
+		return fmt.Errorf(errAccountUserDoesntExist.Error(), acceptAccountUser.UserID, acceptAccountUser.PortalAppID)
 	}
 
 	return nil
@@ -579,13 +558,13 @@ func (pg *PostgresDriver) validateUpdateAcceptAccountUserInput(ctx context.Conte
 /* ----- postgresdriver AccountUserAccess Delete Methods ----- */
 
 // RemoveAccountUser deletes a AccountUserAccess row for a given user and account ID.
-func (pg *PostgresDriver) RemoveAccountUser(ctx context.Context, userID types.UserID, accountID types.AccountID) error {
-	err := pg.validateRemoveAccountUserInput(ctx, userID, accountID)
+func (pg *PostgresDriver) RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID) error {
+	err := pg.validateRemoveAccountUserInput(ctx, userID, portalAppID)
 	if err != nil {
 		return err
 	}
 
-	err = pg.DeleteAccountUser(ctx, DeleteAccountUserParams{UserID: userID, AccountID: accountID})
+	err = pg.DeleteAccountUser(ctx, DeleteAccountUserParams{UserID: userID, PortalApplicationID: portalAppID})
 	if err != nil {
 		return err
 	}
@@ -594,19 +573,19 @@ func (pg *PostgresDriver) RemoveAccountUser(ctx context.Context, userID types.Us
 }
 
 // validateRemoveAccountUserInput validates the input to remove an AccountUserAccess row
-func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, userID types.UserID, accountID types.AccountID) error {
-	isOwnerParams := CheckAccountUserRoleParams{UserID: userID, AccountID: accountID}
+func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID) error {
+	isOwnerParams := CheckAccountUserRoleParams{UserID: userID, PortalApplicationID: portalAppID}
 	accountUserRole, err := pg.CheckAccountUserRole(ctx, isOwnerParams)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return fmt.Errorf(errAccountUserDoesntExist.Error(), userID, accountID)
+			return fmt.Errorf(errAccountUserDoesntExist.Error(), userID, portalAppID)
 		default:
 			return err
 		}
 	}
 	if accountUserRole == types.RoleOwner {
-		return fmt.Errorf(errCannotDeleteOwner.Error(), userID, accountID)
+		return fmt.Errorf(errCannotDeleteOwner.Error(), userID, portalAppID)
 	}
 	return nil
 }
@@ -634,18 +613,14 @@ func (json dbAccount) toOutput() *types.Account {
 }
 
 func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
-	user := &types.AccountUserAccess{
+	return &types.AccountUserAccess{
 		AccountID: json.AccountID,
 		UserID:    json.UserID,
 		Accepted:  json.Accepted,
+		PortalAppRoles: map[types.PortalAppID]types.RoleName{
+			json.PortalApplicationID: json.RoleName,
+		},
 	}
-	if json.RoleName == types.RoleOwner {
-		user.Owner = true
-	} else {
-		user.PortalApplicationRoles[json.PortalApplicationID] = json.RoleName
-	}
-
-	return user
 }
 
 func (j dbAccountIntegration) toOutput() *types.AccountIntegrations {

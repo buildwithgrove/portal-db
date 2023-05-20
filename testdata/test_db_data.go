@@ -129,6 +129,7 @@ var (
 	Accounts = map[types.AccountID]*types.Account{
 		"account_1": {
 			ID:       "account_1",
+			OwnerID:  "user_1",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_1": AccountUserAccess[1],
@@ -146,6 +147,7 @@ var (
 		},
 		"account_2": {
 			ID:       "account_2",
+			OwnerID:  "user_3",
 			PlanType: types.PayPlanType("pro_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_3": AccountUserAccess[3],
@@ -164,6 +166,7 @@ var (
 		},
 		"account_3": {
 			ID:       "account_3",
+			OwnerID:  "user_5",
 			PlanType: types.PayPlanType("startup_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_5":  AccountUserAccess[5],
@@ -182,6 +185,7 @@ var (
 		},
 		"account_4": {
 			ID:       "account_4",
+			OwnerID:  "user_4",
 			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -197,6 +201,7 @@ var (
 		},
 		"account_5": {
 			ID:       "account_5",
+			OwnerID:  "user_4",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -212,119 +217,113 @@ var (
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
 		PlanType:  types.PayPlanType("developer_plan"),
+		OwnerID:   "user_1",
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
 	}
 
 	AccountUserAccess = map[int]types.AccountUserAccess{
 		1: {
-			UserID:          "user_1",
-			Email:           "james.holden123@test.com",
-			Owner:           true,
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|james_holden", types.AuthTypeAuth0Github: "github|james_holden"},
+			UserID:   "user_1",
+			Email:    "james.holden123@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
+				"test_app_1": types.RoleOwner,
+			},
 		},
 		2: {
-			UserID:          "user_2",
-			Email:           "paul.atreides456@test.com",
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"},
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			UserID:   "user_2",
+			Email:    "paul.atreides456@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
 		},
 		3: {
-			UserID:          "user_3",
-			Email:           "ellen.ripley789@test.com",
-			Owner:           true,
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|ellen_ripley"},
+			UserID:   "user_3",
+			Email:    "ellen.ripley789@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
+				"test_app_2": types.RoleOwner,
+			},
 		},
 		4: {
-			UserID:          "user_4",
-			Email:           "ulfric.stormcloak123@test.com",
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"},
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			UserID:   "user_4",
+			Email:    "ulfric.stormcloak123@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		5: {
-			UserID:          "user_5",
-			Email:           "chrisjen.avasarala1@test.com",
-			Owner:           true,
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|chrisjen_avasarala"},
+			UserID:   "user_5",
+			Email:    "chrisjen.avasarala1@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
+				"test_app_3": types.RoleOwner,
+			},
 		},
 		6: {
-			UserID:          "user_6",
-			Email:           "amos.burton789@test.com",
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|amos_burton"},
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			UserID:   "user_6",
+			Email:    "amos.burton789@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleAdmin,
 			},
 		},
 		7: {
-			UserID:          "user_7",
-			Email:           "frodo.baggins123@test.com",
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|frodo_baggins"},
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			UserID:   "user_7",
+			Email:    "frodo.baggins123@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},
 		},
 		8: {
-			UserID:          "user_8",
-			Email:           "rick.deckard456@test.com",
-			Accepted:        false,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|rick_deckard"},
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			UserID:   "user_8",
+			Email:    "rick.deckard456@test.com",
+			Accepted: false,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
 		},
 		9: {
-			UserID:          "user_9",
-			Email:           "tyrion.lannister789@test.com",
-			Accepted:        false,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|tyrion_lannister"},
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			UserID:   "user_9",
+			Email:    "tyrion.lannister789@test.com",
+			Accepted: false,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		// Paul is an admin of Account 1 as well as a member of Account 2
 		10: {
-			UserID:          "user_2",
-			Email:           "paul.atreides456@test.com",
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|paul_atreides", types.AuthTypeAuth0Github: "github|paul_atreides"},
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			UserID:   "user_2",
+			Email:    "paul.atreides456@test.com",
+			Accepted: true,
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		// Ulfric is an admin of Account 2 as well as the owner of Accounts 4 and 5
 		11: {
-			UserID:          "user_4",
-			Email:           "ulfric.stormcloak123@test.com",
-			Owner:           true,
-			Accepted:        true,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|ulfric_stormcloak"},
+			UserID:   "user_4",
+			Email:    "ulfric.stormcloak123@test.com",
+			Accepted: true,
 		},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
 		12: {
 			UserID:   "user_10",
 			Email:    "daenerys.targaryen123@test.com",
 			Accepted: false,
-			PortalApplicationRoles: map[types.PortalAppID]types.RoleName{
+			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},
 		},
 		// Bernard is an existing user and is used to create a new AccountUserAccess row
 		13: {
-			UserID:          "user_11",
-			Email:           "bernard.marx@test.com",
-			Accepted:        false,
-			ProviderUserIDs: map[types.AuthType]types.ProviderUserID{types.AuthTypeAuth0Username: "auth0|bernard_marx"},
+			UserID:   "user_11",
+			Email:    "bernard.marx@test.com",
+			Accepted: false,
 		},
 		// Winston has not signed up yet and is used to create a new AccountUserAccess row
 		14: {
@@ -499,8 +498,8 @@ var (
 	UserPermissions = map[types.UserID]*types.UserPermissions{
 		"user_1": {
 			UserID: "user_1",
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				"account_1": types.AccountPermissions{
+			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_1": types.PortalAppPermissions{
 					RoleName: types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -513,15 +512,15 @@ var (
 		},
 		"user_2": {
 			UserID: "user_2",
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				"account_1": types.AccountPermissions{
+			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_1": types.PortalAppPermissions{
 					RoleName: types.RoleAdmin,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 						types.PermWriteEndpoint,
 					},
 				},
-				"account_2": types.AccountPermissions{
+				"test_app_2": types.PortalAppPermissions{
 					RoleName: types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -531,8 +530,8 @@ var (
 		},
 		"user_3": {
 			UserID: "user_3",
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				"account_2": types.AccountPermissions{
+			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_2": types.PortalAppPermissions{
 					RoleName: types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -545,37 +544,19 @@ var (
 		},
 		"user_4": {
 			UserID: "user_4",
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				"account_2": types.AccountPermissions{
+			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_2": types.PortalAppPermissions{
 					RoleName: types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
-					},
-				},
-				"account_4": types.AccountPermissions{
-					RoleName: types.RoleOwner,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-						types.PermDeleteEndpoint,
-						types.PermTransferEndpoint,
-					},
-				},
-				"account_5": types.AccountPermissions{
-					RoleName: types.RoleOwner,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-						types.PermDeleteEndpoint,
-						types.PermTransferEndpoint,
 					},
 				},
 			},
 		},
 		"user_5": {
 			UserID: "user_5",
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				"account_3": types.AccountPermissions{
+			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_3": types.PortalAppPermissions{
 					RoleName: types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -588,8 +569,8 @@ var (
 		},
 		"user_6": {
 			UserID: "user_6",
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				"account_3": types.AccountPermissions{
+			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_3": types.PortalAppPermissions{
 					RoleName: types.RoleAdmin,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -600,8 +581,8 @@ var (
 		},
 		"user_7": {
 			UserID: "user_7",
-			Accounts: map[types.AccountID]types.AccountPermissions{
-				"account_3": types.AccountPermissions{
+			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_3": types.PortalAppPermissions{
 					RoleName: types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
@@ -1291,6 +1272,7 @@ var (
 
 	V2Account = &types.Account{
 		ID:       "account_1",
+		OwnerID:  "user_1",
 		PlanType: types.PayPlanType("basic_plan"),
 		Users: map[types.UserID]types.AccountUserAccess{
 			"user_1": AccountUserAccess[1],
@@ -1314,7 +1296,7 @@ var (
 		ID:                "test_app_1",
 		AccountID:         "account_1",
 		Name:              "pokt_app_123",
-		UserID:            "auth0|james_holden",
+		UserID:            "user_1",
 		ApplicationIDs:    []string(nil),
 		RequestTimeout:    5000,
 		Gigastake:         false,
@@ -1347,7 +1329,7 @@ var (
 	LegacyApplications = []*v1Types.Application{
 		{
 			ID:                 "test_protocol_app_1",
-			UserID:             "auth0|james_holden",
+			UserID:             "user_1",
 			Name:               "pokt_app_123",
 			FirstDateSurpassed: MockTimestamp,
 			GatewayAAT: v1Types.GatewayAAT{
@@ -1537,10 +1519,11 @@ var (
 	}
 
 	LegacyUserAccess = v1Types.UserAccess{
+		ID:       "test_app_1",
 		Email:    "james.holden123@test.com",
 		RoleName: v1Types.RoleOwner,
 		Accepted: true,
-		UserID:   "james_holden_push_button",
+		UserID:   "user_1",
 	}
 
 	LegacyUpdateUserAccess = v1Types.UpdateUserAccess{

@@ -18,16 +18,16 @@ func Test_Listen(t *testing.T) {
 	}{
 		{
 			name:    "Should process Account notifications",
-			content: testdata.Accounts["account_5"],
+			content: testdata.Accounts["account_1"],
 			expectedNotifications: map[types.Table]*types.Notification{
 				types.TableAccounts: {
 					Table:  types.TableAccounts,
 					Action: types.ActionInsert,
 					Data: &types.Account{
-						ID:                     "account_5",
+						ID:                     "account_1",
 						PlanType:               "basic_plan",
-						PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
-						PartnerThroughputLimit: 6_000,
+						PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+						PartnerThroughputLimit: 2_000,
 						PartnerAppLimit:        1,
 						CreatedAt:              testdata.MockTimestamp,
 						UpdatedAt:              testdata.MockTimestamp,
@@ -37,10 +37,12 @@ func Test_Listen(t *testing.T) {
 					Table:  types.TableAccountUserAccess,
 					Action: types.ActionUpdate,
 					Data: &types.AccountUserAccess{
-						AccountID: "account_5",
-						UserID:    "user_4",
-						Owner:     true,
+						AccountID: "account_1",
+						UserID:    "user_1",
 						Accepted:  true,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_1": types.RoleOwner,
+						},
 					},
 				},
 			},

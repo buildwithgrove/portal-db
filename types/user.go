@@ -129,21 +129,21 @@ type (
 	}
 
 	CreateUserResponse struct {
-		User      User      `json:"user"`
-		AccountID AccountID `json:"accountID"`
+		User        User        `json:"user"`
+		PortalAppID PortalAppID `json:"portalAppID"`
 	}
 )
 
 /* UserPermissions Struct Definition and Methods */
 
 type (
-	// UserPermissions stores all roles and read/write permissions for all Accounts for a given user
+	// UserPermissions stores all roles and read/write permissions for all PortalApps for a given user
 	UserPermissions struct {
-		UserID   UserID                           `json:"userID"`
-		Accounts map[AccountID]AccountPermissions `json:"accounts"`
+		UserID     UserID                               `json:"userID"`
+		PortalApps map[PortalAppID]PortalAppPermissions `json:"accounts"`
 	}
-	// AccountPermissions stores user role and permissions for a given PortalApp
-	AccountPermissions struct {
+	// PortalAppPermissions stores user role and permissions for a given PortalApp
+	PortalAppPermissions struct {
 		RoleName    RoleName      `json:"roleName"`
 		Permissions []Permissions `json:"permissions"`
 	}
@@ -156,14 +156,14 @@ var permissionsList = map[RoleName][]Permissions{
 }
 
 func (u *UserPermissions) IsEmpty() bool {
-	if u.UserID == UserID("") || len(u.Accounts) == 0 {
+	if u.UserID == UserID("") || len(u.PortalApps) == 0 {
 		return true
 	}
 	return false
 }
 
-func (u *UserPermissions) GetRole(accountID AccountID) RoleName {
-	app, ok := u.Accounts[accountID]
+func (u *UserPermissions) GetRole(portalAppID PortalAppID) RoleName {
+	app, ok := u.PortalApps[portalAppID]
 	if !ok {
 		return RoleName("")
 	}
@@ -171,15 +171,15 @@ func (u *UserPermissions) GetRole(accountID AccountID) RoleName {
 	return app.RoleName
 }
 
-func (u *UserPermissions) UpsertPermissions(accountID AccountID, role RoleName) (*UserPermissions, error) {
-	if accountID == "" {
+func (u *UserPermissions) UpsertPermissions(portalAppID PortalAppID, role RoleName) (*UserPermissions, error) {
+	if portalAppID == "" {
 		return nil, errAccountIDIsEmpty
 	}
 	if !role.IsValid() {
 		return nil, errInvalidRole
 	}
 
-	u.Accounts[accountID] = AccountPermissions{
+	u.PortalApps[portalAppID] = PortalAppPermissions{
 		RoleName:    role,
 		Permissions: permissionsList[role],
 	}
@@ -187,14 +187,14 @@ func (u *UserPermissions) UpsertPermissions(accountID AccountID, role RoleName) 
 	return u, nil
 }
 
-func (u *UserPermissions) DeletePermissions(accountID AccountID) *UserPermissions {
-	delete(u.Accounts, accountID)
+func (u *UserPermissions) DeletePermissions(portalAppID PortalAppID) *UserPermissions {
+	delete(u.PortalApps, portalAppID)
 
 	return u
 }
 
-func (u *UserPermissions) HasPermission(accountID AccountID, permission Permissions) bool {
-	app, ok := u.Accounts[accountID]
+func (u *UserPermissions) HasPermission(portalAppID PortalAppID, permission Permissions) bool {
+	app, ok := u.PortalApps[portalAppID]
 	if !ok {
 		return false
 	}

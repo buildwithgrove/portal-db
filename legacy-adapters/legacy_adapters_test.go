@@ -46,7 +46,7 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 		{
 			name:                       "Should convert a V2 PortalApp struct to a legacy Application struct",
 			portalApp:                  *testdata.PortalApps["test_app_1"],
-			userID:                     "auth0|james_holden",
+			userID:                     "user_1",
 			expectedLegacyApplications: testdata.LegacyApplications,
 		},
 	}
@@ -259,11 +259,6 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			v2AccountUserAccess := ConvertToV2AccountUserAccess(test.userAccess)
 
-			// Set fields not used in the legacy update to reuse test struct
-			test.expectedV2AccountUserAccess.UserID = ""
-			delete(test.expectedV2AccountUserAccess.ProviderUserIDs, v2Types.AuthTypeAuth0Github)
-			test.expectedV2AccountUserAccess.ProviderUserIDs[v2Types.AuthTypeAuth0Username] = v2Types.ProviderUserID(test.userAccess.UserID)
-
 			c.Equal(test.expectedV2AccountUserAccess, v2AccountUserAccess)
 		})
 	}
@@ -285,9 +280,9 @@ func Test_LegacyAdapators_ConvertToV2UpdateAccountUserAccess(t *testing.T) {
 			userID:     "user_123",
 			userAccess: testdata.LegacyUpdateUserAccess,
 			expectedV2AccountUserAccess: v2Types.UpdateAccountUserRole{
-				RoleName:             v2Types.RoleAdmin,
-				UserID:               "user_123",
-				LegacyLoadBalancerID: "test_lb_3127flsdhfoi323f",
+				RoleName:    v2Types.RoleAdmin,
+				UserID:      "user_123",
+				PortalAppID: "test_lb_3127flsdhfoi323f",
 			},
 		},
 	}

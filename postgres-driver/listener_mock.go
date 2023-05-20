@@ -109,24 +109,28 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 
 	if sideTablesAction != "" {
 		for _, userAccess := range account.Users {
-			var portalAppID types.PortalAppID
-			var roleName types.RoleName
-			for id, role := range userAccess.PortalApplicationRoles {
-				portalAppID = id
-				roleName = role
-				break
+			if userAccess.UserID == account.OwnerID {
+				var portalAppID types.PortalAppID
+				var roleName types.RoleName
+				for id, role := range userAccess.PortalAppRoles {
+					if role == types.RoleOwner {
+						portalAppID = id
+						roleName = role
+						break
+					}
+				}
+				inputs = append(inputs, inputStruct{
+					action: sideTablesAction,
+					table:  types.TableAccountUserAccess,
+					input: dbAccountUserAccess{
+						AccountID:           account.ID,
+						UserID:              userAccess.UserID,
+						PortalApplicationID: portalAppID,
+						RoleName:            roleName,
+						Accepted:            userAccess.Accepted,
+					},
+				})
 			}
-			inputs = append(inputs, inputStruct{
-				action: sideTablesAction,
-				table:  types.TableAccountUserAccess,
-				input: dbAccountUserAccess{
-					AccountID:           account.ID,
-					UserID:              userAccess.UserID,
-					PortalApplicationID: portalAppID,
-					RoleName:            roleName,
-					Accepted:            userAccess.Accepted,
-				},
-			})
 		}
 	}
 

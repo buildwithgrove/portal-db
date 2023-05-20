@@ -20,30 +20,26 @@ Once the V2 migration is completed this package may be removed from this repo.
 
 /* V2 Struct to Legacy Struct Adaptors */
 func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, accountUsers map[v2Types.UserID]v2Types.AccountUserAccess) v1Types.LoadBalancer {
+	var userID string
+
 	var users []v1Types.UserAccess
-
-	// TODO update how users accessed once change made to account_user_access
 	for _, accountUser := range accountUsers {
-		user := v1Types.UserAccess{
-			UserID:   string(accountUser.UserID),
-			Email:    string(accountUser.Email),
-			Accepted: accountUser.Accepted,
-		}
-
-		if accountUser.Owner {
-			user.RoleName = v1Types.RoleOwner
-			users = append(users, user)
-		} else {
-			if roleName, ok := accountUser.PortalApplicationRoles[a.ID]; ok {
-				user.RoleName = v1Types.RoleName(roleName)
-				users = append(users, user)
+		for portalAppID, roleName := range accountUser.PortalAppRoles {
+			if portalAppID == a.ID && roleName == v2Types.RoleOwner {
+				userID = string(accountUser.UserID)
 			}
+
+			users = append(users, v1Types.UserAccess{
+				UserID:   string(accountUser.UserID),
+				Email:    string(accountUser.Email),
+				RoleName: v1Types.RoleName(roleName),
+				Accepted: accountUser.Accepted,
+			})
+
 		}
 	}
 
 	sortUsersByRole(users)
-
-	userID := account.LegacyUserID()
 
 	return v1Types.LoadBalancer{
 		ID:           string(a.ID),
@@ -392,30 +388,23 @@ func ConvertToV2UpdatePortalApp(u v1Types.UpdateApplication, lbID string) v2Type
 
 func ConvertToV2AccountUserAccess(u v1Types.UserAccess) v2Types.AccountUserAccess {
 	portalAppID := v2Types.PortalAppID(u.ID)
-	authType := getAuthType(u.UserID)
 
 	userAccess := v2Types.AccountUserAccess{
+		UserID:   v2Types.UserID(u.UserID),
 		Email:    v2Types.Email(u.Email),
 		Accepted: u.Accepted,
-		ProviderUserIDs: map[v2Types.AuthType]v2Types.ProviderUserID{
-			authType: v2Types.ProviderUserID(u.UserID),
-		},
-		PortalApplicationRoles: map[v2Types.PortalAppID]v2Types.RoleName{
+		PortalAppRoles: map[v2Types.PortalAppID]v2Types.RoleName{
 			portalAppID: v2Types.RoleName(u.RoleName),
 		},
-	}
-
-	if u.RoleName == v1Types.RoleOwner {
-		userAccess.Owner = true
 	}
 
 	return userAccess
 }
 
-func ConvertToV2UpdateAcceptAccountUserAccess(u v1Types.UpdateUserAccess, accountID v2Types.AccountID, userID v2Types.UserID) v2Types.UpdateAcceptAccountUser {
+func ConvertToV2UpdateAcceptAccountUserAccess(u v1Types.UpdateUserAccess, portalAppID v2Types.PortalAppID, userID v2Types.UserID) v2Types.UpdateAcceptAccountUser {
 	authType := getAuthType(u.UserID)
 	return v2Types.UpdateAcceptAccountUser{
-		AccountID:        accountID,
+		PortalAppID:      portalAppID,
 		UserID:           userID,
 		AuthProviderType: authType,
 		ProviderUserID:   v2Types.ProviderUserID(u.UserID),
@@ -424,9 +413,9 @@ func ConvertToV2UpdateAcceptAccountUserAccess(u v1Types.UpdateUserAccess, accoun
 
 func ConvertToV2UpdateAccountUserAccess(u v1Types.UpdateUserAccess, lbID string, userID string) v2Types.UpdateAccountUserRole {
 	return v2Types.UpdateAccountUserRole{
-		LegacyLoadBalancerID: lbID,
-		UserID:               v2Types.UserID(userID),
-		RoleName:             v2Types.RoleName(u.RoleName),
+		PortalAppID: v2Types.PortalAppID(lbID),
+		UserID:      v2Types.UserID(userID),
+		RoleName:    v2Types.RoleName(u.RoleName),
 	}
 }
 

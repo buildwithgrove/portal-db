@@ -12,6 +12,7 @@ type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
 		ID                     AccountID                    `json:"id"`
+		OwnerID                UserID                       `json:"ownerID"`
 		PlanType               PayPlanType                  `json:"planType"`
 		Users                  map[UserID]AccountUserAccess `json:"users"`
 		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
@@ -29,13 +30,11 @@ type (
 
 	// AccountUserAccess represents a single Portal user for a single Account
 	AccountUserAccess struct {
-		AccountID              AccountID                   `json:"accountID,omitempty"`
-		UserID                 UserID                      `json:"userID"`
-		Email                  Email                       `json:"email"`
-		Owner                  bool                        `json:"owner"`
-		Accepted               bool                        `json:"accepted"`
-		ProviderUserIDs        map[AuthType]ProviderUserID `json:"providerUserIDs"`
-		PortalApplicationRoles map[PortalAppID]RoleName    `json:"portalApplicationRoles"`
+		AccountID      AccountID                `json:"accountID,omitempty"`
+		UserID         UserID                   `json:"userID"`
+		Email          Email                    `json:"email"`
+		Accepted       bool                     `json:"accepted"`
+		PortalAppRoles map[PortalAppID]RoleName `json:"portalApplicationRoles"`
 	}
 
 	// AccountUserAccess represents fields used for integrations with other platforms
@@ -60,49 +59,26 @@ type (
 
 	// UpdateAccountUserRole contains all fields required to update an Account User's Role
 	UpdateAccountUserRole struct {
-		UserID    UserID    `json:"userID"`
-		AccountID AccountID `json:"accountID"`
-		RoleName  RoleName  `json:"roleName"`
-		// TODO - remove when v2 migration finished
-		// LegacyLoadBalancerID is the load balancer ID that the account was migrated from
-		LegacyLoadBalancerID string `json:"legacyLoadBalancerID"`
+		PortalAppID PortalAppID `json:"portalAppID"`
+		UserID      UserID      `json:"userID"`
+		AccountID   AccountID   `json:"accountID"`
+		RoleName    RoleName    `json:"roleName"`
 	}
 
 	// UpdateAccountUserRole contains all fields required to update an Account User's Role
 	UpdateAcceptAccountUser struct {
-		AccountID        AccountID      `json:"accountID"`
+		PortalAppID      PortalAppID    `json:"portalAppID"`
 		UserID           UserID         `json:"userID"`
 		AuthProviderType AuthType       `json:"type"`
 		ProviderUserID   ProviderUserID `json:"providerUserID"`
 	}
 )
 
-// LegacyUserID returns the legacy user ID for an Account
-func (a *Account) LegacyUserID() string {
-	for _, user := range a.Users {
-		if user.Owner {
-			var userID ProviderUserID
-			// in case user has two auth providers, default to using their Auth0 Username/PW ID
-			switch {
-			case user.ProviderUserIDs[AuthTypeAuth0Username] != "":
-				userID = user.ProviderUserIDs[AuthTypeAuth0Username]
-			default:
-				userID = user.ProviderUserIDs[AuthTypeAuth0Github]
-			}
-			return string(userID)
-		}
-	}
-	return ""
-}
-
 // GetOwnerEmail returns the Email of the Application OWNER
 func (a *Account) GetOwner() (AccountUserAccess, error) {
-	for _, userAccess := range a.Users {
-		if userAccess.Owner {
-			return userAccess, nil
-		}
+	if owner, ok := a.Users[a.OwnerID]; ok {
+		return owner, nil
 	}
-
 	return AccountUserAccess{}, errNoOwner
 }
 

@@ -51,16 +51,16 @@ const checkAccountUserAccepted = `-- name: CheckAccountUserAccepted :one
 SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
-    AND account_id = $2
+    AND portal_application_id = $2
 `
 
 type CheckAccountUserAcceptedParams struct {
-	UserID    types.UserID    `json:"user_id"`
-	AccountID types.AccountID `json:"account_id"`
+	UserID              types.UserID      `json:"user_id"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 }
 
 func (q *Queries) CheckAccountUserAccepted(ctx context.Context, arg CheckAccountUserAcceptedParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkAccountUserAccepted, arg.UserID, arg.AccountID)
+	row := q.db.QueryRowContext(ctx, checkAccountUserAccepted, arg.UserID, arg.PortalApplicationID)
 	var accepted bool
 	err := row.Scan(&accepted)
 	return accepted, err
@@ -71,17 +71,17 @@ SELECT EXISTS (
         SELECT 1
         FROM account_user_access
         WHERE user_id = $1
-            AND account_id = $2
+            AND portal_application_id = $2
     )
 `
 
 type CheckAccountUserExistsParams struct {
-	UserID    types.UserID    `json:"user_id"`
-	AccountID types.AccountID `json:"account_id"`
+	UserID              types.UserID      `json:"user_id"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 }
 
 func (q *Queries) CheckAccountUserExists(ctx context.Context, arg CheckAccountUserExistsParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkAccountUserExists, arg.UserID, arg.AccountID)
+	row := q.db.QueryRowContext(ctx, checkAccountUserExists, arg.UserID, arg.PortalApplicationID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -91,16 +91,16 @@ const checkAccountUserRole = `-- name: CheckAccountUserRole :one
 SELECT role_name
 FROM account_user_access
 WHERE user_id = $1
-    AND account_id = $2
+    AND portal_application_id = $2
 `
 
 type CheckAccountUserRoleParams struct {
-	UserID    types.UserID    `json:"user_id"`
-	AccountID types.AccountID `json:"account_id"`
+	UserID              types.UserID      `json:"user_id"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 }
 
 func (q *Queries) CheckAccountUserRole(ctx context.Context, arg CheckAccountUserRoleParams) (types.RoleName, error) {
-	row := q.db.QueryRowContext(ctx, checkAccountUserRole, arg.UserID, arg.AccountID)
+	row := q.db.QueryRowContext(ctx, checkAccountUserRole, arg.UserID, arg.PortalApplicationID)
 	var role_name types.RoleName
 	err := row.Scan(&role_name)
 	return role_name, err
@@ -201,6 +201,25 @@ type CheckRedirectExistsParams struct {
 
 func (q *Queries) CheckRedirectExists(ctx context.Context, arg CheckRedirectExistsParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, checkRedirectExists, arg.ChainID, arg.PortalApplicationID, arg.Domain)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const checkUserAccountExists = `-- name: CheckUserAccountExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM account_user_access
+        WHERE user_id = $1
+        UNION
+        SELECT 1
+        FROM accounts
+        WHERE owner_id = $1
+    )
+`
+
+func (q *Queries) CheckUserAccountExists(ctx context.Context, userID types.UserID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUserAccountExists, userID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -328,17 +347,17 @@ func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) er
 
 const deleteAccountUser = `-- name: DeleteAccountUser :exec
 DELETE FROM account_user_access
-WHERE account_id = $1
+WHERE portal_application_id = $1
     AND user_id = $2
 `
 
 type DeleteAccountUserParams struct {
-	AccountID types.AccountID `json:"account_id"`
-	UserID    types.UserID    `json:"user_id"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
+	UserID              types.UserID      `json:"user_id"`
 }
 
 func (q *Queries) DeleteAccountUser(ctx context.Context, arg DeleteAccountUserParams) error {
-	_, err := q.db.ExecContext(ctx, deleteAccountUser, arg.AccountID, arg.UserID)
+	_, err := q.db.ExecContext(ctx, deleteAccountUser, arg.PortalApplicationID, arg.UserID)
 	return err
 }
 
@@ -446,13 +465,12 @@ func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) (types.UserID
 const getAccountOwnerEmail = `-- name: GetAccountOwnerEmail :one
 SELECT users.email
 FROM users
-    JOIN account_user_access ON users.id = account_user_access.user_id
-WHERE account_user_access.role_name = 'OWNER'
-    AND account_user_access.account_id = $1
+    JOIN accounts ON users.id = accounts.owner_id
+WHERE accounts.id = $1
 `
 
-func (q *Queries) GetAccountOwnerEmail(ctx context.Context, accountID types.AccountID) (types.Email, error) {
-	row := q.db.QueryRowContext(ctx, getAccountOwnerEmail, accountID)
+func (q *Queries) GetAccountOwnerEmail(ctx context.Context, id types.AccountID) (types.Email, error) {
+	row := q.db.QueryRowContext(ctx, getAccountOwnerEmail, id)
 	var email types.Email
 	err := row.Scan(&email)
 	return email, err
@@ -538,7 +556,7 @@ func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.User
 const getUserEmail = `-- name: GetUserEmail :one
 SELECT email
 FROM users
-WHERE id = $1
+WHERE users.id = $1
 `
 
 func (q *Queries) GetUserEmail(ctx context.Context, id types.UserID) (types.Email, error) {
@@ -551,16 +569,18 @@ func (q *Queries) GetUserEmail(ctx context.Context, id types.UserID) (types.Emai
 const insertAccount = `-- name: InsertAccount :one
 INSERT INTO accounts (
         id,
+        owner_id,
         plan_type,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4)
-RETURNING id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, owner_id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
 `
 
 type InsertAccountParams struct {
 	ID        types.AccountID   `json:"id"`
+	OwnerID   types.UserID      `json:"owner_id"`
 	PlanType  types.PayPlanType `json:"plan_type"`
 	CreatedAt time.Time         `json:"created_at"`
 	UpdatedAt time.Time         `json:"updated_at"`
@@ -569,6 +589,7 @@ type InsertAccountParams struct {
 func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (Account, error) {
 	row := q.db.QueryRowContext(ctx, insertAccount,
 		arg.ID,
+		arg.OwnerID,
 		arg.PlanType,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -576,6 +597,7 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 	var i Account
 	err := row.Scan(
 		&i.ID,
+		&i.OwnerID,
 		&i.PlanType,
 		pq.Array(&i.PartnerChainIDs),
 		&i.PartnerThroughputLimit,
@@ -591,21 +613,20 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 const insertAccountUserAccess = `-- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users
-    SET email = $7
-    WHERE id = $2
+    SET email = $6
+    WHERE id = $1
     RETURNING id,
         email
 )
 INSERT INTO account_user_access (
-        account_id,
-        user_id,
         portal_application_id,
+        user_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
-VALUES ($1, $2, '', $3, $4, $5, $6)
+VALUES ('', $1, $2, $3, $4, $5)
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
     account_user_access.accepted,
@@ -613,7 +634,7 @@ RETURNING account_user_access.user_id,
         (
             SELECT email
             FROM updated_user
-            WHERE id = $2
+            WHERE id = $1
         ),
         ''
     )::VARCHAR(320) AS user_email,
@@ -625,13 +646,12 @@ RETURNING account_user_access.user_id,
 `
 
 type InsertAccountUserAccessParams struct {
-	AccountID types.AccountID `json:"account_id"`
-	UserID    types.UserID    `json:"user_id"`
-	RoleName  types.RoleName  `json:"role_name"`
-	Accepted  bool            `json:"accepted"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
-	Email     types.Email     `json:"email"`
+	UserID    types.UserID   `json:"user_id"`
+	RoleName  types.RoleName `json:"role_name"`
+	Accepted  bool           `json:"accepted"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	Email     types.Email    `json:"email"`
 }
 
 type InsertAccountUserAccessRow struct {
@@ -644,7 +664,6 @@ type InsertAccountUserAccessRow struct {
 
 func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccountUserAccessParams) (InsertAccountUserAccessRow, error) {
 	row := q.db.QueryRowContext(ctx, insertAccountUserAccess,
-		arg.AccountID,
 		arg.UserID,
 		arg.RoleName,
 		arg.Accepted,
@@ -677,22 +696,20 @@ WITH inserted_user AS (
         email
 )
 INSERT INTO account_user_access (
-        account_id,
-        user_id,
         portal_application_id,
+        user_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
 VALUES (
-        $5,
+        '',
         (
             SELECT id
             FROM inserted_user
         ),
-        '',
-        $6,
+        $5,
         false,
         $3,
         $4
@@ -707,12 +724,11 @@ RETURNING account_user_access.user_id,
 `
 
 type InsertAccountUserAccessNoUserParams struct {
-	ID        types.UserID    `json:"id"`
-	Email     types.Email     `json:"email"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
-	AccountID types.AccountID `json:"account_id"`
-	RoleName  types.RoleName  `json:"role_name"`
+	ID        types.UserID   `json:"id"`
+	Email     types.Email    `json:"email"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	RoleName  types.RoleName `json:"role_name"`
 }
 
 type InsertAccountUserAccessNoUserRow struct {
@@ -728,7 +744,6 @@ func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertA
 		arg.Email,
 		arg.CreatedAt,
 		arg.UpdatedAt,
-		arg.AccountID,
 		arg.RoleName,
 	)
 	var i InsertAccountUserAccessNoUserRow
@@ -925,13 +940,17 @@ func (q *Queries) RemoveGlobalBlockedContract(ctx context.Context, blockedAddres
 }
 
 const selectAccount = `-- name: SelectAccount :one
-WITH user_auth_agg AS (
-    SELECT user_id,
-        json_object_agg(type, provider_user_id) AS provider_user_ids
-    FROM user_auth_providers
-    GROUP BY user_id
+WITH app_role_agg AS (
+    SELECT aua.user_id,
+        pa.account_id,
+        json_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles
+    FROM account_user_access AS aua
+        LEFT JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    WHERE aua.portal_application_id IS NOT NULL
+    GROUP BY aua.user_id,
+        pa.account_id
 )
-SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+SELECT a.id, a.owner_id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     json_agg(
@@ -940,39 +959,53 @@ SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.par
             u.id,
             'email',
             u.email,
-            'role_name',
-            ur.role_name,
             'accepted',
-            au.accepted,
-            'provider_user_ids',
-            uaa.provider_user_ids
+            aua.accepted,
+            'portal_application_roles',
+            ara.portal_application_roles
         )
-    ) AS users
+    ) AS users,
+    owner.email AS owner_email,
+    aid.portal_application_ids::VARCHAR [] AS owner_portal_application_ids
 FROM accounts AS a
-    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN portal_applications AS pa ON a.id = pa.account_id
+    LEFT JOIN account_user_access AS aua ON pa.id = aua.portal_application_id
     LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
-    LEFT JOIN users AS u ON au.user_id = u.id
-    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
-    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
+    LEFT JOIN users AS u ON aua.user_id = u.id
+    LEFT JOIN users AS owner ON a.owner_id = owner.id
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
+    LEFT JOIN app_role_agg AS ara ON u.id = ara.user_id
+    AND a.id = ara.account_id
+    LEFT JOIN (
+        SELECT pa.account_id,
+            ARRAY_AGG(pa.id::text) AS portal_application_ids
+        FROM portal_applications AS pa
+        GROUP BY pa.account_id
+    ) AS aid ON a.id = aid.account_id
 WHERE a.id = $1
 GROUP BY a.id,
     ai.covalent_api_key_free,
-    ai.covalent_api_key_paid
+    ai.covalent_api_key_paid,
+    owner.email,
+    aid.portal_application_ids
 `
 
 type SelectAccountRow struct {
-	ID                      types.AccountID   `json:"id"`
-	PlanType                types.PayPlanType `json:"plan_type"`
-	PartnerChainIDs         []string          `json:"partner_chain_ids"`
-	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
-	PartnerApplicationLimit sql.NullInt32     `json:"partner_application_limit"`
-	CreatedAt               time.Time         `json:"created_at"`
-	UpdatedAt               time.Time         `json:"updated_at"`
-	Deleted                 bool              `json:"deleted"`
-	DeletedAt               sql.NullTime      `json:"deleted_at"`
-	CovalentAPIKeyFree      sql.NullString    `json:"covalent_api_key_free"`
-	CovalentAPIKeyPaid      sql.NullString    `json:"covalent_api_key_paid"`
-	Users                   json.RawMessage   `json:"users"`
+	ID                        types.AccountID   `json:"id"`
+	OwnerID                   types.UserID      `json:"owner_id"`
+	PlanType                  types.PayPlanType `json:"plan_type"`
+	PartnerChainIDs           []string          `json:"partner_chain_ids"`
+	PartnerThroughputLimit    sql.NullInt32     `json:"partner_throughput_limit"`
+	PartnerApplicationLimit   sql.NullInt32     `json:"partner_application_limit"`
+	CreatedAt                 time.Time         `json:"created_at"`
+	UpdatedAt                 time.Time         `json:"updated_at"`
+	Deleted                   bool              `json:"deleted"`
+	DeletedAt                 sql.NullTime      `json:"deleted_at"`
+	CovalentAPIKeyFree        sql.NullString    `json:"covalent_api_key_free"`
+	CovalentAPIKeyPaid        sql.NullString    `json:"covalent_api_key_paid"`
+	Users                     json.RawMessage   `json:"users"`
+	OwnerEmail                sql.NullString    `json:"owner_email"`
+	OwnerPortalApplicationIds []string          `json:"owner_portal_application_ids"`
 }
 
 func (q *Queries) SelectAccount(ctx context.Context, id types.AccountID) (SelectAccountRow, error) {
@@ -980,6 +1013,7 @@ func (q *Queries) SelectAccount(ctx context.Context, id types.AccountID) (Select
 	var i SelectAccountRow
 	err := row.Scan(
 		&i.ID,
+		&i.OwnerID,
 		&i.PlanType,
 		pq.Array(&i.PartnerChainIDs),
 		&i.PartnerThroughputLimit,
@@ -991,27 +1025,60 @@ func (q *Queries) SelectAccount(ctx context.Context, id types.AccountID) (Select
 		&i.CovalentAPIKeyFree,
 		&i.CovalentAPIKeyPaid,
 		&i.Users,
+		&i.OwnerEmail,
+		pq.Array(&i.OwnerPortalApplicationIds),
 	)
 	return i, err
 }
 
+const selectAccountOwners = `-- name: SelectAccountOwners :many
+SELECT a.owner_id,
+    array_agg(pa.id)::VARCHAR [] AS portal_application_ids
+FROM accounts AS a
+    JOIN portal_applications AS pa ON a.id = pa.account_id
+GROUP BY a.owner_id
+`
+
+type SelectAccountOwnersRow struct {
+	OwnerID              types.UserID `json:"owner_id"`
+	PortalApplicationIDs []string     `json:"portal_application_ids"`
+}
+
+func (q *Queries) SelectAccountOwners(ctx context.Context) ([]SelectAccountOwnersRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectAccountOwners)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectAccountOwnersRow
+	for rows.Next() {
+		var i SelectAccountOwnersRow
+		if err := rows.Scan(&i.OwnerID, pq.Array(&i.PortalApplicationIDs)); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectAccounts = `-- name: SelectAccounts :many
-WITH user_auth_agg AS (
-    SELECT user_id,
-        json_object_agg(type, provider_user_id) AS provider_user_ids
-    FROM user_auth_providers
-    GROUP BY user_id
-),
-app_role_agg AS (
-    SELECT user_id,
-        account_id,
-        json_object_agg(portal_application_id, role_name) AS portal_application_roles
-    FROM account_user_access
-    WHERE portal_application_id IS NOT NULL
-    GROUP BY user_id,
-        account_id
+WITH app_role_agg AS (
+    SELECT aua.user_id,
+        pa.account_id,
+        json_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles
+    FROM account_user_access AS aua
+        LEFT JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    WHERE aua.portal_application_id IS NOT NULL
+    GROUP BY aua.user_id,
+        pa.account_id
 )
-SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+SELECT a.id, a.owner_id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     json_agg(
@@ -1020,49 +1087,56 @@ SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.par
             u.id,
             'email',
             u.email,
-            'owner',
-            CASE
-                WHEN au.role_name = 'OWNER' THEN true
-                ELSE false
-            END,
             'accepted',
-            au.accepted,
-            'provider_user_ids',
-            uaa.provider_user_ids,
+            aua.accepted,
             'portal_application_roles',
             ara.portal_application_roles
         )
-    ) AS users
+    ) AS users,
+    owner.email AS owner_email,
+    aid.portal_application_ids::VARCHAR [] AS owner_portal_application_ids
 FROM accounts AS a
-    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN portal_applications AS pa ON a.id = pa.account_id
+    LEFT JOIN account_user_access AS aua ON pa.id = aua.portal_application_id
     LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
-    LEFT JOIN users AS u ON au.user_id = u.id
-    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
-    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
+    LEFT JOIN users AS u ON aua.user_id = u.id
+    LEFT JOIN users AS owner ON a.owner_id = owner.id
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
     LEFT JOIN app_role_agg AS ara ON u.id = ara.user_id
     AND a.id = ara.account_id
+    LEFT JOIN (
+        SELECT pa.account_id,
+            ARRAY_AGG(pa.id::text) AS portal_application_ids
+        FROM portal_applications AS pa
+        GROUP BY pa.account_id
+    ) AS aid ON a.id = aid.account_id
 WHERE (
         $1::BOOLEAN
         OR a.deleted = false
     )
 GROUP BY a.id,
     ai.covalent_api_key_free,
-    ai.covalent_api_key_paid
+    ai.covalent_api_key_paid,
+    owner.email,
+    aid.portal_application_ids
 `
 
 type SelectAccountsRow struct {
-	ID                      types.AccountID   `json:"id"`
-	PlanType                types.PayPlanType `json:"plan_type"`
-	PartnerChainIDs         []string          `json:"partner_chain_ids"`
-	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
-	PartnerApplicationLimit sql.NullInt32     `json:"partner_application_limit"`
-	CreatedAt               time.Time         `json:"created_at"`
-	UpdatedAt               time.Time         `json:"updated_at"`
-	Deleted                 bool              `json:"deleted"`
-	DeletedAt               sql.NullTime      `json:"deleted_at"`
-	CovalentAPIKeyFree      sql.NullString    `json:"covalent_api_key_free"`
-	CovalentAPIKeyPaid      sql.NullString    `json:"covalent_api_key_paid"`
-	Users                   json.RawMessage   `json:"users"`
+	ID                        types.AccountID   `json:"id"`
+	OwnerID                   types.UserID      `json:"owner_id"`
+	PlanType                  types.PayPlanType `json:"plan_type"`
+	PartnerChainIDs           []string          `json:"partner_chain_ids"`
+	PartnerThroughputLimit    sql.NullInt32     `json:"partner_throughput_limit"`
+	PartnerApplicationLimit   sql.NullInt32     `json:"partner_application_limit"`
+	CreatedAt                 time.Time         `json:"created_at"`
+	UpdatedAt                 time.Time         `json:"updated_at"`
+	Deleted                   bool              `json:"deleted"`
+	DeletedAt                 sql.NullTime      `json:"deleted_at"`
+	CovalentAPIKeyFree        sql.NullString    `json:"covalent_api_key_free"`
+	CovalentAPIKeyPaid        sql.NullString    `json:"covalent_api_key_paid"`
+	Users                     json.RawMessage   `json:"users"`
+	OwnerEmail                sql.NullString    `json:"owner_email"`
+	OwnerPortalApplicationIds []string          `json:"owner_portal_application_ids"`
 }
 
 func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAccountsRow, error) {
@@ -1076,6 +1150,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 		var i SelectAccountsRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.OwnerID,
 			&i.PlanType,
 			pq.Array(&i.PartnerChainIDs),
 			&i.PartnerThroughputLimit,
@@ -1087,6 +1162,8 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 			&i.CovalentAPIKeyFree,
 			&i.CovalentAPIKeyPaid,
 			&i.Users,
+			&i.OwnerEmail,
+			pq.Array(&i.OwnerPortalApplicationIds),
 		); err != nil {
 			return nil, err
 		}
@@ -1545,21 +1622,21 @@ func (q *Queries) SelectUserIDs(ctx context.Context) ([]SelectUserIDsRow, error)
 }
 
 const selectUserPermissions = `-- name: SelectUserPermissions :many
-SELECT aua.account_id,
+SELECT aua.portal_application_id,
     aua.user_id,
     aua.role_name,
-    ur.permissions as permissions
-FROM account_user_access as aua
+    ur.permissions AS permissions
+FROM account_user_access AS aua
     LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
 WHERE aua.accepted = true
     AND aua.user_id IS NOT NULL
 `
 
 type SelectUserPermissionsRow struct {
-	AccountID   types.AccountID     `json:"account_id"`
-	UserID      types.UserID        `json:"user_id"`
-	RoleName    types.RoleName      `json:"role_name"`
-	Permissions []types.Permissions `json:"permissions"`
+	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
+	UserID              types.UserID        `json:"user_id"`
+	RoleName            types.RoleName      `json:"role_name"`
+	Permissions         []types.Permissions `json:"permissions"`
 }
 
 func (q *Queries) SelectUserPermissions(ctx context.Context) ([]SelectUserPermissionsRow, error) {
@@ -1572,7 +1649,7 @@ func (q *Queries) SelectUserPermissions(ctx context.Context) ([]SelectUserPermis
 	for rows.Next() {
 		var i SelectUserPermissionsRow
 		if err := rows.Scan(
-			&i.AccountID,
+			&i.PortalApplicationID,
 			&i.UserID,
 			&i.RoleName,
 			pq.Array(&i.Permissions),
@@ -1645,18 +1722,18 @@ func (q *Queries) UpdateAccountFields(ctx context.Context, arg UpdateAccountFiel
 const updateAccountOwnerToAdmin = `-- name: UpdateAccountOwnerToAdmin :exec
 UPDATE account_user_access
 SET role_name = 'ADMIN'
-WHERE account_user_access.account_id = $1
+WHERE account_user_access.portal_application_id = $1
     AND role_name = 'OWNER'
     AND user_id = (
         SELECT user_id
         FROM account_user_access
-        WHERE account_id = $1
+        WHERE portal_application_id = $1
             AND role_name = 'OWNER'
     )
 `
 
-func (q *Queries) UpdateAccountOwnerToAdmin(ctx context.Context, accountID types.AccountID) error {
-	_, err := q.db.ExecContext(ctx, updateAccountOwnerToAdmin, accountID)
+func (q *Queries) UpdateAccountOwnerToAdmin(ctx context.Context, portalApplicationID types.PortalAppID) error {
+	_, err := q.db.ExecContext(ctx, updateAccountOwnerToAdmin, portalApplicationID)
 	return err
 }
 
@@ -1664,20 +1741,20 @@ const updateAccountUserRole = `-- name: UpdateAccountUserRole :exec
 UPDATE account_user_access
 SET role_name = $3,
     updated_at = $4
-WHERE account_id = $1
+WHERE portal_application_id = $1
     AND user_id = $2
 `
 
 type UpdateAccountUserRoleParams struct {
-	AccountID types.AccountID `json:"account_id"`
-	UserID    types.UserID    `json:"user_id"`
-	RoleName  types.RoleName  `json:"role_name"`
-	UpdatedAt time.Time       `json:"updated_at"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
+	UserID              types.UserID      `json:"user_id"`
+	RoleName            types.RoleName    `json:"role_name"`
+	UpdatedAt           time.Time         `json:"updated_at"`
 }
 
 func (q *Queries) UpdateAccountUserRole(ctx context.Context, arg UpdateAccountUserRoleParams) error {
 	_, err := q.db.ExecContext(ctx, updateAccountUserRole,
-		arg.AccountID,
+		arg.PortalApplicationID,
 		arg.UserID,
 		arg.RoleName,
 		arg.UpdatedAt,
@@ -1953,7 +2030,7 @@ updated_access AS (
             SELECT user_id
             FROM inserted_provider
         )
-        AND account_id = $6
+        AND portal_application_id = $6
 )
 UPDATE users
 SET signed_up = true
@@ -1964,12 +2041,12 @@ WHERE id = (
 `
 
 type UpdateUserAcceptedInviteParams struct {
-	UserID         types.UserID         `json:"user_id"`
-	Type           types.AuthType       `json:"type"`
-	Provider       types.AuthProvider   `json:"provider"`
-	ProviderUserID types.ProviderUserID `json:"provider_user_id"`
-	Federated      bool                 `json:"federated"`
-	AccountID      types.AccountID      `json:"account_id"`
+	UserID              types.UserID         `json:"user_id"`
+	Type                types.AuthType       `json:"type"`
+	Provider            types.AuthProvider   `json:"provider"`
+	ProviderUserID      types.ProviderUserID `json:"provider_user_id"`
+	Federated           bool                 `json:"federated"`
+	PortalApplicationID types.PortalAppID    `json:"portal_application_id"`
 }
 
 func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAcceptedInviteParams) error {
@@ -1979,7 +2056,7 @@ func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAc
 		arg.Provider,
 		arg.ProviderUserID,
 		arg.Federated,
-		arg.AccountID,
+		arg.PortalApplicationID,
 	)
 	return err
 }

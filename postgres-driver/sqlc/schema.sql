@@ -63,6 +63,7 @@ CREATE TABLE user_roles (
 -- Accounts Tables
 CREATE TABLE accounts (
     id VARCHAR(10) PRIMARY KEY,
+    owner_id VARCHAR(10) NOT NULL REFERENCES users(id),
     plan_type VARCHAR(25) NOT NULL REFERENCES pay_plans(plan_type),
     partner_chain_ids VARCHAR(4) ARRAY,
     partner_throughput_limit INT,
@@ -206,27 +207,14 @@ CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_appli
 WHERE chain_id IS NULL;
 CREATE TABLE account_user_access (
     id SERIAL PRIMARY KEY,
-    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     user_id VARCHAR(10) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    portal_application_id VARCHAR(24) REFERENCES portal_applications(id) ON DELETE CASCADE,
+    portal_application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
     role_name VARCHAR(25) NOT NULL REFERENCES user_roles(role_name),
     accepted BOOLEAN NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (account_id, user_id, portal_application_id),
-    CONSTRAINT owner_application_check CHECK (
-        (
-            role_name = 'OWNER'
-            AND portal_application_id IS NULL
-        )
-        OR (
-            role_name <> 'OWNER'
-            AND portal_application_id IS NOT NULL
-        )
-    )
+    UNIQUE (user_id, portal_application_id)
 );
-CREATE UNIQUE INDEX idx_account_owner_constraint ON account_user_access (account_id)
-WHERE role_name = 'OWNER';
 -- AATs Table
 CREATE TABLE IF NOT EXISTS aats (
     id VARCHAR(24) PRIMARY KEY,

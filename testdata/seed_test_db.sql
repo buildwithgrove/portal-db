@@ -119,91 +119,6 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         500
     );
--- Insert accounts
-INSERT INTO accounts (
-        id,
-        plan_type,
-        partner_chain_ids,
-        partner_throughput_limit,
-        partner_application_limit,
-        created_at,
-        updated_at
-    )
-VALUES (
-        'account_1',
-        'basic_plan',
-        ARRAY ['0001', '0053'],
-        2000,
-        1,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_2',
-        'pro_plan',
-        ARRAY ['0001', '0053','0021', '0064'],
-        5000,
-        3,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_3',
-        'startup_plan',
-        ARRAY ['0001', '0053', '0064', '0034'],
-        1000,
-        2,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_4',
-        'enterprise_plan',
-        ARRAY ['0001'],
-        1000,
-        2,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_5',
-        'basic_plan',
-        ARRAY ['0006', '0040'],
-        6000,
-        1,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    );
-INSERT INTO account_integrations (
-        account_id,
-        covalent_api_key_free,
-        created_at,
-        updated_at
-    )
-VALUES (
-        'account_1',
-        'covalent_api_key_1',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_2',
-        'covalent_api_key_2',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_3',
-        'covalent_api_key_3',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_4',
-        'covalent_api_key_4',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    );
 -- Insert users
 INSERT INTO users (id, email, signed_up, created_at, updated_at)
 VALUES (
@@ -387,6 +302,97 @@ VALUES (
         false,
         '2022-11-11 11:11:11.000000'
     );
+-- Insert accounts
+INSERT INTO accounts (
+        id,
+        owner_id,
+        plan_type,
+        partner_chain_ids,
+        partner_throughput_limit,
+        partner_application_limit,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'account_1',
+        'user_1',
+        'basic_plan',
+        ARRAY ['0001', '0053'],
+        2000,
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'user_3',
+        'pro_plan',
+        ARRAY ['0001', '0053','0021', '0064'],
+        5000,
+        3,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'user_5',
+        'startup_plan',
+        ARRAY ['0001', '0053', '0064', '0034'],
+        1000,
+        2,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_4',
+        'user_4',
+        'enterprise_plan',
+        ARRAY ['0001'],
+        1000,
+        2,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_5',
+        'user_4',
+        'basic_plan',
+        ARRAY ['0006', '0040'],
+        6000,
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO account_integrations (
+        account_id,
+        covalent_api_key_free,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'account_1',
+        'covalent_api_key_1',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'covalent_api_key_2',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'covalent_api_key_3',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_4',
+        'covalent_api_key_4',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
 -- Insert user_roles
 INSERT INTO user_roles (
         role_name,
@@ -462,7 +468,6 @@ VALUES (
     );
 -- Insert account_user_access
 INSERT INTO account_user_access (
-        account_id,
         user_id,
         portal_application_id,
         role_name,
@@ -470,17 +475,8 @@ INSERT INTO account_user_access (
         created_at,
         updated_at
     )
-VALUES (
-        'account_1',
-        'user_1',
-        NULL,
-        'OWNER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
+VALUES
     (
-        'account_1',
         'user_2',
         'test_app_1',
         'ADMIN',
@@ -489,7 +485,6 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account_1',
         'user_8',
         'test_app_1',
         'ADMIN',
@@ -498,16 +493,6 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account_2',
-        'user_3',
-        NULL,
-        'OWNER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_2',
         'user_4',
         'test_app_2',
         'MEMBER',
@@ -516,7 +501,6 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account_2',
         'user_9',
         'test_app_2',
         'MEMBER',
@@ -525,7 +509,6 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account_2',
         'user_2',
         'test_app_2',
         'MEMBER',
@@ -534,16 +517,6 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account_3',
-        'user_5',
-        NULL,
-        'OWNER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_3',
         'user_6',
         'test_app_3',
         'ADMIN',
@@ -552,7 +525,6 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account_3',
         'user_7',
         'test_app_3',
         'MEMBER',
@@ -561,29 +533,10 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account_3',
         'user_10',
         'test_app_3',
         'MEMBER',
         false,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_4',
-        'user_4',
-        NULL,
-        'OWNER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'account_5',
-        'user_4',
-        NULL,
-        'OWNER',
-        true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );

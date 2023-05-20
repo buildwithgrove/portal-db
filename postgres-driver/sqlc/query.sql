@@ -184,13 +184,12 @@ RETURNING *;
 -- name: GetUserEmail :one
 SELECT email
 FROM users
-WHERE id = $1;
+WHERE users.id = $1;
 -- name: GetAccountOwnerEmail :one
 SELECT users.email
 FROM users
-    JOIN account_user_access ON users.id = account_user_access.user_id
-WHERE account_user_access.role_name = 'OWNER'
-    AND account_user_access.account_id = $1;
+    JOIN accounts ON users.id = accounts.owner_id
+WHERE accounts.id = $1;
 -- name: UpdatePortalAppFields :exec
 UPDATE portal_applications
 SET name = COALESCE(NULLIF(@name::VARCHAR, ''), name),
@@ -288,20 +287,15 @@ SET deleted = true,
     deleted_at = $2
 WHERE id = $1;
 -- name: SelectAccounts :many
-WITH user_auth_agg AS (
-    SELECT user_id,
-        json_object_agg(type, provider_user_id) AS provider_user_ids
-    FROM user_auth_providers
-    GROUP BY user_id
-),
-app_role_agg AS (
-    SELECT user_id,
-        account_id,
-        json_object_agg(portal_application_id, role_name) AS portal_application_roles
-    FROM account_user_access
-    WHERE portal_application_id IS NOT NULL
-    GROUP BY user_id,
-        account_id
+WITH app_role_agg AS (
+    SELECT aua.user_id,
+        pa.account_id,
+        json_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles
+    FROM account_user_access AS aua
+        LEFT JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    WHERE aua.portal_application_id IS NOT NULL
+    GROUP BY aua.user_id,
+        pa.account_id
 )
 SELECT a.*,
     ai.covalent_api_key_free,
@@ -312,40 +306,48 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
-            'owner',
-            CASE
-                WHEN au.role_name = 'OWNER' THEN true
-                ELSE false
-            END,
             'accepted',
-            au.accepted,
-            'provider_user_ids',
-            uaa.provider_user_ids,
+            aua.accepted,
             'portal_application_roles',
             ara.portal_application_roles
         )
-    ) AS users
+    ) AS users,
+    owner.email AS owner_email,
+    aid.portal_application_ids::VARCHAR [] AS owner_portal_application_ids
 FROM accounts AS a
-    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN portal_applications AS pa ON a.id = pa.account_id
+    LEFT JOIN account_user_access AS aua ON pa.id = aua.portal_application_id
     LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
-    LEFT JOIN users AS u ON au.user_id = u.id
-    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
-    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
+    LEFT JOIN users AS u ON aua.user_id = u.id
+    LEFT JOIN users AS owner ON a.owner_id = owner.id
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
     LEFT JOIN app_role_agg AS ara ON u.id = ara.user_id
     AND a.id = ara.account_id
+    LEFT JOIN (
+        SELECT pa.account_id,
+            ARRAY_AGG(pa.id::text) AS portal_application_ids
+        FROM portal_applications AS pa
+        GROUP BY pa.account_id
+    ) AS aid ON a.id = aid.account_id
 WHERE (
         $1::BOOLEAN
         OR a.deleted = false
     )
 GROUP BY a.id,
     ai.covalent_api_key_free,
-    ai.covalent_api_key_paid;
+    ai.covalent_api_key_paid,
+    owner.email,
+    aid.portal_application_ids;
 -- name: SelectAccount :one
-WITH user_auth_agg AS (
-    SELECT user_id,
-        json_object_agg(type, provider_user_id) AS provider_user_ids
-    FROM user_auth_providers
-    GROUP BY user_id
+WITH app_role_agg AS (
+    SELECT aua.user_id,
+        pa.account_id,
+        json_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles
+    FROM account_user_access AS aua
+        LEFT JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    WHERE aua.portal_application_id IS NOT NULL
+    GROUP BY aua.user_id,
+        pa.account_id
 )
 SELECT a.*,
     ai.covalent_api_key_free,
@@ -356,24 +358,35 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
-            'role_name',
-            ur.role_name,
             'accepted',
-            au.accepted,
-            'provider_user_ids',
-            uaa.provider_user_ids
+            aua.accepted,
+            'portal_application_roles',
+            ara.portal_application_roles
         )
-    ) AS users
+    ) AS users,
+    owner.email AS owner_email,
+    aid.portal_application_ids::VARCHAR [] AS owner_portal_application_ids
 FROM accounts AS a
-    LEFT JOIN account_user_access AS au ON a.id = au.account_id
+    LEFT JOIN portal_applications AS pa ON a.id = pa.account_id
+    LEFT JOIN account_user_access AS aua ON pa.id = aua.portal_application_id
     LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
-    LEFT JOIN users AS u ON au.user_id = u.id
-    LEFT JOIN user_roles AS ur ON au.role_name = ur.role_name
-    LEFT JOIN user_auth_agg AS uaa ON u.id = uaa.user_id
+    LEFT JOIN users AS u ON aua.user_id = u.id
+    LEFT JOIN users AS owner ON a.owner_id = owner.id
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
+    LEFT JOIN app_role_agg AS ara ON u.id = ara.user_id
+    AND a.id = ara.account_id
+    LEFT JOIN (
+        SELECT pa.account_id,
+            ARRAY_AGG(pa.id::text) AS portal_application_ids
+        FROM portal_applications AS pa
+        GROUP BY pa.account_id
+    ) AS aid ON a.id = aid.account_id
 WHERE a.id = $1
 GROUP BY a.id,
     ai.covalent_api_key_free,
-    ai.covalent_api_key_paid;
+    ai.covalent_api_key_paid,
+    owner.email,
+    aid.portal_application_ids;
 -- name: UpdateAccountFields :exec
 UPDATE accounts
 SET plan_type = COALESCE($1, plan_type),
@@ -406,12 +419,18 @@ SET covalent_api_key_free = CASE
     END,
     updated_at = EXCLUDED.updated_at
 RETURNING *;
+-- name: SelectAccountOwners :many
+SELECT a.owner_id,
+    array_agg(pa.id)::VARCHAR [] AS portal_application_ids
+FROM accounts AS a
+    JOIN portal_applications AS pa ON a.id = pa.account_id
+GROUP BY a.owner_id;
 -- name: SelectUserPermissions :many
-SELECT aua.account_id,
+SELECT aua.portal_application_id,
     aua.user_id,
     aua.role_name,
-    ur.permissions as permissions
-FROM account_user_access as aua
+    ur.permissions AS permissions
+FROM account_user_access AS aua
     LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
 WHERE aua.accepted = true
     AND aua.user_id IS NOT NULL;
@@ -422,11 +441,12 @@ FROM user_auth_providers;
 -- name: InsertAccount :one
 INSERT INTO accounts (
         id,
+        owner_id,
         plan_type,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 -- name: DeleteAccount :exec
 UPDATE accounts
@@ -482,41 +502,50 @@ SELECT EXISTS(
         FROM users
         WHERE id = $1
     );
+-- name: CheckUserAccountExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM account_user_access
+        WHERE user_id = $1
+        UNION
+        SELECT 1
+        FROM accounts
+        WHERE owner_id = $1
+    );
 -- name: CheckAccountUserExists :one
 SELECT EXISTS (
         SELECT 1
         FROM account_user_access
         WHERE user_id = $1
-            AND account_id = $2
+            AND portal_application_id = $2
     );
 -- name: CheckAccountUserRole :one
 SELECT role_name
 FROM account_user_access
 WHERE user_id = $1
-    AND account_id = $2;
+    AND portal_application_id = $2;
 -- name: CheckAccountUserAccepted :one
 SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
-    AND account_id = $2;
+    AND portal_application_id = $2;
 -- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users
-    SET email = $7
-    WHERE id = $2
+    SET email = $6
+    WHERE id = $1
     RETURNING id,
         email
 )
 INSERT INTO account_user_access (
-        account_id,
-        user_id,
         portal_application_id,
+        user_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
-VALUES ($1, $2, '', $3, $4, $5, $6)
+VALUES ('', $1, $2, $3, $4, $5)
 RETURNING account_user_access.user_id,
     account_user_access.role_name,
     account_user_access.accepted,
@@ -524,7 +553,7 @@ RETURNING account_user_access.user_id,
         (
             SELECT email
             FROM updated_user
-            WHERE id = $2
+            WHERE id = $1
         ),
         ''
     )::VARCHAR(320) AS user_email,
@@ -547,22 +576,20 @@ WITH inserted_user AS (
         email
 )
 INSERT INTO account_user_access (
-        account_id,
-        user_id,
         portal_application_id,
+        user_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
 VALUES (
-        $5,
+        '',
         (
             SELECT id
             FROM inserted_user
         ),
-        '',
-        $6,
+        $5,
         false,
         $3,
         $4
@@ -578,17 +605,17 @@ RETURNING account_user_access.user_id,
 UPDATE account_user_access
 SET role_name = $3,
     updated_at = $4
-WHERE account_id = $1
+WHERE portal_application_id = $1
     AND user_id = $2;
 -- name: UpdateAccountOwnerToAdmin :exec
 UPDATE account_user_access
 SET role_name = 'ADMIN'
-WHERE account_user_access.account_id = $1
+WHERE account_user_access.portal_application_id = $1
     AND role_name = 'OWNER'
     AND user_id = (
         SELECT user_id
         FROM account_user_access
-        WHERE account_id = $1
+        WHERE portal_application_id = $1
             AND role_name = 'OWNER'
     );
 -- name: CreateUserNewSignUp :one
@@ -643,7 +670,7 @@ updated_access AS (
             SELECT user_id
             FROM inserted_provider
         )
-        AND account_id = $6
+        AND portal_application_id = $6
 )
 UPDATE users
 SET signed_up = true
@@ -653,7 +680,7 @@ WHERE id = (
     );
 -- name: DeleteAccountUser :exec
 DELETE FROM account_user_access
-WHERE account_id = $1
+WHERE portal_application_id = $1
     AND user_id = $2;
 -- name: GetPortalUserID :one
 SELECT user_id

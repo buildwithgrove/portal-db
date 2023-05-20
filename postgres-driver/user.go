@@ -23,6 +23,7 @@ type (
 
 var (
 	errUserDoesntExist          = errors.New("error user does not exist for portal ID '%s'")
+	errUserHasAccount           = errors.New("error cannot delete user because they are still on an account team")
 	errInvalidEmail             = errors.New("error email input is not a valid email address '%s'")
 	errInvalidAuthProviderType  = errors.New("error invalid auth provider type '%s'")
 	errAuthProviderTypeNotFound = errors.New("error no auth provider type found")
@@ -142,30 +143,12 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	account, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        accountID,
+		OwnerID:   createdUserID,
 		PlanType:  types.FreetierV0,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
 	})
 	if err != nil {
-		return nil, types.AccountID(""), err
-	}
-
-	// New user is Account OWNER
-	owner, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
-		AccountID: accountID,
-		UserID:    createdUserID,
-		Email:     user.Email,
-		RoleName:  types.RoleOwner,
-		Accepted:  true,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
-	})
-	if err != nil {
-		return nil, types.AccountID(""), err
-	}
-
-	var providerUserIDs map[types.AuthType]string
-	if err := json.Unmarshal(owner.ProviderUserIDs, &providerUserIDs); err != nil {
 		return nil, types.AccountID(""), err
 	}
 
@@ -225,6 +208,15 @@ func (pg *PostgresDriver) validateDeletePortalUserInput(ctx context.Context, use
 		return fmt.Errorf(errUserDoesntExist.Error(), userID)
 	}
 
+	// Check if the user is part of any accounts
+	userHasAccount, err := pg.CheckUserAccountExists(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if userHasAccount {
+		return errUserHasAccount
+	}
+
 	return nil
 }
 
@@ -236,30 +228,60 @@ func (pg *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.Us
 	if err != nil {
 		return nil, err
 	}
+	accountOwners, err := pg.SelectAccountOwners(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	userPermissionsMap := make(map[types.UserID]*types.UserPermissions)
 
 	for _, userRoleRow := range userRoles {
 		userID := userRoleRow.UserID
-		accountID := userRoleRow.AccountID
+		portalAppID := userRoleRow.PortalApplicationID
 
 		if userPermissions, ok := userPermissionsMap[userID]; ok {
-			_, err := userPermissions.UpsertPermissions(accountID, userRoleRow.RoleName)
+			_, err := userPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
 			if err != nil {
 				return nil, err
 			}
 		} else {
 			emptyPermissions := types.UserPermissions{
-				UserID:   userID,
-				Accounts: map[types.AccountID]types.AccountPermissions{},
+				UserID:     userID,
+				PortalApps: map[types.PortalAppID]types.PortalAppPermissions{},
 			}
 
-			permissions, err := emptyPermissions.UpsertPermissions(accountID, userRoleRow.RoleName)
+			permissions, err := emptyPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
 			if err != nil {
 				return nil, err
 			}
 
 			userPermissionsMap[userID] = permissions
+		}
+	}
+
+	for _, userRoleRow := range accountOwners {
+		userID := userRoleRow.OwnerID
+		for _, id := range userRoleRow.PortalApplicationIDs {
+			portalAppID := types.PortalAppID(id)
+
+			if userPermissions, ok := userPermissionsMap[userID]; ok {
+				_, err := userPermissions.UpsertPermissions(portalAppID, types.RoleOwner)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				emptyPermissions := types.UserPermissions{
+					UserID:     userID,
+					PortalApps: map[types.PortalAppID]types.PortalAppPermissions{},
+				}
+
+				permissions, err := emptyPermissions.UpsertPermissions(portalAppID, types.RoleOwner)
+				if err != nil {
+					return nil, err
+				}
+
+				userPermissionsMap[userID] = permissions
+			}
 		}
 	}
 
