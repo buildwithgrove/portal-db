@@ -257,7 +257,6 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 				Path:           chain.Path,
 				RequestTimeout: chain.RequestTimeout,
 				LogLimitBlocks: chain.LogLimitBlocks,
-				ChainAliases:   chain.ChainAliases,
 				AllowedMethods: chain.AllowedMethods,
 				Active:         chain.Active,
 				CreatedAt:      chain.CreatedAt,
@@ -276,19 +275,6 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 					URL:      altruist.URL,
 					Auth:     altruist.Auth,
 					AuthType: altruist.AuthType,
-				},
-			})
-		}
-
-		for _, redirect := range chain.Redirects {
-			inputs = append(inputs, inputStruct{
-				action: sideTablesAction,
-				table:  types.TableChainGigastakeRedirects,
-				input: dbChainGigastakeRedirect{
-					ChainID:             chain.ID,
-					PortalApplicationID: redirect.PortalApplicationID,
-					Alias:               redirect.Alias,
-					Domain:              redirect.Domain,
 				},
 			})
 		}

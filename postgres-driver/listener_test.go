@@ -124,12 +124,11 @@ func Test_Listen(t *testing.T) {
 					Action: types.ActionInsert,
 					Data: &types.Chain{
 						ID:            "0001",
-						Blockchain:    "mainnet",
+						Blockchain:    "pokt-mainnet",
 						Description:   "Pocket Network Mainnet",
 						EnforceResult: "JSON",
 						Path:          "/v1/query/height",
 						Ticker:        "POKT",
-						ChainAliases:  []string{"mainnet"},
 						Active:        true,
 						CreatedAt:     time.Date(2022, time.November, 11, 11, 11, 11, 0, time.UTC),
 						UpdatedAt:     time.Date(2022, time.November, 11, 11, 11, 11, 0, time.UTC),
@@ -143,16 +142,6 @@ func Test_Listen(t *testing.T) {
 						URL:      "https://altruist-0001.com:1234",
 						Auth:     "test_pocket:auth123456",
 						AuthType: types.ChainAuthTypeBasicAuth,
-					},
-				},
-				types.TableChainGigastakeRedirects: {
-					Table:  types.TableChainGigastakeRedirects,
-					Action: types.ActionUpdate,
-					Data: &types.GigastakeRedirect{
-						ChainID:             "0001",
-						PortalApplicationID: "test_app_1",
-						Domain:              "pokt-rpc.gateway.pokt.network",
-						Alias:               "altruist-0001",
 					},
 				},
 				types.TableChainChecks: {

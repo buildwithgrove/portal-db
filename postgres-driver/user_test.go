@@ -156,7 +156,7 @@ func (ts *PGDriverTestSuite) Test_Z_DeletePortalUser() {
 		},
 		{
 			name:        "Should delete a portal User from the DB",
-			userID:      "user_11",
+			userID:      "user_12",
 			expectedErr: errUserDoesntExist,
 			err:         nil,
 		},

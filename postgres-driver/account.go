@@ -22,11 +22,17 @@ type (
 )
 
 var (
+	errNoRoleName                = errors.New("error no role name set")
 	errInvalidRoleName           = errors.New("error invalid role name set")
 	errPayPlanDoesntExist        = errors.New("error pay plan '%s' does not exist")
 	errAccountDoesntExist        = errors.New("error account does not exist for account ID '%s'")
-	errAccountUserDoesntExist    = errors.New("error user ID '%s' does not exist for account ID '%s'")
+	errAccountUserDoesntExist    = errors.New("error user ID '%s' does not exist for portal app ID '%s'")
 	errCannotDeleteOwner         = errors.New("error cannot delete user ID '%s' for account ID '%s' because this user is the current account owner")
+	errCreateNoAccountID         = errors.New("error must provide account ID when creating user")
+	errCreateNoPortalAppID       = errors.New("error must provide portal app ID when creating user")
+	errTransferNoAccountID       = errors.New("error must provide account ID when transferring user")
+	errTransferNoPortalAppID     = errors.New("error must provide portal app ID when transferring user")
+	errAcceptNoPortalAppID       = errors.New("error must provide portal app ID when accepting user")
 	errCannotTransferNotAccepted = errors.New("error cannot transfer ownership to user ID '%s' for account ID '%s' because the user has not accepted their invite")
 )
 
@@ -305,10 +311,10 @@ func (pg *PostgresDriver) validateDeleteAccountInput(ctx context.Context, accoun
 /* ----- postgresdriver AccountUserAccess Write Methods ----- */
 
 // WriteAccountUser saves a single input AccountUserAccess to the database.
-func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error) {
+func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) error {
 	err := pg.validateWriteAccountUserInput(ctx, createAccountUser)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// determine if user for a given email already exists
@@ -318,31 +324,40 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUse
 
 		case sql.ErrNoRows:
 			// user with provided email does not exist in DB so create a new User and AccountUserAccess entry
-			accountUser, err := pg.writeAccountUserAccessNoUser(ctx, createAccountUser, createdAt)
+			err := pg.writeAccountUserAccessNoUser(ctx, createAccountUser, createdAt)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
-			return accountUser, nil
+			return nil
 
 		default:
-			return nil, err
+			return err
 		}
 	}
 
 	// user with provided email already exists in DB so create a new AccountUserAccess entry
-	accountUser, err := pg.writeAccountUserAccess(ctx, userID, createAccountUser, createdAt)
+	err = pg.writeAccountUserAccess(ctx, userID, createAccountUser, createdAt)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return accountUser, nil
+	return nil
 }
 
 // validateWriteAccountUserInput validates the input to create a new AccountUserAccess row
 func (pg *PostgresDriver) validateWriteAccountUserInput(ctx context.Context, createAccountUser types.CreateAccountUserAccess) error {
+	if createAccountUser.Email == "" {
+		return errNoEmail
+	}
 	if !createAccountUser.Email.IsValid() {
 		return fmt.Errorf(errInvalidEmail.Error(), createAccountUser.Email)
+	}
+	if createAccountUser.PortalAppID == "" {
+		return errCreateNoPortalAppID
+	}
+	if createAccountUser.AccountID == "" {
+		return errCreateNoAccountID
 	}
 
 	accountExists, err := pg.CheckAccountExists(ctx, createAccountUser.AccountID)
@@ -351,6 +366,14 @@ func (pg *PostgresDriver) validateWriteAccountUserInput(ctx context.Context, cre
 	}
 	if !accountExists {
 		return fmt.Errorf(errAccountDoesntExist.Error(), createAccountUser.AccountID)
+	}
+
+	portalAppExists, err := pg.CheckPortalAppExists(ctx, createAccountUser.PortalAppID)
+	if err != nil {
+		return err
+	}
+	if !portalAppExists {
+		return fmt.Errorf(errPortalAppDoesntExist.Error(), createAccountUser.PortalAppID)
 	}
 
 	return nil
@@ -362,31 +385,28 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 	ctx context.Context,
 	createAccountUser types.CreateAccountUserAccess,
 	createdAt time.Time,
-) (*types.AccountUserAccess, error) {
+) error {
 	id, err := pg.generateID(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	userID := types.UserID(id)
 
 	params := InsertAccountUserAccessNoUserParams{
-		ID:        userID,
-		Email:     createAccountUser.Email,
-		RoleName:  createAccountUser.RoleName,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
+		ID:                  userID,
+		PortalApplicationID: createAccountUser.PortalAppID,
+		Email:               createAccountUser.Email,
+		RoleName:            createAccountUser.RoleName,
+		CreatedAt:           createdAt,
+		UpdatedAt:           createdAt,
 	}
 
-	user, err := pg.InsertAccountUserAccessNoUser(ctx, params)
+	err = pg.InsertAccountUserAccessNoUser(ctx, params)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &types.AccountUserAccess{
-		UserID:   types.UserID(user.UserID),
-		Email:    types.Email(user.UserEmail.String),
-		Accepted: user.Accepted,
-	}, nil
+	return nil
 }
 
 // writeAccountUserAccessNoUser creates a new AccountUserAccess row for an existing user
@@ -396,72 +416,56 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 	userID types.UserID,
 	createAccountUser types.CreateAccountUserAccess,
 	createdAt time.Time,
-) (*types.AccountUserAccess, error) {
+) error {
 	params := InsertAccountUserAccessParams{
-		UserID:    userID,
-		Email:     createAccountUser.Email,
-		RoleName:  createAccountUser.RoleName,
-		Accepted:  false,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
+		UserID:              userID,
+		PortalApplicationID: createAccountUser.PortalAppID,
+		Email:               createAccountUser.Email,
+		RoleName:            createAccountUser.RoleName,
+		Accepted:            false,
+		CreatedAt:           createdAt,
+		UpdatedAt:           createdAt,
 	}
 
-	user, err := pg.InsertAccountUserAccess(ctx, params)
+	err := pg.InsertAccountUserAccess(ctx, params)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var providerUserIDs map[types.AuthType]types.ProviderUserID
-	if err := json.Unmarshal(user.ProviderUserIDs, &providerUserIDs); err != nil {
-		return nil, err
-	}
-
-	return &types.AccountUserAccess{
-		UserID:   types.UserID(user.UserID),
-		Email:    types.Email(user.UserEmail),
-		Accepted: user.Accepted,
-	}, nil
+	return nil
 }
 
 /* ----- postgresdriver AccountUserAccess Update Methods ----- */
 
 // SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin.
 func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error {
-	tx, err := pg.DB.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() { _ = tx.Rollback() }()
-
-	qtx := pg.WithTx(tx)
-
-	err = pg.validateSetAccountUserRoleInput(ctx, qtx, updateAccountUser)
+	err := pg.validateSetAccountUserRoleInput(ctx, updateAccountUser)
 	if err != nil {
 		return err
 	}
 
+	// If transferring ownership of an account the former OWNER becomes an ADMIN for all the account's PortalApps
 	if updateAccountUser.RoleName == types.RoleOwner {
-		// if transferring ownership of an account the former OWNER becomes an ADMIN
-		err = qtx.UpdateAccountOwnerToAdmin(ctx, updateAccountUser.PortalAppID)
+		err = pg.UpdateAccountOwner(ctx, UpdateAccountOwnerParams{
+			AccountID:  newSQLNullString(string(updateAccountUser.AccountID)),
+			NewOwnerID: string(updateAccountUser.UserID),
+			CreatedAt:  updatedAt,
+			UpdatedAt:  updatedAt,
+		})
 		if err != nil {
-
 			return err
 		}
+
+		return nil
 	}
 
-	params := UpdateAccountUserRoleParams{
+	// If transferring ownership of an account the former OWNER becomes an ADMIN for all the account's PortalApps
+	err = pg.UpdateAccountUserRole(ctx, UpdateAccountUserRoleParams{
 		PortalApplicationID: updateAccountUser.PortalAppID,
 		UserID:              updateAccountUser.UserID,
 		RoleName:            updateAccountUser.RoleName,
 		UpdatedAt:           updatedAt,
-	}
-
-	err = qtx.UpdateAccountUserRole(ctx, params)
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit()
+	})
 	if err != nil {
 		return err
 	}
@@ -470,30 +474,53 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 }
 
 // validateSetAccountUserRoleInput validates the input to update an existing AccountUserAccess role
-func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, qtx *Queries, updateAccountUser types.UpdateAccountUserRole) error {
+func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, updateAccountUser types.UpdateAccountUserRole) error {
+	if updateAccountUser.RoleName == "" {
+		return errNoRoleName
+	}
 	if !updateAccountUser.RoleName.IsValid() {
 		return errInvalidRoleName
 	}
-
-	existsParams := CheckAccountUserExistsParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
-	accountUserExists, err := qtx.CheckAccountUserExists(ctx, existsParams)
-	if err != nil {
-		return err
+	if updateAccountUser.PortalAppID == "" {
+		return errTransferNoPortalAppID
 	}
-	if !accountUserExists {
-		return fmt.Errorf(errAccountUserDoesntExist.Error(), updateAccountUser.UserID, updateAccountUser.AccountID)
+	if updateAccountUser.AccountID == "" {
+		return errTransferNoAccountID
 	}
 
-	// cannot transfer OWNER to a user who has not accepted their invite
+	// If transferring OWNER role
 	if updateAccountUser.RoleName == types.RoleOwner {
+
+		// cannot transfer OWNER to a user who has not accepted their invite
 		acceptedParams := CheckAccountUserAcceptedParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
-		userAccepted, err := qtx.CheckAccountUserAccepted(ctx, acceptedParams)
+		userAccepted, err := pg.CheckAccountUserAccepted(ctx, acceptedParams)
 		if err != nil {
 			return err
 		}
 		if !userAccepted {
 			return fmt.Errorf(errCannotTransferNotAccepted.Error(), updateAccountUser.UserID, updateAccountUser.AccountID)
 		}
+
+		return nil
+	}
+
+	// If transferring to non-OWNER role
+
+	portalAppExists, err := pg.CheckPortalAppExists(ctx, updateAccountUser.PortalAppID)
+	if err != nil {
+		return err
+	}
+	if !portalAppExists {
+		return fmt.Errorf(errPortalAppDoesntExist.Error(), updateAccountUser.PortalAppID)
+	}
+
+	existsParams := CheckAccountUserExistsParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
+	accountUserExists, err := pg.CheckAccountUserExists(ctx, existsParams)
+	if err != nil {
+		return err
+	}
+	if !accountUserExists {
+		return fmt.Errorf(errAccountUserDoesntExist.Error(), updateAccountUser.UserID, updateAccountUser.AccountID)
 	}
 
 	return nil
@@ -539,8 +566,14 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 
 // validateUpdateAcceptAccountUserInput validates the input to set an AccountUserAccess role to Accepted
 func (pg *PostgresDriver) validateUpdateAcceptAccountUserInput(ctx context.Context, qtx *Queries, acceptAccountUser types.UpdateAcceptAccountUser) error {
+	if acceptAccountUser.AuthProviderType == "" {
+		return errNoAuthProviderType
+	}
 	if !acceptAccountUser.AuthProviderType.IsValid() {
 		return fmt.Errorf(errInvalidAuthProviderType.Error(), acceptAccountUser.AuthProviderType)
+	}
+	if acceptAccountUser.PortalAppID == "" {
+		return errAcceptNoPortalAppID
 	}
 
 	existsParams := CheckAccountUserExistsParams{UserID: acceptAccountUser.UserID, PortalApplicationID: acceptAccountUser.PortalAppID}
@@ -558,8 +591,8 @@ func (pg *PostgresDriver) validateUpdateAcceptAccountUserInput(ctx context.Conte
 /* ----- postgresdriver AccountUserAccess Delete Methods ----- */
 
 // RemoveAccountUser deletes a AccountUserAccess row for a given user and account ID.
-func (pg *PostgresDriver) RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID) error {
-	err := pg.validateRemoveAccountUserInput(ctx, userID, portalAppID)
+func (pg *PostgresDriver) RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error {
+	err := pg.validateRemoveAccountUserInput(ctx, userID, portalAppID, accountID)
 	if err != nil {
 		return err
 	}
@@ -573,9 +606,12 @@ func (pg *PostgresDriver) RemoveAccountUser(ctx context.Context, userID types.Us
 }
 
 // validateRemoveAccountUserInput validates the input to remove an AccountUserAccess row
-func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID) error {
-	isOwnerParams := CheckAccountUserRoleParams{UserID: userID, PortalApplicationID: portalAppID}
-	accountUserRole, err := pg.CheckAccountUserRole(ctx, isOwnerParams)
+func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error {
+	accountUserRole, err := pg.CheckAccountUserRole(ctx, CheckAccountUserRoleParams{
+		UserID:              userID,
+		PortalApplicationID: portalAppID,
+		AccountID:           string(accountID),
+	})
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -584,9 +620,11 @@ func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, us
 			return err
 		}
 	}
+
 	if accountUserRole == types.RoleOwner {
-		return fmt.Errorf(errCannotDeleteOwner.Error(), userID, portalAppID)
+		return fmt.Errorf(errCannotDeleteOwner.Error(), userID, accountID)
 	}
+
 	return nil
 }
 

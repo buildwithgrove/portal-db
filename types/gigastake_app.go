@@ -8,17 +8,19 @@ import (
 type (
 	// GigastakeApp represents a single gigastaked application for a given chain
 	GigastakeApp struct {
-		AATID      ProtocolAppID `json:"aatID"`
-		ChainID    RelayChainID  `json:"chainID"`
-		ChainAlias string        `json:"chainAlias"`
-		Name       string        `json:"name"`
-		AAT        AAT           `json:"aat"`
-		CreatedAt  time.Time     `json:"createdAt"`
-		UpdatedAt  time.Time     `json:"updatedAt"`
-		Deleted    bool          `json:"deleted"`
+		AATID     ProtocolAppID `json:"aatID"`
+		ChainID   RelayChainID  `json:"chainID"`
+		Name      string        `json:"name"`
+		AAT       AAT           `json:"aat"`
+		CreatedAt time.Time     `json:"createdAt"`
+		UpdatedAt time.Time     `json:"updatedAt"`
+		Deleted   bool          `json:"deleted"`
+
+		// TODO remove legacy field when migration to V2 schema complete
+		LegacyLBID string `json:"legacyLBID"`
 	}
 
-	// AAT contains the data needed to perform relays using a gigastake app
+	// AAT contains the data needed to perform relays
 	AAT struct {
 		ID              ProtocolAppID `json:"id"`
 		Gigastake       bool          `json:"gigastake"`

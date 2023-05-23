@@ -18,14 +18,6 @@ type (
 		AuthType string `json:"auth_type"`
 	}
 
-	gigastakeRedirectDBRow struct {
-		ChainID              string `json:"chain_id"`
-		PortalApplicationID  string `json:"portal_application_id"`
-		Alias                string `json:"alias"`
-		Domain               string `json:"domain"`
-		LegacyLoadBalancerID string `json:"lb_id"`
-	}
-
 	checkDBRow struct {
 		ChainID    string `json:"chain_id"`
 		Type       string `json:"type"`
@@ -37,11 +29,12 @@ type (
 )
 
 var (
-	errInvalidAltruistURL    = errors.New("error altruist URL '%s' is an invalid URL")
-	errInvalidRedirectDomain = errors.New("error redirect domain '%s' is an invalid domain")
-	errChainExists           = errors.New("error chain already exists for chain ID '%s'")
-	errChainDoesntExist      = errors.New("error chain does not exist for chain ID '%s'")
-	errPortalAppDoesntExist  = errors.New("error portal app does not exist for ID '%s'")
+	errInvalidAltruistURL   = errors.New("error altruist URL '%s' is an invalid URL")
+	errInvalidDomain        = errors.New("error domain '%s' for alias '%s' is invalid")
+	errChainExists          = errors.New("error chain already exists for chain ID '%s'")
+	errChainDoesntExist     = errors.New("error chain does not exist for chain ID '%s'")
+	errPortalAppDoesntExist = errors.New("error portal app does not exist for ID '%s'")
+	errUnmarshallingDomains = errors.New("error unmarshalling domains: %w")
 )
 
 /* ----- postgresdriver Chain Read Methods ----- */
@@ -72,37 +65,31 @@ func (c *SelectChainsRow) toChain() (*types.Chain, error) {
 	if err != nil {
 		return nil, err
 	}
-	redirects, err := c.toGigastakeRedirects()
-	if err != nil {
-		return nil, err
-	}
 	checks, err := c.toChecks()
 	if err != nil {
 		return nil, err
 	}
-	var domains []types.RedirectDomain
-	for _, domain := range c.GigastakeRedirectDomains {
-		domains = append(domains, types.RedirectDomain(domain))
+	domains, err := c.toDomains()
+	if err != nil {
+		return nil, err
 	}
 
 	chain := &types.Chain{
-		ID:                       types.RelayChainID(c.ID),
-		Blockchain:               c.Blockchain,
-		Description:              c.Description,
-		EnforceResult:            c.EnforceResult,
-		Ticker:                   c.Ticker,
-		ChainAliases:             c.ChainAliases,
-		AllowedMethods:           c.AllowedMethods,
-		Path:                     c.Path.String,
-		LogLimitBlocks:           c.LogLimitBlocks.Int32,
-		RequestTimeout:           c.RequestTimeout.Int32,
-		Active:                   c.Active,
-		GigastakeRedirectDomains: domains,
-		Altruists:                altruists,
-		Redirects:                redirects,
-		Checks:                   checks,
-		CreatedAt:                c.CreatedAt.UTC(),
-		UpdatedAt:                c.UpdatedAt.UTC(),
+		ID:             types.RelayChainID(c.ID),
+		Blockchain:     c.Blockchain,
+		Description:    c.Description,
+		EnforceResult:  c.EnforceResult,
+		Ticker:         c.Ticker,
+		AllowedMethods: c.AllowedMethods,
+		Path:           c.Path.String,
+		LogLimitBlocks: c.LogLimitBlocks.Int32,
+		RequestTimeout: c.RequestTimeout.Int32,
+		Active:         c.Active,
+		Altruists:      altruists,
+		Checks:         checks,
+		AliasDomains:   domains,
+		CreatedAt:      c.CreatedAt.UTC(),
+		UpdatedAt:      c.UpdatedAt.UTC(),
 	}
 
 	return chain, nil
@@ -128,26 +115,6 @@ func (c *SelectChainsRow) toAltruists() ([]types.Altruist, error) {
 	return altruists, nil
 }
 
-// toGigastakeRedirects converts gigastake redirects from DB rows to GigastakeRedirect structs
-func (c *SelectChainsRow) toGigastakeRedirects() ([]types.GigastakeRedirect, error) {
-	var redirectRows []gigastakeRedirectDBRow
-	if err := json.Unmarshal(c.ChainGigastakeRedirects, &redirectRows); err != nil {
-		return nil, err
-	}
-
-	redirects := make([]types.GigastakeRedirect, len(redirectRows))
-
-	for i, redirectRow := range redirectRows {
-		redirects[i] = types.GigastakeRedirect{
-			PortalApplicationID: types.PortalAppID(redirectRow.PortalApplicationID),
-			Domain:              types.RedirectDomain(redirectRow.Domain),
-			Alias:               redirectRow.Alias,
-		}
-	}
-
-	return redirects, nil
-}
-
 // toChecks converts checks from DB rows to Check structs
 func (c *SelectChainsRow) toChecks() (map[types.ChainCheckType]types.Check, error) {
 	var checkRows []checkDBRow
@@ -169,6 +136,18 @@ func (c *SelectChainsRow) toChecks() (map[types.ChainCheckType]types.Check, erro
 	}
 
 	return checks, nil
+}
+
+// toDomains converts chain aliases and domains from DB rows to Check structs
+func (c *SelectChainsRow) toDomains() (map[types.ChainAlias][]types.ChainDomain, error) {
+	var domains map[types.ChainAlias][]types.ChainDomain
+	if len(string(c.AliasDomainsMap)) > 2 { // length of empty JSON array in bytes
+		if err := json.Unmarshal(c.AliasDomainsMap, &domains); err != nil {
+			return nil, fmt.Errorf("%s: %w", errUnmarshallingDomains, err)
+		}
+	}
+
+	return domains, nil
 }
 
 // /* ----- postgresdriver Chain Create Methods ----- */
@@ -236,25 +215,18 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 		return err
 	}
 
-	var domains []string
-	for _, domain := range chain.GigastakeRedirectDomains {
-		domains = append(domains, string(domain))
-	}
-
 	createdChainID, err := qtx.UpsertChain(ctx, UpsertChainParams{
-		ID:                       chain.ID,
-		Blockchain:               chain.Blockchain,
-		Description:              chain.Description,
-		EnforceResult:            chain.EnforceResult,
-		Ticker:                   chain.Ticker,
-		Path:                     newSQLNullString(chain.Path),
-		RequestTimeout:           newSQLNullInt32(chain.RequestTimeout, true),
-		LogLimitBlocks:           newSQLNullInt32(chain.LogLimitBlocks, true),
-		GigastakeRedirectDomains: domains,
-		ChainAliases:             chain.ChainAliases,
-		AllowedMethods:           chain.AllowedMethods,
-		CreatedAt:                chain.CreatedAt,
-		UpdatedAt:                chain.CreatedAt,
+		ID:             chain.ID,
+		Blockchain:     chain.Blockchain,
+		Description:    chain.Description,
+		EnforceResult:  chain.EnforceResult,
+		Ticker:         chain.Ticker,
+		Path:           newSQLNullString(chain.Path),
+		RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
+		LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
+		AllowedMethods: chain.AllowedMethods,
+		CreatedAt:      chain.CreatedAt,
+		UpdatedAt:      chain.UpdatedAt,
 	})
 	if err != nil {
 		return err
@@ -267,20 +239,7 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 			AuthType:  altruist.AuthType,
 			Auth:      newSQLNullString(altruist.Auth),
 			CreatedAt: chain.CreatedAt,
-			UpdatedAt: chain.CreatedAt,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	for _, redirect := range chain.Redirects {
-		err = qtx.UpsertChainGigastakeRedirect(ctx, UpsertChainGigastakeRedirectParams{
-			ChainID:             createdChainID,
-			PortalApplicationID: redirect.PortalApplicationID,
-			Alias:               redirect.Alias,
-			Domain:              redirect.Domain,
-			CreatedAt:           chain.CreatedAt,
-			UpdatedAt:           chain.CreatedAt,
+			UpdatedAt: chain.UpdatedAt,
 		})
 		if err != nil {
 			return err
@@ -295,7 +254,18 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 			Allowance:  newSQLNullInt32(check.Allowance, false),
 			EVMChainID: newSQLNullInt32(check.EVMChainID, false),
 			CreatedAt:  chain.CreatedAt,
-			UpdatedAt:  chain.CreatedAt,
+			UpdatedAt:  chain.UpdatedAt,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	for alias, domains := range chain.AliasDomains {
+		err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
+			ChainID:   createdChainID,
+			Alias:     alias,
+			Domains:   domains,
+			UpdatedAt: chain.UpdatedAt,
 		})
 		if err != nil {
 			return err
@@ -312,17 +282,11 @@ func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, 
 			return fmt.Errorf(errInvalidAltruistURL.Error(), altruist.URL)
 		}
 	}
-
-	for _, redirect := range chain.Redirects {
-		if !redirect.Domain.IsValid() {
-			return fmt.Errorf(errInvalidRedirectDomain.Error(), redirect.Domain)
-		}
-		portalAppExists, err := qtx.CheckPortalAppExists(ctx, redirect.PortalApplicationID)
-		if err != nil {
-			return err
-		}
-		if !portalAppExists {
-			return fmt.Errorf(errPortalAppDoesntExist.Error(), redirect.PortalApplicationID)
+	for alias, domains := range chain.AliasDomains {
+		for _, domain := range domains {
+			if !domain.IsValid() {
+				return fmt.Errorf(errInvalidDomain.Error(), domain, alias)
+			}
 		}
 	}
 
@@ -353,17 +317,6 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 			deleteAltruistParams.URLs = append(deleteAltruistParams.URLs, string(altruist.URL))
 		}
 		err := qtx.DeleteUnusedChainAltruists(ctx, deleteAltruistParams)
-		if err != nil {
-			return err
-		}
-	}
-
-	if chain.Redirects != nil {
-		deleteRedirectParams := DeleteUnusedChainGigastakeRedirectsParams{ChainID: chain.ID}
-		for _, redirect := range chain.Redirects {
-			deleteRedirectParams.PortalApplicationIDs = append(deleteRedirectParams.PortalApplicationIDs, string(redirect.PortalApplicationID))
-		}
-		err := qtx.DeleteUnusedChainGigastakeRedirects(ctx, deleteRedirectParams)
 		if err != nil {
 			return err
 		}
@@ -402,44 +355,21 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 	return activeStatus, nil
 }
 
-func (pg *PostgresDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.RedirectDomain) error {
-	redirectExists, err := pg.CheckRedirectExists(ctx, CheckRedirectExistsParams{
-		ChainID:             chainID,
-		PortalApplicationID: portalApplicationID,
-		Domain:              domain,
-	})
-	if err != nil {
-		return err
-	}
-	if !redirectExists {
-		return fmt.Errorf("Redirect with chain ID '%s', portal app ID '%s' and domain '%s' doesn't exist", chainID, portalApplicationID, domain)
-	}
-
-	err = pg.DeleteGigastakeRedirect(ctx, DeleteGigastakeRedirectParams{ChainID: chainID, PortalApplicationID: portalApplicationID, Domain: domain})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 /* ----- Used by Listener ----- */
 func (json dbChain) toOutput() *types.Chain {
 	return &types.Chain{
-		ID:                       json.ID,
-		Blockchain:               json.Blockchain,
-		Description:              json.Description,
-		EnforceResult:            json.EnforceResult,
-		Path:                     json.Path,
-		Ticker:                   json.Ticker,
-		ChainAliases:             json.ChainAliases,
-		AllowedMethods:           json.AllowedMethods,
-		LogLimitBlocks:           json.LogLimitBlocks,
-		RequestTimeout:           json.RequestTimeout,
-		GigastakeRedirectDomains: json.GigastakeRedirectDomains,
-		Active:                   json.Active,
-		CreatedAt:                json.CreatedAt,
-		UpdatedAt:                json.UpdatedAt,
+		ID:             json.ID,
+		Blockchain:     json.Blockchain,
+		Description:    json.Description,
+		EnforceResult:  json.EnforceResult,
+		Path:           json.Path,
+		Ticker:         json.Ticker,
+		AllowedMethods: json.AllowedMethods,
+		LogLimitBlocks: json.LogLimitBlocks,
+		RequestTimeout: json.RequestTimeout,
+		Active:         json.Active,
+		CreatedAt:      json.CreatedAt,
+		UpdatedAt:      json.UpdatedAt,
 	}
 }
 
@@ -463,32 +393,32 @@ func (json dbChainCheck) toOutput() *types.Check {
 	}
 }
 
-func (r dbChainGigastakeRedirect) toOutput() *types.GigastakeRedirect {
-	return &types.GigastakeRedirect{
-		ChainID:             r.ChainID,
-		PortalApplicationID: r.PortalApplicationID,
-		Domain:              r.Domain,
-		Alias:               r.Alias,
+func (json dbChainGigastakeAlias) toOutput() *types.Aliases {
+	return &types.Aliases{
+		ChainID: json.ChainID,
+		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+			json.ChainAlias: json.AliasDomains,
+		},
 	}
 }
 
 type dbChain struct {
-	ID                       types.RelayChainID     `json:"id"`
-	Blockchain               string                 `json:"blockchain"`
-	Description              string                 `json:"description"`
-	EnforceResult            string                 `json:"enforce_result"`
-	Ticker                   string                 `json:"ticker"`
-	Path                     string                 `json:"path"`
-	RequestTimeout           int32                  `json:"request_timeout"`
-	LogLimitBlocks           int32                  `json:"log_limit_blocks"`
-	ChainAliases             []string               `json:"chain_aliases"`
-	AllowedMethods           []string               `json:"allowed_methods"`
-	GigastakeRedirectDomains []types.RedirectDomain `json:"gigastake_redirect_domains"`
-	Active                   bool                   `json:"active"`
-	CreatedAt                time.Time              `json:"created_at"`
-	UpdatedAt                time.Time              `json:"updated_at"`
-	Deleted                  bool                   `json:"deleted"`
-	DeletedAt                time.Time              `json:"deleted_at"`
+	ID                       types.RelayChainID  `json:"id"`
+	Blockchain               string              `json:"blockchain"`
+	Description              string              `json:"description"`
+	EnforceResult            string              `json:"enforce_result"`
+	Ticker                   string              `json:"ticker"`
+	Path                     string              `json:"path"`
+	RequestTimeout           int32               `json:"request_timeout"`
+	LogLimitBlocks           int32               `json:"log_limit_blocks"`
+	ChainAliases             []string            `json:"chain_aliases"`
+	AllowedMethods           []string            `json:"allowed_methods"`
+	GigastakeRedirectDomains []types.ChainDomain `json:"gigastake_redirect_domains"`
+	Active                   bool                `json:"active"`
+	CreatedAt                time.Time           `json:"created_at"`
+	UpdatedAt                time.Time           `json:"updated_at"`
+	Deleted                  bool                `json:"deleted"`
+	DeletedAt                time.Time           `json:"deleted_at"`
 }
 
 type dbChainAltruist struct {
@@ -513,12 +443,8 @@ type dbChainCheck struct {
 	UpdatedAt  time.Time            `json:"updated_at"`
 }
 
-type dbChainGigastakeRedirect struct {
-	ID                  int32                `json:"id"`
-	ChainID             types.RelayChainID   `json:"chain_id"`
-	PortalApplicationID types.PortalAppID    `json:"portal_application_id"`
-	Alias               string               `json:"alias"`
-	Domain              types.RedirectDomain `json:"domain"`
-	CreatedAt           time.Time            `json:"created_at"`
-	UpdatedAt           time.Time            `json:"updated_at"`
+type dbChainGigastakeAlias struct {
+	ChainID      types.RelayChainID  `json:"chain_id"`
+	ChainAlias   types.ChainAlias    `json:"alias"`
+	AliasDomains []types.ChainDomain `json:"domains"`
 }

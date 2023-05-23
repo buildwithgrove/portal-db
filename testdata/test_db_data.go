@@ -759,10 +759,9 @@ var (
 
 	GigastakeApps = map[types.ProtocolAppID]*types.GigastakeApp{
 		"test_gigastake_app_1": {
-			AATID:      "test_gigastake_app_1",
-			ChainID:    "0001",
-			ChainAlias: "pokt-mainnet",
-			Name:       "pokt_gigastake",
+			AATID:   "test_gigastake_app_1",
+			ChainID: "0001",
+			Name:    "pokt_gigastake",
 			AAT: types.AAT{
 				ID:              "test_gigastake_app_1",
 				Gigastake:       true,
@@ -773,14 +772,14 @@ var (
 				Signature:       "test_f22651fb566346fca30b605e5f46e3ca",
 				Version:         "0.0.1",
 			},
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
+			CreatedAt:  MockTimestamp,
+			UpdatedAt:  MockTimestamp,
+			LegacyLBID: "legacy_lb_1",
 		},
 		"test_gigastake_app_2": {
-			AATID:      "test_gigastake_app_2",
-			ChainID:    "0053",
-			ChainAlias: "optimism-mainnet",
-			Name:       "optimism_gigastake",
+			AATID:   "test_gigastake_app_2",
+			ChainID: "0053",
+			Name:    "optimism_gigastake",
 			AAT: types.AAT{
 				ID:              "test_gigastake_app_2",
 				Gigastake:       true,
@@ -791,14 +790,14 @@ var (
 				Signature:       "test_52e991c26da841bc882ad3a3ee9ee964",
 				Version:         "0.0.1",
 			},
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
+			CreatedAt:  MockTimestamp,
+			UpdatedAt:  MockTimestamp,
+			LegacyLBID: "legacy_lb_2",
 		},
 		"test_gigastake_app_3": {
-			AATID:      "test_gigastake_app_3",
-			ChainID:    "0040",
-			ChainAlias: "harmony-0",
-			Name:       "harmony_gigastake",
+			AATID:   "test_gigastake_app_3",
+			ChainID: "0040",
+			Name:    "harmony_gigastake",
 			AAT: types.AAT{
 				ID:              "test_gigastake_app_3",
 				Gigastake:       true,
@@ -809,8 +808,9 @@ var (
 				Signature:       "test_01eac46efc9242a2be73879f1d09f1dc",
 				Version:         "0.0.1",
 			},
-			CreatedAt: MockTimestamp,
-			UpdatedAt: MockTimestamp,
+			CreatedAt:  MockTimestamp,
+			UpdatedAt:  MockTimestamp,
+			LegacyLBID: "legacy_lb_3",
 		},
 	}
 
@@ -889,24 +889,19 @@ var (
 
 	Chains = map[types.RelayChainID]*types.Chain{
 		"0001": {
-			ID:                       "0001",
-			Blockchain:               "mainnet",
-			Description:              "Pocket Network Mainnet",
-			EnforceResult:            "JSON",
-			Path:                     "/v1/query/height",
-			Ticker:                   "POKT",
-			ChainAliases:             []string{"mainnet"},
-			Active:                   true,
-			GigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network"},
+			ID:            "0001",
+			Blockchain:    "pokt-mainnet",
+			Description:   "Pocket Network Mainnet",
+			EnforceResult: "JSON",
+			Path:          "/v1/query/height",
+			Ticker:        "POKT",
+			Active:        true,
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0001.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
 				},
-			},
-			Redirects: []types.GigastakeRedirect{
-				{PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -916,29 +911,27 @@ var (
 					Allowance: 1,
 				},
 			},
+			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"pokt-mainnet": {"pokt-rpc.gateway.pokt.network"},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
 		"0053": {
-			ID:                       "0053",
-			Blockchain:               "optimism-mainnet",
-			Description:              "Optimism Mainnet",
-			EnforceResult:            "JSON",
-			Ticker:                   "OP",
-			ChainAliases:             []string{"optimism-mainnet"},
-			LogLimitBlocks:           100000,
-			RequestTimeout:           0,
-			Active:                   true,
-			GigastakeRedirectDomains: []types.RedirectDomain{"op-rpc.gateway.pokt.network"},
+			ID:             "0053",
+			Blockchain:     "optimism-mainnet",
+			Description:    "Optimism Mainnet",
+			EnforceResult:  "JSON",
+			Ticker:         "OP",
+			LogLimitBlocks: 100000,
+			RequestTimeout: 0,
+			Active:         true,
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0053.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
 				},
-			},
-			Redirects: []types.GigastakeRedirect{
-				{PortalApplicationID: "test_app_2", Alias: "altruist-0053", Domain: "op-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -948,28 +941,26 @@ var (
 					Allowance: 2,
 				},
 			},
+			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"optimism-mainnet": {"op-rpc.gateway.pokt.network"},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
 		"0021": {
-			ID:                       "0021",
-			Blockchain:               "eth-mainnet",
-			Description:              "Ethereum Mainnet",
-			EnforceResult:            "JSON",
-			Ticker:                   "ETH",
-			ChainAliases:             []string{"eth-mainnet"},
-			LogLimitBlocks:           100000,
-			Active:                   true,
-			GigastakeRedirectDomains: []types.RedirectDomain{"eth-rpc.gateway.pokt.network"},
+			ID:             "0021",
+			Blockchain:     "eth-mainnet",
+			Description:    "Ethereum Mainnet",
+			EnforceResult:  "JSON",
+			Ticker:         "ETH",
+			LogLimitBlocks: 100000,
+			Active:         true,
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0021.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
 				},
-			},
-			Redirects: []types.GigastakeRedirect{
-				{PortalApplicationID: "test_app_3", Alias: "altruist-0021", Domain: "eth-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -985,6 +976,9 @@ var (
 					EVMChainID: 1,
 				},
 			},
+			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"eth-mainnet": {"eth-rpc.gateway.pokt.network"},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
@@ -994,7 +988,6 @@ var (
 			Description:    "Sui Testnet",
 			EnforceResult:  "JSON",
 			Ticker:         "SUI-TESTNET",
-			ChainAliases:   []string{"sui-testnet"},
 			LogLimitBlocks: 100000,
 			RequestTimeout: 60000,
 			Active:         false,
@@ -1005,7 +998,6 @@ var (
 					Auth:     "test_pocket:auth123456",
 				},
 			},
-			Redirects: []types.GigastakeRedirect{},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
 					Type:      types.ChainCheckTypeSync,
@@ -1018,23 +1010,18 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"0040": {
-			ID:                       "0040",
-			Blockchain:               "harmony-0",
-			Description:              "Harmony Shard 0",
-			EnforceResult:            "JSON",
-			Ticker:                   "HMY",
-			ChainAliases:             []string{"harmony-0"},
-			Active:                   true,
-			GigastakeRedirectDomains: []types.RedirectDomain{"hmy-rpc.gateway.pokt.network"},
+			ID:            "0040",
+			Blockchain:    "harmony-0",
+			Description:   "Harmony Shard 0",
+			EnforceResult: "JSON",
+			Ticker:        "HMY",
+			Active:        true,
 			Altruists: []types.Altruist{
 				{
 					URL:      "https://altruist-0040.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
 				},
-			},
-			Redirects: []types.GigastakeRedirect{
-				{PortalApplicationID: "test_app_3", Alias: "altruist-0040", Domain: "hmy-rpc.gateway.pokt.network"},
 			},
 			Checks: map[types.ChainCheckType]types.Check{
 				types.ChainCheckTypeSync: {
@@ -1044,6 +1031,9 @@ var (
 					Allowance: 8,
 				},
 			},
+			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"harmony-0": {"hmy-rpc.gateway.pokt.network"},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
@@ -1051,13 +1041,11 @@ var (
 
 	// TestCreateChain used to test creation of Chains
 	TestCreateChain = &types.Chain{
-		ID:                       "0006",
-		Blockchain:               "solana-mainnet",
-		Description:              "Solana",
-		EnforceResult:            "JSON",
-		Ticker:                   "SOL",
-		ChainAliases:             []string{"solana-mainnet"},
-		GigastakeRedirectDomains: []types.RedirectDomain{"sol-rpc.gateway.pokt.network"},
+		ID:            "0006",
+		Blockchain:    "solana-mainnet",
+		Description:   "Solana",
+		EnforceResult: "JSON",
+		Ticker:        "SOL",
 		Altruists: []types.Altruist{
 			{
 				URL:      "https://test-rpc.solana-1.io:1234",
@@ -1069,9 +1057,6 @@ var (
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
 			},
-		},
-		Redirects: []types.GigastakeRedirect{
-			{PortalApplicationID: "test_app_1", Alias: "solana-mainnet", Domain: "sol-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
@@ -1086,6 +1071,9 @@ var (
 				ResultKey:  "chain",
 				EVMChainID: 5,
 			},
+		},
+		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+			"sol-mainnet": {"solana-rpc.gateway.pokt.network"},
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
@@ -1170,15 +1158,13 @@ var (
 	}
 
 	UpdateChainOne = types.Chain{
-		ID:                       "0001",
-		Blockchain:               "mainnet-NEW",
-		Description:              "Pocket Network Mainnet Update",
-		EnforceResult:            "JSON",
-		Path:                     "/v1/query/height/wow",
-		Ticker:                   "POKT-123",
-		ChainAliases:             []string{"mainnet"},
-		Active:                   true,
-		GigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network", "pokt-mainnet.gateway.pokt.network"},
+		ID:            "0001",
+		Blockchain:    "mainnet-NEW",
+		Description:   "Pocket Network Mainnet Update",
+		EnforceResult: "JSON",
+		Path:          "/v1/query/height/wow",
+		Ticker:        "POKT-123",
+		Active:        true,
 		Altruists: []types.Altruist{
 			{
 				URL:      "https://altruist-0001.com:1234",
@@ -1195,9 +1181,6 @@ var (
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
 			},
-		},
-		Redirects: []types.GigastakeRedirect{
-			{PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
@@ -1218,28 +1201,27 @@ var (
 				ResultKey: "result.sync_info",
 			},
 		},
+		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
+			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network"},
+		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
 	}
 	UpdateChainTwo = types.Chain{
-		ID:                       "0001",
-		Blockchain:               "mainnet-ULTRA",
-		Description:              "Pocket Network Mainnet Original",
-		EnforceResult:            "JSON",
-		Path:                     "/v1/query/height/wow",
-		Ticker:                   "POKT-456",
-		ChainAliases:             []string{"mainnet-again"},
-		Active:                   true,
-		GigastakeRedirectDomains: []types.RedirectDomain{"pokt-rpc.gateway.pokt.network"},
+		ID:            "0001",
+		Blockchain:    "mainnet-ULTRA",
+		Description:   "Pocket Network Mainnet Original",
+		EnforceResult: "JSON",
+		Path:          "/v1/query/height/wow",
+		Ticker:        "POKT-456",
+		Active:        true,
 		Altruists: []types.Altruist{
 			{
 				URL:      "https://altruist-0001-3.com:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
 			},
-		},
-		Redirects: []types.GigastakeRedirect{
-			{PortalApplicationID: "test_app_1", Alias: "altruist-0001", Domain: "pokt-rpc.gateway.pokt.network"},
 		},
 		Checks: map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
@@ -1248,6 +1230,10 @@ var (
 				ResultKey: "result.sync_info",
 				Allowance: 1,
 			},
+		},
+		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
+			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network", "pokt-rpc-2.us-west-2.pokt.network"},
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
@@ -1259,7 +1245,6 @@ var (
 		EnforceResult: "JSON",
 		Path:          "/v1/query/height/wow",
 		Ticker:        "POKT-456",
-		ChainAliases:  []string{"mainnet-again"},
 		Active:        true,
 		CreatedAt:     MockTimestamp,
 		UpdatedAt:     MockTimestamp,
@@ -1366,19 +1351,21 @@ var (
 	}
 
 	LegacyBlockchain = v1Types.Blockchain{
-		ID:                "0001",
-		Altruist:          "https://test_pocket:auth123456@altruist-0001.com:1234", // pragma: allowlist secret
-		Blockchain:        "mainnet",
-		Description:       "Pocket Network Mainnet",
-		EnforceResult:     "JSON",
-		Path:              "/v1/query/height",
-		Ticker:            "POKT",
-		BlockchainAliases: []string{"mainnet"},
-		Active:            true,
+		ID:         "0001",
+		Altruist:   "https://test_pocket:auth123456@altruist-0001.com:1234", // pragma: allowlist secret
+		Blockchain: "pokt-mainnet",
+		BlockchainAliases: []string{
+			"pokt-mainnet",
+		},
+		Description:   "Pocket Network Mainnet",
+		EnforceResult: "JSON",
+		Path:          "/v1/query/height",
+		Ticker:        "POKT",
+		Active:        true,
 		Redirects: []v1Types.Redirect{
 			{
-				LoadBalancerID: "test_app_1",
-				Alias:          "altruist-0001",
+				LoadBalancerID: "legacy_lb_1",
+				Alias:          "pokt-mainnet",
 				Domain:         "pokt-rpc.gateway.pokt.network",
 			},
 		},
@@ -1499,16 +1486,15 @@ var (
 	}
 
 	LegacyUpdateBlockchain = v1Types.UpdateBlockchain{
-		Blockchain:        "mainnet-ULTRA",
-		Description:       "Pocket Network Mainnet Original",
-		EnforceResult:     "JSON",
-		Path:              "/v1/query/height/wow",
-		Ticker:            "POKT-456",
-		BlockchainAliases: []string{"mainnet-again"},
-		Body:              `{"id":1,"jsonrpc":"2.0","method":"query"}`,
-		ResultKey:         "result.sync_info",
-		Allowance:         intToPointer(1),
-		Altruist:          "https://test_pocket:auth123456@altruist-0001-3.com:1234", // pragma: allowlist secret
+		Blockchain:    "mainnet-ULTRA",
+		Description:   "Pocket Network Mainnet Original",
+		EnforceResult: "JSON",
+		Path:          "/v1/query/height/wow",
+		Ticker:        "POKT-456",
+		Body:          `{"id":1,"jsonrpc":"2.0","method":"query"}`,
+		ResultKey:     "result.sync_info",
+		Allowance:     intToPointer(1),
+		Altruist:      "https://test_pocket:auth123456@altruist-0001-3.com:1234", // pragma: allowlist secret
 	}
 
 	LegacyRedirect = v1Types.Redirect{

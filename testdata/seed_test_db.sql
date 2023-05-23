@@ -197,6 +197,13 @@ VALUES (
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_12',
+        'george.foreman@test.com',
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO user_auth_providers (
         user_id,
@@ -775,26 +782,22 @@ INSERT INTO chains (
         enforce_result,
         path,
         ticker,
-        chain_aliases,
         log_limit_blocks,
         request_timeout,
         active,
-        gigastake_redirect_domains,
         created_at,
         updated_at
     )
 VALUES (
         '0001',
-        'mainnet',
+        'pokt-mainnet',
         'Pocket Network Mainnet',
         'JSON',
         '/v1/query/height',
         'POKT',
-        ARRAY ['mainnet'],
         0,
         0,
         true,
-        ARRAY ['pokt-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -805,11 +808,9 @@ VALUES (
         'JSON',
         '',
         'OP',
-        ARRAY ['optimism-mainnet'],
         100000,
         0,
         true,
-        ARRAY ['op-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -820,11 +821,9 @@ VALUES (
         'JSON',
         '',
         'ETH',
-        ARRAY ['eth-mainnet'],
         100000,
         0,
         true,
-        ARRAY ['eth-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -835,11 +834,9 @@ VALUES (
         'JSON',
         '',
         'SUI-TESTNET',
-        ARRAY ['sui-testnet'],
         100000,
         60000,
         false,
-        NULL,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -850,11 +847,9 @@ VALUES (
         'JSON',
         '',
         'HMY',
-        ARRAY ['harmony-0'],
         0,
         0,
         true,
-        ARRAY ['hmy-rpc.gateway.pokt.network'],
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
@@ -903,46 +898,6 @@ VALUES (
         'https://altruist-0040.com:1234',
         'test_pocket:auth123456',
         'basic_auth',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    );
-INSERT INTO chain_gigastake_redirects (
-        chain_id,
-        portal_application_id,
-        alias,
-        domain,
-        created_at,
-        updated_at
-    )
-VALUES (
-        '0001',
-        'test_app_1',
-        'altruist-0001',
-        'pokt-rpc.gateway.pokt.network',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        '0053',
-        'test_app_2',
-        'altruist-0053',
-        'op-rpc.gateway.pokt.network',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        '0021',
-        'test_app_3',
-        'altruist-0021',
-        'eth-rpc.gateway.pokt.network',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        '0040',
-        'test_app_3',
-        'altruist-0040',
-        'hmy-rpc.gateway.pokt.network',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
@@ -1016,37 +971,63 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
+INSERT INTO chain_alias_domains (
+        chain_id,
+        alias,
+        domains
+    )
+VALUES
+    (
+        '0001',
+        'pokt-mainnet',
+        ARRAY['pokt-rpc.gateway.pokt.network']
+    ),
+    (
+        '0053',
+        'optimism-mainnet',
+        ARRAY['op-rpc.gateway.pokt.network']
+    ),
+    (
+        '0021',
+        'eth-mainnet',
+        ARRAY['eth-rpc.gateway.pokt.network']
+    ),
+    (
+        '0040',
+        'harmony-0',
+        ARRAY['hmy-rpc.gateway.pokt.network']
+    );
 INSERT INTO gigastake_applications (
         aat_id,
         name,
         chain_id,
-        chain_alias,
         created_at,
-        updated_at
+        updated_at,
+        lb_id
     )
 VALUES (
         'test_gigastake_app_1',
         'pokt_gigastake',
         '0001',
-        'pokt-mainnet',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'legacy_lb_1'
     ),
     (
         'test_gigastake_app_2',
         'optimism_gigastake',
         '0053',
-        'optimism-mainnet',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'legacy_lb_2'
     ),
     (
         'test_gigastake_app_3',
         'harmony_gigastake',
         '0040',
-        'harmony-0',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'legacy_lb_3'
     );
 INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
 VALUES (

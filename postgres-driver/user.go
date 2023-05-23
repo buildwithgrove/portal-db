@@ -24,7 +24,9 @@ type (
 var (
 	errUserDoesntExist          = errors.New("error user does not exist for portal ID '%s'")
 	errUserHasAccount           = errors.New("error cannot delete user because they are still on an account team")
+	errNoEmail                  = errors.New("error no email")
 	errInvalidEmail             = errors.New("error email input is not a valid email address '%s'")
+	errNoAuthProviderType       = errors.New("error no auth provider type")
 	errInvalidAuthProviderType  = errors.New("error invalid auth provider type '%s'")
 	errAuthProviderTypeNotFound = errors.New("error no auth provider type found")
 )

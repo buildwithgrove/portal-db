@@ -287,11 +287,11 @@ func (_m *MockDriver) RemoveBlockedContract(ctx context.Context, blockedAddress 
 }
 
 // RemoveGigastakeRedirect provides a mock function with given fields: ctx, chainID, portalApplicationID, domain
-func (_m *MockDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.RedirectDomain) error {
+func (_m *MockDriver) RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.ChainDomain) error {
 	ret := _m.Called(ctx, chainID, portalApplicationID, domain)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, types.PortalAppID, types.RedirectDomain) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, types.RelayChainID, types.PortalAppID, types.ChainDomain) error); ok {
 		r0 = rf(ctx, chainID, portalApplicationID, domain)
 	} else {
 		r0 = ret.Error(0)

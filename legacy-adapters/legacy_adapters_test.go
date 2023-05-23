@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
+func Test_LegacyAdapators_ConvertPortalAppToLegacyLoadBalancer(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
@@ -28,13 +28,13 @@ func Test_LegacyAdapators_ConvertToLegacyLoadBalancer(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legacyLoadBalancer := ConvertToLegacyLoadBalancer(test.portalApp, test.account, test.account.Users)
+			legacyLoadBalancer := ConvertPortalAppToLegacyLoadBalancer(test.portalApp, test.account, test.account.Users)
 			c.Equal(test.expectedLegacyLoadBalancer, legacyLoadBalancer)
 		})
 	}
 }
 
-func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
+func Test_LegacyAdapators_ConvertPortalAppToLegacyApplication(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
@@ -53,7 +53,7 @@ func Test_LegacyAdapators_ConvertToLegacyApplication(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legacyApplications := ConvertToLegacyApplications(test.portalApp, test.userID)
+			legacyApplications := ConvertPortalAppToLegacyApplications(test.portalApp, test.userID)
 			c.Equal(test.expectedLegacyApplications, legacyApplications)
 		})
 	}
@@ -66,16 +66,23 @@ func Test_LegacyAdapators_ConvertToLegacyBlockchain(t *testing.T) {
 		name                     string
 		chain                    v2Types.Chain
 		expectedLegacyBlockchain v1Types.Blockchain
+		gigastakeApps            []*v2Types.GigastakeApp
 	}{
 		{
 			name:                     "Should convert a V2 Chain struct to a legacy Blockchain struct",
 			chain:                    *testdata.Chains["0001"],
 			expectedLegacyBlockchain: testdata.LegacyBlockchain,
+			gigastakeApps: []*v2Types.GigastakeApp{
+				testdata.GigastakeApps["test_gigastake_app_1"],
+			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			// Gigastake apps will be set in PHD cache
+			test.chain.GigastakeApps = test.gigastakeApps
+
 			legacyBlockchain := ConvertToLegacyBlockchain(test.chain)
 			c.Equal(test.expectedLegacyBlockchain, legacyBlockchain)
 		})
@@ -154,88 +161,6 @@ func Test_LegacyAdapators_ConvertToV2UpdatePortalApp(t *testing.T) {
 			c.Equal(test.expectedV2UpdatePortalApp, v2UpdatePortalApp)
 			c.Equal(test.expectedV2UpdatePortalApp.Settings, v2UpdatePortalApp.Settings)
 			c.Equal(test.expectedV2UpdatePortalApp.Whitelists, v2UpdatePortalApp.Whitelists)
-		})
-	}
-}
-
-func Test_LegacyAdapators_ConvertToV2Chain(t *testing.T) {
-	c := require.New(t)
-
-	tests := []struct {
-		name            string
-		blockchain      v1Types.Blockchain
-		expectedV2Chain v2Types.Chain
-	}{
-		{
-			name:            "Should convert a legacy Blockchain struct to a V2 Chain struct",
-			blockchain:      testdata.LegacyBlockchain,
-			expectedV2Chain: *testdata.Chains["0001"],
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			v2Chain := ConvertToV2Chain(test.blockchain)
-			v2Chain.Redirects[0].PortalApplicationID = "test_app_1"
-			c.Equal(test.expectedV2Chain, v2Chain)
-		})
-	}
-}
-
-func Test_LegacyAdapators_ConvertToV2UpdateChain(t *testing.T) {
-	c := require.New(t)
-
-	tests := []struct {
-		name                  string
-		blockchainID          string
-		updateBlockchain      v1Types.UpdateBlockchain
-		expectedV2UpdateChain v2Types.Chain
-	}{
-		{
-			name:                  "Should convert a legacy UpdateBlockchain struct to a V2 Chain struct for use in the update method",
-			blockchainID:          "0001",
-			updateBlockchain:      testdata.LegacyUpdateBlockchain,
-			expectedV2UpdateChain: testdata.UpdateChainTwo,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			v2UpdateChain := ConvertToV2UpdateChain(test.blockchainID, test.updateBlockchain)
-
-			// Set fields not used in the legacy update to reuse test struct
-			v2UpdateChain.ID = test.expectedV2UpdateChain.ID
-			v2UpdateChain.Active = test.expectedV2UpdateChain.Active
-			v2UpdateChain.Redirects = test.expectedV2UpdateChain.Redirects
-			v2UpdateChain.GigastakeRedirectDomains = test.expectedV2UpdateChain.GigastakeRedirectDomains
-			v2UpdateChain.CreatedAt = test.expectedV2UpdateChain.CreatedAt
-			v2UpdateChain.UpdatedAt = test.expectedV2UpdateChain.UpdatedAt
-
-			c.Equal(test.expectedV2UpdateChain, v2UpdateChain)
-		})
-	}
-}
-
-func Test_LegacyAdapators_ConvertToV2Redirect(t *testing.T) {
-	c := require.New(t)
-
-	tests := []struct {
-		name               string
-		redirect           v1Types.Redirect
-		expectedV2Redirect v2Types.GigastakeRedirect
-	}{
-		{
-			name:               "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
-			redirect:           testdata.LegacyRedirect,
-			expectedV2Redirect: testdata.Chains["0001"].Redirects[0],
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			v2Redirect := ConvertToV2Redirect(test.redirect)
-			v2Redirect.PortalApplicationID = "test_app_1"
-			c.Equal(test.expectedV2Redirect, v2Redirect)
 		})
 	}
 }

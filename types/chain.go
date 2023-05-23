@@ -11,8 +11,9 @@ type (
 	ChainAuthType  string
 	ChainCheckType string
 
-	AltruistURL    string
-	RedirectDomain string
+	AltruistURL string
+	ChainAlias  string
+	ChainDomain string
 )
 
 const (
@@ -55,7 +56,7 @@ func (a AltruistURL) IsValid() bool {
 	return false
 }
 
-func (r RedirectDomain) IsValid() bool {
+func (r ChainDomain) IsValid() bool {
 	pattern := `^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`
 	matched, err := regexp.MatchString(pattern, string(r))
 	if err != nil {
@@ -67,47 +68,31 @@ func (r RedirectDomain) IsValid() bool {
 /* Chain Struct and Methods */
 type (
 	Chain struct {
-		ID                       RelayChainID             `json:"id"`
-		Blockchain               string                   `json:"blockchain"`
-		Description              string                   `json:"description"`
-		EnforceResult            string                   `json:"enforceResult"`
-		Path                     string                   `json:"path"`
-		Ticker                   string                   `json:"ticker"`
-		ChainAliases             []string                 `json:"chainAliases"`
-		AllowedMethods           []string                 `json:"allowedMethods"`
-		LogLimitBlocks           int32                    `json:"logLimitBlocks"`
-		RequestTimeout           int32                    `json:"requestTimeout"`
-		Active                   bool                     `json:"active"`
-		Altruists                []Altruist               `json:"altruists,omitempty"`
-		Checks                   map[ChainCheckType]Check `json:"chainChecks,omitempty"`
-		GigastakeRedirectDomains []RedirectDomain         `json:"gigastakeRedirectDomains"`
-		CreatedAt                time.Time                `json:"createdAt"`
-		UpdatedAt                time.Time                `json:"updatedAt"`
-		Deleted                  bool                     `json:"deleted"`
+		ID             RelayChainID                 `json:"id"`
+		Blockchain     string                       `json:"blockchain"`
+		Description    string                       `json:"description"`
+		EnforceResult  string                       `json:"enforceResult"`
+		Path           string                       `json:"path"`
+		Ticker         string                       `json:"ticker"`
+		AllowedMethods []string                     `json:"allowedMethods"`
+		LogLimitBlocks int32                        `json:"logLimitBlocks"`
+		RequestTimeout int32                        `json:"requestTimeout"`
+		Active         bool                         `json:"active"`
+		Altruists      []Altruist                   `json:"altruists,omitempty"`
+		Checks         map[ChainCheckType]Check     `json:"chainChecks,omitempty"`
+		AliasDomains   map[ChainAlias][]ChainDomain `json:"domains"`
+		CreatedAt      time.Time                    `json:"createdAt"`
+		UpdatedAt      time.Time                    `json:"updatedAt"`
+		Deleted        bool                         `json:"deleted"`
 
 		// GigastakeApps are set inside PHD
 		GigastakeApps []*GigastakeApp `json:"gigastakeApps,omitempty"`
-
-		// TODO Remove when V2 migration completed
-		// Kept here for backwards compatibility using Legacy adaptors
-		Redirects []GigastakeRedirect `json:"redirects,omitempty"`
 	}
 	Altruist struct {
 		ChainID  RelayChainID  `json:"chainID,omitempty"`
 		URL      AltruistURL   `json:"url"`
 		Auth     string        `json:"auth"`
 		AuthType ChainAuthType `json:"authType"`
-	}
-	// TODO Remove when V2 migration completed
-	// Kept here for backwards compatibility using Legacy adaptors
-	GigastakeRedirect struct {
-		ChainID             RelayChainID   `json:"chainID,omitempty"`
-		PortalApplicationID PortalAppID    `json:"portalAppID"`
-		Domain              RedirectDomain `json:"domain"`
-		Alias               string         `json:"alias"`
-
-		// GigastakePortalApp is set inside PHD
-		GigastakePortalApp *PortalApp `json:"gigastakePortalApp"`
 	}
 	Check struct {
 		ChainID    RelayChainID   `json:"chainID,omitempty"`
@@ -116,6 +101,11 @@ type (
 		ResultKey  string         `json:"resultKey"`
 		Allowance  int32          `json:"allowance"`
 		EVMChainID int32          `json:"evmChainID"`
+	}
+	// Used for mapping listener notification
+	Aliases struct {
+		ChainID      RelayChainID                 `json:"chainID,omitempty"`
+		AliasDomains map[ChainAlias][]ChainDomain `json:"domains"`
 	}
 )
 
@@ -138,9 +128,6 @@ func (c *Chain) UpdateBlockchain(update *Chain) {
 	}
 	if update.Ticker != "" {
 		c.Ticker = update.Ticker
-	}
-	if update.ChainAliases != nil {
-		c.ChainAliases = update.ChainAliases
 	}
 	if update.LogLimitBlocks != 0 {
 		c.LogLimitBlocks = update.LogLimitBlocks
@@ -183,10 +170,10 @@ func (c *Altruist) Table() Table {
 	return TableChainAltruists
 }
 
-func (c *GigastakeRedirect) Table() Table {
-	return TableChainGigastakeRedirects
-}
-
 func (c *Check) Table() Table {
 	return TableChainChecks
+}
+
+func (c *Aliases) Table() Table {
+	return TableChainGigastakeAliases
 }

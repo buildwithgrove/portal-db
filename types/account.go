@@ -46,9 +46,10 @@ type (
 
 	// CreateAccountUserAccess contains all fields required to create a new Account User
 	CreateAccountUserAccess struct {
-		AccountID AccountID `json:"accountID"`
-		Email     Email     `json:"email"`
-		RoleName  RoleName  `json:"roleName"`
+		AccountID   AccountID   `json:"accountID"`
+		PortalAppID PortalAppID `json:"portalAppID"`
+		Email       Email       `json:"email"`
+		RoleName    RoleName    `json:"roleName"`
 	}
 
 	// UpdateAccount contains all fields required to update an Account

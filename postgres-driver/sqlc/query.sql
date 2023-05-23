@@ -29,23 +29,35 @@ SELECT plan_type,
     daily_limit
 FROM pay_plans;
 -- name: SelectGigastakeApplications :many
-SELECT ga.id,
-    ga.aat_id,
+SELECT ga.aat_id,
     ga.name,
     ga.chain_id,
-    ga.chain_alias,
     ga.created_at,
     ga.updated_at,
     ga.deleted,
-    a.gigastake,
     a.address,
     a.public_key,
     a.client_public_key,
     a.signature,
     a.private_key,
-    a.version
+    a.version,
+    -- legacy field
+    ga.lb_id
 FROM gigastake_applications AS ga
-    JOIN aats AS a ON ga.aat_id = a.id;
+    JOIN aats AS a ON ga.aat_id = a.id
+GROUP BY ga.aat_id,
+    ga.name,
+    ga.chain_id,
+    ga.created_at,
+    ga.updated_at,
+    ga.deleted,
+    a.address,
+    a.public_key,
+    a.client_public_key,
+    a.signature,
+    a.private_key,
+    a.version,
+    ga.lb_id;
 -- name: SelectPortalApplications :many
 WITH aats_agg AS (
     SELECT aats.portal_application_id,
@@ -460,13 +472,12 @@ SELECT EXISTS(
         WHERE id = $1
             AND deleted = false
     );
--- name: CheckRedirectExists :one
+-- name: CheckAliasExists :one
 SELECT EXISTS(
         SELECT 1
-        FROM chain_gigastake_redirects
+        FROM chain_alias_domains
         WHERE chain_id = $1
-            AND portal_application_id = $2
-            AND domain = $3
+            AND alias = $2
     );
 -- name: CheckPlanTypeExists :one
 SELECT EXISTS(
@@ -523,46 +534,37 @@ SELECT EXISTS (
 SELECT role_name
 FROM account_user_access
 WHERE user_id = $1
-    AND portal_application_id = $2;
+    AND portal_application_id = $2
+UNION
+SELECT 'OWNER'
+WHERE EXISTS (
+        SELECT 1
+        FROM accounts
+        WHERE owner_id = $1 AND accounts.id = @account_id
+    );
 -- name: CheckAccountUserAccepted :one
 SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
     AND portal_application_id = $2;
--- name: InsertAccountUserAccess :one
+-- name: InsertAccountUserAccess :exec
 WITH updated_user AS (
     UPDATE users
-    SET email = $6
+    SET email = $7
     WHERE id = $1
     RETURNING id,
         email
 )
 INSERT INTO account_user_access (
-        portal_application_id,
         user_id,
+        portal_application_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
-VALUES ('', $1, $2, $3, $4, $5)
-RETURNING account_user_access.user_id,
-    account_user_access.role_name,
-    account_user_access.accepted,
-    COALESCE(
-        (
-            SELECT email
-            FROM updated_user
-            WHERE id = $1
-        ),
-        ''
-    )::VARCHAR(320) AS user_email,
-    (
-        SELECT json_object_agg(type, provider_user_id)
-        FROM user_auth_providers
-        WHERE user_id = account_user_access.user_id
-    ) as provider_user_ids;
--- name: InsertAccountUserAccessNoUser :one
+VALUES ($1, $2, $3, $4, $5, $6);
+-- name: InsertAccountUserAccessNoUser :exec
 WITH inserted_user AS (
     INSERT INTO users (
             id,
@@ -576,48 +578,68 @@ WITH inserted_user AS (
         email
 )
 INSERT INTO account_user_access (
-        portal_application_id,
         user_id,
+        portal_application_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
 VALUES (
-        '',
         (
             SELECT id
             FROM inserted_user
         ),
+        $6,
         $5,
         false,
         $3,
         $4
-    )
-RETURNING account_user_access.user_id,
-    account_user_access.role_name,
-    account_user_access.accepted,
-    (
-        SELECT email
-        FROM inserted_user
-    ) AS user_email;
+    );
 -- name: UpdateAccountUserRole :exec
 UPDATE account_user_access
 SET role_name = $3,
     updated_at = $4
 WHERE portal_application_id = $1
     AND user_id = $2;
--- name: UpdateAccountOwnerToAdmin :exec
-UPDATE account_user_access
-SET role_name = 'ADMIN'
-WHERE account_user_access.portal_application_id = $1
-    AND role_name = 'OWNER'
-    AND user_id = (
-        SELECT user_id
-        FROM account_user_access
-        WHERE portal_application_id = $1
-            AND role_name = 'OWNER'
-    );
+-- name: UpdateAccountOwner :exec
+WITH current_owner AS (
+    SELECT owner_id
+    FROM accounts
+    WHERE id = $1
+),
+insert_aua AS (
+    INSERT INTO account_user_access (
+            user_id,
+            portal_application_id,
+            accepted,
+            role_name,
+            created_at,
+            updated_at
+        )
+    SELECT current_owner.owner_id,
+        pa.id,
+        true,
+        'ADMIN',
+        $2,
+        $3
+    FROM portal_applications pa,
+        current_owner
+    WHERE pa.account_id = $1
+),
+update_owner AS (
+    UPDATE accounts
+    SET owner_id = @new_owner_id::VARCHAR,
+        updated_at = $3
+    WHERE id = $1
+)
+DELETE FROM account_user_access
+WHERE portal_application_id IN (
+        SELECT id
+        FROM portal_applications
+        WHERE portal_applications.account_id = $1
+    )
+    AND account_user_access.user_id = @new_owner_id::VARCHAR;
 -- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (id, email, signed_up, created_at, updated_at)
@@ -713,21 +735,21 @@ SELECT c.*,
         '[]'
     )::json AS chain_altruists,
     COALESCE(
-        json_agg(DISTINCT cgr) FILTER (
-            WHERE cgr.id IS NOT NULL
-        ),
-        '[]'
-    )::json AS chain_gigastake_redirects,
-    COALESCE(
         json_agg(DISTINCT cc) FILTER (
             WHERE cc.id IS NOT NULL
         ),
         '[]'
-    )::json AS chain_checks
+    )::json AS chain_checks,
+    COALESCE(
+        json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
+            WHERE cga.alias IS NOT NULL
+        ),
+        '{}'
+    )::json AS alias_domains_map
 FROM chains c
     LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
-    LEFT JOIN chain_gigastake_redirects cgr ON c.id = cgr.chain_id
     LEFT JOIN chain_checks cc ON c.id = cc.chain_id
+    LEFT JOIN chain_alias_domains cga ON c.id = cga.chain_id
 WHERE (
         @include_deleted::BOOLEAN
         OR c.deleted = false
@@ -743,9 +765,7 @@ INSERT INTO chains (
         ticker,
         request_timeout,
         log_limit_blocks,
-        chain_aliases,
         allowed_methods,
-        gigastake_redirect_domains,
         created_at,
         updated_at
     )
@@ -760,9 +780,7 @@ VALUES (
         $8,
         $9,
         $10,
-        $11,
-        $12,
-        $13
+        $11
     ) ON CONFLICT (id) DO
 UPDATE
 SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
@@ -775,12 +793,7 @@ SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
         EXCLUDED.log_limit_blocks,
         chains.log_limit_blocks
     ),
-    chain_aliases = COALESCE(EXCLUDED.chain_aliases, chains.chain_aliases),
     allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
-    gigastake_redirect_domains = COALESCE(
-        EXCLUDED.gigastake_redirect_domains,
-        chains.gigastake_redirect_domains
-    ),
     updated_at = EXCLUDED.updated_at
 RETURNING id;
 -- name: UpsertChainAltruist :exec
@@ -803,38 +816,30 @@ WHERE chain_id = $1
     AND url NOT IN (
         SELECT unnest(@urls::VARCHAR [])
     );
--- name: UpsertChainGigastakeRedirect :exec
-INSERT INTO chain_gigastake_redirects (
+-- name: UpsertChainAliasDomains :exec
+INSERT INTO chain_alias_domains (
         chain_id,
-        portal_application_id,
         alias,
-        domain,
-        created_at,
+        domains,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (chain_id, portal_application_id, domain) DO
+VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, alias) DO
 UPDATE
-SET chain_id = COALESCE(
-        EXCLUDED.chain_id,
-        chain_gigastake_redirects.chain_id
-    ),
-    alias = COALESCE(EXCLUDED.alias, chain_gigastake_redirects.alias),
-    domain = COALESCE(
-        EXCLUDED.domain,
-        chain_gigastake_redirects.domain
+SET domains = COALESCE(
+        EXCLUDED.domains,
+        chain_alias_domains.domains
     ),
     updated_at = EXCLUDED.updated_at;
--- name: DeleteUnusedChainGigastakeRedirects :exec
-DELETE FROM chain_gigastake_redirects
+-- name: DeleteUnusedChainAliasDomains :exec
+DELETE FROM chain_alias_domains
 WHERE chain_id = $1
-    AND portal_application_id NOT IN (
-        SELECT unnest(@portal_application_ids::VARCHAR [])
+    AND alias NOT IN (
+        SELECT unnest($2::VARCHAR [])
     );
--- name: DeleteGigastakeRedirect :exec
-DELETE FROM chain_gigastake_redirects
+-- name: DeleteChainAliasDomain :exec
+DELETE FROM chain_alias_domains
 WHERE chain_id = $1
-    AND portal_application_id = $2
-    and domain = $3;
+    AND alias = $2;
 -- name: UpsertChainCheck :exec
 INSERT INTO chain_checks (
         chain_id,
@@ -874,6 +879,33 @@ SET active = $2,
     updated_at = $3
 WHERE id = $1
 RETURNING active;
+-- name: InsertGigastakeAAT :exec
+INSERT INTO aats (
+        id,
+        gigastake,
+        address,
+        public_key,
+        client_public_key,
+        signature,
+        private_key,
+        version
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+-- name: UpsertGigastakeApp :exec
+INSERT INTO gigastake_applications (
+        aat_id,
+        chain_id,
+        name,
+        created_at,
+        updated_at,
+        lb_id
+    )
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (aat_id, chain_id) DO
+UPDATE
+SET name = EXCLUDED.name,
+    created_at = EXCLUDED.created_at,
+    updated_at = EXCLUDED.updated_at,
+    lb_id = EXCLUDED.lb_id;
 -- name: SelectGlobalBlockedContract :many
 SELECT id,
     blocked_address
@@ -892,3 +924,8 @@ RETURNING id;
 DELETE FROM global_blocked_contracts
 WHERE blocked_address = $1
 RETURNING id;
+-- name: GetLastCreatedUserID :one
+SELECT id
+FROM users
+ORDER BY created_at DESC
+LIMIT 1;

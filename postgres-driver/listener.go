@@ -150,15 +150,15 @@ func (n notification) parseChainCheckNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseGigastakeRedirectNotification() *types.Notification {
+func (n notification) parseChainGigastakeAliasNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbRedirect dbChainGigastakeRedirect
-	_ = json.Unmarshal(rawData, &dbRedirect)
+	var dbAlias dbChainGigastakeAlias
+	_ = json.Unmarshal(rawData, &dbAlias)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbRedirect.toOutput(),
+		Data:   dbAlias.toOutput(),
 	}
 }
 
@@ -234,8 +234,8 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseChainNotification()
 	case types.TableChainAltruists:
 		return n.parseChainAltruistNotification()
-	case types.TableChainGigastakeRedirects:
-		return n.parseGigastakeRedirectNotification()
+	case types.TableChainGigastakeAliases:
+		return n.parseChainGigastakeAliasNotification()
 	case types.TableChainChecks:
 		return n.parseChainCheckNotification()
 

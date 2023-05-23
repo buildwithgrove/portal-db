@@ -2,6 +2,7 @@ package postgresdriver
 
 import (
 	"context"
+	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
@@ -30,25 +31,103 @@ func (pg *PostgresDriver) ReadGigastakeApps(ctx context.Context, options types.D
 
 // toGigastakeApp converts GigastakeApp SELECT output to GigastakeApp struct
 func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, error) {
-	aat := types.AAT{
-		ID:              g.AATID,
-		Gigastake:       g.Gigastake,
-		Address:         g.Address,
-		PublicKey:       g.PublicKey,
-		ClientPublicKey: g.ClientPublicKey,
-		Signature:       g.Signature,
-		PrivateKey:      g.PrivateKey.String,
-		Version:         g.Version,
+	return &types.GigastakeApp{
+		AATID:   g.AATID,
+		ChainID: types.RelayChainID(g.ChainID),
+		Name:    g.Name,
+		AAT: types.AAT{
+			ID:              g.AATID,
+			Gigastake:       true,
+			Address:         g.Address,
+			PublicKey:       g.PublicKey,
+			ClientPublicKey: g.ClientPublicKey,
+			Signature:       g.Signature,
+			PrivateKey:      g.PrivateKey.String,
+			Version:         g.Version,
+		},
+		CreatedAt: g.CreatedAt.UTC(),
+		UpdatedAt: g.UpdatedAt.UTC(),
+		Deleted:   g.Deleted,
+
+		// TODO remove legacy field when migration to V2 schema complete
+		LegacyLBID: g.LbID,
+	}, nil
+}
+
+/* ----- postgresdriver Chain Create Methods ----- */
+
+// WriteGigastakeApp creates a single GigastakeApp in the database
+func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp types.GigastakeApp, createdAt time.Time) (*types.GigastakeApp, error) {
+	protocolAppID, err := pg.generateID(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	return &types.GigastakeApp{
-		AATID:      g.AATID,
-		ChainID:    types.RelayChainID(g.ChainID),
-		ChainAlias: g.ChainAlias,
-		Name:       g.Name,
-		AAT:        aat,
-		CreatedAt:  g.CreatedAt.UTC(),
-		UpdatedAt:  g.UpdatedAt.UTC(),
-		Deleted:    g.Deleted,
-	}, nil
+	gigastakeApp.AATID = types.ProtocolAppID(protocolAppID)
+	gigastakeApp.CreatedAt = createdAt
+	gigastakeApp.UpdatedAt = createdAt
+
+	tx, err := pg.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	qtx := pg.WithTx(tx)
+
+	err = pg.insertGigastakeAAT(ctx, qtx, gigastakeApp)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pg.upsertGigastakeApp(ctx, qtx, gigastakeApp)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return &gigastakeApp, nil
+}
+
+// upsertGigastakeApp performs either an insert or update on a GigastakeApp in the database
+func (pg *PostgresDriver) upsertGigastakeApp(ctx context.Context, qtx *Queries, gigastakeApp types.GigastakeApp) error {
+	err := qtx.UpsertGigastakeApp(ctx, UpsertGigastakeAppParams{
+		AATID:     gigastakeApp.AATID,
+		ChainID:   gigastakeApp.ChainID,
+		Name:      gigastakeApp.Name,
+		CreatedAt: gigastakeApp.CreatedAt,
+		UpdatedAt: gigastakeApp.UpdatedAt,
+		// TODO remove legacy field when migration to V2 schema complete
+		LbID: gigastakeApp.LegacyLBID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// upsertAAT performs an upsert operation on the AAT table in the database
+func (pg *PostgresDriver) insertGigastakeAAT(ctx context.Context, qtx *Queries, gigastakeApp types.GigastakeApp) error {
+	aat := gigastakeApp.AAT
+
+	err := qtx.InsertGigastakeAAT(ctx, InsertGigastakeAATParams{
+		ID:              aat.ID,
+		Gigastake:       aat.Gigastake,
+		Address:         aat.Address,
+		PublicKey:       aat.PublicKey,
+		ClientPublicKey: aat.ClientPublicKey,
+		PrivateKey:      newSQLNullString(aat.PrivateKey),
+		Signature:       aat.Signature,
+		Version:         aat.Version,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

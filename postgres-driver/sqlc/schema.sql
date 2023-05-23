@@ -92,9 +92,7 @@ CREATE TABLE chains (
     path VARCHAR(100),
     request_timeout INT,
     log_limit_blocks INT,
-    chain_aliases VARCHAR(100) ARRAY,
     allowed_methods VARCHAR(10) ARRAY,
-    gigastake_redirect_domains VARCHAR(100) ARRAY,
     active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -142,6 +140,13 @@ CREATE TABLE chain_checks (
             AND evm_chain_id IS NULL
         )
     )
+);
+CREATE TABLE IF NOT EXISTS chain_alias_domains (
+    chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
+    alias VARCHAR(255) NOT NULL,
+    domains VARCHAR(100) ARRAY NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY(chain_id, alias)
 );
 -- Portal Application Tables
 CREATE TABLE portal_applications (
@@ -229,27 +234,16 @@ CREATE TABLE IF NOT EXISTS aats (
 );
 -- Gigastake Applications Table
 CREATE TABLE IF NOT EXISTS gigastake_applications (
-    id SERIAL PRIMARY KEY,
-    aat_id VARCHAR(24) NOT NULL UNIQUE REFERENCES aats(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    chain_id VARCHAR(4) NOT NULL REFERENCES chains(id),
-    chain_alias VARCHAR(255) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
-    deleted BOOLEAN NOT NULL DEFAULT false,
-    deleted_at TIMESTAMPTZ NULL
-);
--- TODO remove chain_gigastake_redirects when V2 migration finished
--- Chain Gigastakes Redirect Table must be created after Portal Applications table
-CREATE TABLE chain_gigastake_redirects (
-    id SERIAL PRIMARY KEY,
+    aat_id VARCHAR(24) NOT NULL REFERENCES aats(id) ON DELETE CASCADE,
     chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
-    portal_application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id),
-    alias VARCHAR(100) NOT NULL,
-    domain VARCHAR(100) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (chain_id, portal_application_id, domain)
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    deleted_at TIMESTAMPTZ NULL,
+    -- legacy field
+    lb_id VARCHAR NOT NULL,
+    PRIMARY KEY(aat_id, chain_id)
 );
 -- Blocked Contracts Tables
 CREATE TABLE global_blocked_contracts (
@@ -375,12 +369,12 @@ INSERT
     OR
 UPDATE
     OR DELETE ON chain_altruists FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER chain_gigastake_redirects_notify_event
+CREATE TRIGGER chain_gigastake_aliases_notify_event
 AFTER
 INSERT
     OR
 UPDATE
-    OR DELETE ON chain_gigastake_redirects FOR EACH ROW EXECUTE PROCEDURE notify_event();
+    OR DELETE ON chain_alias_domains FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER chain_checks_notify_event
 AFTER
 INSERT

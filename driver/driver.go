@@ -83,7 +83,7 @@ type (
 		/* ActivateChain toggles Chain.Active field on or off. */
 		SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error)
 		/* RemoveGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
-		RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.RedirectDomain) error
+		RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.ChainDomain) error
 
 		/* WriteBlockedContract adds a new blocked address to the global blocked contracts table. */
 		WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error

@@ -2,7 +2,6 @@ package legacyadapters
 
 import (
 	"fmt"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,22 +18,24 @@ Once the V2 migration is completed this package may be removed from this repo.
 */
 
 /* V2 Struct to Legacy Struct Adaptors */
-func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, accountUsers map[v2Types.UserID]v2Types.AccountUserAccess) v1Types.LoadBalancer {
+func ConvertPortalAppToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, accountUsers map[v2Types.UserID]v2Types.AccountUserAccess) v1Types.LoadBalancer {
 	var userID string
 
 	var users []v1Types.UserAccess
 	for _, accountUser := range accountUsers {
 		for portalAppID, roleName := range accountUser.PortalAppRoles {
-			if portalAppID == a.ID && roleName == v2Types.RoleOwner {
-				userID = string(accountUser.UserID)
-			}
+			if portalAppID == a.ID {
+				users = append(users, v1Types.UserAccess{
+					UserID:   string(accountUser.UserID),
+					Email:    string(accountUser.Email),
+					RoleName: v1Types.RoleName(roleName),
+					Accepted: accountUser.Accepted,
+				})
 
-			users = append(users, v1Types.UserAccess{
-				UserID:   string(accountUser.UserID),
-				Email:    string(accountUser.Email),
-				RoleName: v1Types.RoleName(roleName),
-				Accepted: accountUser.Accepted,
-			})
+				if roleName == v2Types.RoleOwner {
+					userID = string(accountUser.UserID)
+				}
+			}
 
 		}
 	}
@@ -46,7 +47,7 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, a
 		AccountID:    string(account.ID),
 		Name:         a.Name,
 		UserID:       userID,
-		Applications: ConvertToLegacyApplications(a, userID),
+		Applications: ConvertPortalAppToLegacyApplications(a, userID),
 		Users:        users,
 		Integrations: v1Types.AccountIntegrations{
 			CovalentAPIKeyFree: account.Integrations.CovalentAPIKeyFree,
@@ -60,7 +61,7 @@ func ConvertToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, a
 	}
 }
 
-func ConvertToLegacyApplications(a v2Types.PortalApp, userID string) []*v1Types.Application {
+func ConvertPortalAppToLegacyApplications(a v2Types.PortalApp, userID string) []*v1Types.Application {
 	baseApp := v1Types.Application{
 		UserID:          userID,
 		Name:            a.Name,
@@ -103,7 +104,7 @@ func ConvertToLegacyApplications(a v2Types.PortalApp, userID string) []*v1Types.
 	return legacyApps
 }
 
-func ConvertToLegacyApplication(a v2Types.PortalApp, userID string, protocolAppID v2Types.ProtocolAppID) v1Types.Application {
+func ConvertPortalAppToLegacyApplication(a v2Types.PortalApp, userID string, protocolAppID v2Types.ProtocolAppID) v1Types.Application {
 	aat := a.AATs[protocolAppID]
 
 	return v1Types.Application{
@@ -188,14 +189,64 @@ func ConvertToLegacyGatewaySettings(a v2Types.PortalApp) v1Types.GatewaySettings
 	return gatewaySettings
 }
 
+func ConvertChainToLegacyGigastakeLoadBalancer(c v2Types.Chain) v1Types.LoadBalancer {
+	var chainLBID string
+	var apps []*v1Types.Application
+
+	for _, app := range c.GigastakeApps {
+		if chainLBID == "" {
+			chainLBID = string(app.LegacyLBID)
+		}
+
+		apps = append(apps, ConvertGigastakeAppToLegacyApplication(app))
+	}
+
+	return v1Types.LoadBalancer{
+		ID:           chainLBID,
+		Applications: apps,
+		CreatedAt:    c.CreatedAt,
+		UpdatedAt:    c.UpdatedAt,
+		Gigastake:    true,
+	}
+}
+
+func ConvertGigastakeAppToLegacyApplication(a *v2Types.GigastakeApp) *v1Types.Application {
+	return &v1Types.Application{
+		ID:   string(a.AATID),
+		Name: a.Name,
+		GatewayAAT: v1Types.GatewayAAT{
+			Address:              a.AAT.Address,
+			ApplicationPublicKey: a.AAT.PublicKey,
+			ApplicationSignature: a.AAT.Signature,
+			ClientPublicKey:      a.AAT.ClientPublicKey,
+			PrivateKey:           a.AAT.PrivateKey,
+			Version:              a.AAT.Version,
+		},
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+	}
+}
+
 func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
+	var redirectLBID string
+	for _, gigastakeApp := range c.GigastakeApps {
+		if gigastakeApp.LegacyLBID != "" {
+			redirectLBID = string(gigastakeApp.LegacyLBID)
+		}
+	}
+
 	var redirects []v1Types.Redirect
-	for _, chainRedirect := range c.Redirects {
-		redirects = append(redirects, v1Types.Redirect{
-			Alias:          chainRedirect.Alias,
-			Domain:         string(chainRedirect.Domain),
-			LoadBalancerID: string(chainRedirect.PortalApplicationID),
-		})
+	var aliases []string
+	for alias, domains := range c.AliasDomains {
+		for _, domain := range domains {
+			redirects = append(redirects, v1Types.Redirect{
+				Alias:          string(alias),
+				Domain:         string(domain),
+				LoadBalancerID: string(redirectLBID),
+			})
+		}
+
+		aliases = append(aliases, string(alias))
 	}
 
 	altruistURL := ""
@@ -218,7 +269,7 @@ func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
 		EnforceResult:     c.EnforceResult,
 		Path:              c.Path,
 		Ticker:            c.Ticker,
-		BlockchainAliases: c.ChainAliases,
+		BlockchainAliases: aliases,
 		LogLimitBlocks:    int(c.LogLimitBlocks),
 		RequestTimeout:    int(c.RequestTimeout),
 		Active:            c.Active,
@@ -425,119 +476,6 @@ func getAuthType(userID string) v2Types.AuthType {
 		return v2Types.AuthTypeAuth0Username
 	default:
 		return v2Types.AuthTypeAuth0Github
-	}
-}
-
-func ConvertToV2Chain(b v1Types.Blockchain) v2Types.Chain {
-	checks := map[v2Types.ChainCheckType]v2Types.Check{
-		v2Types.ChainCheckTypeSync: {
-			Type:      v2Types.ChainCheckTypeSync,
-			Payload:   b.SyncCheckOptions.Body,
-			ResultKey: b.SyncCheckOptions.ResultKey,
-			Allowance: int32(b.SyncCheckOptions.Allowance),
-		},
-	}
-	if b.ChainIDCheck != "" {
-		chainID, _ := strconv.Atoi(b.ChainID)
-		evmChainID := int32(chainID)
-
-		checks[v2Types.ChainCheckTypeChain] = v2Types.Check{
-			Payload:    b.ChainIDCheck,
-			EVMChainID: evmChainID,
-		}
-	}
-
-	altruist := parseAltruistURL(b.Altruist)
-
-	domains := []v2Types.RedirectDomain{}
-
-	redirects := []v2Types.GigastakeRedirect{}
-	for _, redirect := range b.Redirects {
-		redirects = append(redirects, v2Types.GigastakeRedirect{
-			PortalApplicationID: v2Types.PortalAppID(redirect.LoadBalancerID),
-			Domain:              v2Types.RedirectDomain(redirect.Domain),
-			Alias:               redirect.Alias,
-		})
-
-		domains = append(domains, v2Types.RedirectDomain(redirect.Domain))
-	}
-
-	return v2Types.Chain{
-		ID:                       v2Types.RelayChainID(b.ID),
-		Blockchain:               b.Blockchain,
-		Description:              b.Description,
-		EnforceResult:            b.EnforceResult,
-		Path:                     b.Path,
-		Ticker:                   b.Ticker,
-		ChainAliases:             b.BlockchainAliases,
-		LogLimitBlocks:           int32(b.LogLimitBlocks),
-		RequestTimeout:           int32(b.RequestTimeout),
-		Active:                   b.Active,
-		Altruists:                []v2Types.Altruist{altruist},
-		GigastakeRedirectDomains: domains,
-		Redirects:                redirects,
-		Checks:                   checks,
-		CreatedAt:                b.CreatedAt,
-		UpdatedAt:                b.UpdatedAt,
-	}
-}
-
-func parseAltruistURL(rawURL string) v2Types.Altruist {
-	parsedURL, _ := url.Parse(rawURL)
-
-	auth := ""
-	authType := v2Types.ChainAuthTypeNone
-
-	if parsedURL.User != nil {
-		auth = parsedURL.User.String()
-		parsedURL.User = nil
-		authType = v2Types.ChainAuthTypeBasicAuth
-	}
-
-	altruistURL := v2Types.AltruistURL(strings.TrimPrefix(parsedURL.String(), "//"))
-
-	return v2Types.Altruist{
-		URL:      altruistURL,
-		Auth:     auth,
-		AuthType: authType,
-	}
-}
-
-func ConvertToV2UpdateChain(blockchainID string, u v1Types.UpdateBlockchain) v2Types.Chain {
-	var allowance int32
-	if u.Allowance != nil {
-		allowance = int32(*u.Allowance)
-	}
-
-	checks := map[v2Types.ChainCheckType]v2Types.Check{
-		v2Types.ChainCheckTypeSync: {Type: v2Types.ChainCheckTypeSync, Payload: u.Body, ResultKey: u.ResultKey, Allowance: allowance},
-	}
-	if u.ChainIDCheck != "" {
-		checks[v2Types.ChainCheckTypeChain] = v2Types.Check{Payload: u.ChainIDCheck}
-	}
-
-	altruist := parseAltruistURL(u.Altruist)
-
-	return v2Types.Chain{
-		ID:             v2Types.RelayChainID(blockchainID),
-		Blockchain:     u.Blockchain,
-		Description:    u.Description,
-		EnforceResult:  u.EnforceResult,
-		Path:           u.Path,
-		Ticker:         u.Ticker,
-		ChainAliases:   u.BlockchainAliases,
-		LogLimitBlocks: int32(u.LogLimitBlocks),
-		RequestTimeout: int32(u.RequestTimeout),
-		Altruists:      []v2Types.Altruist{altruist},
-		Checks:         checks,
-	}
-}
-
-func ConvertToV2Redirect(r v1Types.Redirect) v2Types.GigastakeRedirect {
-	return v2Types.GigastakeRedirect{
-		PortalApplicationID: v2Types.PortalAppID(r.LoadBalancerID),
-		Alias:               r.Alias,
-		Domain:              v2Types.RedirectDomain(r.Domain),
 	}
 }
 
