@@ -437,8 +437,8 @@ func ConvertToV2UpdatePortalApp(u v1Types.UpdateApplication, lbID string) v2Type
 	return update
 }
 
-func ConvertToV2AccountUserAccess(u v1Types.UserAccess) v2Types.AccountUserAccess {
-	portalAppID := v2Types.PortalAppID(u.ID)
+func ConvertToV2AccountUserAccess(u v1Types.UserAccess, lbID string) v2Types.AccountUserAccess {
+	portalAppID := v2Types.PortalAppID(lbID)
 
 	userAccess := v2Types.AccountUserAccess{
 		UserID:   v2Types.UserID(u.UserID),

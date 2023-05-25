@@ -171,18 +171,20 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 	tests := []struct {
 		name                        string
 		userAccess                  v1Types.UserAccess
+		lbID                        string
 		expectedV2AccountUserAccess v2Types.AccountUserAccess
 	}{
 		{
 			name:                        "Should convert a legacy Redirect struct to a V2 ChainGigastakesRedirect struct",
 			userAccess:                  testdata.LegacyUserAccess,
+			lbID:                        "test_app_1",
 			expectedV2AccountUserAccess: testdata.AccountUserAccess[1],
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			v2AccountUserAccess := ConvertToV2AccountUserAccess(test.userAccess)
+			v2AccountUserAccess := ConvertToV2AccountUserAccess(test.userAccess, test.lbID)
 
 			c.Equal(test.expectedV2AccountUserAccess, v2AccountUserAccess)
 		})
