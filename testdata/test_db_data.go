@@ -814,79 +814,6 @@ var (
 		},
 	}
 
-	// TestCreatePortalApp app used to test creation of PortalApps
-	TestCreatePortalApp = &types.PortalApp{
-		ID:        "test_app_create_208r23r",
-		AccountID: "account_4",
-		Name:      "create_pokt_app_1",
-
-		Settings: types.Settings{
-			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
-			SecretKeyRequired: true,
-		},
-		Notifications: map[types.NotificationType]types.AppNotification{
-			types.NotificationTypeEmail: types.AppNotification{
-				Active:      true,
-				Destination: "ulfric.stormcloak123@test.com",
-				Events: map[types.NotificationEvent]bool{
-					types.NotificationEventSignedUp:      true,
-					types.NotificationEventThreeQuarters: true,
-					types.NotificationEventFull:          true,
-				},
-			},
-		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
-		// TODO remove legacy fields when migration to V2 schema complete
-		LegacyFields: types.LegacyFields{
-			PlanType:           types.FreetierV0,
-			DailyLimit:         250_000,
-			CustomLimit:        0,
-			RequestTimeout:     15_000,
-			FirstDateSurpassed: MockTimestamp,
-		},
-	}
-
-	TestCreatePortalAppAAT = types.AAT{
-		Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
-		PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
-		ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
-		PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
-		Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
-		Version:         "0.0.1",
-	}
-
-	// TestUpdatePortalApp app used to test updates of PortalApps
-	TestUpdatePortalApp = &types.PortalApp{
-		ID:        "test_app_update_b03ca84c",
-		AccountID: "account_1",
-		Name:      "", // name set in test
-		AATs: map[types.ProtocolAppID]types.AAT{
-			"test_protocol_app_1": {
-				ID:              "test_protocol_app_1",
-				Address:         "test_7d0cd2743543a6200e41224594954b06",
-				PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
-				ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
-				PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
-				Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
-				Version:         "0.0.1",
-			},
-		},
-		Settings: types.Settings{
-			Environment:       types.EnvironmentProduction,
-			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
-			SecretKeyRequired: true,
-		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
-		LegacyFields: types.LegacyFields{
-			CustomLimit:        0,
-			RequestTimeout:     5_000,
-			FirstDateSurpassed: MockTimestamp,
-		},
-	}
-
 	Chains = map[types.RelayChainID]*types.Chain{
 		"0001": {
 			ID:            "0001",
@@ -1039,6 +966,66 @@ var (
 		},
 	}
 
+	/* ----- Create Data ----- */
+
+	// TestCreatePortalApp app used to test creation of PortalApps
+	TestCreatePortalApp = &types.PortalApp{
+		ID:        "test_app_create_208r23r",
+		AccountID: "account_4",
+		Name:      "create_pokt_app_1",
+
+		Settings: types.Settings{
+			Environment:       types.EnvironmentProduction,
+			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
+			SecretKeyRequired: true,
+		},
+		Notifications: map[types.NotificationType]types.AppNotification{
+			types.NotificationTypeEmail: types.AppNotification{
+				Active:      true,
+				Destination: "ulfric.stormcloak123@test.com",
+				Events: map[types.NotificationEvent]bool{
+					types.NotificationEventSignedUp:      true,
+					types.NotificationEventThreeQuarters: true,
+					types.NotificationEventFull:          true,
+				},
+			},
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+		// TODO remove legacy fields when migration to V2 schema complete
+		LegacyFields: types.LegacyFields{
+			PlanType:           types.FreetierV0,
+			DailyLimit:         250_000,
+			CustomLimit:        0,
+			RequestTimeout:     15_000,
+			FirstDateSurpassed: MockTimestamp,
+		},
+	}
+
+	TestCreatePortalAppAAT = types.AAT{
+		Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
+		PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
+		ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
+		PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
+		Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
+		Version:         "0.0.1",
+	}
+
+	TestCreateGigastakeApp = types.GigastakeApp{
+		ChainID: "0001",
+		Name:    "pokt_create_gigastake",
+		AAT: types.AAT{
+			Gigastake:       true,
+			Address:         "test_a3b8d425877f4ec8b679f9e10251bb5a",
+			PublicKey:       "test_c96f50fa372c48509a5cbfc6ba3e17bd",
+			PrivateKey:      "test_3f2a8c174ff24a4e8756f72b6e6f32c4",
+			ClientPublicKey: "test_e920176d37b94cc88f597a4db41b5e74",
+			Signature:       "test_0b5b7ef3c63b473689f0f9d9d8f5c2c1",
+			Version:         "0.0.1",
+		},
+		LegacyLBID: "legacy_lb_10",
+	}
+
 	// TestCreateChain used to test creation of Chains
 	TestCreateChain = &types.Chain{
 		ID:            "0006",
@@ -1090,6 +1077,36 @@ var (
 	}
 
 	/* ----- Update Data ----- */
+
+	// TestUpdatePortalApp app used to test updates of PortalApps
+	TestUpdatePortalApp = &types.PortalApp{
+		ID:        "test_app_update_b03ca84c",
+		AccountID: "account_1",
+		Name:      "", // name set in test
+		AATs: map[types.ProtocolAppID]types.AAT{
+			"test_protocol_app_1": {
+				ID:              "test_protocol_app_1",
+				Address:         "test_7d0cd2743543a6200e41224594954b06",
+				PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
+				ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
+				PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
+				Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
+				Version:         "0.0.1",
+			},
+		},
+		Settings: types.Settings{
+			Environment:       types.EnvironmentProduction,
+			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
+			SecretKeyRequired: true,
+		},
+		CreatedAt: MockTimestamp,
+		UpdatedAt: MockTimestamp,
+		LegacyFields: types.LegacyFields{
+			CustomLimit:        0,
+			RequestTimeout:     5_000,
+			FirstDateSurpassed: MockTimestamp,
+		},
+	}
 
 	UpdatePortalAppName     = "portal-app-updated"
 	UpdatePortalAppSettings = &types.UpdateAppSettings{

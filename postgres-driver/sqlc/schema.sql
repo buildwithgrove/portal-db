@@ -232,7 +232,17 @@ CREATE TABLE IF NOT EXISTS aats (
     client_public_key VARCHAR(64) NOT NULL,
     signature VARCHAR(128) NOT NULL,
     private_key VARCHAR(400) NULL,
-    version VARCHAR(10) NOT NULL
+    version VARCHAR(10) NOT NULL,
+    CONSTRAINT check_portal_application_id_gigastake CHECK (
+        (
+            gigastake = TRUE
+            AND portal_application_id IS NULL
+        )
+        OR (
+            gigastake = FALSE
+            AND portal_application_id IS NOT NULL
+        )
+    )
 );
 -- Gigastake Applications Table
 CREATE TABLE IF NOT EXISTS gigastake_applications (

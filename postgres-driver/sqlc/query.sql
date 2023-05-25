@@ -540,7 +540,8 @@ SELECT 'OWNER'
 WHERE EXISTS (
         SELECT 1
         FROM accounts
-        WHERE owner_id = $1 AND accounts.id = @account_id
+        WHERE owner_id = $1
+            AND accounts.id = @account_id
     );
 -- name: CheckAccountUserAccepted :one
 SELECT accepted
@@ -890,7 +891,7 @@ INSERT INTO aats (
         private_key,
         version
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+VALUES ($1, true, $2, $3, $4, $5, $6, $7);
 -- name: UpsertGigastakeApp :exec
 INSERT INTO gigastake_applications (
         aat_id,

@@ -64,6 +64,7 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 	}
 
 	gigastakeApp.AATID = types.ProtocolAppID(protocolAppID)
+	gigastakeApp.AAT.ID = types.ProtocolAppID(protocolAppID)
 	gigastakeApp.CreatedAt = createdAt
 	gigastakeApp.UpdatedAt = createdAt
 
@@ -113,17 +114,14 @@ func (pg *PostgresDriver) upsertGigastakeApp(ctx context.Context, qtx *Queries, 
 
 // upsertAAT performs an upsert operation on the AAT table in the database
 func (pg *PostgresDriver) insertGigastakeAAT(ctx context.Context, qtx *Queries, gigastakeApp types.GigastakeApp) error {
-	aat := gigastakeApp.AAT
-
 	err := qtx.InsertGigastakeAAT(ctx, InsertGigastakeAATParams{
-		ID:              aat.ID,
-		Gigastake:       aat.Gigastake,
-		Address:         aat.Address,
-		PublicKey:       aat.PublicKey,
-		ClientPublicKey: aat.ClientPublicKey,
-		PrivateKey:      newSQLNullString(aat.PrivateKey),
-		Signature:       aat.Signature,
-		Version:         aat.Version,
+		ID:              gigastakeApp.AATID,
+		Address:         gigastakeApp.AAT.Address,
+		PublicKey:       gigastakeApp.AAT.PublicKey,
+		ClientPublicKey: gigastakeApp.AAT.ClientPublicKey,
+		PrivateKey:      newSQLNullString(gigastakeApp.AAT.PrivateKey),
+		Signature:       gigastakeApp.AAT.Signature,
+		Version:         gigastakeApp.AAT.Version,
 	})
 	if err != nil {
 		return err

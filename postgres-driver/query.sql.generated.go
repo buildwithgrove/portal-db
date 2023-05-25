@@ -737,12 +737,11 @@ INSERT INTO aats (
         private_key,
         version
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+VALUES ($1, true, $2, $3, $4, $5, $6, $7)
 `
 
 type InsertGigastakeAATParams struct {
 	ID              types.ProtocolAppID `json:"id"`
-	Gigastake       bool                `json:"gigastake"`
 	Address         string              `json:"address"`
 	PublicKey       string              `json:"public_key"`
 	ClientPublicKey string              `json:"client_public_key"`
@@ -754,7 +753,6 @@ type InsertGigastakeAATParams struct {
 func (q *Queries) InsertGigastakeAAT(ctx context.Context, arg InsertGigastakeAATParams) error {
 	_, err := q.db.ExecContext(ctx, insertGigastakeAAT,
 		arg.ID,
-		arg.Gigastake,
 		arg.Address,
 		arg.PublicKey,
 		arg.ClientPublicKey,

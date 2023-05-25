@@ -181,7 +181,6 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 /* ----- postgresdriver PortalApp Create Methods ----- */
 
 // WritePortalApp creates a single PortalApp in the database, including its AAT and Settings rows
-// TEMP - also create its legacy StickinessOptions table (TODO remove when V2 migration completed)
 func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, aat types.AAT, createdAt time.Time) (*types.PortalApp, error) {
 	portalAppID, protocolAppID, err := pg.generatePortalAppIDs(ctx)
 	if err != nil {
