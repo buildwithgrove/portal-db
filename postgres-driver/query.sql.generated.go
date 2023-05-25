@@ -630,7 +630,7 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 	return i, err
 }
 
-const insertAccountUserAccess = `-- name: InsertAccountUserAccess :exec
+const insertAccountUserAccess = `-- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users
     SET email = $7
@@ -647,6 +647,7 @@ INSERT INTO account_user_access (
         updated_at
     )
 VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING user_id
 `
 
 type InsertAccountUserAccessParams struct {
@@ -659,8 +660,8 @@ type InsertAccountUserAccessParams struct {
 	Email               types.Email       `json:"email"`
 }
 
-func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccountUserAccessParams) error {
-	_, err := q.db.ExecContext(ctx, insertAccountUserAccess,
+func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccountUserAccessParams) (types.UserID, error) {
+	row := q.db.QueryRowContext(ctx, insertAccountUserAccess,
 		arg.UserID,
 		arg.PortalApplicationID,
 		arg.RoleName,
@@ -669,10 +670,12 @@ func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccount
 		arg.UpdatedAt,
 		arg.Email,
 	)
-	return err
+	var user_id types.UserID
+	err := row.Scan(&user_id)
+	return user_id, err
 }
 
-const insertAccountUserAccessNoUser = `-- name: InsertAccountUserAccessNoUser :exec
+const insertAccountUserAccessNoUser = `-- name: InsertAccountUserAccessNoUser :one
 WITH inserted_user AS (
     INSERT INTO users (
             id,
@@ -704,6 +707,7 @@ VALUES (
         $3,
         $4
     )
+RETURNING user_id
 `
 
 type InsertAccountUserAccessNoUserParams struct {
@@ -715,8 +719,8 @@ type InsertAccountUserAccessNoUserParams struct {
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 }
 
-func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertAccountUserAccessNoUserParams) error {
-	_, err := q.db.ExecContext(ctx, insertAccountUserAccessNoUser,
+func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertAccountUserAccessNoUserParams) (types.UserID, error) {
+	row := q.db.QueryRowContext(ctx, insertAccountUserAccessNoUser,
 		arg.ID,
 		arg.Email,
 		arg.CreatedAt,
@@ -724,7 +728,9 @@ func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertA
 		arg.RoleName,
 		arg.PortalApplicationID,
 	)
-	return err
+	var user_id types.UserID
+	err := row.Scan(&user_id)
+	return user_id, err
 }
 
 const insertGigastakeAAT = `-- name: InsertGigastakeAAT :exec

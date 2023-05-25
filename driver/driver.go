@@ -68,7 +68,7 @@ type (
 		SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error
 
 		/* WriteAccountUser saves input AccountUserAccess to the database. */
-		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) error
+		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (types.UserID, error)
 		/* SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin. */
 		SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error
 		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */

@@ -548,7 +548,7 @@ SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
     AND portal_application_id = $2;
--- name: InsertAccountUserAccess :exec
+-- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users
     SET email = $7
@@ -564,8 +564,9 @@ INSERT INTO account_user_access (
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6);
--- name: InsertAccountUserAccessNoUser :exec
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING user_id;
+-- name: InsertAccountUserAccessNoUser :one
 WITH inserted_user AS (
     INSERT INTO users (
             id,
@@ -596,7 +597,8 @@ VALUES (
         false,
         $3,
         $4
-    );
+    )
+RETURNING user_id;
 -- name: UpdateAccountUserRole :exec
 UPDATE account_user_access
 SET role_name = $3,

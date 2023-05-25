@@ -311,10 +311,10 @@ func (pg *PostgresDriver) validateDeleteAccountInput(ctx context.Context, accoun
 /* ----- postgresdriver AccountUserAccess Write Methods ----- */
 
 // WriteAccountUser saves a single input AccountUserAccess to the database.
-func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) error {
+func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (types.UserID, error) {
 	err := pg.validateWriteAccountUserInput(ctx, createAccountUser)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// determine if user for a given email already exists
@@ -324,25 +324,25 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUse
 
 		case sql.ErrNoRows:
 			// user with provided email does not exist in DB so create a new User and AccountUserAccess entry
-			err := pg.writeAccountUserAccessNoUser(ctx, createAccountUser, createdAt)
+			createdUserID, err := pg.writeAccountUserAccessNoUser(ctx, createAccountUser, createdAt)
 			if err != nil {
-				return err
+				return "", err
 			}
 
-			return nil
+			return createdUserID, nil
 
 		default:
-			return err
+			return "", err
 		}
 	}
 
 	// user with provided email already exists in DB so create a new AccountUserAccess entry
-	err = pg.writeAccountUserAccess(ctx, userID, createAccountUser, createdAt)
+	createdUserID, err := pg.writeAccountUserAccess(ctx, userID, createAccountUser, createdAt)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return createdUserID, nil
 }
 
 // validateWriteAccountUserInput validates the input to create a new AccountUserAccess row
@@ -385,10 +385,10 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 	ctx context.Context,
 	createAccountUser types.CreateAccountUserAccess,
 	createdAt time.Time,
-) error {
+) (types.UserID, error) {
 	id, err := pg.generateID(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 	userID := types.UserID(id)
 
@@ -401,12 +401,12 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 		UpdatedAt:           createdAt,
 	}
 
-	err = pg.InsertAccountUserAccessNoUser(ctx, params)
+	createdUserID, err := pg.InsertAccountUserAccessNoUser(ctx, params)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return createdUserID, nil
 }
 
 // writeAccountUserAccessNoUser creates a new AccountUserAccess row for an existing user
@@ -416,7 +416,7 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 	userID types.UserID,
 	createAccountUser types.CreateAccountUserAccess,
 	createdAt time.Time,
-) error {
+) (types.UserID, error) {
 	params := InsertAccountUserAccessParams{
 		UserID:              userID,
 		PortalApplicationID: createAccountUser.PortalAppID,
@@ -427,12 +427,12 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 		UpdatedAt:           createdAt,
 	}
 
-	err := pg.InsertAccountUserAccess(ctx, params)
+	createdUserID, err := pg.InsertAccountUserAccess(ctx, params)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return createdUserID, nil
 }
 
 /* ----- postgresdriver AccountUserAccess Update Methods ----- */

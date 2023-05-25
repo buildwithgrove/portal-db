@@ -327,28 +327,19 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			err := ts.driver.WriteAccountUser(context.Background(), test.createAccountUser, testdata.MockTimestamp)
+			userID, err := ts.driver.WriteAccountUser(context.Background(), test.createAccountUser, testdata.MockTimestamp)
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
+				ts.NotEmpty(userID)
+				test.accountUserAfterCreate.UserID = userID
+
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
 
-				exists := false
-				for _, user := range accounts[test.createAccountUser.AccountID].Users {
-					if user.Email == test.accountUserAfterCreate.Email {
-						exists = true
-
-						if test.notSignedUp {
-							ts.NotEmpty(user.UserID)
-							user.UserID = "" // only care that the user ID was created, can't predict what it will be
-						}
-
-						ts.Equal(test.accountUserAfterCreate, user)
-						break
-					}
-				}
-				ts.True(exists)
+				user := accounts[test.createAccountUser.AccountID].Users[userID]
+				ts.NotEmpty(user)
+				ts.Equal(test.accountUserAfterCreate, user)
 			}
 		})
 	}
@@ -794,15 +785,14 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 			if test.err == nil {
 				if test.userID == types.UserID("") {
 					// create test User to delete
-					err := ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
+					userID, err := ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
 						AccountID:   test.accountID,
 						PortalAppID: test.portalAppID,
 						Email:       "hermaeus.mora@example.com",
 						RoleName:    types.RoleMember,
-					}, time.Now())
+					}, testdata.MockTimestamp)
 					ts.NoError(err)
-					test.userID, err = ts.driver.GetLastCreatedUserID(context.Background())
-					ts.NoError(err)
+					test.userID = userID
 				}
 
 				// check all Accounts exist before delete
