@@ -129,8 +129,8 @@ type (
 	}
 
 	CreateUserResponse struct {
-		User        User        `json:"user"`
-		PortalAppID PortalAppID `json:"portalAppID"`
+		User      User      `json:"user"`
+		AccountID AccountID `json:"accountID"`
 	}
 )
 

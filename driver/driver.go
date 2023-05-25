@@ -74,7 +74,7 @@ type (
 		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
 		UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error
 		/* RemoveAccountUser deletes a AccountUserAccess row for a given user and account ID. */
-		RemoveAccountUser(ctx context.Context, userID types.UserID, accountID types.AccountID) error
+		RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error
 
 		/* WriteChain saves input Chain struct to the database. */
 		WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error)

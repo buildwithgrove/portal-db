@@ -258,13 +258,13 @@ func (_m *MockDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID
 	return r0, r1
 }
 
-// RemoveAccountUser provides a mock function with given fields: ctx, userID, accountID
-func (_m *MockDriver) RemoveAccountUser(ctx context.Context, userID types.UserID, accountID types.AccountID) error {
-	ret := _m.Called(ctx, userID, accountID)
+// RemoveAccountUser provides a mock function with given fields: ctx, userID, portalAppID, accountID
+func (_m *MockDriver) RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error {
+	ret := _m.Called(ctx, userID, portalAppID, accountID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.AccountID) error); ok {
-		r0 = rf(ctx, userID, accountID)
+	if rf, ok := ret.Get(0).(func(context.Context, types.UserID, types.PortalAppID, types.AccountID) error); ok {
+		r0 = rf(ctx, userID, portalAppID, accountID)
 	} else {
 		r0 = ret.Error(0)
 	}
