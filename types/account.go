@@ -30,7 +30,6 @@ type (
 
 	// AccountUserAccess represents a single Portal user for a single Account
 	AccountUserAccess struct {
-		AccountID      AccountID                `json:"accountID,omitempty"`
 		UserID         UserID                   `json:"userID"`
 		Email          Email                    `json:"email"`
 		Accepted       bool                     `json:"accepted"`
