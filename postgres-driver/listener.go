@@ -150,7 +150,7 @@ func (n notification) parseChainCheckNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseChainGigastakeAliasNotification() *types.Notification {
+func (n notification) parseChainAliasDomainsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbAlias dbChainAliasDomains
 	_ = json.Unmarshal(rawData, &dbAlias)
@@ -234,8 +234,8 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseChainNotification()
 	case types.TableChainAltruists:
 		return n.parseChainAltruistNotification()
-	case types.TableChainGigastakeAliases:
-		return n.parseChainGigastakeAliasNotification()
+	case types.TableChainAliasDomains:
+		return n.parseChainAliasDomainsNotification()
 	case types.TableChainChecks:
 		return n.parseChainCheckNotification()
 
