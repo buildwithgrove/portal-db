@@ -393,8 +393,8 @@ func (json dbChainCheck) toOutput() *types.Check {
 	}
 }
 
-func (json dbChainGigastakeAlias) toOutput() *types.Aliases {
-	return &types.Aliases{
+func (json dbChainAliasDomains) toOutput() *types.AliasDomains {
+	return &types.AliasDomains{
 		ChainID: json.ChainID,
 		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
 			json.ChainAlias: json.AliasDomains,
@@ -443,7 +443,7 @@ type dbChainCheck struct {
 	UpdatedAt  time.Time            `json:"updated_at"`
 }
 
-type dbChainGigastakeAlias struct {
+type dbChainAliasDomains struct {
 	ChainID      types.RelayChainID  `json:"chain_id"`
 	ChainAlias   types.ChainAlias    `json:"alias"`
 	AliasDomains []types.ChainDomain `json:"domains"`

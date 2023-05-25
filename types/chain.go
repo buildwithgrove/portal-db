@@ -103,7 +103,7 @@ type (
 		EVMChainID int32          `json:"evmChainID"`
 	}
 	// Used for mapping listener notification
-	Aliases struct {
+	AliasDomains struct {
 		ChainID      RelayChainID                 `json:"chainID,omitempty"`
 		AliasDomains map[ChainAlias][]ChainDomain `json:"domains"`
 	}
@@ -174,6 +174,6 @@ func (c *Check) Table() Table {
 	return TableChainChecks
 }
 
-func (c *Aliases) Table() Table {
+func (c *AliasDomains) Table() Table {
 	return TableChainGigastakeAliases
 }

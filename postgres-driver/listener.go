@@ -152,7 +152,7 @@ func (n notification) parseChainCheckNotification() *types.Notification {
 
 func (n notification) parseChainGigastakeAliasNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAlias dbChainGigastakeAlias
+	var dbAlias dbChainAliasDomains
 	_ = json.Unmarshal(rawData, &dbAlias)
 
 	return &types.Notification{

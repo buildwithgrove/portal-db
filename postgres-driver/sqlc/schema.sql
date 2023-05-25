@@ -71,7 +71,9 @@ CREATE TABLE accounts (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
-    deleted_at TIMESTAMPTZ NULL
+    deleted_at TIMESTAMPTZ NULL,
+    -- temp field
+    lb_ids VARCHAR []
 );
 CREATE TABLE IF NOT EXISTS account_integrations (
     id INT GENERATED ALWAYS AS IDENTITY,
@@ -369,7 +371,7 @@ INSERT
     OR
 UPDATE
     OR DELETE ON chain_altruists FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER chain_gigastake_aliases_notify_event
+CREATE TRIGGER chain_alias_domains_notify_event
 AFTER
 INSERT
     OR

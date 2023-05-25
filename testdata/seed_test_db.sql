@@ -482,8 +482,7 @@ INSERT INTO account_user_access (
         created_at,
         updated_at
     )
-VALUES
-    (
+VALUES (
         'user_2',
         'test_app_1',
         'ADMIN',
@@ -976,26 +975,25 @@ INSERT INTO chain_alias_domains (
         alias,
         domains
     )
-VALUES
-    (
+VALUES (
         '0001',
         'pokt-mainnet',
-        ARRAY['pokt-rpc.gateway.pokt.network']
+        ARRAY ['pokt-rpc.gateway.pokt.network']
     ),
     (
         '0053',
         'optimism-mainnet',
-        ARRAY['op-rpc.gateway.pokt.network']
+        ARRAY ['op-rpc.gateway.pokt.network']
     ),
     (
         '0021',
         'eth-mainnet',
-        ARRAY['eth-rpc.gateway.pokt.network']
+        ARRAY ['eth-rpc.gateway.pokt.network']
     ),
     (
         '0040',
         'harmony-0',
-        ARRAY['hmy-rpc.gateway.pokt.network']
+        ARRAY ['hmy-rpc.gateway.pokt.network']
     );
 INSERT INTO gigastake_applications (
         aat_id,
