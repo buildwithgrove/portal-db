@@ -68,7 +68,7 @@ type (
 		SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error
 
 		/* WriteAccountUser saves input AccountUserAccess to the database. */
-		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (*types.AccountUserAccess, error)
+		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) error
 		/* SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin. */
 		SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error
 		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
@@ -82,8 +82,6 @@ type (
 		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */
 		SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error)
-		/* RemoveGigastakeRedirect removes a single GigastakeRedirect for a given Chain. */
-		RemoveGigastakeRedirect(ctx context.Context, chainID types.RelayChainID, portalApplicationID types.PortalAppID, domain types.ChainDomain) error
 
 		/* WriteBlockedContract adds a new blocked address to the global blocked contracts table. */
 		WriteBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress, createdAt time.Time) error
