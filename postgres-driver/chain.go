@@ -396,9 +396,8 @@ func (json dbChainCheck) toOutput() *types.Check {
 func (json dbChainAliasDomains) toOutput() *types.AliasDomains {
 	return &types.AliasDomains{
 		ChainID: json.ChainID,
-		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-			json.ChainAlias: json.AliasDomains,
-		},
+		Alias:   json.ChainAlias,
+		Domains: json.AliasDomains,
 	}
 }
 
