@@ -1,10 +1,7 @@
 package postgresdriver
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/testdata"
@@ -66,24 +63,11 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 			test.gigastakeApp.AAT.ID = createdGigastakeApp.AATID
 			test.gigastakeApp.CreatedAt = createdGigastakeApp.CreatedAt
 			test.gigastakeApp.UpdatedAt = createdGigastakeApp.UpdatedAt
-			Plog(&test.gigastakeApp, createdGigastakeApp)
 			ts.Equal(&test.gigastakeApp, createdGigastakeApp)
 
 			gigastakeApps, err := ts.driver.ReadGigastakeApps(context.Background(), types.DriverOptions{})
 			ts.NoError(err)
 			ts.Equal(&test.gigastakeApp, gigastakeApps[test.gigastakeApp.AATID])
 		})
-	}
-}
-
-func Plog(args ...interface{}) {
-	for _, arg := range args {
-		var prettyJSON bytes.Buffer
-		jsonArg, _ := json.Marshal(arg)
-		str := string(jsonArg)
-		_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
-		output := prettyJSON.String()
-
-		fmt.Println(output)
 	}
 }

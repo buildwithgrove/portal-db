@@ -109,28 +109,26 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 
 	if sideTablesAction != "" {
 		for _, userAccess := range account.Users {
-			if userAccess.UserID == account.OwnerID {
-				var portalAppID types.PortalAppID
-				var roleName types.RoleName
-				for id, role := range userAccess.PortalAppRoles {
-					if role == types.RoleOwner {
-						portalAppID = id
-						roleName = role
-						break
-					}
+			var portalAppID types.PortalAppID
+			var roleName types.RoleName
+			for id, role := range userAccess.PortalAppRoles {
+				if role == types.RoleOwner {
+					portalAppID = id
+					roleName = role
+					break
 				}
-				inputs = append(inputs, inputStruct{
-					action: sideTablesAction,
-					table:  types.TableAccountUserAccess,
-					input: dbAccountUserAccess{
-						AccountID:           account.ID,
-						UserID:              userAccess.UserID,
-						PortalApplicationID: portalAppID,
-						RoleName:            roleName,
-						Accepted:            userAccess.Accepted,
-					},
-				})
 			}
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableAccountUserAccess,
+				input: dbAccountUserAccess{
+					AccountID:           account.ID,
+					UserID:              userAccess.UserID,
+					PortalApplicationID: portalAppID,
+					RoleName:            roleName,
+					Accepted:            userAccess.Accepted,
+				},
+			})
 		}
 	}
 
@@ -290,6 +288,18 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 					ResultKey:  check.ResultKey,
 					Allowance:  check.Allowance,
 					EVMChainID: check.EVMChainID,
+				},
+			})
+		}
+
+		for alias, domains := range chain.AliasDomains {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableChainAliasDomains,
+				input: dbChainAliasDomains{
+					ChainID: chain.ID,
+					Alias:   alias,
+					Domains: domains,
 				},
 			})
 		}

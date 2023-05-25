@@ -18,17 +18,17 @@ func Test_Listen(t *testing.T) {
 	}{
 		{
 			name:    "Should process Account notifications",
-			content: testdata.Accounts["account_1"],
+			content: testdata.Accounts["account_4"],
 			expectedNotifications: map[types.Table]*types.Notification{
 				types.TableAccounts: {
 					Table:  types.TableAccounts,
 					Action: types.ActionInsert,
 					Data: &types.Account{
-						ID:                     "account_1",
-						PlanType:               "basic_plan",
-						PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
-						PartnerThroughputLimit: 2_000,
-						PartnerAppLimit:        1,
+						ID:                     "account_4",
+						PlanType:               "enterprise_plan",
+						PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
+						PartnerThroughputLimit: 1_000,
+						PartnerAppLimit:        2,
 						CreatedAt:              testdata.MockTimestamp,
 						UpdatedAt:              testdata.MockTimestamp,
 					},
@@ -37,12 +37,10 @@ func Test_Listen(t *testing.T) {
 					Table:  types.TableAccountUserAccess,
 					Action: types.ActionUpdate,
 					Data: &types.AccountUserAccess{
-						AccountID: "account_1",
-						UserID:    "user_1",
-						Accepted:  true,
-						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_1": types.RoleOwner,
-						},
+						AccountID:      "account_4",
+						UserID:         "user_4",
+						Accepted:       true,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{},
 					},
 				},
 			},
@@ -153,6 +151,15 @@ func Test_Listen(t *testing.T) {
 						Payload:   "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"query\"}",
 						ResultKey: "result.sync_info",
 						Allowance: 1,
+					},
+				},
+				types.TableChainAliasDomains: {
+					Table:  types.TableChainAliasDomains,
+					Action: types.ActionUpdate,
+					Data: &types.AliasDomains{
+						ChainID: "0001",
+						Alias:   "pokt-mainnet",
+						Domains: []types.ChainDomain{"pokt-rpc.gateway.pokt.network"},
 					},
 				},
 			},

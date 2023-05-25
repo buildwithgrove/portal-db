@@ -651,13 +651,16 @@ func (json dbAccount) toOutput() *types.Account {
 }
 
 func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
+	portalAppRoles := make(map[types.PortalAppID]types.RoleName)
+	if json.PortalApplicationID != "" && json.RoleName != "" {
+		portalAppRoles[json.PortalApplicationID] = json.RoleName
+	}
+
 	return &types.AccountUserAccess{
-		AccountID: json.AccountID,
-		UserID:    json.UserID,
-		Accepted:  json.Accepted,
-		PortalAppRoles: map[types.PortalAppID]types.RoleName{
-			json.PortalApplicationID: json.RoleName,
-		},
+		AccountID:      json.AccountID,
+		UserID:         json.UserID,
+		Accepted:       json.Accepted,
+		PortalAppRoles: portalAppRoles,
 	}
 }
 

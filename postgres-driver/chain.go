@@ -396,8 +396,8 @@ func (json dbChainCheck) toOutput() *types.Check {
 func (json dbChainAliasDomains) toOutput() *types.AliasDomains {
 	return &types.AliasDomains{
 		ChainID: json.ChainID,
-		Alias:   json.ChainAlias,
-		Domains: json.AliasDomains,
+		Alias:   json.Alias,
+		Domains: json.Domains,
 	}
 }
 
@@ -443,7 +443,7 @@ type dbChainCheck struct {
 }
 
 type dbChainAliasDomains struct {
-	ChainID      types.RelayChainID  `json:"chain_id"`
-	ChainAlias   types.ChainAlias    `json:"alias"`
-	AliasDomains []types.ChainDomain `json:"domains"`
+	ChainID types.RelayChainID  `json:"chain_id"`
+	Alias   types.ChainAlias    `json:"alias"`
+	Domains []types.ChainDomain `json:"domains"`
 }
