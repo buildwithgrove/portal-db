@@ -578,7 +578,7 @@ type dbPortalApplication struct {
 
 type dbPortalApplicationAAT struct {
 	ID              types.ProtocolAppID `json:"id"`
-	ApplicationID   types.PortalAppID   `json:"application_id"`
+	ApplicationID   types.PortalAppID   `json:"portal_application_id"`
 	Address         string              `json:"address"`
 	PublicKey       string              `json:"public_key"`
 	ClientPublicKey string              `json:"client_public_key"`
