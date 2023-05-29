@@ -120,6 +120,7 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 				action: sideTablesAction,
 				table:  types.TableAccountUserAccess,
 				input: dbAccountUserAccess{
+					AccountID:           account.ID,
 					UserID:              userAccess.UserID,
 					PortalApplicationID: portalAppID,
 					RoleName:            roleName,

@@ -658,6 +658,7 @@ func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
 	}
 
 	return &types.AccountUserAccess{
+		AccountID:      json.AccountID,
 		UserID:         json.UserID,
 		Accepted:       json.Accepted,
 		PortalAppRoles: portalAppRoles,
@@ -696,6 +697,7 @@ type dbAccountIntegration struct {
 type dbAccountUserAccess struct {
 	ID                  int32             `json:"id"`
 	UserID              types.UserID      `json:"user_id"`
+	AccountID           types.AccountID   `json:"account_id"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 	RoleName            types.RoleName    `json:"role_name"`
 	Accepted            bool              `json:"accepted"`
