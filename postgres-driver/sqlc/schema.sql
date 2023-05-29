@@ -215,6 +215,7 @@ WHERE chain_id IS NULL;
 CREATE TABLE account_user_access (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(10) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    account_id VARCHAR(10) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     portal_application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
     role_name VARCHAR(25) NOT NULL REFERENCES user_roles(role_name),
     accepted BOOLEAN NOT NULL,

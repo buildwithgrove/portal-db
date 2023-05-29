@@ -30,6 +30,7 @@ type (
 
 	// AccountUserAccess represents a single Portal user for a single Account
 	AccountUserAccess struct {
+		AccountID      AccountID                `json:"id,omitempty"` // used for listener
 		UserID         UserID                   `json:"userID"`
 		Email          Email                    `json:"email"`
 		Accepted       bool                     `json:"accepted"`
@@ -38,7 +39,7 @@ type (
 
 	// AccountUserAccess represents fields used for integrations with other platforms
 	AccountIntegrations struct {
-		AccountID          AccountID `json:"id,omitempty"`
+		AccountID          AccountID `json:"id,omitempty"` // used for listener
 		CovalentAPIKeyFree string    `json:"covalentAPIKeyFree"`
 		CovalentAPIKeyPaid string    `json:"covalentAPIKeyPaid"`
 	}

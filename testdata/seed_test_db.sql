@@ -476,6 +476,7 @@ VALUES (
 -- Insert account_user_access
 INSERT INTO account_user_access (
         user_id,
+        account_id,
         portal_application_id,
         role_name,
         accepted,
@@ -484,6 +485,7 @@ INSERT INTO account_user_access (
     )
 VALUES (
         'user_2',
+        'account_1',
         'test_app_1',
         'ADMIN',
         true,
@@ -492,6 +494,7 @@ VALUES (
     ),
     (
         'user_8',
+        'account_1',
         'test_app_1',
         'ADMIN',
         false,
@@ -500,6 +503,7 @@ VALUES (
     ),
     (
         'user_4',
+        'account_2',
         'test_app_2',
         'MEMBER',
         true,
@@ -508,6 +512,7 @@ VALUES (
     ),
     (
         'user_9',
+        'account_2',
         'test_app_2',
         'MEMBER',
         false,
@@ -516,6 +521,7 @@ VALUES (
     ),
     (
         'user_2',
+        'account_2',
         'test_app_2',
         'MEMBER',
         true,
@@ -524,6 +530,7 @@ VALUES (
     ),
     (
         'user_6',
+        'account_3',
         'test_app_3',
         'ADMIN',
         true,
@@ -532,6 +539,7 @@ VALUES (
     ),
     (
         'user_7',
+        'account_3',
         'test_app_3',
         'MEMBER',
         true,
@@ -540,6 +548,7 @@ VALUES (
     ),
     (
         'user_10',
+        'account_3',
         'test_app_3',
         'MEMBER',
         false,

@@ -224,97 +224,109 @@ var (
 
 	AccountUserAccess = map[int]types.AccountUserAccess{
 		1: {
-			UserID:   "user_1",
-			Email:    "james.holden123@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_1",
+			Email:     "james.holden123@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleOwner,
 			},
 		},
 		2: {
-			UserID:   "user_2",
-			Email:    "paul.atreides456@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_2",
+			Email:     "paul.atreides456@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
 		},
 		3: {
-			UserID:   "user_3",
-			Email:    "ellen.ripley789@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_3",
+			Email:     "ellen.ripley789@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleOwner,
 			},
 		},
 		4: {
-			UserID:   "user_4",
-			Email:    "ulfric.stormcloak123@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_4",
+			Email:     "ulfric.stormcloak123@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		5: {
-			UserID:   "user_5",
-			Email:    "chrisjen.avasarala1@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_5",
+			Email:     "chrisjen.avasarala1@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleOwner,
 			},
 		},
 		6: {
-			UserID:   "user_6",
-			Email:    "amos.burton789@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_6",
+			Email:     "amos.burton789@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleAdmin,
 			},
 		},
 		7: {
-			UserID:   "user_7",
-			Email:    "frodo.baggins123@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_7",
+			Email:     "frodo.baggins123@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},
 		},
 		8: {
-			UserID:   "user_8",
-			Email:    "rick.deckard456@test.com",
-			Accepted: false,
+			AccountID: "",
+			UserID:    "user_8",
+			Email:     "rick.deckard456@test.com",
+			Accepted:  false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
 		},
 		9: {
-			UserID:   "user_9",
-			Email:    "tyrion.lannister789@test.com",
-			Accepted: false,
+			AccountID: "",
+			UserID:    "user_9",
+			Email:     "tyrion.lannister789@test.com",
+			Accepted:  false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		// Paul is an admin of Account 1 as well as a member of Account 2
 		10: {
-			UserID:   "user_2",
-			Email:    "paul.atreides456@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_2",
+			Email:     "paul.atreides456@test.com",
+			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		// Ulfric is an admin of Account 2 as well as the owner of Accounts 4 and 5
 		11: {
-			UserID:   "user_4",
-			Email:    "ulfric.stormcloak123@test.com",
-			Accepted: true,
+			AccountID: "",
+			UserID:    "user_4",
+			Email:     "ulfric.stormcloak123@test.com",
+			Accepted:  true,
 		},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
 		12: {
-			UserID:   "user_10",
-			Email:    "daenerys.targaryen123@test.com",
-			Accepted: false,
+			AccountID: "",
+			UserID:    "user_10",
+			Email:     "daenerys.targaryen123@test.com",
+			Accepted:  false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},

@@ -551,20 +551,21 @@ WHERE user_id = $1
 -- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users
-    SET email = $7
+    SET email = $8
     WHERE id = $1
     RETURNING id,
         email
 )
 INSERT INTO account_user_access (
         user_id,
+        account_id,
         portal_application_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING user_id;
 -- name: InsertAccountUserAccessNoUser :one
 WITH inserted_user AS (
@@ -581,6 +582,7 @@ WITH inserted_user AS (
 )
 INSERT INTO account_user_access (
         user_id,
+        account_id,
         portal_application_id,
         role_name,
         accepted,
@@ -593,6 +595,7 @@ VALUES (
             FROM inserted_user
         ),
         $6,
+        $7,
         $5,
         false,
         $3,
@@ -614,6 +617,7 @@ WITH current_owner AS (
 insert_aua AS (
     INSERT INTO account_user_access (
             user_id,
+            account_id,
             portal_application_id,
             accepted,
             role_name,
@@ -621,6 +625,7 @@ insert_aua AS (
             updated_at
         )
     SELECT current_owner.owner_id,
+        $1,
         pa.id,
         true,
         'ADMIN',

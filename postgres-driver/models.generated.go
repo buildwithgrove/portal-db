@@ -440,6 +440,7 @@ type AccountIntegration struct {
 type AccountUserAccess struct {
 	ID                  int32             `json:"id"`
 	UserID              types.UserID      `json:"user_id"`
+	AccountID           types.AccountID   `json:"account_id"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 	RoleName            types.RoleName    `json:"role_name"`
 	Accepted            bool              `json:"accepted"`

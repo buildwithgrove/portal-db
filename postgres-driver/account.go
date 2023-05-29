@@ -394,6 +394,7 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 
 	params := InsertAccountUserAccessNoUserParams{
 		ID:                  userID,
+		AccountID:           createAccountUser.AccountID,
 		PortalApplicationID: createAccountUser.PortalAppID,
 		Email:               createAccountUser.Email,
 		RoleName:            createAccountUser.RoleName,
@@ -419,6 +420,7 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 ) (types.UserID, error) {
 	params := InsertAccountUserAccessParams{
 		UserID:              userID,
+		AccountID:           createAccountUser.AccountID,
 		PortalApplicationID: createAccountUser.PortalAppID,
 		Email:               createAccountUser.Email,
 		RoleName:            createAccountUser.RoleName,
@@ -505,7 +507,6 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 	}
 
 	// If transferring to non-OWNER role
-
 	portalAppExists, err := pg.CheckPortalAppExists(ctx, updateAccountUser.PortalAppID)
 	if err != nil {
 		return err

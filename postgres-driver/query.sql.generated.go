@@ -633,25 +633,27 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 const insertAccountUserAccess = `-- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users
-    SET email = $7
+    SET email = $8
     WHERE id = $1
     RETURNING id,
         email
 )
 INSERT INTO account_user_access (
         user_id,
+        account_id,
         portal_application_id,
         role_name,
         accepted,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING user_id
 `
 
 type InsertAccountUserAccessParams struct {
 	UserID              types.UserID      `json:"user_id"`
+	AccountID           types.AccountID   `json:"account_id"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 	RoleName            types.RoleName    `json:"role_name"`
 	Accepted            bool              `json:"accepted"`
@@ -663,6 +665,7 @@ type InsertAccountUserAccessParams struct {
 func (q *Queries) InsertAccountUserAccess(ctx context.Context, arg InsertAccountUserAccessParams) (types.UserID, error) {
 	row := q.db.QueryRowContext(ctx, insertAccountUserAccess,
 		arg.UserID,
+		arg.AccountID,
 		arg.PortalApplicationID,
 		arg.RoleName,
 		arg.Accepted,
@@ -690,6 +693,7 @@ WITH inserted_user AS (
 )
 INSERT INTO account_user_access (
         user_id,
+        account_id,
         portal_application_id,
         role_name,
         accepted,
@@ -702,6 +706,7 @@ VALUES (
             FROM inserted_user
         ),
         $6,
+        $7,
         $5,
         false,
         $3,
@@ -716,6 +721,7 @@ type InsertAccountUserAccessNoUserParams struct {
 	CreatedAt           time.Time         `json:"created_at"`
 	UpdatedAt           time.Time         `json:"updated_at"`
 	RoleName            types.RoleName    `json:"role_name"`
+	AccountID           types.AccountID   `json:"account_id"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 }
 
@@ -726,6 +732,7 @@ func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertA
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.RoleName,
+		arg.AccountID,
 		arg.PortalApplicationID,
 	)
 	var user_id types.UserID
@@ -1750,6 +1757,7 @@ WITH current_owner AS (
 insert_aua AS (
     INSERT INTO account_user_access (
             user_id,
+            account_id,
             portal_application_id,
             accepted,
             role_name,
@@ -1757,6 +1765,7 @@ insert_aua AS (
             updated_at
         )
     SELECT current_owner.owner_id,
+        $1,
         pa.id,
         true,
         'ADMIN',

@@ -437,13 +437,14 @@ func ConvertToV2UpdatePortalApp(u v1Types.UpdateApplication, lbID string) v2Type
 	return update
 }
 
-func ConvertToV2AccountUserAccess(u v1Types.UserAccess, lbID string) v2Types.AccountUserAccess {
+func ConvertToV2AccountUserAccess(u v1Types.UserAccess, lbID, accountID string) v2Types.AccountUserAccess {
 	portalAppID := v2Types.PortalAppID(lbID)
 
 	userAccess := v2Types.AccountUserAccess{
-		UserID:   v2Types.UserID(u.UserID),
-		Email:    v2Types.Email(u.Email),
-		Accepted: u.Accepted,
+		AccountID: v2Types.AccountID(accountID),
+		UserID:    v2Types.UserID(u.UserID),
+		Email:     v2Types.Email(u.Email),
+		Accepted:  u.Accepted,
 		PortalAppRoles: map[v2Types.PortalAppID]v2Types.RoleName{
 			portalAppID: v2Types.RoleName(u.RoleName),
 		},
