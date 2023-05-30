@@ -86,7 +86,7 @@ type (
 		Deleted        bool                         `json:"deleted"`
 
 		// GigastakeApps are set inside PHD
-		GigastakeApps []*GigastakeApp `json:"gigastakeApps,omitempty"`
+		GigastakeApps map[ProtocolAppID]*GigastakeApp `json:"gigastakeApps,omitempty"`
 	}
 	Altruist struct {
 		ChainID  RelayChainID  `json:"chainID,omitempty"`
@@ -109,6 +109,17 @@ type (
 		Domains []ChainDomain `json:"domains"`
 	}
 )
+
+// GetGigastakeApps returns a slice of all of a Chain's GigastakeApp AATs
+func (c *Chain) GetGigastakeAATs() []AAT {
+	gigastakeAATsSlice := []AAT{}
+
+	for _, gigastakeApp := range c.GigastakeApps {
+		gigastakeAATsSlice = append(gigastakeAATsSlice, gigastakeApp.AAT)
+	}
+
+	return gigastakeAATsSlice
+}
 
 func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
 	return c.Checks[checkType]

@@ -66,14 +66,14 @@ func Test_LegacyAdapators_ConvertToLegacyBlockchain(t *testing.T) {
 		name                     string
 		chain                    v2Types.Chain
 		expectedLegacyBlockchain v1Types.Blockchain
-		gigastakeApps            []*v2Types.GigastakeApp
+		gigastakeApps            map[v2Types.ProtocolAppID]*v2Types.GigastakeApp
 	}{
 		{
 			name:                     "Should convert a V2 Chain struct to a legacy Blockchain struct",
 			chain:                    *testdata.Chains["0001"],
 			expectedLegacyBlockchain: testdata.LegacyBlockchain,
-			gigastakeApps: []*v2Types.GigastakeApp{
-				testdata.GigastakeApps["test_gigastake_app_1"],
+			gigastakeApps: map[v2Types.ProtocolAppID]*v2Types.GigastakeApp{
+				"test_gigastake_app_1": testdata.GigastakeApps["test_gigastake_app_1"],
 			},
 		},
 	}
