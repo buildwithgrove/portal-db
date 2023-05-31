@@ -1,6 +1,8 @@
 package legacyadapters
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -10,6 +12,18 @@ import (
 	v2Types "github.com/pokt-foundation/portal-db/v2/types"
 )
 
+func Plog(args ...interface{}) {
+	for _, arg := range args {
+		var prettyJSON bytes.Buffer
+		jsonArg, _ := json.Marshal(arg)
+		str := string(jsonArg)
+		_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
+		output := prettyJSON.String()
+
+		fmt.Println(output)
+	}
+}
+
 /*
 This package exists to convert to and from between the legacy (v1) and v2 types.
 It is used in PHD to enable the use of the new V2 schema in PHD without affecting upstream services.
@@ -18,11 +32,13 @@ Once the V2 migration is completed this package may be removed from this repo.
 */
 
 /* V2 Struct to Legacy Struct Adaptors */
-func ConvertPortalAppToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account, accountUsers map[v2Types.UserID]v2Types.AccountUserAccess) v1Types.LoadBalancer {
+func ConvertPortalAppToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v1Types.LoadBalancer {
 	var userID string
 
+	// Plog("ACCOUNT.USERS", account.Users)
+
 	var users []v1Types.UserAccess
-	for _, accountUser := range accountUsers {
+	for _, accountUser := range account.Users {
 		for portalAppID, roleName := range accountUser.PortalAppRoles {
 			if portalAppID == a.ID {
 				users = append(users, v1Types.UserAccess{
@@ -39,6 +55,8 @@ func ConvertPortalAppToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.A
 
 		}
 	}
+
+	// Plog("AFTER", users, userID)
 
 	sortUsersByRole(users)
 

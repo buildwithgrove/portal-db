@@ -566,7 +566,7 @@ WITH updated_user AS (
     WHERE id = $1
     RETURNING id,
         email
-)
+) -- Must update email to trigger listener notification for users table
 INSERT INTO account_user_access (
         user_id,
         account_id,
@@ -631,8 +631,28 @@ SET role_name = $3,
     updated_at = $4
 WHERE portal_application_id = $1
     AND user_id = $2;
--- name: UpdateOldAccountOwnerToAdmin :exec
-WITH insert_old_owner_admin_rows AS (
+-- name: TransferOwnerDeleteOldRows :one
+WITH delete_old_owner_row AS (
+    DELETE FROM account_user_access
+    WHERE account_user_access.account_id = $1
+        AND role_name = 'OWNER'
+    RETURNING user_id
+),
+delete_new_owner_non_owner_rows AS (
+    DELETE FROM account_user_access
+    WHERE account_user_access.account_id = $1
+        AND user_id = @new_owner_id::VARCHAR(24)
+        AND role_name <> 'OWNER'
+)
+SELECT user_id FROM delete_old_owner_row;
+-- name: TransferOwnerCreateRows :exec
+WITH
+updated_user AS (
+    UPDATE users
+    SET email = users.email
+    WHERE id = @new_owner_id::VARCHAR(24)
+),
+insert_old_owner_admin_rows AS (
     INSERT INTO account_user_access (
             user_id,
             account_id,
@@ -643,31 +663,17 @@ WITH insert_old_owner_admin_rows AS (
             created_at,
             updated_at
         )
-    SELECT aua.user_id,
+    SELECT DISTINCT @old_owner_id::VARCHAR(24),
         aua.account_id,
         pa.id,
         'ADMIN',
         false,
-        aua.accepted,
+        true,
         aua.created_at,
         aua.updated_at
     FROM account_user_access AS aua
         JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
-        AND aua.owner = true
-),
-delete_old_owner_row AS (
-    DELETE FROM account_user_access
-    WHERE account_user_access.account_id = $1
-        AND role_name = 'OWNER'
-)
-SELECT 1;
--- name: UpdateNewAccountOwner :exec
-WITH delete_new_owner_non_owner_rows AS (
-    DELETE FROM account_user_access
-    WHERE account_user_access.account_id = $1
-        AND user_id = @new_owner_id::VARCHAR(24)
-        AND role_name <> 'OWNER'
 ),
 insert_new_owner_row AS (
     INSERT INTO account_user_access (

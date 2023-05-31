@@ -28,7 +28,7 @@ func Test_LegacyAdapators_ConvertPortalAppToLegacyLoadBalancer(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			legacyLoadBalancer := ConvertPortalAppToLegacyLoadBalancer(test.portalApp, test.account, test.account.Users)
+			legacyLoadBalancer := ConvertPortalAppToLegacyLoadBalancer(test.portalApp, test.account)
 			c.Equal(test.expectedLegacyLoadBalancer, legacyLoadBalancer)
 		})
 	}

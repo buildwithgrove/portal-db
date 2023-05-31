@@ -620,7 +620,7 @@ WITH updated_user AS (
     WHERE id = $1
     RETURNING id,
         email
-)
+) -- Must update email to trigger listener notification for users table
 INSERT INTO account_user_access (
         user_id,
         account_id,
@@ -1693,6 +1693,104 @@ func (q *Queries) SetGlobalBlockedContractActive(ctx context.Context, arg SetGlo
 	return id, err
 }
 
+const transferOwnerCreateRows = `-- name: TransferOwnerCreateRows :exec
+WITH
+updated_user AS (
+    UPDATE users
+    SET email = users.email
+    WHERE id = $4::VARCHAR(24)
+),
+insert_old_owner_admin_rows AS (
+    INSERT INTO account_user_access (
+            user_id,
+            account_id,
+            portal_application_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT DISTINCT $5::VARCHAR(24),
+        aua.account_id,
+        pa.id,
+        'ADMIN',
+        false,
+        true,
+        aua.created_at,
+        aua.updated_at
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+    WHERE aua.account_id = $1
+),
+insert_new_owner_row AS (
+    INSERT INTO account_user_access (
+            user_id,
+            account_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT $4::VARCHAR(24),
+        $1,
+        'OWNER',
+        true,
+        true,
+        $2,
+        $3
+)
+SELECT 1
+`
+
+type TransferOwnerCreateRowsParams struct {
+	AccountID  types.AccountID `json:"account_id"`
+	CreatedAt  time.Time       `json:"created_at"`
+	UpdatedAt  time.Time       `json:"updated_at"`
+	NewOwnerID string          `json:"new_owner_id"`
+	OldOwnerID string          `json:"old_owner_id"`
+}
+
+func (q *Queries) TransferOwnerCreateRows(ctx context.Context, arg TransferOwnerCreateRowsParams) error {
+	_, err := q.db.ExecContext(ctx, transferOwnerCreateRows,
+		arg.AccountID,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.NewOwnerID,
+		arg.OldOwnerID,
+	)
+	return err
+}
+
+const transferOwnerDeleteOldRows = `-- name: TransferOwnerDeleteOldRows :one
+WITH delete_old_owner_row AS (
+    DELETE FROM account_user_access
+    WHERE account_user_access.account_id = $1
+        AND role_name = 'OWNER'
+    RETURNING user_id
+),
+delete_new_owner_non_owner_rows AS (
+    DELETE FROM account_user_access
+    WHERE account_user_access.account_id = $1
+        AND user_id = $2::VARCHAR(24)
+        AND role_name <> 'OWNER'
+)
+SELECT user_id FROM delete_old_owner_row
+`
+
+type TransferOwnerDeleteOldRowsParams struct {
+	AccountID  types.AccountID `json:"account_id"`
+	NewOwnerID string          `json:"new_owner_id"`
+}
+
+func (q *Queries) TransferOwnerDeleteOldRows(ctx context.Context, arg TransferOwnerDeleteOldRowsParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, transferOwnerDeleteOldRows, arg.AccountID, arg.NewOwnerID)
+	var user_id string
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
 const updateAccountFields = `-- name: UpdateAccountFields :exec
 UPDATE accounts
 SET plan_type = COALESCE($1, plan_type),
@@ -1880,89 +1978,6 @@ func (q *Queries) UpdateInsertWhitelists(ctx context.Context, arg UpdateInsertWh
 		pq.Array(arg.Values),
 		arg.CreatedAt,
 	)
-	return err
-}
-
-const updateNewAccountOwner = `-- name: UpdateNewAccountOwner :exec
-WITH delete_new_owner_non_owner_rows AS (
-    DELETE FROM account_user_access
-    WHERE account_user_access.account_id = $1
-        AND user_id = $4::VARCHAR(24)
-        AND role_name <> 'OWNER'
-),
-insert_new_owner_row AS (
-    INSERT INTO account_user_access (
-            user_id,
-            account_id,
-            role_name,
-            owner,
-            accepted,
-            created_at,
-            updated_at
-        )
-    SELECT $4::VARCHAR(24),
-        $1,
-        'OWNER',
-        true,
-        true,
-        $2,
-        $3
-)
-SELECT 1
-`
-
-type UpdateNewAccountOwnerParams struct {
-	AccountID  types.AccountID `json:"account_id"`
-	CreatedAt  time.Time       `json:"created_at"`
-	UpdatedAt  time.Time       `json:"updated_at"`
-	NewOwnerID string          `json:"new_owner_id"`
-}
-
-func (q *Queries) UpdateNewAccountOwner(ctx context.Context, arg UpdateNewAccountOwnerParams) error {
-	_, err := q.db.ExecContext(ctx, updateNewAccountOwner,
-		arg.AccountID,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.NewOwnerID,
-	)
-	return err
-}
-
-const updateOldAccountOwnerToAdmin = `-- name: UpdateOldAccountOwnerToAdmin :exec
-WITH insert_old_owner_admin_rows AS (
-    INSERT INTO account_user_access (
-            user_id,
-            account_id,
-            portal_application_id,
-            role_name,
-            owner,
-            accepted,
-            created_at,
-            updated_at
-        )
-    SELECT aua.user_id,
-        aua.account_id,
-        pa.id,
-        'ADMIN',
-        false,
-        aua.accepted,
-        aua.created_at,
-        aua.updated_at
-    FROM account_user_access AS aua
-        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
-    WHERE aua.account_id = $1
-        AND aua.owner = true
-),
-delete_old_owner_row AS (
-    DELETE FROM account_user_access
-    WHERE account_user_access.account_id = $1
-        AND role_name = 'OWNER'
-)
-SELECT 1
-`
-
-func (q *Queries) UpdateOldAccountOwnerToAdmin(ctx context.Context, accountID types.AccountID) error {
-	_, err := q.db.ExecContext(ctx, updateOldAccountOwnerToAdmin, accountID)
 	return err
 }
 

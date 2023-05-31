@@ -459,30 +459,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 
 	// If transferring ownership of an account the former OWNER becomes an ADMIN for all the account's PortalApps
 	if updateAccountUser.RoleName == types.RoleOwner {
-		tx, err := pg.DB.Begin()
-		if err != nil {
-			return err
-		}
-		defer func() { _ = tx.Rollback() }()
-
-		qtx := pg.WithTx(tx)
-
-		err = qtx.UpdateOldAccountOwnerToAdmin(ctx, updateAccountUser.AccountID)
-		if err != nil {
-			return err
-		}
-
-		err = qtx.UpdateNewAccountOwner(ctx, UpdateNewAccountOwnerParams{
-			AccountID:  updateAccountUser.AccountID,
-			NewOwnerID: string(updateAccountUser.UserID),
-			CreatedAt:  updatedAt,
-			UpdatedAt:  updatedAt,
-		})
-		if err != nil {
-			return err
-		}
-
-		err = tx.Commit()
+		err = pg.transferOwner(ctx, updateAccountUser, updatedAt)
 		if err != nil {
 			return err
 		}
@@ -497,6 +474,54 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 		RoleName:            updateAccountUser.RoleName,
 		UpdatedAt:           updatedAt,
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// transferOwner creates a new account_user_access row for the new OWNER and updates the old OWNER to ADMIN for all the Account's PortalApps
+func (pg *PostgresDriver) transferOwner(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error {
+	tx, err := pg.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	qtx := pg.WithTx(tx)
+
+	// Disable listener trigger
+	_, err = tx.ExecContext(ctx, "ALTER TABLE account_user_access DISABLE TRIGGER account_user_access_notify_event;")
+	if err != nil {
+		return err
+	}
+	oldOwnerID, err := qtx.TransferOwnerDeleteOldRows(ctx, TransferOwnerDeleteOldRowsParams{
+		AccountID:  updateAccountUser.AccountID,
+		NewOwnerID: string(updateAccountUser.UserID),
+	})
+	if err != nil {
+		return err
+	}
+
+	// Enable listener trigger
+	_, err = tx.ExecContext(ctx, "ALTER TABLE account_user_access ENABLE TRIGGER account_user_access_notify_event;")
+	if err != nil {
+		return err
+	}
+
+	err = qtx.TransferOwnerCreateRows(ctx, TransferOwnerCreateRowsParams{
+		AccountID:  updateAccountUser.AccountID,
+		OldOwnerID: oldOwnerID,
+		NewOwnerID: string(updateAccountUser.UserID),
+		CreatedAt:  updatedAt,
+		UpdatedAt:  updatedAt,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
