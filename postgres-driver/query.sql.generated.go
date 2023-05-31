@@ -581,7 +581,7 @@ INSERT INTO accounts (
         updated_at
     )
 VALUES ($1, $2, $3, $4)
-RETURNING id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at, lb_ids
+RETURNING id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
 `
 
 type InsertAccountParams struct {
@@ -609,7 +609,6 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 		&i.UpdatedAt,
 		&i.Deleted,
 		&i.DeletedAt,
-		pq.Array(&i.LbIds),
 	)
 	return i, err
 }
@@ -987,7 +986,7 @@ app_role_agg AS (
         FULL JOIN app_role_agg_non_owner aroo ON aro.user_id = aroo.user_id
         AND aro.account_id = aroo.account_id
 )
-SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at, a.lb_ids,
+SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     json_agg(
@@ -1028,7 +1027,6 @@ type SelectAccountRow struct {
 	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deleted_at"`
-	LbIds                   []string          `json:"lb_ids"`
 	CovalentAPIKeyFree      sql.NullString    `json:"covalent_api_key_free"`
 	CovalentAPIKeyPaid      sql.NullString    `json:"covalent_api_key_paid"`
 	Users                   json.RawMessage   `json:"users"`
@@ -1047,7 +1045,6 @@ func (q *Queries) SelectAccount(ctx context.Context, id types.AccountID) (Select
 		&i.UpdatedAt,
 		&i.Deleted,
 		&i.DeletedAt,
-		pq.Array(&i.LbIds),
 		&i.CovalentAPIKeyFree,
 		&i.CovalentAPIKeyPaid,
 		&i.Users,
@@ -1084,7 +1081,7 @@ app_role_agg AS (
         FULL JOIN app_role_agg_non_owner aroo ON aro.user_id = aroo.user_id
         AND aro.account_id = aroo.account_id
 )
-SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at, a.lb_ids,
+SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     json_agg(
@@ -1128,7 +1125,6 @@ type SelectAccountsRow struct {
 	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deleted_at"`
-	LbIds                   []string          `json:"lb_ids"`
 	CovalentAPIKeyFree      sql.NullString    `json:"covalent_api_key_free"`
 	CovalentAPIKeyPaid      sql.NullString    `json:"covalent_api_key_paid"`
 	Users                   json.RawMessage   `json:"users"`
@@ -1153,7 +1149,6 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 			&i.UpdatedAt,
 			&i.Deleted,
 			&i.DeletedAt,
-			pq.Array(&i.LbIds),
 			&i.CovalentAPIKeyFree,
 			&i.CovalentAPIKeyPaid,
 			&i.Users,

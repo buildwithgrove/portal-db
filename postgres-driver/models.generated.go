@@ -424,7 +424,6 @@ type Account struct {
 	UpdatedAt               time.Time         `json:"updated_at"`
 	Deleted                 bool              `json:"deleted"`
 	DeletedAt               sql.NullTime      `json:"deleted_at"`
-	LbIds                   []string          `json:"lb_ids"`
 }
 
 type AccountIntegration struct {
