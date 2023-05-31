@@ -446,6 +446,7 @@ func ConvertToV2AccountUserAccess(u v1Types.UserAccess, lbID, accountID string) 
 		AccountID: v2Types.AccountID(accountID),
 		UserID:    v2Types.UserID(u.UserID),
 		Email:     v2Types.Email(u.Email),
+		Owner:     u.RoleName == v1Types.RoleOwner,
 		Accepted:  u.Accepted,
 		PortalAppRoles: map[v2Types.PortalAppID]v2Types.RoleName{
 			portalAppID: v2Types.RoleName(u.RoleName),

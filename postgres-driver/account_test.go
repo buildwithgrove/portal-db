@@ -1,9 +1,7 @@
 package postgresdriver
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -59,6 +57,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 				"user_1": {
 					UserID:   testdata.Users["user_1"].ID,
 					Email:    testdata.Users["user_1"].Email,
+					Owner:    true,
 					Accepted: true,
 				},
 			},
@@ -425,6 +424,7 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				"user_4": {
 					UserID:   "user_4",
 					Email:    "ulfric.stormcloak123@test.com",
+					Owner:    true,
 					Accepted: true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_2": types.RoleOwner,
@@ -449,6 +449,7 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 					UserID:   "user_3",
 					Email:    "ellen.ripley789@test.com",
 					Accepted: true,
+					Owner:    true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_2": types.RoleOwner,
 					},
@@ -753,7 +754,6 @@ func (ts *PGDriverTestSuite) Test_DeleteAccount() {
 				ts.NoError(err)
 				ts.Len(accounts, test.numAccountsBeforeDelete-1)
 				ts.Equal(test.accountsAfterDelete, accounts)
-				Plog(test.accountsAfterDelete, accounts)
 
 				// Check Account still appears if IncludeDeleted: true
 				accounts, err = ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: true})
@@ -764,18 +764,6 @@ func (ts *PGDriverTestSuite) Test_DeleteAccount() {
 				ts.Equal(accountsBeforeDelete, accounts)
 			}
 		})
-	}
-}
-
-func Plog(args ...interface{}) {
-	for _, arg := range args {
-		var prettyJSON bytes.Buffer
-		jsonArg, _ := json.Marshal(arg)
-		str := string(jsonArg)
-		_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
-		output := prettyJSON.String()
-
-		fmt.Println(output)
 	}
 }
 

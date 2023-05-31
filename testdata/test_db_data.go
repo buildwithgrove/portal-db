@@ -221,6 +221,7 @@ var (
 			AccountID: "",
 			UserID:    "user_1",
 			Email:     "james.holden123@test.com",
+			Owner:     true,
 			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleOwner,
@@ -239,6 +240,7 @@ var (
 			AccountID: "",
 			UserID:    "user_3",
 			Email:     "ellen.ripley789@test.com",
+			Owner:     true,
 			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleOwner,
@@ -257,6 +259,7 @@ var (
 			AccountID: "",
 			UserID:    "user_5",
 			Email:     "chrisjen.avasarala1@test.com",
+			Owner:     true,
 			Accepted:  true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleOwner,
@@ -313,6 +316,7 @@ var (
 			AccountID: "",
 			UserID:    "user_4",
 			Email:     "ulfric.stormcloak123@test.com",
+			Owner:     true,
 			Accepted:  true,
 		},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3

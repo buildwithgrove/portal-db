@@ -16,6 +16,7 @@ type (
 	userAccessDBRow struct {
 		UserID         string                               `json:"user_id"`
 		Email          string                               `json:"email"`
+		Owner          bool                                 `json:"owner"`
 		Accepted       bool                                 `json:"accepted"`
 		PortalAppRoles map[types.PortalAppID]types.RoleName `json:"portal_application_roles"`
 	}
@@ -109,27 +110,12 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 	users = make(map[types.UserID]types.AccountUserAccess)
 
-	// // Assign account OWNER
-	// owner := types.AccountUserAccess{
-	// 	UserID:   types.UserID(a.OwnerID),
-	// 	Email:    types.Email(a.OwnerEmail.String),
-	// 	Accepted: true,
-	// }
-	// for _, portalAppID := range a.OwnerPortalApplicationIds {
-	// 	if owner.PortalAppRoles == nil {
-	// 		owner.PortalAppRoles = make(map[types.PortalAppID]types.RoleName)
-	// 	}
-	// 	owner.PortalAppRoles[types.PortalAppID(portalAppID)] = types.RoleOwner
-	// }
-
-	// users[types.UserID(a.OwnerID)] = owner
-
-	// Assign account ADMIN/MEMBERs
 	for _, user := range userRows {
 		if user.UserID != "" {
 			users[types.UserID(user.UserID)] = types.AccountUserAccess{
 				UserID:         types.UserID(user.UserID),
 				Email:          types.Email(user.Email),
+				Owner:          user.Owner,
 				Accepted:       user.Accepted,
 				PortalAppRoles: user.PortalAppRoles,
 			}
@@ -206,6 +192,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 		types.UserID(creatorID): {
 			UserID:   types.UserID(creatorID),
 			Email:    types.Email(userEmail),
+			Owner:    true,
 			Accepted: true,
 		},
 	}
