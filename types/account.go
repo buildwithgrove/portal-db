@@ -12,7 +12,6 @@ type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
 		ID                     AccountID                    `json:"id"`
-		OwnerID                UserID                       `json:"ownerID"`
 		PlanType               PayPlanType                  `json:"planType"`
 		Users                  map[UserID]AccountUserAccess `json:"users"`
 		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
@@ -31,6 +30,7 @@ type (
 	// AccountUserAccess represents a single Portal user for a single Account
 	AccountUserAccess struct {
 		AccountID      AccountID                `json:"id,omitempty"` // used for listener
+		Owner          bool                     `json:"owner"`
 		UserID         UserID                   `json:"userID"`
 		Email          Email                    `json:"email"`
 		Accepted       bool                     `json:"accepted"`
@@ -75,12 +75,24 @@ type (
 	}
 )
 
-// GetOwnerEmail returns the Email of the Application OWNER
+// GetOwner returns the Account OWNER
 func (a *Account) GetOwner() (AccountUserAccess, error) {
-	if owner, ok := a.Users[a.OwnerID]; ok {
-		return owner, nil
+	for _, user := range a.Users {
+		if user.Owner {
+			return user, nil
+		}
 	}
 	return AccountUserAccess{}, errNoOwner
+}
+
+// GetOwnerID returns the Account OWNER's ID
+func (a *Account) GetOwnerID() (UserID, error) {
+	for _, user := range a.Users {
+		if user.Owner {
+			return user.UserID, nil
+		}
+	}
+	return UserID(""), errNoOwner
 }
 
 func (a *Account) Table() Table {

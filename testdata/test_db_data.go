@@ -129,7 +129,6 @@ var (
 	Accounts = map[types.AccountID]*types.Account{
 		"account_1": {
 			ID:       "account_1",
-			OwnerID:  "user_1",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_1": AccountUserAccess[1],
@@ -147,7 +146,6 @@ var (
 		},
 		"account_2": {
 			ID:       "account_2",
-			OwnerID:  "user_3",
 			PlanType: types.PayPlanType("pro_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_3": AccountUserAccess[3],
@@ -166,7 +164,6 @@ var (
 		},
 		"account_3": {
 			ID:       "account_3",
-			OwnerID:  "user_5",
 			PlanType: types.PayPlanType("startup_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_5":  AccountUserAccess[5],
@@ -185,7 +182,6 @@ var (
 		},
 		"account_4": {
 			ID:       "account_4",
-			OwnerID:  "user_4",
 			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -201,7 +197,6 @@ var (
 		},
 		"account_5": {
 			ID:       "account_5",
-			OwnerID:  "user_4",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -217,7 +212,6 @@ var (
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
 		PlanType:  types.PayPlanType("developer_plan"),
-		OwnerID:   "user_1",
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
 	}
@@ -1286,7 +1280,6 @@ var (
 
 	V2Account = &types.Account{
 		ID:       "account_1",
-		OwnerID:  "user_1",
 		PlanType: types.PayPlanType("basic_plan"),
 		Users: map[types.UserID]types.AccountUserAccess{
 			"user_1": AccountUserAccess[1],
@@ -1458,7 +1451,9 @@ var (
 			},
 		},
 		LegacyFields: types.LegacyFields{
-			RequestTimeout: 5000,
+			PlanType:       types.FreetierV0,
+			DailyLimit:     250_000,
+			RequestTimeout: 5_000,
 		},
 	}
 

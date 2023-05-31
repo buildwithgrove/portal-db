@@ -335,8 +335,10 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 		},
 
 		LegacyFields: v2Types.LegacyFields{
-			RequestTimeout: int32(lb.RequestTimeout),
+			PlanType:       v2Types.PayPlanType(app.Limit.PayPlan.Type),
+			DailyLimit:     int32(app.Limit.PayPlan.Limit),
 			CustomLimit:    int32(app.Limit.CustomLimit),
+			RequestTimeout: int32(lb.RequestTimeout),
 		},
 	}
 

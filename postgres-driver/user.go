@@ -145,8 +145,22 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 
 	account, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        accountID,
-		OwnerID:   createdUserID,
 		PlanType:  types.FreetierV0,
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+	})
+	if err != nil {
+		return nil, types.AccountID(""), err
+	}
+
+	// New user is Account OWNER
+	_, err = qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
+		AccountID: accountID,
+		UserID:    createdUserID,
+		Email:     user.Email,
+		RoleName:  types.RoleOwner,
+		Owner:     true,
+		Accepted:  true,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
 	})
@@ -230,44 +244,17 @@ func (pg *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.Us
 	if err != nil {
 		return nil, err
 	}
-	accountOwners, err := pg.SelectAccountOwners(ctx)
-	if err != nil {
-		return nil, err
-	}
 
 	userPermissionsMap := make(map[types.UserID]*types.UserPermissions)
 
 	for _, userRoleRow := range userRoles {
 		userID := userRoleRow.UserID
-		portalAppID := userRoleRow.PortalApplicationID
 
-		if userPermissions, ok := userPermissionsMap[userID]; ok {
-			_, err := userPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			emptyPermissions := types.UserPermissions{
-				UserID:     userID,
-				PortalApps: map[types.PortalAppID]types.PortalAppPermissions{},
-			}
-
-			permissions, err := emptyPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
-			if err != nil {
-				return nil, err
-			}
-
-			userPermissionsMap[userID] = permissions
-		}
-	}
-
-	for _, userRoleRow := range accountOwners {
-		userID := userRoleRow.OwnerID
-		for _, id := range userRoleRow.PortalApplicationIDs {
-			portalAppID := types.PortalAppID(id)
+		for _, appID := range userRoleRow.PortalApplicationIDs {
+			portalAppID := types.PortalAppID(appID)
 
 			if userPermissions, ok := userPermissionsMap[userID]; ok {
-				_, err := userPermissions.UpsertPermissions(portalAppID, types.RoleOwner)
+				_, err := userPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
 				if err != nil {
 					return nil, err
 				}
@@ -277,7 +264,7 @@ func (pg *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.Us
 					PortalApps: map[types.PortalAppID]types.PortalAppPermissions{},
 				}
 
-				permissions, err := emptyPermissions.UpsertPermissions(portalAppID, types.RoleOwner)
+				permissions, err := emptyPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
 				if err != nil {
 					return nil, err
 				}

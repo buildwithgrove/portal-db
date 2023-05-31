@@ -312,7 +312,6 @@ VALUES (
 -- Insert accounts
 INSERT INTO accounts (
         id,
-        owner_id,
         plan_type,
         partner_chain_ids,
         partner_throughput_limit,
@@ -322,7 +321,6 @@ INSERT INTO accounts (
     )
 VALUES (
         'account_1',
-        'user_1',
         'basic_plan',
         ARRAY ['0001', '0053'],
         2000,
@@ -332,7 +330,6 @@ VALUES (
     ),
     (
         'account_2',
-        'user_3',
         'pro_plan',
         ARRAY ['0001', '0053','0021', '0064'],
         5000,
@@ -342,7 +339,6 @@ VALUES (
     ),
     (
         'account_3',
-        'user_5',
         'startup_plan',
         ARRAY ['0001', '0053', '0064', '0034'],
         1000,
@@ -352,7 +348,6 @@ VALUES (
     ),
     (
         'account_4',
-        'user_4',
         'enterprise_plan',
         ARRAY ['0001'],
         1000,
@@ -362,7 +357,6 @@ VALUES (
     ),
     (
         'account_5',
-        'user_4',
         'basic_plan',
         ARRAY ['0006', '0040'],
         6000,
@@ -475,83 +469,142 @@ VALUES (
     );
 -- Insert account_user_access
 INSERT INTO account_user_access (
-        user_id,
         account_id,
+        user_id,
         portal_application_id,
         role_name,
+        owner,
         accepted,
         created_at,
         updated_at
     )
 VALUES (
-        'user_2',
         'account_1',
-        'test_app_1',
-        'ADMIN',
+        'user_1',
+        NULL,
+        'OWNER',
+        true,
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
+        'account_1',
+        'user_2',
+        'test_app_1',
+        'ADMIN',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_1',
         'user_8',
-        'account_1',
         'test_app_1',
         'ADMIN',
         false,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'user_4',
-        'account_2',
-        'test_app_2',
-        'MEMBER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'user_9',
-        'account_2',
-        'test_app_2',
-        'MEMBER',
         false,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'user_2',
         'account_2',
-        'test_app_2',
-        'MEMBER',
+        'user_3',
+        NULL,
+        'OWNER',
+        true,
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'user_6',
+        'account_2',
+        'user_4',
+        'test_app_2',
+        'MEMBER',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'user_9',
+        'test_app_2',
+        'MEMBER',
+        false,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'user_2',
+        'test_app_2',
+        'MEMBER',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
         'account_3',
+        'user_5',
+        NULL,
+        'OWNER',
+        true,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'user_6',
         'test_app_3',
         'ADMIN',
+        false,
         true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
+        'account_3',
         'user_7',
-        'account_3',
-        'test_app_3',
-        'MEMBER',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'user_10',
-        'account_3',
         'test_app_3',
         'MEMBER',
         false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'user_10',
+        'test_app_3',
+        'MEMBER',
+        false,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_4',
+        'user_4',
+        NULL,
+        'OWNER',
+        true,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_5',
+        'user_4',
+        NULL,
+        'OWNER',
+        true,
+        true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );

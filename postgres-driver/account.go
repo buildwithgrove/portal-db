@@ -83,7 +83,6 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	return &types.Account{
 		ID:                     a.ID,
-		OwnerID:                a.OwnerID,
 		PlanType:               a.PlanType,
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
@@ -110,20 +109,20 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 	users = make(map[types.UserID]types.AccountUserAccess)
 
-	// Assign account OWNER
-	owner := types.AccountUserAccess{
-		UserID:   types.UserID(a.OwnerID),
-		Email:    types.Email(a.OwnerEmail.String),
-		Accepted: true,
-	}
-	for _, portalAppID := range a.OwnerPortalApplicationIds {
-		if owner.PortalAppRoles == nil {
-			owner.PortalAppRoles = make(map[types.PortalAppID]types.RoleName)
-		}
-		owner.PortalAppRoles[types.PortalAppID(portalAppID)] = types.RoleOwner
-	}
+	// // Assign account OWNER
+	// owner := types.AccountUserAccess{
+	// 	UserID:   types.UserID(a.OwnerID),
+	// 	Email:    types.Email(a.OwnerEmail.String),
+	// 	Accepted: true,
+	// }
+	// for _, portalAppID := range a.OwnerPortalApplicationIds {
+	// 	if owner.PortalAppRoles == nil {
+	// 		owner.PortalAppRoles = make(map[types.PortalAppID]types.RoleName)
+	// 	}
+	// 	owner.PortalAppRoles[types.PortalAppID(portalAppID)] = types.RoleOwner
+	// }
 
-	users[types.UserID(a.OwnerID)] = owner
+	// users[types.UserID(a.OwnerID)] = owner
 
 	// Assign account ADMIN/MEMBERs
 	for _, user := range userRows {
@@ -144,7 +143,15 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-	err := pg.validateWriteAccountInput(ctx, creatorID, account)
+	tx, err := pg.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	qtx := pg.WithTx(tx)
+
+	err = pg.validateWriteAccountInput(ctx, creatorID, account)
 	if err != nil {
 		return nil, err
 	}
@@ -155,9 +162,8 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	}
 	account.ID = types.AccountID(id)
 
-	createdAccount, err := pg.InsertAccount(ctx, InsertAccountParams{
+	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        account.ID,
-		OwnerID:   creatorID,
 		PlanType:  account.PlanType,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
@@ -170,7 +176,27 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	account.CreatedAt = createdAt
 	account.UpdatedAt = createdAt
 
-	userEmail, err := pg.GetUserEmail(ctx, creatorID)
+	userEmail, err := qtx.GetUserEmail(ctx, creatorID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Account creator becomes Account OWNER
+	_, err = qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
+		AccountID: createdAccount.ID,
+		UserID:    creatorID,
+		Email:     userEmail,
+		RoleName:  types.RoleOwner,
+		Owner:     true,
+		Accepted:  true,
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -252,21 +278,18 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 	}
 
 	accountData := &SelectAccountsRow{
-		ID:                        accountResult.ID,
-		OwnerID:                   accountResult.OwnerID,
-		OwnerEmail:                accountResult.OwnerEmail,
-		OwnerPortalApplicationIds: accountResult.OwnerPortalApplicationIds,
-		PlanType:                  accountResult.PlanType,
-		PartnerChainIDs:           accountResult.PartnerChainIDs,
-		PartnerThroughputLimit:    accountResult.PartnerThroughputLimit,
-		PartnerApplicationLimit:   accountResult.PartnerApplicationLimit,
-		CovalentAPIKeyFree:        accountResult.CovalentAPIKeyFree,
-		CovalentAPIKeyPaid:        accountResult.CovalentAPIKeyPaid,
-		Users:                     accountResult.Users,
-		CreatedAt:                 accountResult.CreatedAt,
-		UpdatedAt:                 accountResult.UpdatedAt,
-		Deleted:                   accountResult.Deleted,
-		DeletedAt:                 accountResult.DeletedAt,
+		ID:                      accountResult.ID,
+		PlanType:                accountResult.PlanType,
+		PartnerChainIDs:         accountResult.PartnerChainIDs,
+		PartnerThroughputLimit:  accountResult.PartnerThroughputLimit,
+		PartnerApplicationLimit: accountResult.PartnerApplicationLimit,
+		CovalentAPIKeyFree:      accountResult.CovalentAPIKeyFree,
+		CovalentAPIKeyPaid:      accountResult.CovalentAPIKeyPaid,
+		Users:                   accountResult.Users,
+		CreatedAt:               accountResult.CreatedAt,
+		UpdatedAt:               accountResult.UpdatedAt,
+		Deleted:                 accountResult.Deleted,
+		DeletedAt:               accountResult.DeletedAt,
 	}
 	account, err := accountData.toAccount()
 	if err != nil {
@@ -421,9 +444,10 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 	params := InsertAccountUserAccessParams{
 		UserID:              userID,
 		AccountID:           createAccountUser.AccountID,
-		PortalApplicationID: createAccountUser.PortalAppID,
+		PortalApplicationID: string(createAccountUser.PortalAppID),
 		Email:               createAccountUser.Email,
 		RoleName:            createAccountUser.RoleName,
+		Owner:               false,
 		Accepted:            false,
 		CreatedAt:           createdAt,
 		UpdatedAt:           createdAt,
@@ -448,12 +472,30 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 
 	// If transferring ownership of an account the former OWNER becomes an ADMIN for all the account's PortalApps
 	if updateAccountUser.RoleName == types.RoleOwner {
-		err = pg.UpdateAccountOwner(ctx, UpdateAccountOwnerParams{
-			AccountID:  newSQLNullString(string(updateAccountUser.AccountID)),
+		tx, err := pg.DB.Begin()
+		if err != nil {
+			return err
+		}
+		defer func() { _ = tx.Rollback() }()
+
+		qtx := pg.WithTx(tx)
+
+		err = qtx.UpdateOldAccountOwnerToAdmin(ctx, updateAccountUser.AccountID)
+		if err != nil {
+			return err
+		}
+
+		err = qtx.UpdateNewAccountOwner(ctx, UpdateNewAccountOwnerParams{
+			AccountID:  updateAccountUser.AccountID,
 			NewOwnerID: string(updateAccountUser.UserID),
 			CreatedAt:  updatedAt,
 			UpdatedAt:  updatedAt,
 		})
+		if err != nil {
+			return err
+		}
+
+		err = tx.Commit()
 		if err != nil {
 			return err
 		}
@@ -609,9 +651,8 @@ func (pg *PostgresDriver) RemoveAccountUser(ctx context.Context, userID types.Us
 // validateRemoveAccountUserInput validates the input to remove an AccountUserAccess row
 func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error {
 	accountUserRole, err := pg.CheckAccountUserRole(ctx, CheckAccountUserRoleParams{
-		UserID:              userID,
-		PortalApplicationID: portalAppID,
-		AccountID:           string(accountID),
+		UserID:    userID,
+		AccountID: accountID,
 	})
 	if err != nil {
 		switch err {
@@ -660,6 +701,7 @@ func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
 	return &types.AccountUserAccess{
 		AccountID:      json.AccountID,
 		UserID:         json.UserID,
+		Owner:          json.Owner,
 		Accepted:       json.Accepted,
 		PortalAppRoles: portalAppRoles,
 	}
@@ -675,6 +717,7 @@ func (j dbAccountIntegration) toOutput() *types.AccountIntegrations {
 
 type dbAccount struct {
 	ID                      types.AccountID   `json:"id"`
+	OwnerID                 types.UserID      `json:"owner_id"`
 	PlanType                types.PayPlanType `json:"plan_type"`
 	PartnerChainIDs         []string          `json:"partner_chain_ids"`
 	PartnerThroughputLimit  int32             `json:"partner_throughput_limit"`
@@ -698,6 +741,7 @@ type dbAccountUserAccess struct {
 	ID                  int32             `json:"id"`
 	UserID              types.UserID      `json:"user_id"`
 	AccountID           types.AccountID   `json:"account_id"`
+	Owner               bool              `json:"owner"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 	RoleName            types.RoleName    `json:"role_name"`
 	Accepted            bool              `json:"accepted"`

@@ -1,7 +1,9 @@
 package postgresdriver
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -433,6 +435,37 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 			err:             nil,
 		},
 		{
+			name: "Should transfer the OWNER of an Account back to original OWNER",
+			updateAccountUser: types.UpdateAccountUserRole{
+				AccountID:   "account_2",
+				PortalAppID: "test_app_2",
+				UserID:      "user_3",
+				RoleName:    types.RoleOwner,
+			},
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
+				"user_9": testdata.AccountUserAccess[9],
+				"user_2": testdata.AccountUserAccess[10],
+				"user_3": {
+					UserID:   "user_3",
+					Email:    "ellen.ripley789@test.com",
+					Accepted: true,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_2": types.RoleOwner,
+					},
+				},
+				"user_4": {
+					UserID:   "user_4",
+					Email:    "ulfric.stormcloak123@test.com",
+					Accepted: true,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_2": types.RoleAdmin,
+					},
+				},
+			},
+			testCreatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
 			name: "Should work for users that have not accepted their invite yet",
 			updateAccountUser: types.UpdateAccountUserRole{
 				AccountID:   "account_3",
@@ -720,6 +753,7 @@ func (ts *PGDriverTestSuite) Test_DeleteAccount() {
 				ts.NoError(err)
 				ts.Len(accounts, test.numAccountsBeforeDelete-1)
 				ts.Equal(test.accountsAfterDelete, accounts)
+				Plog(test.accountsAfterDelete, accounts)
 
 				// Check Account still appears if IncludeDeleted: true
 				accounts, err = ts.driver.ReadAccounts(context.Background(), types.DriverOptions{IncludeDeleted: true})
@@ -730,6 +764,18 @@ func (ts *PGDriverTestSuite) Test_DeleteAccount() {
 				ts.Equal(accountsBeforeDelete, accounts)
 			}
 		})
+	}
+}
+
+func Plog(args ...interface{}) {
+	for _, arg := range args {
+		var prettyJSON bytes.Buffer
+		jsonArg, _ := json.Marshal(arg)
+		str := string(jsonArg)
+		_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
+		output := prettyJSON.String()
+
+		fmt.Println(output)
 	}
 }
 

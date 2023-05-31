@@ -416,7 +416,6 @@ type Aat struct {
 
 type Account struct {
 	ID                      types.AccountID   `json:"id"`
-	OwnerID                 types.UserID      `json:"owner_id"`
 	PlanType                types.PayPlanType `json:"plan_type"`
 	PartnerChainIDs         []string          `json:"partner_chain_ids"`
 	PartnerThroughputLimit  sql.NullInt32     `json:"partner_throughput_limit"`
@@ -443,6 +442,7 @@ type AccountUserAccess struct {
 	AccountID           types.AccountID   `json:"account_id"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
 	RoleName            types.RoleName    `json:"role_name"`
+	Owner               bool              `json:"owner"`
 	Accepted            bool              `json:"accepted"`
 	CreatedAt           time.Time         `json:"created_at"`
 	UpdatedAt           time.Time         `json:"updated_at"`
