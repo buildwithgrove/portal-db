@@ -704,7 +704,6 @@ func (j dbAccountIntegration) toOutput() *types.AccountIntegrations {
 
 type dbAccount struct {
 	ID                      types.AccountID   `json:"id"`
-	OwnerID                 types.UserID      `json:"owner_id"`
 	PlanType                types.PayPlanType `json:"plan_type"`
 	PartnerChainIDs         []string          `json:"partner_chain_ids"`
 	PartnerThroughputLimit  int32             `json:"partner_throughput_limit"`
