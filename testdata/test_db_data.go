@@ -628,7 +628,7 @@ var (
 					Address:         "test_34715cae753e67c75fbb340442e7de8e",
 					PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
 					ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
-					PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
+					PrivateKey:      "",
 					Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 					Version:         "0.0.1",
 				},
@@ -682,7 +682,7 @@ var (
 					Address:         "test_8237c72345f12d1b1a8b64a1a7f66fa4",
 					PublicKey:       "test_8237c72345f12d1b1a8b64a1a7f66fa4",
 					ClientPublicKey: "test_04c71d90a92f40416b6f1d7d8af17e02",
-					PrivateKey:      "test_2e83c836a29b423a47d8e18c779fd422",
+					PrivateKey:      "",
 					Signature:       "test_f48d33b30ddaf60a1e5bb50d2ba8da5a",
 					Version:         "0.0.1",
 				},
@@ -735,7 +735,7 @@ var (
 					Address:         "test_b5e07928fc80083c13ad0201b81bae9b",
 					PublicKey:       "test_f608500e4fe3e09014fe2411b4a560b5",
 					ClientPublicKey: "test_328a9cf1b35085eeaa669aa858f6fba9",
-					PrivateKey:      "test_8663e187c19f3c6e27317eab4ed6d7d5",
+					PrivateKey:      "",
 					Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
 					Version:         "0.0.1",
 				},
@@ -744,7 +744,7 @@ var (
 					Address:         "test_eb2e5bcba557cfe8fa76fd7fff54f9d1",
 					PublicKey:       "test_f6a5d8690ecb669865bd752b7796a920",
 					ClientPublicKey: "test_6ee5ea553408f0895923fd1569dc5072",
-					PrivateKey:      "test_838d29d61a65401f7d56d084cb6e4783",
+					PrivateKey:      "",
 					Signature:       "test_cf05cf9bb26111c548e88fb6157af708",
 					Version:         "0.0.1",
 				},
@@ -777,7 +777,7 @@ var (
 				Gigastake:       true,
 				Address:         "test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5",
 				PublicKey:       "test_37a0e8437f5149dc98a9a5b207efc2d0",
-				PrivateKey:      "test_0a6df2b97ae546da83f1a90b9b0c1e83",
+				PrivateKey:      "",
 				ClientPublicKey: "test_65c29f0cc82e418b81a528a0c0682a9f",
 				Signature:       "test_f22651fb566346fca30b605e5f46e3ca",
 				Version:         "0.0.1",
@@ -795,7 +795,7 @@ var (
 				Gigastake:       true,
 				Address:         "test_5c60d434db4e42d2b5d2ea6eeb8933c4",
 				PublicKey:       "test_a7e28f8d716541a0a332a5dc6b7e4e6e",
-				PrivateKey:      "test_86b9e8e14a784db8a0a4c2ee532b6a12",
+				PrivateKey:      "",
 				ClientPublicKey: "test_ba4e53dada8f4f939048e56dc8f88f37",
 				Signature:       "test_52e991c26da841bc882ad3a3ee9ee964",
 				Version:         "0.0.1",
@@ -813,7 +813,7 @@ var (
 				Gigastake:       true,
 				Address:         "test_e570c841d5cd4f6197e0428ed7c517fd",
 				PublicKey:       "test_4f805bbbf96c4a649efc3f4f95616f2e",
-				PrivateKey:      "test_25a9063b3b7b42148dc17033fbbab5c6",
+				PrivateKey:      "",
 				ClientPublicKey: "test_789f9d6adcc846f1a079bf68237b5f5c",
 				Signature:       "test_01eac46efc9242a2be73879f1d09f1dc",
 				Version:         "0.0.1",
@@ -1074,6 +1074,61 @@ var (
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
+	}
+
+	TestCreateNewChainInput = types.NewChainInput{
+		Chain: &types.Chain{
+			ID:            "0007",
+			Blockchain:    "cardano-mainnet",
+			Description:   "Cardano",
+			EnforceResult: "JSON",
+			Ticker:        "ADA",
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://test-rpc.cardano-1.io:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_cardano:auth123456",
+				},
+				{
+					URL:      "https://test-rpc.cardano-2.io:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_cardano:auth123456",
+				},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"getSync"}`,
+					ResultKey: "sync",
+					Allowance: 2,
+				},
+				types.ChainCheckTypeChain: {
+					Type:       types.ChainCheckTypeChain,
+					Payload:    `{"id":1,"jsonrpc":"2.0","method":"getChain"}`,
+					ResultKey:  "chain",
+					EVMChainID: 7,
+				},
+			},
+			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"ada-mainnet": {"cardano-rpc.gateway.pokt.network"},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		GigastakeApps: []*types.GigastakeApp{
+			{
+				Name: "pokt_create_gigastake_ada",
+				AAT: types.AAT{
+					Gigastake:       true,
+					Address:         "test_c3e9d2a1a3214bc7b364f51362a8a8e4",
+					PublicKey:       "test_8a4b6d3f48274d8988d0f5b4866efce1",
+					PrivateKey:      "test_1ef9e2a7b3f74bc899d0f3b4862efce1",
+					ClientPublicKey: "test_c3f9e2a7b2f74bc799d0f3b4962efce1",
+					Signature:       "test_4ef8e2a7b4f74bc989d0f3b4962efce1",
+					Version:         "0.0.1",
+				},
+			},
+		},
 	}
 
 	GlobalBlockedContracts = types.GlobalBlockedContracts{
@@ -1348,7 +1403,7 @@ var (
 				ApplicationPublicKey: "test_34715cae753e67c75fbb340442e7de8e",
 				ApplicationSignature: "test_1dc39a2e5a84a35bf030969a0b3231f7",
 				ClientPublicKey:      "test_89a3af6a587aec02cfade6f5000424c2",
-				PrivateKey:           "test_11b8d394ca331d7c7a71ca1896d630f6",
+				PrivateKey:           "",
 				Version:              "0.0.1",
 			},
 			GatewaySettings: v1Types.GatewaySettings{

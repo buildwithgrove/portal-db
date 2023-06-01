@@ -39,7 +39,6 @@ SELECT ga.aat_id,
     a.public_key,
     a.client_public_key,
     a.signature,
-    a.private_key,
     a.version,
     -- legacy field
     ga.lb_id
@@ -55,7 +54,6 @@ GROUP BY ga.aat_id,
     a.public_key,
     a.client_public_key,
     a.signature,
-    a.private_key,
     a.version,
     ga.lb_id;
 -- name: SelectPortalApplications :many
@@ -68,8 +66,6 @@ WITH aats_agg AS (
                 aats.address,
                 'public_key',
                 aats.public_key,
-                'private_key',
-                aats.private_key,
                 'client_public_key',
                 aats.client_public_key,
                 'signature',

@@ -120,17 +120,20 @@ func Test_LegacyAdapators_ConvertToV2PortalAppAndAAT(t *testing.T) {
 		loadBalancer           v1Types.LoadBalancer
 		expectedV2PortalApp    v2Types.PortalApp
 		expectedV2PortalAppAAT v2Types.AAT
+		testPrivateKeyInput    string
 	}{
 		{
 			name:                   "Should convert a legacy LoadBalancer struct to V2 PortalApp & AAT structs",
 			loadBalancer:           testdata.LegacyLoadBalancer,
 			expectedV2PortalApp:    testdata.V2CreatePortalApp,
 			expectedV2PortalAppAAT: testdata.V2CreatePortalAppAAT,
+			testPrivateKeyInput:    "test_11b8d394ca331d7c7a71ca1896d630f6",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			test.loadBalancer.Applications[0].GatewayAAT.PrivateKey = test.testPrivateKeyInput
 			v2PortalApp, v2AAT := ConvertToV2PortalAppAndAAT(test.loadBalancer)
 			c.Equal(test.expectedV2PortalApp, v2PortalApp)
 			c.Equal(test.expectedV2PortalAppAAT, v2AAT)

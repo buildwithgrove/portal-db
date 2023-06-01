@@ -76,6 +76,10 @@ type (
 		/* RemoveAccountUser deletes a AccountUserAccess row for a given user and account ID. */
 		RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error
 
+		/* WriteChainAndGigastakeApps saves input Chain and one or more GigastakeApp structs to the database as one transaction. */
+		WriteChainAndGigastakeApps(ctx context.Context, input types.NewChainInput, createdAt time.Time) (*types.NewChainInput, error)
+		/* WriteGigastakeApp saves input GigastakeApp and AAT to the database as one transaction. */
+		WriteGigastakeApp(ctx context.Context, gigastakeApp types.GigastakeApp, createdAt time.Time) (*types.GigastakeApp, error)
 		/* WriteChain saves input Chain struct to the database. */
 		WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error)
 		/* UpdateChain updates Chain and ChainCheck for a given Chain. */

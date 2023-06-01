@@ -128,7 +128,6 @@ func (a *SelectPortalApplicationsRow) toAATs() (map[types.ProtocolAppID]types.AA
 			Address:         dbAAT.Address,
 			PublicKey:       dbAAT.PublicKey,
 			ClientPublicKey: dbAAT.ClientPublicKey,
-			PrivateKey:      dbAAT.PrivateKey,
 			Signature:       dbAAT.Signature,
 			Version:         dbAAT.Version,
 		}
@@ -275,6 +274,11 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
+	}
+
+	// Don't return PrivateKey in response
+	for _, aat := range portalApp.AATs {
+		aat.PrivateKey = ""
 	}
 
 	return &portalApp, nil

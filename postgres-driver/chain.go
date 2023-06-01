@@ -152,6 +152,57 @@ func (c *SelectChainsRow) toDomains() (map[types.ChainAlias][]types.ChainDomain,
 
 // /* ----- postgresdriver Chain Create Methods ----- */
 
+// WriteChainAndGigastakeApp creates a single Chain along with its GigastakeApps in the database as a single transaction.
+// Used specifically for running the `new-chains-ci` and adding a new Chain along with one or more GigastakeApps.
+func (pg *PostgresDriver) WriteChainAndGigastakeApps(ctx context.Context, input types.NewChainInput, createdAt time.Time) (*types.NewChainInput, error) {
+	tx, err := pg.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	qtx := pg.WithTx(tx)
+
+	chain := input.Chain
+	chain.CreatedAt = createdAt
+	chain.UpdatedAt = createdAt
+
+	err = pg.upsertChain(ctx, qtx, *chain, false)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, gigastakeApp := range input.GigastakeApps {
+		protocolAppID, err := pg.generateID(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		gigastakeApp.AATID = types.ProtocolAppID(protocolAppID)
+		gigastakeApp.AAT.ID = types.ProtocolAppID(protocolAppID)
+		gigastakeApp.ChainID = chain.ID
+		gigastakeApp.CreatedAt = createdAt
+		gigastakeApp.UpdatedAt = createdAt
+
+		err = pg.insertGigastakeAAT(ctx, qtx, *gigastakeApp)
+		if err != nil {
+			return nil, err
+		}
+
+		err = pg.upsertGigastakeApp(ctx, qtx, *gigastakeApp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return &input, nil
+}
+
 // WriteChain creates a single Chain in the database
 func (pg *PostgresDriver) WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error) {
 	tx, err := pg.DB.Begin()

@@ -1269,7 +1269,6 @@ SELECT ga.aat_id,
     a.public_key,
     a.client_public_key,
     a.signature,
-    a.private_key,
     a.version,
     -- legacy field
     ga.lb_id
@@ -1285,7 +1284,6 @@ GROUP BY ga.aat_id,
     a.public_key,
     a.client_public_key,
     a.signature,
-    a.private_key,
     a.version,
     ga.lb_id
 `
@@ -1301,7 +1299,6 @@ type SelectGigastakeApplicationsRow struct {
 	PublicKey       string              `json:"public_key"`
 	ClientPublicKey string              `json:"client_public_key"`
 	Signature       string              `json:"signature"`
-	PrivateKey      sql.NullString      `json:"private_key"`
 	Version         string              `json:"version"`
 	LbID            string              `json:"lb_id"`
 }
@@ -1326,7 +1323,6 @@ func (q *Queries) SelectGigastakeApplications(ctx context.Context) ([]SelectGiga
 			&i.PublicKey,
 			&i.ClientPublicKey,
 			&i.Signature,
-			&i.PrivateKey,
 			&i.Version,
 			&i.LbID,
 		); err != nil {
@@ -1440,8 +1436,6 @@ WITH aats_agg AS (
                 aats.address,
                 'public_key',
                 aats.public_key,
-                'private_key',
-                aats.private_key,
                 'client_public_key',
                 aats.client_public_key,
                 'signature',

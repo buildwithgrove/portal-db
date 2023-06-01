@@ -117,6 +117,10 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 
 			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
 			ts.Equal(test.err, err)
+			for appID, aat := range test.portalApp.AATs {
+				aat.PrivateKey = "" // PrivateKey is never read from the DB
+				test.portalApp.AATs[appID] = aat
+			}
 			ts.Equal(&test.portalApp, portalApps[createdPortalApp.ID])
 		})
 	}
