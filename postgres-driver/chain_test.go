@@ -122,6 +122,7 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 				exists = false
 				for aatID, gigastakeApp := range gigastakeApps {
 					for _, testGigastakeApp := range test.newChainInput.GigastakeApps {
+						testGigastakeApp.AAT.PrivateKey = "" // Private key is never read from the DB
 						if aatID == testGigastakeApp.AATID {
 							exists = true
 							ts.Equal(testGigastakeApp, gigastakeApp)

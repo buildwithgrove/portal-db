@@ -150,6 +150,12 @@ func (c *Chain) GetGigastakeAATs() []AAT {
 	return gigastakeAATsSlice
 }
 
+// GetGigastakeAATs returns a slice of all of a Chain's GigastakeApp AATs
+func (c Chain) ClearGigastakeApps() Chain {
+	c.GigastakeApps = nil
+	return c
+}
+
 func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
 	return c.Checks[checkType]
 }

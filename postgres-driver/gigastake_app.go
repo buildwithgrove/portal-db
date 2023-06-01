@@ -42,7 +42,6 @@ func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, 
 			PublicKey:       g.PublicKey,
 			ClientPublicKey: g.ClientPublicKey,
 			Signature:       g.Signature,
-			PrivateKey:      g.PrivateKey.String,
 			Version:         g.Version,
 		},
 		CreatedAt: g.CreatedAt.UTC(),
@@ -90,6 +89,9 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 	if err != nil {
 		return nil, err
 	}
+
+	// Don't return PrivateKey in response
+	gigastakeApp.AAT.PrivateKey = ""
 
 	return &gigastakeApp, nil
 }

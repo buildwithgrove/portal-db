@@ -27,9 +27,13 @@ type (
 		Address         string        `json:"address"`
 		PublicKey       string        `json:"publicKey"`
 		ClientPublicKey string        `json:"clientPublicKey"`
-		PrivateKey      string        `json:"privateKey"`
 		Signature       string        `json:"signature"`
 		Version         string        `json:"version"`
+
+		// PrivateKey used when read from the DB, will always be ""
+		// Only used for saving to DB
+		// TODO remove when decided to not support saving private key to DB
+		PrivateKey string `json:"privateKey,omitempty"`
 
 		// PortalAppID only used for non-gigastake AATs, which
 		// are currently not used anywhere but kept for compatibility.

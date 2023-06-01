@@ -75,7 +75,7 @@ func Test_Listen(t *testing.T) {
 						Address:         "test_34715cae753e67c75fbb340442e7de8e",
 						PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
 						ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
-						PrivateKey:      "test_11b8d394ca331d7c7a71ca1896d630f6",
+						PrivateKey:      "",
 						Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 						Version:         "0.0.1",
 					},

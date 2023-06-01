@@ -63,6 +63,7 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 			test.gigastakeApp.AAT.ID = createdGigastakeApp.AATID
 			test.gigastakeApp.CreatedAt = createdGigastakeApp.CreatedAt
 			test.gigastakeApp.UpdatedAt = createdGigastakeApp.UpdatedAt
+			test.gigastakeApp.AAT.PrivateKey = "" // PrivateKey is never read from the DB
 			ts.Equal(&test.gigastakeApp, createdGigastakeApp)
 
 			gigastakeApps, err := ts.driver.ReadGigastakeApps(context.Background(), types.DriverOptions{})
