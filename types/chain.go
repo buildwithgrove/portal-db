@@ -150,79 +150,14 @@ func (c *Chain) GetGigastakeAATs() []AAT {
 	return gigastakeAATsSlice
 }
 
-// GetGigastakeAATs returns a slice of all of a Chain's GigastakeApp AATs
-func (c Chain) ClearGigastakeApps() Chain {
-	c.GigastakeApps = nil
-	return c
-}
-
 func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
 	return c.Checks[checkType]
 }
 
-func (c *Chain) UpdateBlockchain(update *Chain) {
-	if update.Blockchain != "" {
-		c.Blockchain = update.Blockchain
-	}
-	if update.Description != "" {
-		c.Description = update.Description
-	}
-	if update.EnforceResult != "" {
-		c.EnforceResult = update.EnforceResult
-	}
-	if update.Path != "" {
-		c.Path = update.Path
-	}
-	if update.Ticker != "" {
-		c.Ticker = update.Ticker
-	}
-	if len(update.AllowedMethods) > 0 {
-		c.AllowedMethods = update.AllowedMethods
-	}
-	if update.LogLimitBlocks != 0 {
-		c.LogLimitBlocks = update.LogLimitBlocks
-	}
-	if update.RequestTimeout != 0 {
-		c.RequestTimeout = update.RequestTimeout
-	}
-	c.Active = update.Active
-	if update.Altruists != nil && len(update.Altruists) > 0 {
-		c.Altruists = update.Altruists
-	}
-	if len(update.Checks) > 0 {
-		c.updateChainChecks(update)
-	}
-	if len(update.AliasDomains) > 0 {
-		c.updateAliasDomains(update)
-	}
-	c.UpdatedAt = update.UpdatedAt
-	c.Deleted = update.Deleted
-}
-
-func (c *Chain) updateChainChecks(update *Chain) {
-	for checkType, check := range update.Checks {
-		if check.Payload != "" {
-			updatedCheck := Check{
-				Type:      check.Type,
-				Payload:   check.Payload,
-				ResultKey: check.ResultKey,
-				Allowance: c.Checks[checkType].Allowance,
-			}
-			if check.Allowance != 0 {
-				updatedCheck.Allowance = check.Allowance
-			}
-			if check.EVMChainID != 0 {
-				updatedCheck.EVMChainID = check.EVMChainID
-			}
-			c.Checks[checkType] = updatedCheck
-		}
-	}
-}
-
-func (c *Chain) updateAliasDomains(update *Chain) {
-	if len(update.AliasDomains) > 0 {
-		c.AliasDomains = update.AliasDomains
-	}
+// GetGigastakeAATs returns a slice of all of a Chain's GigastakeApp AATs
+func (c Chain) ClearGigastakeApps() Chain {
+	c.GigastakeApps = nil
+	return c
 }
 
 func (c *Chain) Table() Table {
