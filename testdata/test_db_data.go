@@ -1148,17 +1148,7 @@ var (
 		ID:        "test_app_update_b03ca84c",
 		AccountID: "account_1",
 		Name:      "", // name set in test
-		AATs: map[types.ProtocolAppID]types.AAT{
-			"test_protocol_app_1": {
-				ID:              "test_protocol_app_1",
-				Address:         "test_7d0cd2743543a6200e41224594954b06",
-				PublicKey:       "test_7d0cd2743543a6200e41224594954b06",
-				ClientPublicKey: "test_3d2b1cf05bd9b479b6fd65b9ffdf1976",
-				PrivateKey:      "test_9c59143368436aeee593c2e6cdbda57b",
-				Signature:       "test_a8546957653d23e3b2e76bb718099e7a",
-				Version:         "0.0.1",
-			},
-		},
+		AATs:      map[types.ProtocolAppID]types.AAT{"": {}},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
