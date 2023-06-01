@@ -131,3 +131,53 @@ func (pg *PostgresDriver) insertGigastakeAAT(ctx context.Context, qtx *Queries, 
 
 	return nil
 }
+
+/* ----- Used by Listener ----- */
+func (json dbGigastakeApp) toOutput() *types.GigastakeApp {
+	return &types.GigastakeApp{
+		AATID:      json.AATID,
+		ChainID:    json.ChainID,
+		Name:       json.Name,
+		AAT:        json.AAT,
+		CreatedAt:  json.CreatedAt,
+		UpdatedAt:  json.UpdatedAt,
+		Deleted:    json.Deleted,
+		LegacyLBID: json.LegacyLBID,
+	}
+}
+
+func (json dbAAT) toOutput() *types.AAT {
+	return &types.AAT{
+		ID:              json.ID,
+		Gigastake:       json.Gigastake,
+		Address:         json.Address,
+		PublicKey:       json.PublicKey,
+		ClientPublicKey: json.ClientPublicKey,
+		Signature:       json.Signature,
+		Version:         json.Version,
+		PortalAppID:     json.PortalAppID,
+	}
+}
+
+type dbGigastakeApp struct {
+	AATID      types.ProtocolAppID `json:"aat_id"`
+	ChainID    types.RelayChainID  `json:"chain_id"`
+	Name       string              `json:"name"`
+	AAT        types.AAT           `json:"aat"`
+	CreatedAt  time.Time           `json:"created_at"`
+	UpdatedAt  time.Time           `json:"updated_at"`
+	Deleted    bool                `json:"deleted"`
+	DeletedAt  time.Time           `json:"deleted_at"`
+	LegacyLBID string              `json:"lb_id"`
+}
+
+type dbAAT struct {
+	ID              types.ProtocolAppID `json:"id"`
+	Gigastake       bool                `json:"gigastake"`
+	Address         string              `json:"address"`
+	PublicKey       string              `json:"public_key"`
+	ClientPublicKey string              `json:"client_public_key"`
+	Signature       string              `json:"signature"`
+	Version         string              `json:"version"`
+	PortalAppID     types.PortalAppID   `json:"portal_application_id"`
+}

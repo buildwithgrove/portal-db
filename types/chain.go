@@ -113,7 +113,7 @@ type (
 	// NewChainInput is used for creating a new Chain, including its Gigastake App
 	NewChainInput struct {
 		Chain         *Chain          `json:"chain"`
-		GigastakeApps []*GigastakeApp `json:"gigastakeApp"`
+		GigastakeApps []*GigastakeApp `json:"gigastakeApps"`
 	}
 )
 

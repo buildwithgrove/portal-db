@@ -29,12 +29,14 @@ type (
 )
 
 var (
-	errInvalidAltruistURL   = errors.New("error altruist URL '%s' is an invalid URL")
-	errInvalidDomain        = errors.New("error domain '%s' for alias '%s' is invalid")
-	errChainExists          = errors.New("error chain already exists for chain ID '%s'")
-	errChainDoesntExist     = errors.New("error chain does not exist for chain ID '%s'")
-	errPortalAppDoesntExist = errors.New("error portal app does not exist for ID '%s'")
-	errUnmarshallingDomains = errors.New("error unmarshalling domains: %w")
+	errChainCannotBeNil           = errors.New("error chain cannot be nil")
+	errGigastakeAppsCannotBeEmpty = errors.New("error gigastakeApps slice cannot be empty")
+	errInvalidAltruistURL         = errors.New("error altruist URL '%s' is an invalid URL")
+	errInvalidDomain              = errors.New("error domain '%s' for alias '%s' is invalid")
+	errChainExists                = errors.New("error chain already exists for chain ID '%s'")
+	errChainDoesntExist           = errors.New("error chain does not exist for chain ID '%s'")
+	errPortalAppDoesntExist       = errors.New("error portal app does not exist for ID '%s'")
+	errUnmarshallingDomains       = errors.New("error unmarshalling domains: %w")
 )
 
 /* ----- postgresdriver Chain Read Methods ----- */
@@ -155,6 +157,11 @@ func (c *SelectChainsRow) toDomains() (map[types.ChainAlias][]types.ChainDomain,
 // WriteChainAndGigastakeApp creates a single Chain along with its GigastakeApps in the database as a single transaction.
 // Used specifically for running the `new-chains-ci` and adding a new Chain along with one or more GigastakeApps.
 func (pg *PostgresDriver) WriteChainAndGigastakeApps(ctx context.Context, input types.NewChainInput, createdAt time.Time) (*types.NewChainInput, error) {
+	err := validateWriteChainAndGigastakeApps(input)
+	if err != nil {
+		return nil, err
+	}
+
 	tx, err := pg.DB.Begin()
 	if err != nil {
 		return nil, err
@@ -201,6 +208,19 @@ func (pg *PostgresDriver) WriteChainAndGigastakeApps(ctx context.Context, input 
 	}
 
 	return &input, nil
+}
+
+// Validate checks that the fields in NewChainInput are correct
+func validateWriteChainAndGigastakeApps(input types.NewChainInput) error {
+	if input.Chain == nil {
+		return errChainCannotBeNil
+	}
+
+	if len(input.GigastakeApps) < 1 {
+		return errGigastakeAppsCannotBeEmpty
+	}
+
+	return nil
 }
 
 // WriteChain creates a single Chain in the database

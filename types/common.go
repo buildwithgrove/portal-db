@@ -47,7 +47,7 @@ const (
 
 	TableAATs Table = "aats"
 
-	TableGigastakeApplications Table = "gigastake_applications"
+	TableGigastakeApps Table = "gigastake_applications"
 
 	TableAccounts            Table = "accounts"
 	TableAccountUserAccess   Table = "account_user_access"

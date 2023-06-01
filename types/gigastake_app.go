@@ -42,7 +42,7 @@ type (
 )
 
 func (a *GigastakeApp) Table() Table {
-	return TableGigastakeApplications
+	return TableGigastakeApps
 }
 
 func (a *AAT) Table() Table {

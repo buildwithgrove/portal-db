@@ -54,6 +54,22 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 			err:             nil,
 		},
 		{
+			name: "Should fail if chain is nil",
+			newChainInput: types.NewChainInput{
+				Chain:         nil,
+				GigastakeApps: []*types.GigastakeApp{{}},
+			},
+			err: errChainCannotBeNil,
+		},
+		{
+			name: "Should fail if GigastakeApps is empty",
+			newChainInput: types.NewChainInput{
+				Chain:         &types.Chain{},
+				GigastakeApps: []*types.GigastakeApp{},
+			},
+			err: errGigastakeAppsCannotBeEmpty,
+		},
+		{
 			name: "Should fail if altruist URL is invalid",
 			newChainInput: types.NewChainInput{
 				Chain: &types.Chain{
@@ -61,7 +77,7 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 					Blockchain: "testBlockchain",
 					Altruists:  []types.Altruist{{URL: "invalid_url"}},
 				},
-				GigastakeApps: []*types.GigastakeApp{},
+				GigastakeApps: []*types.GigastakeApp{{}},
 			},
 			err: fmt.Errorf(errInvalidAltruistURL.Error(), "invalid_url"),
 		},
@@ -75,7 +91,7 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 						"testAlias": {"invalid_domain"},
 					},
 				},
-				GigastakeApps: []*types.GigastakeApp{},
+				GigastakeApps: []*types.GigastakeApp{{}},
 			},
 			err: fmt.Errorf(errInvalidDomain.Error(), "invalid_domain", "testAlias"),
 		},
@@ -86,7 +102,7 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 					ID:         "0001",
 					Blockchain: "testBlockchain",
 				},
-				GigastakeApps: []*types.GigastakeApp{},
+				GigastakeApps: []*types.GigastakeApp{{}},
 			},
 			err: fmt.Errorf(errChainExists.Error(), "0001"),
 		},

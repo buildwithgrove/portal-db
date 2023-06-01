@@ -64,6 +64,8 @@ func mockContent(mainTableAction, sideTablesAction types.Action, content types.S
 		inputs = accountInputs(mainTableAction, sideTablesAction, content)
 	case *types.PortalApp:
 		inputs = portalAppInputs(mainTableAction, sideTablesAction, content)
+	case *types.GigastakeApp:
+		inputs = gigastakeAppInputs(mainTableAction, sideTablesAction, content)
 	case *types.Chain:
 		inputs = chainInputs(mainTableAction, sideTablesAction, content)
 	default:
@@ -166,15 +168,15 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
 			table:  types.TableAATs,
-			input: dbPortalApplicationAAT{
-				ApplicationID:   portalApp.ID,
+			input: dbAAT{
 				ID:              aat.ID,
+				Gigastake:       false,
 				Address:         aat.Address,
 				PublicKey:       aat.PublicKey,
 				ClientPublicKey: aat.ClientPublicKey,
-				PrivateKey:      aat.PrivateKey,
 				Signature:       aat.Signature,
 				Version:         aat.Version,
+				PortalAppID:     portalApp.ID,
 			},
 		})
 
@@ -229,6 +231,44 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				},
 			})
 		}
+	}
+
+	return inputs
+}
+
+// gigastakeAppInputs generates the mock data for a listener notification for a GigastakeApp struct
+func gigastakeAppInputs(mainTableAction types.Action, sideTablesAction types.Action, content types.SavedOnDB) []inputStruct {
+	gigastakeApp := content.(*types.GigastakeApp)
+
+	var inputs []inputStruct
+
+	if mainTableAction != "" {
+		inputs = append(inputs, inputStruct{
+			action: mainTableAction,
+			table:  types.TableGigastakeApps,
+			input: dbGigastakeApp{
+				AATID:      gigastakeApp.AATID,
+				ChainID:    gigastakeApp.ChainID,
+				Name:       gigastakeApp.Name,
+				CreatedAt:  gigastakeApp.CreatedAt,
+				UpdatedAt:  gigastakeApp.UpdatedAt,
+				LegacyLBID: gigastakeApp.LegacyLBID,
+			},
+		})
+
+		inputs = append(inputs, inputStruct{
+			action: sideTablesAction,
+			table:  types.TableAATs,
+			input: dbAAT{
+				ID:              gigastakeApp.AAT.ID,
+				Gigastake:       true,
+				Address:         gigastakeApp.AAT.Address,
+				PublicKey:       gigastakeApp.AAT.PublicKey,
+				ClientPublicKey: gigastakeApp.AAT.ClientPublicKey,
+				Signature:       gigastakeApp.AAT.Signature,
+				Version:         gigastakeApp.AAT.Version,
+			},
+		})
 	}
 
 	return inputs

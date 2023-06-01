@@ -504,19 +504,6 @@ func (json dbPortalApplication) toOutput() *types.PortalApp {
 	}
 }
 
-func (json dbPortalApplicationAAT) toOutput() *types.AAT {
-	return &types.AAT{
-		ID:              json.ID,
-		PortalAppID:     json.ApplicationID,
-		Address:         json.Address,
-		PublicKey:       json.PublicKey,
-		ClientPublicKey: json.ClientPublicKey,
-		PrivateKey:      json.PrivateKey,
-		Signature:       json.Signature,
-		Version:         json.Version,
-	}
-}
-
 func (json dbPortalApplicationSetting) toOutput() *types.Settings {
 	var favoritedChainIDs map[types.RelayChainID]struct{}
 	if len(json.FavoritedChainIDs) != 0 {
@@ -578,17 +565,6 @@ type dbPortalApplication struct {
 	PlanType           string            `json:"plan_type"`
 	DailyLimit         int32             `json:"daily_limit"`
 	CustomLimit        int32             `json:"custom_limit"`
-}
-
-type dbPortalApplicationAAT struct {
-	ID              types.ProtocolAppID `json:"id"`
-	ApplicationID   types.PortalAppID   `json:"portal_application_id"`
-	Address         string              `json:"address"`
-	PublicKey       string              `json:"public_key"`
-	ClientPublicKey string              `json:"client_public_key"`
-	PrivateKey      string              `json:"private_key"`
-	Signature       string              `json:"signature"`
-	Version         string              `json:"version"`
 }
 
 type dbPortalApplicationNotification struct {

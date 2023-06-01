@@ -66,18 +66,6 @@ func (n notification) parsePortalAppNotification() *types.Notification {
 	}
 }
 
-func (n notification) parseAATNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbAAT dbPortalApplicationAAT
-	_ = json.Unmarshal(rawData, &dbAAT)
-
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbAAT.toOutput(),
-	}
-}
-
 func (n notification) parseSettingsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
 	var dbAppSettings dbPortalApplicationSetting
@@ -111,6 +99,30 @@ func (n notification) parseAppNotificationNotification() *types.Notification {
 		Table:  n.Table,
 		Action: n.Action,
 		Data:   dbAppNotification.toOutput(),
+	}
+}
+
+func (n notification) parseAATNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbAAT dbAAT
+	_ = json.Unmarshal(rawData, &dbAAT)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbAAT.toOutput(),
+	}
+}
+
+func (n notification) parseGigastakeAppsNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbGigastakeApp dbGigastakeApp
+	_ = json.Unmarshal(rawData, &dbGigastakeApp)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbGigastakeApp.toOutput(),
 	}
 }
 
@@ -221,14 +233,18 @@ func (n notification) parseNotification() *types.Notification {
 
 	case types.TablePortalApps:
 		return n.parsePortalAppNotification()
-	case types.TableAATs:
-		return n.parseAATNotification()
 	case types.TableAppSettings:
 		return n.parseSettingsNotification()
 	case types.TableAppWhitelists:
 		return n.parseWhitelistNotification()
 	case types.TableAppNotifications:
 		return n.parseAppNotificationNotification()
+
+	case types.TableAATs:
+		return n.parseAATNotification()
+
+	case types.TableGigastakeApps:
+		return n.parseGigastakeAppsNotification()
 
 	case types.TableChains:
 		return n.parseChainNotification()

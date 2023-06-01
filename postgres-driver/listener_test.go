@@ -114,6 +114,39 @@ func Test_Listen(t *testing.T) {
 			},
 		},
 		{
+			name:    "Should process GigastakeApp notifications",
+			content: testdata.GigastakeApps["test_gigastake_app_1"],
+			expectedNotifications: map[types.Table]*types.Notification{
+				types.TableGigastakeApps: {
+					Table:  types.TableGigastakeApps,
+					Action: types.ActionInsert,
+					Data: &types.GigastakeApp{
+						AATID:      "test_gigastake_app_1",
+						ChainID:    "0001",
+						Name:       "pokt_gigastake",
+						CreatedAt:  testdata.MockTimestamp,
+						UpdatedAt:  testdata.MockTimestamp,
+						Deleted:    false,
+						LegacyLBID: "legacy_lb_1",
+					},
+				},
+				types.TableAATs: {
+					Table:  types.TableAATs,
+					Action: types.ActionUpdate,
+					Data: &types.AAT{
+						ID:              "test_gigastake_app_1",
+						Gigastake:       true,
+						Address:         "test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5",
+						PublicKey:       "test_37a0e8437f5149dc98a9a5b207efc2d0",
+						PrivateKey:      "",
+						ClientPublicKey: "test_65c29f0cc82e418b81a528a0c0682a9f",
+						Signature:       "test_f22651fb566346fca30b605e5f46e3ca",
+						Version:         "0.0.1",
+					},
+				},
+			},
+		},
+		{
 			name:    "Should process Chain notifications",
 			content: testdata.Chains["0001"],
 			expectedNotifications: map[types.Table]*types.Notification{
