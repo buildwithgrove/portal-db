@@ -40,6 +40,101 @@ func (ts *PGDriverTestSuite) Test_ReadChains() {
 	}
 }
 
+func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
+	tests := []struct {
+		name            string
+		newChainInput   types.NewChainInput
+		testCreatedTime time.Time
+		err             error
+	}{
+		{
+			name:            "Should create a new Chain along with its GigastakeApps in the database",
+			newChainInput:   testdata.TestCreateNewChainInput,
+			testCreatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name: "Should fail if altruist URL is invalid",
+			newChainInput: types.NewChainInput{
+				Chain: &types.Chain{
+					ID:         "testID",
+					Blockchain: "testBlockchain",
+					Altruists:  []types.Altruist{{URL: "invalid_url"}},
+				},
+				GigastakeApps: []*types.GigastakeApp{},
+			},
+			err: fmt.Errorf(errInvalidAltruistURL.Error(), "invalid_url"),
+		},
+		{
+			name: "Should fail if domain is invalid",
+			newChainInput: types.NewChainInput{
+				Chain: &types.Chain{
+					ID:         "testID",
+					Blockchain: "testBlockchain",
+					AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+						"testAlias": {"invalid_domain"},
+					},
+				},
+				GigastakeApps: []*types.GigastakeApp{},
+			},
+			err: fmt.Errorf(errInvalidDomain.Error(), "invalid_domain", "testAlias"),
+		},
+		{
+			name: "Should fail if trying to insert an existing chain",
+			newChainInput: types.NewChainInput{
+				Chain: &types.Chain{
+					ID:         "0001",
+					Blockchain: "testBlockchain",
+				},
+				GigastakeApps: []*types.GigastakeApp{},
+			},
+			err: fmt.Errorf(errChainExists.Error(), "0001"),
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			createdChainData, err := ts.driver.WriteChainAndGigastakeApps(context.Background(), test.newChainInput, test.testCreatedTime)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				ts.NotEmpty(createdChainData.Chain.ID)
+				for i, gigastakeApp := range createdChainData.GigastakeApps {
+					ts.NotEmpty(gigastakeApp.AATID)
+					test.newChainInput.GigastakeApps[i].AATID = gigastakeApp.AATID
+					break
+				}
+
+				chains, err := ts.driver.ReadChains(context.Background(), types.DriverOptions{})
+				ts.NoError(err)
+				exists := false
+				for chainID, chain := range chains {
+					if chainID == test.newChainInput.Chain.ID {
+						exists = true
+						ts.Equal(test.newChainInput.Chain, chain)
+						break
+					}
+				}
+				ts.True(exists)
+
+				gigastakeApps, err := ts.driver.ReadGigastakeApps(context.Background(), types.DriverOptions{})
+				ts.NoError(err)
+				exists = false
+				for aatID, gigastakeApp := range gigastakeApps {
+					for _, testGigastakeApp := range test.newChainInput.GigastakeApps {
+						if aatID == testGigastakeApp.AATID {
+							exists = true
+							ts.Equal(testGigastakeApp, gigastakeApp)
+							break
+						}
+					}
+				}
+				ts.True(exists)
+			}
+		})
+	}
+}
+
 func (ts *PGDriverTestSuite) Test_WriteChain() {
 	tests := []struct {
 		name            string

@@ -546,6 +546,29 @@ func (_m *MockDriver) WriteChain(ctx context.Context, chain types.Chain, created
 	return r0, r1
 }
 
+// WriteChainAndGigastakeApps provides a mock function with given fields: ctx, input, createdAt
+func (_m *MockDriver) WriteChainAndGigastakeApps(ctx context.Context, input types.NewChainInput, createdAt time.Time) (*types.NewChainInput, error) {
+	ret := _m.Called(ctx, input, createdAt)
+
+	var r0 *types.NewChainInput
+	if rf, ok := ret.Get(0).(func(context.Context, types.NewChainInput, time.Time) *types.NewChainInput); ok {
+		r0 = rf(ctx, input, createdAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.NewChainInput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, types.NewChainInput, time.Time) error); ok {
+		r1 = rf(ctx, input, createdAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // WritePortalApp provides a mock function with given fields: ctx, portalApp, aat, createdAt
 func (_m *MockDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, aat types.AAT, createdAt time.Time) (*types.PortalApp, error) {
 	ret := _m.Called(ctx, portalApp, aat, createdAt)

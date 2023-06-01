@@ -1076,6 +1076,61 @@ var (
 		UpdatedAt: MockTimestamp,
 	}
 
+	TestCreateNewChainInput = types.NewChainInput{
+		Chain: &types.Chain{
+			ID:            "0007",
+			Blockchain:    "cardano-mainnet",
+			Description:   "Cardano",
+			EnforceResult: "JSON",
+			Ticker:        "ADA",
+			Altruists: []types.Altruist{
+				{
+					URL:      "https://test-rpc.cardano-1.io:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_cardano:auth123456",
+				},
+				{
+					URL:      "https://test-rpc.cardano-2.io:1234",
+					AuthType: types.ChainAuthTypeBasicAuth,
+					Auth:     "test_cardano:auth123456",
+				},
+			},
+			Checks: map[types.ChainCheckType]types.Check{
+				types.ChainCheckTypeSync: {
+					Type:      types.ChainCheckTypeSync,
+					Payload:   `{"id":1,"jsonrpc":"2.0","method":"getSync"}`,
+					ResultKey: "sync",
+					Allowance: 2,
+				},
+				types.ChainCheckTypeChain: {
+					Type:       types.ChainCheckTypeChain,
+					Payload:    `{"id":1,"jsonrpc":"2.0","method":"getChain"}`,
+					ResultKey:  "chain",
+					EVMChainID: 7,
+				},
+			},
+			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"ada-mainnet": {"cardano-rpc.gateway.pokt.network"},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		GigastakeApps: []*types.GigastakeApp{
+			{
+				Name: "pokt_create_gigastake_ada",
+				AAT: types.AAT{
+					Gigastake:       true,
+					Address:         "test_c3e9d2a1a3214bc7b364f51362a8a8e4",
+					PublicKey:       "test_8a4b6d3f48274d8988d0f5b4866efce1",
+					PrivateKey:      "test_1ef9e2a7b3f74bc899d0f3b4862efce1",
+					ClientPublicKey: "test_c3f9e2a7b2f74bc799d0f3b4962efce1",
+					Signature:       "test_4ef8e2a7b4f74bc989d0f3b4962efce1",
+					Version:         "0.0.1",
+				},
+			},
+		},
+	}
+
 	GlobalBlockedContracts = types.GlobalBlockedContracts{
 		BlockedAddresses: map[types.BlockedAddress]struct{}{
 			"0xtest_6789abcdef0123456789abcdef01234567":   {},

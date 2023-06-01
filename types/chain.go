@@ -102,15 +102,44 @@ type (
 		Allowance  int32          `json:"allowance"`
 		EVMChainID int32          `json:"evmChainID"`
 	}
+
 	// Used for mapping listener notification
 	AliasDomains struct {
 		ChainID RelayChainID  `json:"chainID,omitempty"`
 		Alias   ChainAlias    `json:"alias"`
 		Domains []ChainDomain `json:"domains"`
 	}
+
+	// NewChainInput is used for creating a new Chain, including its Gigastake App
+	NewChainInput struct {
+		Chain         *Chain          `json:"chain"`
+		GigastakeApps []*GigastakeApp `json:"gigastakeApp"`
+	}
 )
 
-// GetGigastakeApps returns a slice of all of a Chain's GigastakeApp AATs
+// GetChainAliases returns a slice of all of a Chain's aliases
+func (c *Chain) GetChainAliases() []ChainAlias {
+	chainAliases := []ChainAlias{}
+
+	for chainAlias := range c.AliasDomains {
+		chainAliases = append(chainAliases, chainAlias)
+	}
+
+	return chainAliases
+}
+
+// GetChainDomains returns a slice of all of a Chain's domains
+func (c *Chain) GetChainDomains() []ChainDomain {
+	chainDomains := []ChainDomain{}
+
+	for _, chainAliasDomains := range c.AliasDomains {
+		chainDomains = append(chainDomains, chainAliasDomains...)
+	}
+
+	return chainDomains
+}
+
+// GetGigastakeAATs returns a slice of all of a Chain's GigastakeApp AATs
 func (c *Chain) GetGigastakeAATs() []AAT {
 	gigastakeAATsSlice := []AAT{}
 
@@ -141,24 +170,34 @@ func (c *Chain) UpdateBlockchain(update *Chain) {
 	if update.Ticker != "" {
 		c.Ticker = update.Ticker
 	}
+	if len(update.AllowedMethods) > 0 {
+		c.AllowedMethods = update.AllowedMethods
+	}
 	if update.LogLimitBlocks != 0 {
 		c.LogLimitBlocks = update.LogLimitBlocks
 	}
 	if update.RequestTimeout != 0 {
 		c.RequestTimeout = update.RequestTimeout
 	}
+	c.Active = update.Active
 	if update.Altruists != nil && len(update.Altruists) > 0 {
 		c.Altruists = update.Altruists
 	}
 	if len(update.Checks) > 0 {
 		c.updateChainChecks(update)
 	}
+	if len(update.AliasDomains) > 0 {
+		c.updateAliasDomains(update)
+	}
+	c.UpdatedAt = update.UpdatedAt
+	c.Deleted = update.Deleted
 }
 
 func (c *Chain) updateChainChecks(update *Chain) {
 	for checkType, check := range update.Checks {
 		if check.Payload != "" {
 			updatedCheck := Check{
+				Type:      check.Type,
 				Payload:   check.Payload,
 				ResultKey: check.ResultKey,
 				Allowance: c.Checks[checkType].Allowance,
@@ -171,6 +210,12 @@ func (c *Chain) updateChainChecks(update *Chain) {
 			}
 			c.Checks[checkType] = updatedCheck
 		}
+	}
+}
+
+func (c *Chain) updateAliasDomains(update *Chain) {
+	if len(update.AliasDomains) > 0 {
+		c.AliasDomains = update.AliasDomains
 	}
 }
 
