@@ -2,6 +2,7 @@ package postgresdriver
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -57,6 +58,11 @@ func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, 
 
 // WriteGigastakeApp creates a single GigastakeApp in the database
 func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp types.GigastakeApp, createdAt time.Time) (*types.GigastakeApp, error) {
+	err := pg.validateGigastakeAppInput(ctx, gigastakeApp)
+	if err != nil {
+		return nil, err
+	}
+
 	protocolAppID, err := pg.generateID(ctx)
 	if err != nil {
 		return nil, err
@@ -127,6 +133,20 @@ func (pg *PostgresDriver) insertGigastakeAAT(ctx context.Context, qtx *Queries, 
 	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// validateGigastakeAppInput performs all necessary data validation checks on incoming GigastakeApp data
+func (pg *PostgresDriver) validateGigastakeAppInput(ctx context.Context, gigastakeApp types.GigastakeApp) error {
+	chainExists, err := pg.CheckChainExists(ctx, gigastakeApp.ChainID)
+	if err != nil {
+		return err
+	}
+	if !chainExists {
+		return fmt.Errorf(errChainDoesntExist.Error(), gigastakeApp.ChainID)
+
 	}
 
 	return nil
