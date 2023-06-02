@@ -78,7 +78,7 @@ type (
 		LogLimitBlocks int32                        `json:"logLimitBlocks"`
 		RequestTimeout int32                        `json:"requestTimeout"`
 		Active         bool                         `json:"active"`
-		Altruists      []Altruist                   `json:"altruists,omitempty"`
+		Altruists      map[AltruistURL]Altruist     `json:"altruists,omitempty"`
 		Checks         map[ChainCheckType]Check     `json:"chainChecks,omitempty"`
 		AliasDomains   map[ChainAlias][]ChainDomain `json:"domains"`
 		CreatedAt      time.Time                    `json:"createdAt"`
@@ -86,7 +86,7 @@ type (
 		Deleted        bool                         `json:"deleted"`
 
 		// GigastakeApps are set inside PHD
-		GigastakeApps map[ProtocolAppID]*GigastakeApp `json:"gigastakeApps,omitempty"`
+		GigastakeApps map[ProtocolAppID]*GigastakeApp `json:"chainGigastakeApps,omitempty"`
 	}
 	Altruist struct {
 		ChainID  RelayChainID  `json:"chainID,omitempty"`
@@ -116,6 +116,17 @@ type (
 		GigastakeApps []*GigastakeApp `json:"gigastakeApps"`
 	}
 )
+
+// GetChainAltruists returns a slice of all of a Chain's altruists
+func (c *Chain) GetChainAltruists() []Altruist {
+	altruists := []Altruist{}
+
+	for _, altruist := range c.Altruists {
+		altruists = append(altruists, altruist)
+	}
+
+	return altruists
+}
 
 // GetChainAliases returns a slice of all of a Chain's aliases
 func (c *Chain) GetChainAliases() []ChainAlias {

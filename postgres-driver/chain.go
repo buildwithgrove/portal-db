@@ -98,16 +98,17 @@ func (c *SelectChainsRow) toChain() (*types.Chain, error) {
 }
 
 // toAltruists converts altruists from DB rows to Altruist structs
-func (c *SelectChainsRow) toAltruists() ([]types.Altruist, error) {
+func (c *SelectChainsRow) toAltruists() (map[types.AltruistURL]types.Altruist, error) {
 	var altruistRows []altruistDBRow
 	if err := json.Unmarshal(c.ChainAltruists, &altruistRows); err != nil {
 		return nil, err
 	}
 
-	altruists := make([]types.Altruist, len(altruistRows))
+	altruists := make(map[types.AltruistURL]types.Altruist, len(altruistRows))
 
-	for i, altruistRow := range altruistRows {
-		altruists[i] = types.Altruist{
+	for _, altruistRow := range altruistRows {
+		url := types.AltruistURL(altruistRow.URL)
+		altruists[url] = types.Altruist{
 			URL:      types.AltruistURL(altruistRow.URL),
 			Auth:     altruistRow.Auth,
 			AuthType: types.ChainAuthType(altruistRow.AuthType),
@@ -348,9 +349,9 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 
 // validateChainInput performs all necessary data validation checks on incoming Chain data, either for insert or update
 func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, chain types.Chain, update bool) error {
-	for _, altruist := range chain.Altruists {
-		if !altruist.URL.IsValid() {
-			return fmt.Errorf(errInvalidAltruistURL.Error(), altruist.URL)
+	for url := range chain.Altruists {
+		if !url.IsValid() {
+			return fmt.Errorf(errInvalidAltruistURL.Error(), url)
 		}
 	}
 	for alias, domains := range chain.AliasDomains {

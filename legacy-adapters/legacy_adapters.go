@@ -249,7 +249,12 @@ func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
 	altruistURL := ""
 	// for now we can assume each chain has only one altruist
 	if len(c.Altruists) > 0 {
-		altruistURL = formatAltruistURL(c.Altruists[0])
+		var altruist v2Types.Altruist
+		for _, alt := range c.Altruists {
+			altruist = alt
+			break
+		}
+		altruistURL = formatAltruistURL(altruist)
 	}
 
 	var chainID string

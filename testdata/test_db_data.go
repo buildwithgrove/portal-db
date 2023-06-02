@@ -833,8 +833,8 @@ var (
 			Path:          "/v1/query/height",
 			Ticker:        "POKT",
 			Active:        true,
-			Altruists: []types.Altruist{
-				{
+			Altruists: map[types.AltruistURL]types.Altruist{
+				"https://altruist-0001.com:1234": {
 					URL:      "https://altruist-0001.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
@@ -863,8 +863,8 @@ var (
 			LogLimitBlocks: 100000,
 			RequestTimeout: 0,
 			Active:         true,
-			Altruists: []types.Altruist{
-				{
+			Altruists: map[types.AltruistURL]types.Altruist{
+				"https://altruist-0053.com:1234": {
 					URL:      "https://altruist-0053.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
@@ -892,8 +892,8 @@ var (
 			Ticker:         "ETH",
 			LogLimitBlocks: 100000,
 			Active:         true,
-			Altruists: []types.Altruist{
-				{
+			Altruists: map[types.AltruistURL]types.Altruist{
+				"https://altruist-0021.com:1234": {
 					URL:      "https://altruist-0021.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
@@ -928,8 +928,8 @@ var (
 			LogLimitBlocks: 100000,
 			RequestTimeout: 60000,
 			Active:         false,
-			Altruists: []types.Altruist{
-				{
+			Altruists: map[types.AltruistURL]types.Altruist{
+				"https://altruist-0064.com:1234": {
 					URL:      "https://altruist-0064.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
@@ -953,8 +953,8 @@ var (
 			EnforceResult: "JSON",
 			Ticker:        "HMY",
 			Active:        true,
-			Altruists: []types.Altruist{
-				{
+			Altruists: map[types.AltruistURL]types.Altruist{
+				"https://altruist-0040.com:1234": {
 					URL:      "https://altruist-0040.com:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_pocket:auth123456",
@@ -1043,13 +1043,13 @@ var (
 		Description:   "Solana",
 		EnforceResult: "JSON",
 		Ticker:        "SOL",
-		Altruists: []types.Altruist{
-			{
+		Altruists: map[types.AltruistURL]types.Altruist{
+			"https://test-rpc.solana-1.io:1234": {
 				URL:      "https://test-rpc.solana-1.io:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
 			},
-			{
+			"https://test-rpc.solana-2.io:1234": {
 				URL:      "https://test-rpc.solana-2.io:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
@@ -1083,13 +1083,13 @@ var (
 			Description:   "Cardano",
 			EnforceResult: "JSON",
 			Ticker:        "ADA",
-			Altruists: []types.Altruist{
-				{
+			Altruists: map[types.AltruistURL]types.Altruist{
+				"https://test-rpc.cardano-1.io:1234": {
 					URL:      "https://test-rpc.cardano-1.io:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_cardano:auth123456",
 				},
-				{
+				"https://test-rpc.cardano-2.io:1234": {
 					URL:      "https://test-rpc.cardano-2.io:1234",
 					AuthType: types.ChainAuthTypeBasicAuth,
 					Auth:     "test_cardano:auth123456",
@@ -1117,7 +1117,8 @@ var (
 		},
 		GigastakeApps: []*types.GigastakeApp{
 			{
-				Name: "pokt_create_gigastake_ada",
+				Name:       "pokt_create_gigastake_ada",
+				LegacyLBID: "legacy_lb_id_123",
 				AAT: types.AAT{
 					Gigastake:       true,
 					Address:         "test_c3e9d2a1a3214bc7b364f51362a8a8e4",
@@ -1237,18 +1238,18 @@ var (
 		Path:          "/v1/query/height/wow",
 		Ticker:        "POKT-123",
 		Active:        true,
-		Altruists: []types.Altruist{
-			{
+		Altruists: map[types.AltruistURL]types.Altruist{
+			"https://altruist-0001.com:1234": {
 				URL:      "https://altruist-0001.com:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
 			},
-			{
+			"https://altruist-0001-2.com:1234": {
 				URL:      "https://altruist-0001-2.com:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
 			},
-			{
+			"https://altruist-0001-3.com:1234": {
 				URL:      "https://altruist-0001-3.com:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
@@ -1288,8 +1289,8 @@ var (
 		Path:          "/v1/query/height/wow",
 		Ticker:        "POKT-456",
 		Active:        true,
-		Altruists: []types.Altruist{
-			{
+		Altruists: map[types.AltruistURL]types.Altruist{
+			"https://altruist-0001-3.com:1234": {
 				URL:      "https://altruist-0001-3.com:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
