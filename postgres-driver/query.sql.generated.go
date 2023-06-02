@@ -398,11 +398,11 @@ WHERE chain_id = $1
 
 type DeleteUnusedChainAliasDomainsParams struct {
 	ChainID types.RelayChainID `json:"chain_id"`
-	Column2 []string           `json:"column_2"`
+	Aliases []string           `json:"aliases"`
 }
 
 func (q *Queries) DeleteUnusedChainAliasDomains(ctx context.Context, arg DeleteUnusedChainAliasDomainsParams) error {
-	_, err := q.db.ExecContext(ctx, deleteUnusedChainAliasDomains, arg.ChainID, pq.Array(arg.Column2))
+	_, err := q.db.ExecContext(ctx, deleteUnusedChainAliasDomains, arg.ChainID, pq.Array(arg.Aliases))
 	return err
 }
 

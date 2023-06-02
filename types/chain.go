@@ -80,7 +80,7 @@ type (
 		Active         bool                         `json:"active"`
 		Altruists      map[AltruistURL]Altruist     `json:"altruists,omitempty"`
 		Checks         map[ChainCheckType]Check     `json:"chainChecks,omitempty"`
-		AliasDomains   map[ChainAlias][]ChainDomain `json:"domains"`
+		AliasDomains   map[ChainAlias][]ChainDomain `json:"domains,omitempty"`
 		CreatedAt      time.Time                    `json:"createdAt"`
 		UpdatedAt      time.Time                    `json:"updatedAt"`
 		Deleted        bool                         `json:"deleted"`
@@ -128,6 +128,11 @@ func (c *Chain) GetChainAltruists() []Altruist {
 	return altruists
 }
 
+// Get ChainCheck returns a single Chain Check by its type
+func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
+	return c.Checks[checkType]
+}
+
 // GetChainAliases returns a slice of all of a Chain's aliases
 func (c *Chain) GetChainAliases() []ChainAlias {
 	chainAliases := []ChainAlias{}
@@ -161,11 +166,8 @@ func (c *Chain) GetGigastakeAATs() []AAT {
 	return gigastakeAATsSlice
 }
 
-func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
-	return c.Checks[checkType]
-}
-
-// GetGigastakeAATs returns a slice of all of a Chain's GigastakeApp AATs
+// ClearGigastakeApps clears the Chain's GigastakesApps map and returns the updated Chain
+// Used in the PHD cache when cache.Options.ExcludeGigastakeApps is true
 func (c Chain) ClearGigastakeApps() Chain {
 	c.GigastakeApps = nil
 	return c

@@ -884,7 +884,7 @@ SET domains = COALESCE(
 DELETE FROM chain_alias_domains
 WHERE chain_id = $1
     AND alias NOT IN (
-        SELECT unnest($2::VARCHAR [])
+        SELECT unnest(@aliases::VARCHAR [])
     );
 -- name: DeleteChainAliasDomain :exec
 DELETE FROM chain_alias_domains

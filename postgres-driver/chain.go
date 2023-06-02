@@ -376,12 +376,11 @@ func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, 
 	return nil
 }
 
-// removeUnusedChainRows removes chain subtables (altruists, redirects or checks)
+// removeUnusedChainRows removes chain subtables (altruists, checks or alias domains)
 // on a Chain update if they are not present in the update data.
 // For example:
-// - Chain.Redirects = [<REDIRECT_1>, <REDIRECT_2>] - all redirects except these two will be deleted
-// - Chain.Redirects = [] - all redirects for the chain will be deleted
-// - Chain.Redirects = nil - no changes to chain redirects
+// - Chain.Altruists = {url_1: <ALTRUIST_1>, url_2: <ALTRUIST_2>} - Chain.Altruists will be set to this map
+// - Chain.Altruists = nil or Chain.Altruists = {} - Chain.Altruists will be set to empty
 func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Queries, chain types.Chain) error {
 	if chain.Altruists != nil {
 		deleteAltruistParams := DeleteUnusedChainAltruistsParams{ChainID: chain.ID}
@@ -400,6 +399,17 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 			deleteCheckParams.Types = append(deleteCheckParams.Types, checkType)
 		}
 		err := qtx.DeleteUnusedChainChecks(ctx, deleteCheckParams)
+		if err != nil {
+			return err
+		}
+	}
+
+	if chain.AliasDomains != nil {
+		deleteAliasDomainsParams := DeleteUnusedChainAliasDomainsParams{ChainID: chain.ID}
+		for alias := range chain.AliasDomains {
+			deleteAliasDomainsParams.Aliases = append(deleteAliasDomainsParams.Aliases, string(alias))
+		}
+		err := qtx.DeleteUnusedChainAliasDomains(ctx, deleteAliasDomainsParams)
 		if err != nil {
 			return err
 		}
