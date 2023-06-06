@@ -1057,38 +1057,46 @@ VALUES (
         'harmony-0',
         ARRAY ['hmy-rpc.gateway.pokt.network']
     );
-INSERT INTO gigastake_applications (
-        aat_id,
-        name,
-        chain_id,
-        created_at,
-        updated_at,
-        lb_id
-    )
-VALUES (
-        'test_gigastake_app_1',
-        'pokt_gigastake',
-        '0001',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'legacy_lb_1'
-    ),
-    (
-        'test_gigastake_app_2',
-        'optimism_gigastake',
-        '0053',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'legacy_lb_2'
-    ),
-    (
-        'test_gigastake_app_3',
-        'harmony_gigastake',
-        '0040',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'legacy_lb_3'
-    );
+WITH gigastake_applications_insert AS (
+    INSERT INTO gigastake_applications (
+            aat_id,
+            name,
+            created_at,
+            updated_at,
+            lb_id
+        )
+    VALUES (
+            'test_gigastake_app_1',
+            'pokt_gigastake',
+            '2022-11-11 11:11:11.000000',
+            '2022-11-11 11:11:11.000000',
+            'legacy_lb_1'
+        ),
+        (
+            'test_gigastake_app_2',
+            'optimism_gigastake',
+            '2022-11-11 11:11:11.000000',
+            '2022-11-11 11:11:11.000000',
+            'legacy_lb_2'
+        ),
+        (
+            'test_gigastake_app_3',
+            'harmony_gigastake',
+            '2022-11-11 11:11:11.000000',
+            '2022-11-11 11:11:11.000000',
+            'legacy_lb_3'
+        )
+    RETURNING id,
+        aat_id
+)
+INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+SELECT CASE
+        WHEN aat_id = 'test_gigastake_app_1' THEN '0001'
+        WHEN aat_id = 'test_gigastake_app_2' THEN '0053'
+        WHEN aat_id = 'test_gigastake_app_3' THEN '0040'
+    END,
+    id
+FROM gigastake_applications_insert;
 INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
 VALUES (
         '0xtest_6789abcdef0123456789abcdef01234567',

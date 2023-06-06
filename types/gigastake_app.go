@@ -8,13 +8,14 @@ import (
 type (
 	// GigastakeApp represents a single gigastaked application for a given chain
 	GigastakeApp struct {
-		AATID     ProtocolAppID `json:"aatID"`
-		ChainID   RelayChainID  `json:"chainID"`
-		Name      string        `json:"name"`
-		AAT       AAT           `json:"aat"`
-		CreatedAt time.Time     `json:"createdAt"`
-		UpdatedAt time.Time     `json:"updatedAt"`
-		Deleted   bool          `json:"deleted"`
+		ID        GigastakeAppID            `json:"id"`
+		AATID     ProtocolAppID             `json:"aatID"`
+		ChainIDs  map[RelayChainID]struct{} `json:"chainIDs"`
+		Name      string                    `json:"name"`
+		AAT       AAT                       `json:"aat"`
+		CreatedAt time.Time                 `json:"createdAt"`
+		UpdatedAt time.Time                 `json:"updatedAt"`
+		Deleted   bool                      `json:"deleted"`
 
 		// TODO remove legacy field when migration to V2 schema complete
 		LegacyLBID string `json:"legacyLBID"`
@@ -38,6 +39,13 @@ type (
 		// PortalAppID only used for non-gigastake AATs, which
 		// are currently not used anywhere but kept for compatibility.
 		PortalAppID PortalAppID `json:"appID,omitempty"`
+	}
+
+	// GigastakeApp represents the relationship between a Chain and GigastakeApp
+	// Only used by the listener
+	ChainGigastakeApp struct {
+		ChainID        RelayChainID   `json:"chainID"`
+		GigastakeAppID GigastakeAppID `json:"gigastakeAppID"`
 	}
 )
 

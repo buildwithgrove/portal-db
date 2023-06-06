@@ -6,6 +6,7 @@ import "regexp"
 type (
 	AccountID      string
 	UserID         string
+	GigastakeAppID string
 	RelayChainID   string
 	PortalAppID    string
 	ProtocolAppID  string

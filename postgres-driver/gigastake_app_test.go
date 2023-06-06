@@ -53,7 +53,7 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 		{
 			name: "Should return an error if the chain doesn't exist",
 			gigastakeApp: types.GigastakeApp{
-				ChainID: "0666",
+				ChainIDs: map[types.RelayChainID]struct{}{"0666": {}},
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errChainDoesntExist.Error(), "0666"),

@@ -32,10 +32,16 @@ func (pg *PostgresDriver) ReadGigastakeApps(ctx context.Context, options types.D
 
 // toGigastakeApp converts GigastakeApp SELECT output to GigastakeApp struct
 func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, error) {
+	chainIDs := make(map[types.RelayChainID]struct{}, len(g.ChainIDs))
+	for _, chainID := range g.ChainIDs {
+		chainIDs[types.RelayChainID(chainID)] = struct{}{}
+	}
+
 	return &types.GigastakeApp{
-		AATID:   g.AATID,
-		ChainID: types.RelayChainID(g.ChainID),
-		Name:    g.Name,
+		ID:       g.ID,
+		AATID:    g.AATID,
+		ChainIDs: chainIDs,
+		Name:     g.Name,
 		AAT: types.AAT{
 			ID:              g.AATID,
 			Gigastake:       true,
@@ -104,9 +110,13 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 
 // upsertGigastakeApp performs either an insert or update on a GigastakeApp in the database
 func (pg *PostgresDriver) upsertGigastakeApp(ctx context.Context, qtx *Queries, gigastakeApp types.GigastakeApp) error {
+	chainIDs := []string{}
+	for chainID := range gigastakeApp.ChainIDs {
+		chainIDs = append(chainIDs, string(chainID))
+	}
 	err := qtx.UpsertGigastakeApp(ctx, UpsertGigastakeAppParams{
 		AATID:     gigastakeApp.AATID,
-		ChainID:   gigastakeApp.ChainID,
+		ChainIDs:  chainIDs,
 		Name:      gigastakeApp.Name,
 		CreatedAt: gigastakeApp.CreatedAt,
 		UpdatedAt: gigastakeApp.UpdatedAt,
@@ -140,13 +150,14 @@ func (pg *PostgresDriver) insertGigastakeAAT(ctx context.Context, qtx *Queries, 
 
 // validateGigastakeAppInput performs all necessary data validation checks on incoming GigastakeApp data
 func (pg *PostgresDriver) validateGigastakeAppInput(ctx context.Context, gigastakeApp types.GigastakeApp) error {
-	chainExists, err := pg.CheckChainExists(ctx, gigastakeApp.ChainID)
-	if err != nil {
-		return err
-	}
-	if !chainExists {
-		return fmt.Errorf(errChainDoesntExist.Error(), gigastakeApp.ChainID)
-
+	for chainID := range gigastakeApp.ChainIDs {
+		chainExists, err := pg.CheckChainExists(ctx, chainID)
+		if err != nil {
+			return err
+		}
+		if !chainExists {
+			return fmt.Errorf(errChainDoesntExist.Error(), chainID)
+		}
 	}
 
 	return nil
@@ -155,8 +166,8 @@ func (pg *PostgresDriver) validateGigastakeAppInput(ctx context.Context, gigasta
 /* ----- Used by Listener ----- */
 func (json dbGigastakeApp) toOutput() *types.GigastakeApp {
 	return &types.GigastakeApp{
+		ID:         json.ID,
 		AATID:      json.AATID,
-		ChainID:    json.ChainID,
 		Name:       json.Name,
 		AAT:        json.AAT,
 		CreatedAt:  json.CreatedAt,
@@ -179,16 +190,24 @@ func (json dbAAT) toOutput() *types.AAT {
 	}
 }
 
+func (json dbChainGigastakeApp) toOutput() *types.ChainGigastakeApp {
+	return &types.ChainGigastakeApp{
+		GigastakeAppID: json.GigastakeAppID,
+		ChainID:        json.ChainID,
+	}
+}
+
 type dbGigastakeApp struct {
-	AATID      types.ProtocolAppID `json:"aat_id"`
-	ChainID    types.RelayChainID  `json:"chain_id"`
-	Name       string              `json:"name"`
-	AAT        types.AAT           `json:"aat"`
-	CreatedAt  time.Time           `json:"created_at"`
-	UpdatedAt  time.Time           `json:"updated_at"`
-	Deleted    bool                `json:"deleted"`
-	DeletedAt  time.Time           `json:"deleted_at"`
-	LegacyLBID string              `json:"lb_id"`
+	ID         types.GigastakeAppID `json:"id"`
+	AATID      types.ProtocolAppID  `json:"aat_id"`
+	ChainID    types.RelayChainID   `json:"chain_id"`
+	Name       string               `json:"name"`
+	AAT        types.AAT            `json:"aat"`
+	CreatedAt  time.Time            `json:"created_at"`
+	UpdatedAt  time.Time            `json:"updated_at"`
+	Deleted    bool                 `json:"deleted"`
+	DeletedAt  time.Time            `json:"deleted_at"`
+	LegacyLBID string               `json:"lb_id"`
 }
 
 type dbAAT struct {
@@ -200,4 +219,9 @@ type dbAAT struct {
 	Signature       string              `json:"signature"`
 	Version         string              `json:"version"`
 	PortalAppID     types.PortalAppID   `json:"portal_application_id"`
+}
+
+type dbChainGigastakeApp struct {
+	GigastakeAppID types.GigastakeAppID `json:"gigastake_application_id"`
+	ChainID        types.RelayChainID   `json:"chain_id"`
 }

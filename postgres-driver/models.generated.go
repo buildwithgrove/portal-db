@@ -493,15 +493,20 @@ type ChainCheck struct {
 	UpdatedAt  time.Time            `json:"updated_at"`
 }
 
+type ChainsGigastakeApplication struct {
+	ChainID                types.RelayChainID  `json:"chain_id"`
+	GigastakeApplicationID types.ProtocolAppID `json:"gigastake_application_id"`
+}
+
 type GigastakeApplication struct {
-	AATID     types.ProtocolAppID `json:"aat_id"`
-	ChainID   types.RelayChainID  `json:"chain_id"`
-	Name      string              `json:"name"`
-	CreatedAt time.Time           `json:"created_at"`
-	UpdatedAt time.Time           `json:"updated_at"`
-	Deleted   bool                `json:"deleted"`
-	DeletedAt sql.NullTime        `json:"deleted_at"`
-	LbID      string              `json:"lb_id"`
+	ID        types.GigastakeAppID `json:"id"`
+	AATID     types.ProtocolAppID  `json:"aat_id"`
+	Name      string               `json:"name"`
+	CreatedAt time.Time            `json:"created_at"`
+	UpdatedAt time.Time            `json:"updated_at"`
+	Deleted   bool                 `json:"deleted"`
+	DeletedAt sql.NullTime         `json:"deleted_at"`
+	LbID      string               `json:"lb_id"`
 }
 
 type GlobalBlockedContract struct {

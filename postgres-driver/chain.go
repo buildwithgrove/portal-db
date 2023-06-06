@@ -188,7 +188,7 @@ func (pg *PostgresDriver) WriteChainAndGigastakeApps(ctx context.Context, input 
 
 		gigastakeApp.AATID = types.ProtocolAppID(protocolAppID)
 		gigastakeApp.AAT.ID = types.ProtocolAppID(protocolAppID)
-		gigastakeApp.ChainID = chain.ID
+		gigastakeApp.ChainIDs = map[types.RelayChainID]struct{}{chain.ID: struct{}{}}
 		gigastakeApp.CreatedAt = createdAt
 		gigastakeApp.UpdatedAt = createdAt
 

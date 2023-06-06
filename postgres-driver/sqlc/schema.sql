@@ -234,7 +234,8 @@ CREATE TABLE account_user_access (
     )
 );
 CREATE UNIQUE INDEX idx_unique_owner_per_account ON account_user_access (account_id)
-WHERE owner = true AND role_name = 'OWNER';
+WHERE owner = true
+    AND role_name = 'OWNER';
 -- AATs Table
 CREATE TABLE IF NOT EXISTS aats (
     id VARCHAR(24) PRIMARY KEY,
@@ -259,16 +260,21 @@ CREATE TABLE IF NOT EXISTS aats (
 );
 -- Gigastake Applications Table
 CREATE TABLE IF NOT EXISTS gigastake_applications (
-    aat_id VARCHAR(24) NOT NULL REFERENCES aats(id) ON DELETE CASCADE,
-    chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    aat_id VARCHAR(24) NOT NULL UNIQUE REFERENCES aats(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
     deleted_at TIMESTAMPTZ NULL,
     -- legacy field
-    lb_id VARCHAR NOT NULL,
-    PRIMARY KEY(aat_id, chain_id)
+    lb_id VARCHAR NOT NULL
+);
+-- Chains and Gigastake Applications Join Table
+CREATE TABLE chains_gigastake_applications (
+    chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
+    gigastake_application_id INT NOT NULL REFERENCES gigastake_applications(id) ON DELETE CASCADE,
+    PRIMARY KEY(chain_id, gigastake_application_id)
 );
 -- Blocked Contracts Tables
 CREATE TABLE global_blocked_contracts (

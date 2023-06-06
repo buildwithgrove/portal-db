@@ -769,9 +769,9 @@ var (
 
 	GigastakeApps = map[types.ProtocolAppID]*types.GigastakeApp{
 		"test_gigastake_app_1": {
-			AATID:   "test_gigastake_app_1",
-			ChainID: "0001",
-			Name:    "pokt_gigastake",
+			AATID:    "test_gigastake_app_1",
+			ChainIDs: map[types.RelayChainID]struct{}{"0001": {}},
+			Name:     "pokt_gigastake",
 			AAT: types.AAT{
 				ID:              "test_gigastake_app_1",
 				Gigastake:       true,
@@ -787,9 +787,9 @@ var (
 			LegacyLBID: "legacy_lb_1",
 		},
 		"test_gigastake_app_2": {
-			AATID:   "test_gigastake_app_2",
-			ChainID: "0053",
-			Name:    "optimism_gigastake",
+			AATID:    "test_gigastake_app_2",
+			ChainIDs: map[types.RelayChainID]struct{}{"0053": {}},
+			Name:     "optimism_gigastake",
 			AAT: types.AAT{
 				ID:              "test_gigastake_app_2",
 				Gigastake:       true,
@@ -805,9 +805,9 @@ var (
 			LegacyLBID: "legacy_lb_2",
 		},
 		"test_gigastake_app_3": {
-			AATID:   "test_gigastake_app_3",
-			ChainID: "0040",
-			Name:    "harmony_gigastake",
+			AATID:    "test_gigastake_app_3",
+			ChainIDs: map[types.RelayChainID]struct{}{"0040": {}},
+			Name:     "harmony_gigastake",
 			AAT: types.AAT{
 				ID:              "test_gigastake_app_3",
 				Gigastake:       true,
@@ -1022,8 +1022,8 @@ var (
 	}
 
 	TestCreateGigastakeApp = types.GigastakeApp{
-		ChainID: "0001",
-		Name:    "pokt_create_gigastake",
+		ChainIDs: map[types.RelayChainID]struct{}{"0001": {}},
+		Name:     "pokt_create_gigastake",
 		AAT: types.AAT{
 			Gigastake:       true,
 			Address:         "test_a3b8d425877f4ec8b679f9e10251bb5a",

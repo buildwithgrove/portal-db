@@ -122,7 +122,7 @@ func Test_Listen(t *testing.T) {
 					Action: types.ActionInsert,
 					Data: &types.GigastakeApp{
 						AATID:      "test_gigastake_app_1",
-						ChainID:    "0001",
+						ChainIDs:   map[types.RelayChainID]struct{}{"0001": {}},
 						Name:       "pokt_gigastake",
 						CreatedAt:  testdata.MockTimestamp,
 						UpdatedAt:  testdata.MockTimestamp,

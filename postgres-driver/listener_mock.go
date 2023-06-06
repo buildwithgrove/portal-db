@@ -247,8 +247,8 @@ func gigastakeAppInputs(mainTableAction types.Action, sideTablesAction types.Act
 			action: mainTableAction,
 			table:  types.TableGigastakeApps,
 			input: dbGigastakeApp{
+				ID:         gigastakeApp.ID,
 				AATID:      gigastakeApp.AATID,
-				ChainID:    gigastakeApp.ChainID,
 				Name:       gigastakeApp.Name,
 				CreatedAt:  gigastakeApp.CreatedAt,
 				UpdatedAt:  gigastakeApp.UpdatedAt,
