@@ -12,6 +12,7 @@ type (
 	ProtocolAppID  string
 	Email          string
 	BlockedAddress string
+	AATID          int32
 )
 
 // Validates that an Email fits a valid email format eg. test@example.com
@@ -45,8 +46,7 @@ const (
 	TableAppSettings      Table = "portal_application_settings"
 	TableAppWhitelists    Table = "portal_application_whitelists"
 	TableAppNotifications Table = "portal_application_notifications"
-
-	TableAATs Table = "aats"
+	TablePortalAppAATs    Table = "portal_application_aats"
 
 	TableGigastakeApps Table = "gigastake_applications"
 

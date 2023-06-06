@@ -12,16 +12,16 @@ import (
 func (ts *PGDriverTestSuite) Test_ReadGigastakeApps() {
 	tests := []struct {
 		name          string
-		gigastakeApps map[types.ProtocolAppID]*types.GigastakeApp
+		gigastakeApps map[types.GigastakeAppID]*types.GigastakeApp
 		options       types.DriverOptions
 		err           error
 	}{
 		{
 			name: "Should return all non-deleted GigastakeApps from the database",
-			gigastakeApps: map[types.ProtocolAppID]*types.GigastakeApp{
-				testdata.GigastakeApps["test_gigastake_app_1"].AATID: testdata.GigastakeApps["test_gigastake_app_1"],
-				testdata.GigastakeApps["test_gigastake_app_2"].AATID: testdata.GigastakeApps["test_gigastake_app_2"],
-				testdata.GigastakeApps["test_gigastake_app_3"].AATID: testdata.GigastakeApps["test_gigastake_app_3"],
+			gigastakeApps: map[types.GigastakeAppID]*types.GigastakeApp{
+				testdata.GigastakeApps["test_gigastake_app_1"].ID: testdata.GigastakeApps["test_gigastake_app_1"],
+				testdata.GigastakeApps["test_gigastake_app_2"].ID: testdata.GigastakeApps["test_gigastake_app_2"],
+				testdata.GigastakeApps["test_gigastake_app_3"].ID: testdata.GigastakeApps["test_gigastake_app_3"],
 			},
 			options: types.DriverOptions{},
 			err:     nil,
@@ -66,20 +66,15 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				ts.NotEmpty(createdGigastakeApp.AATID)
-				ts.NotEmpty(createdGigastakeApp.AAT.ID)
-
-				// Ensure the ID and timestamps are the same as the created app
-				test.gigastakeApp.AATID = createdGigastakeApp.AATID
-				test.gigastakeApp.AAT.ID = createdGigastakeApp.AATID
+				// Ensure the timestamps are the same as the created app
 				test.gigastakeApp.CreatedAt = createdGigastakeApp.CreatedAt
 				test.gigastakeApp.UpdatedAt = createdGigastakeApp.UpdatedAt
-				test.gigastakeApp.AAT.PrivateKey = "" // PrivateKey is never read from the DB
+				test.gigastakeApp.PrivateKey = "" // PrivateKey is never read from the DB
 				ts.Equal(&test.gigastakeApp, createdGigastakeApp)
 
 				gigastakeApps, err := ts.driver.ReadGigastakeApps(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
-				ts.Equal(&test.gigastakeApp, gigastakeApps[test.gigastakeApp.AATID])
+				ts.Equal(&test.gigastakeApp, gigastakeApps[test.gigastakeApp.ID])
 			}
 		})
 	}

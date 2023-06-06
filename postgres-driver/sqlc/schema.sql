@@ -209,6 +209,19 @@ CREATE TABLE portal_application_whitelists (
 );
 CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_application_whitelists (application_id, value, type)
 WHERE chain_id IS NULL;
+CREATE TABLE IF NOT EXISTS portal_application_aats (
+    id SERIAL PRIMARY KEY,
+    portal_application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
+    address VARCHAR(40) NOT NULL,
+    public_key VARCHAR(64) NOT NULL,
+    client_public_key VARCHAR(64) NOT NULL,
+    signature VARCHAR(128) NOT NULL,
+    private_key VARCHAR(400) NULL,
+    version VARCHAR(10) NOT NULL,
+    -- legacy field
+    application_id VARCHAR(24) NOT NULL
+);
+-- Account User Access Table
 CREATE TABLE account_user_access (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(10) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -236,33 +249,16 @@ CREATE TABLE account_user_access (
 CREATE UNIQUE INDEX idx_unique_owner_per_account ON account_user_access (account_id)
 WHERE owner = true
     AND role_name = 'OWNER';
--- AATs Table
-CREATE TABLE IF NOT EXISTS aats (
+-- Gigastake Applications Table
+CREATE TABLE IF NOT EXISTS gigastake_applications (
     id VARCHAR(24) PRIMARY KEY,
-    portal_application_id VARCHAR(24) NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
-    gigastake BOOLEAN NOT NULL,
+    name VARCHAR(255) NOT NULL,
     address VARCHAR(40) NOT NULL,
     public_key VARCHAR(64) NOT NULL,
     client_public_key VARCHAR(64) NOT NULL,
     signature VARCHAR(128) NOT NULL,
     private_key VARCHAR(400) NULL,
     version VARCHAR(10) NOT NULL,
-    CONSTRAINT check_portal_application_id_gigastake CHECK (
-        (
-            gigastake = TRUE
-            AND portal_application_id IS NULL
-        )
-        OR (
-            gigastake = FALSE
-            AND portal_application_id IS NOT NULL
-        )
-    )
-);
--- Gigastake Applications Table
-CREATE TABLE IF NOT EXISTS gigastake_applications (
-    id SERIAL PRIMARY KEY,
-    aat_id VARCHAR(24) NOT NULL UNIQUE REFERENCES aats(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
@@ -273,7 +269,7 @@ CREATE TABLE IF NOT EXISTS gigastake_applications (
 -- Chains and Gigastake Applications Join Table
 CREATE TABLE chains_gigastake_applications (
     chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
-    gigastake_application_id INT NOT NULL REFERENCES gigastake_applications(id) ON DELETE CASCADE,
+    gigastake_application_id VARCHAR(24) NOT NULL REFERENCES gigastake_applications(id) ON DELETE CASCADE,
     PRIMARY KEY(chain_id, gigastake_application_id)
 );
 -- Blocked Contracts Tables

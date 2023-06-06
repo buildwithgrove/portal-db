@@ -104,7 +104,7 @@ func (n notification) parseAppNotificationNotification() *types.Notification {
 
 func (n notification) parseAATNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAAT dbAAT
+	var dbAAT dbPortalApplicationAAT
 	_ = json.Unmarshal(rawData, &dbAAT)
 
 	return &types.Notification{
@@ -239,8 +239,7 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseWhitelistNotification()
 	case types.TableAppNotifications:
 		return n.parseAppNotificationNotification()
-
-	case types.TableAATs:
+	case types.TablePortalAppAATs:
 		return n.parseAATNotification()
 
 	case types.TableGigastakeApps:

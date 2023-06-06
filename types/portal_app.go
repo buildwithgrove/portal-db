@@ -3,7 +3,6 @@ package types
 import (
 	"sort"
 	"time"
-	// TODO - remove when v2 migration finished
 )
 
 /* Enums */
@@ -80,7 +79,7 @@ type (
 		AccountID     AccountID                            `json:"accountID"`
 		Settings      Settings                             `json:"settings"`
 		Whitelists    Whitelists                           `json:"whitelists"`
-		AATs          map[ProtocolAppID]AAT                `json:"aat"`
+		AATs          map[AATID]AAT                        `json:"aat"`
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
@@ -117,6 +116,24 @@ type (
 		Blockchains map[RelayChainID]struct{}              `json:"blockchains"`
 		Contracts   map[RelayChainID]map[Contract]struct{} `json:"contracts"`
 		Methods     map[RelayChainID]map[Method]struct{}   `json:"methods"`
+	}
+
+	// AAT contains the data needed to perform relays
+	AAT struct {
+		AppID           PortalAppID `json:"appID,omitempty"`
+		ID              AATID       `json:"id"`
+		Address         string      `json:"address"`
+		PublicKey       string      `json:"publicKey"`
+		ClientPublicKey string      `json:"clientPublicKey"`
+		Signature       string      `json:"signature"`
+		Version         string      `json:"version"`
+
+		// PrivateKey used when read from the DB, will always be ""
+		// Only used for saving to DB
+		// TODO remove when decided to not support saving private key to DB
+		PrivateKey string `json:"privateKey,omitempty"`
+		// TODO - remove when v2 migration finished
+		LegacyAppID ProtocolAppID `json:"legacyAppID"`
 	}
 
 	// Whitelist (singular) is used by the listener in PHD to receive a single whitelist row
@@ -202,13 +219,6 @@ func (a *PortalApp) AAT() AAT {
 		return aat
 	}
 	return AAT{}
-}
-
-func (a *PortalApp) ProtocolAppID() ProtocolAppID {
-	for _, aat := range a.AATs {
-		return aat.ID
-	}
-	return ""
 }
 
 // MonthlyLimit returns the monthly relay limit for a given application
@@ -389,4 +399,8 @@ func (a *Whitelist) Table() Table {
 
 func (a *AppNotification) Table() Table {
 	return TableAppNotifications
+}
+
+func (a *AAT) Table() Table {
+	return TablePortalAppAATs
 }

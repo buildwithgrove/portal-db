@@ -22,7 +22,7 @@ type (
 		/* ReadPortalApps returns all PortalApps in the database. Can specify if deleted PortalApps should be included.  */
 		ReadPortalApps(ctx context.Context, options types.DriverOptions) (map[types.PortalAppID]*types.PortalApp, error)
 		/* ReadGigastakeApps returns all GigastakeApps in the database. Can specify if deleted GigastakeApps should be included.  */
-		ReadGigastakeApps(ctx context.Context, options types.DriverOptions) (map[types.ProtocolAppID]*types.GigastakeApp, error)
+		ReadGigastakeApps(ctx context.Context, options types.DriverOptions) (map[types.GigastakeAppID]*types.GigastakeApp, error)
 
 		/* ReadPlans returns all Plans in the database */
 		ReadPlans(ctx context.Context) (map[types.PayPlanType]*types.Plan, error)

@@ -7,8 +7,8 @@ SELECT EXISTS (
                 WHERE portal_applications.id = @id::VARCHAR
                 UNION ALL
                 SELECT id
-                FROM aats
-                WHERE aats.id = @id::VARCHAR
+                FROM gigastake_applications
+                WHERE gigastake_applications.id = @id::VARCHAR
                 UNION ALL
                 SELECT id
                 FROM accounts
@@ -30,54 +30,53 @@ SELECT plan_type,
 FROM pay_plans;
 -- name: SelectGigastakeApplications :many
 SELECT ga.id,
-    ga.aat_id,
     ga.name,
-    ARRAY_AGG(cga.chain_id)::VARCHAR[] AS chain_ids,
+    ARRAY_AGG(cga.chain_id)::VARCHAR [] AS chain_ids,
     ga.created_at,
     ga.updated_at,
     ga.deleted,
-    a.address,
-    a.public_key,
-    a.client_public_key,
-    a.signature,
-    a.version,
+    ga.address,
+    ga.public_key,
+    ga.client_public_key,
+    ga.signature,
+    ga.version,
     -- legacy field
     ga.lb_id
 FROM gigastake_applications AS ga
-    JOIN aats AS a ON ga.aat_id = a.id
     LEFT JOIN chains_gigastake_applications AS cga ON ga.id = cga.gigastake_application_id
 GROUP BY ga.id,
-    ga.aat_id,
     ga.name,
     ga.created_at,
     ga.updated_at,
     ga.deleted,
-    a.address,
-    a.public_key,
-    a.client_public_key,
-    a.signature,
-    a.version,
+    ga.address,
+    ga.public_key,
+    ga.client_public_key,
+    ga.signature,
+    ga.version,
     ga.lb_id;
 -- name: SelectPortalApplications :many
 WITH aats_agg AS (
-    SELECT aats.portal_application_id,
+    SELECT paa.portal_application_id,
         json_object_agg(
-            aats.id,
+            paa.id,
             json_build_object(
                 'address',
-                aats.address,
+                paa.address,
                 'public_key',
-                aats.public_key,
+                paa.public_key,
                 'client_public_key',
-                aats.client_public_key,
+                paa.client_public_key,
                 'signature',
-                aats.signature,
+                paa.signature,
                 'version',
-                aats.version
+                paa.version,
+                'legacy_application_id',
+                paa.application_id
             )
         ) AS aats
-    FROM aats aats
-    GROUP BY aats.portal_application_id
+    FROM portal_application_aats paa
+    GROUP BY paa.portal_application_id
 ),
 notifications_agg AS (
     SELECT pn.application_id,
@@ -168,10 +167,8 @@ VALUES (
     )
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
-INSERT INTO aats (
-        id,
+INSERT INTO portal_application_aats (
         portal_application_id,
-        gigastake,
         address,
         public_key,
         private_key,
@@ -179,7 +176,7 @@ INSERT INTO aats (
         signature,
         version
     )
-VALUES ($1, $2, false, $3, $4, $5, $6, $7, $8)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 -- name: InsertPortalApplicationSetting :one
 INSERT INTO portal_application_settings (
@@ -931,44 +928,40 @@ SET active = $2,
     updated_at = $3
 WHERE id = $1
 RETURNING active;
--- name: InsertGigastakeAAT :exec
-INSERT INTO aats (
-        id,
-        gigastake,
-        address,
-        public_key,
-        client_public_key,
-        signature,
-        private_key,
-        version
-    )
-VALUES ($1, true, $2, $3, $4, $5, $6, $7);
 -- name: UpsertGigastakeApp :exec
 WITH new_or_updated_gigastake_application AS (
-  INSERT INTO gigastake_applications (
-    aat_id,
-    name,
-    created_at,
-    updated_at,
-    lb_id
-  )
-  VALUES ($1, $2, $3, $4, $5)
-  ON CONFLICT (aat_id)
-  DO UPDATE
-  SET name = EXCLUDED.name,
-      created_at = EXCLUDED.created_at,
-      updated_at = EXCLUDED.updated_at,
-      lb_id = EXCLUDED.lb_id
-  RETURNING id
+    INSERT INTO gigastake_applications (
+            id,
+            name,
+            address,
+            public_key,
+            client_public_key,
+            signature,
+            private_key,
+            version,
+            created_at,
+            updated_at,
+            lb_id
+        )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (id) DO
+    UPDATE
+    SET name = EXCLUDED.name,
+        address = EXCLUDED.address,
+        public_key = EXCLUDED.public_key,
+        client_public_key = EXCLUDED.client_public_key,
+        signature = EXCLUDED.signature,
+        private_key = EXCLUDED.private_key,
+        version = EXCLUDED.version,
+        updated_at = EXCLUDED.updated_at,
+        lb_id = EXCLUDED.lb_id
+    RETURNING id
 )
-INSERT INTO chains_gigastake_applications (
-  chain_id,
-  gigastake_application_id
-)
-SELECT
-  unnest(@chain_ids::VARCHAR[]),
-  (SELECT id FROM new_or_updated_gigastake_application)
-ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING;
+INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+SELECT unnest(@chain_ids::VARCHAR []),
+    (
+        SELECT id
+        FROM new_or_updated_gigastake_application
+    ) ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING;
 -- name: SelectGlobalBlockedContract :many
 SELECT id,
     blocked_address

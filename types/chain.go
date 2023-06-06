@@ -86,7 +86,7 @@ type (
 		Deleted        bool                         `json:"deleted"`
 
 		// GigastakeApps are set inside PHD
-		GigastakeApps map[ProtocolAppID]*GigastakeApp `json:"chainGigastakeApps,omitempty"`
+		GigastakeApps map[GigastakeAppID]*GigastakeApp `json:"chainGigastakeApps,omitempty"`
 	}
 	Altruist struct {
 		ChainID  RelayChainID  `json:"chainID,omitempty"`
@@ -155,15 +155,15 @@ func (c *Chain) GetChainDomains() []ChainDomain {
 	return chainDomains
 }
 
-// GetGigastakeAATs returns a slice of all of a Chain's GigastakeApp AATs
-func (c *Chain) GetGigastakeAATs() []AAT {
-	gigastakeAATsSlice := []AAT{}
+// GetGigastakeAATs returns a slice of all of a Chain's GigastakeApps
+func (c *Chain) GetGigastakeApps() []GigastakeApp {
+	gigastakeAppsSlice := []GigastakeApp{}
 
 	for _, gigastakeApp := range c.GigastakeApps {
-		gigastakeAATsSlice = append(gigastakeAATsSlice, gigastakeApp.AAT)
+		gigastakeAppsSlice = append(gigastakeAppsSlice, *gigastakeApp)
 	}
 
-	return gigastakeAATsSlice
+	return gigastakeAppsSlice
 }
 
 // ClearGigastakeApps clears the Chain's GigastakesApps map and returns the updated Chain

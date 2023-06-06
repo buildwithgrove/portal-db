@@ -17,14 +17,13 @@ type (
 		BlockchainID string              `json:"chain_id"`
 	}
 	aatDBRow struct {
-		ID              types.ProtocolAppID `json:"id"`
-		ApplicationID   types.PortalAppID   `json:"application_id"`
-		Address         string              `json:"address"`
-		PublicKey       string              `json:"public_key"`
-		ClientPublicKey string              `json:"client_public_key"`
-		PrivateKey      string              `json:"private_key"`
-		Signature       string              `json:"signature"`
-		Version         string              `json:"version"`
+		ID                  types.AATID         `json:"id"`
+		LegacyApplicationID types.ProtocolAppID `json:"legacy_application_id"`
+		Address             string              `json:"address"`
+		PublicKey           string              `json:"public_key"`
+		ClientPublicKey     string              `json:"client_public_key"`
+		Signature           string              `json:"signature"`
+		Version             string              `json:"version"`
 	}
 )
 
@@ -58,7 +57,7 @@ func (pg *PostgresDriver) ReadPortalApps(ctx context.Context, options types.Driv
 
 // toPortalApp converts PortalApp SELECT output to PortalApp struct
 func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
-	var appAATs map[types.ProtocolAppID]types.AAT
+	var appAATs map[types.AATID]types.AAT
 	if len(string(a.AATs)) > 2 { // length of empty JSON array in bytes
 		aats, err := a.toAATs()
 		if err != nil {
@@ -113,23 +112,23 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 }
 
 // toAATs converts AATs from DB rows to map-based PortalApp.AATs struct
-func (a *SelectPortalApplicationsRow) toAATs() (map[types.ProtocolAppID]types.AAT, error) {
-	var dbAATs map[types.ProtocolAppID]aatDBRow
+func (a *SelectPortalApplicationsRow) toAATs() (map[types.AATID]types.AAT, error) {
+	var dbAATs map[types.AATID]aatDBRow
 
 	if err := json.Unmarshal(a.AATs, &dbAATs); err != nil {
 		return nil, err
 	}
 
-	aats := make(map[types.ProtocolAppID]types.AAT, len(dbAATs))
+	aats := make(map[types.AATID]types.AAT, len(dbAATs))
 
-	for protocolAppID, dbAAT := range dbAATs {
-		aats[protocolAppID] = types.AAT{
-			ID:              protocolAppID,
+	for aatID, dbAAT := range dbAATs {
+		aats[aatID] = types.AAT{
 			Address:         dbAAT.Address,
 			PublicKey:       dbAAT.PublicKey,
 			ClientPublicKey: dbAAT.ClientPublicKey,
 			Signature:       dbAAT.Signature,
 			Version:         dbAAT.Version,
+			LegacyAppID:     dbAAT.LegacyApplicationID,
 		}
 	}
 
@@ -181,19 +180,14 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 
 // WritePortalApp creates a single PortalApp in the database, including its AAT and Settings rows
 func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, aat types.AAT, createdAt time.Time) (*types.PortalApp, error) {
-	portalAppID, protocolAppID, err := pg.generatePortalAppIDs(ctx)
+	portalAppID, err := pg.generateID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	portalApp.ID = portalAppID
+	portalApp.ID = types.PortalAppID(portalAppID)
 	portalApp.CreatedAt = createdAt
 	portalApp.UpdatedAt = createdAt
-
-	aat.ID = protocolAppID
-	portalApp.AATs = map[types.ProtocolAppID]types.AAT{
-		protocolAppID: aat,
-	}
 
 	tx, err := pg.DB.Begin()
 	if err != nil {
@@ -219,9 +213,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	if err != nil {
 		return nil, err
 	}
-	_, err = qtx.InsertPortalApplicationAAT(ctx, InsertPortalApplicationAATParams{
+	createdAAT, err := qtx.InsertPortalApplicationAAT(ctx, InsertPortalApplicationAATParams{
 		PortalApplicationID: portalApp.ID,
-		ID:                  aat.ID,
 		Address:             aat.Address,
 		PublicKey:           aat.PublicKey,
 		ClientPublicKey:     aat.ClientPublicKey,
@@ -276,31 +269,24 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		return nil, err
 	}
 
+	portalApp.AATs = map[types.AATID]types.AAT{
+		createdAAT.ID: types.AAT{
+			ID:              createdAAT.ID,
+			Address:         createdAAT.Address,
+			PublicKey:       createdAAT.PublicKey,
+			ClientPublicKey: createdAAT.ClientPublicKey,
+			Signature:       createdAAT.Signature,
+			Version:         createdAAT.Version,
+			LegacyAppID:     createdAAT.ApplicationID,
+		},
+	}
+
 	// Don't return PrivateKey in response
 	for _, aat := range portalApp.AATs {
 		aat.PrivateKey = ""
 	}
 
 	return &portalApp, nil
-}
-
-func (pg *PostgresDriver) generatePortalAppIDs(ctx context.Context) (types.PortalAppID, types.ProtocolAppID, error) {
-	portalAppID, err := pg.generateID(ctx)
-	if err != nil {
-		return "", "", err
-	}
-	protocolAppID, err := pg.generateID(ctx)
-	if err != nil {
-		return "", "", err
-	}
-	for protocolAppID == portalAppID { // Ensure the protocol app ID cannot match the portal app ID
-		protocolAppID, err = pg.generateID(ctx)
-		if err != nil {
-			return "", "", err
-		}
-	}
-
-	return types.PortalAppID(portalAppID), types.ProtocolAppID(protocolAppID), nil
 }
 
 /* ----- postgresdriver PortalApp Update Methods ----- */
@@ -552,6 +538,19 @@ func (json dbPortalApplicationNotification) mapEvents() map[types.NotificationEv
 	return events
 }
 
+func (json dbPortalApplicationAAT) toOutput() *types.AAT {
+	return &types.AAT{
+		AppID:           json.PortalAppID,
+		ID:              json.ID,
+		Address:         json.Address,
+		PublicKey:       json.PublicKey,
+		ClientPublicKey: json.ClientPublicKey,
+		Signature:       json.Signature,
+		Version:         json.Version,
+		LegacyAppID:     json.LegacyAppID,
+	}
+}
+
 type dbPortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
 	AccountID          string            `json:"account_id"`
@@ -596,4 +595,15 @@ type dbPortalApplicationWhitelist struct {
 	Value         string              `json:"value"`
 	ChainID       string              `json:"chain_id"`
 	CreatedAt     time.Time           `json:"created_at"`
+}
+
+type dbPortalApplicationAAT struct {
+	ID              types.AATID         `json:"id"`
+	PortalAppID     types.PortalAppID   `json:"portal_application_id"`
+	Address         string              `json:"address"`
+	PublicKey       string              `json:"public_key"`
+	ClientPublicKey string              `json:"client_public_key"`
+	Signature       string              `json:"signature"`
+	Version         string              `json:"version"`
+	LegacyAppID     types.ProtocolAppID `json:"application_id"`
 }

@@ -109,17 +109,10 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			createdChainData, err := ts.driver.WriteChainAndGigastakeApps(context.Background(), test.newChainInput, test.testCreatedTime)
+			_, err := ts.driver.WriteChainAndGigastakeApps(context.Background(), test.newChainInput, test.testCreatedTime)
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				ts.NotEmpty(createdChainData.Chain.ID)
-				for i, gigastakeApp := range createdChainData.GigastakeApps {
-					ts.NotEmpty(gigastakeApp.AATID)
-					test.newChainInput.GigastakeApps[i].AATID = gigastakeApp.AATID
-					break
-				}
-
 				chains, err := ts.driver.ReadChains(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
 				exists := false
@@ -135,10 +128,10 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 				gigastakeApps, err := ts.driver.ReadGigastakeApps(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
 				exists = false
-				for aatID, gigastakeApp := range gigastakeApps {
+				for gigastakeAppID, gigastakeApp := range gigastakeApps {
 					for _, testGigastakeApp := range test.newChainInput.GigastakeApps {
-						testGigastakeApp.AAT.PrivateKey = "" // Private key is never read from the DB
-						if aatID == testGigastakeApp.AATID {
+						testGigastakeApp.PrivateKey = "" // Private key is never read from the DB
+						if gigastakeAppID == testGigastakeApp.ID {
 							exists = true
 							ts.Equal(testGigastakeApp, gigastakeApp)
 							break

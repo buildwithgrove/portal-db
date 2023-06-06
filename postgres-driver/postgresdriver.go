@@ -83,6 +83,7 @@ func (pg *PostgresDriver) NotificationChannel() <-chan *types.Notification {
 
 // generateID generates a new random ID with the specified length and checks that it doesn't already exist in the DB.
 // If it already exists in the DB a new random ID is generated until one is created that does not already exist.
+// Checks the following tables for existing IDs: `portal_applications`, `gigastake_applications`, `accounts` & `users`
 func (pg *PostgresDriver) generateID(ctx context.Context) (string, error) {
 	var generatedID string
 	var err error

@@ -167,16 +167,16 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
-			table:  types.TableAATs,
-			input: dbAAT{
+			table:  types.TablePortalAppAATs,
+			input: dbPortalApplicationAAT{
+				PortalAppID:     portalApp.ID,
 				ID:              aat.ID,
-				Gigastake:       false,
 				Address:         aat.Address,
 				PublicKey:       aat.PublicKey,
 				ClientPublicKey: aat.ClientPublicKey,
 				Signature:       aat.Signature,
 				Version:         aat.Version,
-				PortalAppID:     portalApp.ID,
+				LegacyAppID:     aat.LegacyAppID,
 			},
 		})
 
@@ -247,27 +247,17 @@ func gigastakeAppInputs(mainTableAction types.Action, sideTablesAction types.Act
 			action: mainTableAction,
 			table:  types.TableGigastakeApps,
 			input: dbGigastakeApp{
-				ID:         gigastakeApp.ID,
-				AATID:      gigastakeApp.AATID,
-				Name:       gigastakeApp.Name,
-				CreatedAt:  gigastakeApp.CreatedAt,
-				UpdatedAt:  gigastakeApp.UpdatedAt,
-				LegacyLBID: gigastakeApp.LegacyLBID,
-				Deleted:    gigastakeApp.Deleted,
-			},
-		})
-
-		inputs = append(inputs, inputStruct{
-			action: sideTablesAction,
-			table:  types.TableAATs,
-			input: dbAAT{
-				ID:              gigastakeApp.AAT.ID,
-				Gigastake:       true,
-				Address:         gigastakeApp.AAT.Address,
-				PublicKey:       gigastakeApp.AAT.PublicKey,
-				ClientPublicKey: gigastakeApp.AAT.ClientPublicKey,
-				Signature:       gigastakeApp.AAT.Signature,
-				Version:         gigastakeApp.AAT.Version,
+				ID:              gigastakeApp.ID,
+				Name:            gigastakeApp.Name,
+				Address:         gigastakeApp.Address,
+				PublicKey:       gigastakeApp.PublicKey,
+				ClientPublicKey: gigastakeApp.ClientPublicKey,
+				Signature:       gigastakeApp.Signature,
+				Version:         gigastakeApp.Version,
+				CreatedAt:       gigastakeApp.CreatedAt,
+				UpdatedAt:       gigastakeApp.UpdatedAt,
+				Deleted:         gigastakeApp.Deleted,
+				LegacyLBID:      gigastakeApp.LegacyLBID,
 			},
 		})
 	}
