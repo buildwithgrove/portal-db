@@ -163,20 +163,21 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		aat := types.AAT{}
 		for _, portalAAT := range portalApp.AATs {
 			aat = portalAAT
+			break
 		}
 
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
-			table:  types.TableAATs,
-			input: dbAAT{
+			table:  types.TablePortalAppAATs,
+			input: dbPortalApplicationAAT{
+				PortalAppID:     portalApp.ID,
 				ID:              aat.ID,
-				Gigastake:       false,
 				Address:         aat.Address,
 				PublicKey:       aat.PublicKey,
 				ClientPublicKey: aat.ClientPublicKey,
 				Signature:       aat.Signature,
 				Version:         aat.Version,
-				PortalAppID:     portalApp.ID,
+				LegacyAppID:     aat.LegacyAppID,
 			},
 		})
 
@@ -231,6 +232,23 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				},
 			})
 		}
+
+		for _, notification := range portalApp.AATs {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TablePortalAppAATs,
+				input: dbPortalApplicationAAT{
+					PortalAppID:     portalApp.ID,
+					ID:              notification.ID,
+					Address:         notification.Address,
+					PublicKey:       notification.PublicKey,
+					ClientPublicKey: notification.ClientPublicKey,
+					Signature:       notification.Signature,
+					Version:         notification.Version,
+					LegacyAppID:     notification.LegacyAppID,
+				},
+			})
+		}
 	}
 
 	return inputs
@@ -247,27 +265,34 @@ func gigastakeAppInputs(mainTableAction types.Action, sideTablesAction types.Act
 			action: mainTableAction,
 			table:  types.TableGigastakeApps,
 			input: dbGigastakeApp{
-				AATID:      gigastakeApp.AATID,
-				ChainID:    gigastakeApp.ChainID,
-				Name:       gigastakeApp.Name,
-				CreatedAt:  gigastakeApp.CreatedAt,
-				UpdatedAt:  gigastakeApp.UpdatedAt,
-				LegacyLBID: gigastakeApp.LegacyLBID,
-				Deleted:    gigastakeApp.Deleted,
+				ID:              gigastakeApp.ID,
+				Name:            gigastakeApp.Name,
+				Address:         gigastakeApp.Address,
+				PublicKey:       gigastakeApp.PublicKey,
+				ClientPublicKey: gigastakeApp.ClientPublicKey,
+				Signature:       gigastakeApp.Signature,
+				Version:         gigastakeApp.Version,
+				CreatedAt:       gigastakeApp.CreatedAt,
+				UpdatedAt:       gigastakeApp.UpdatedAt,
+				Deleted:         gigastakeApp.Deleted,
+				LegacyLBID:      gigastakeApp.LegacyLBID,
 			},
 		})
+	}
+
+	if sideTablesAction != "" {
+		var chainID types.RelayChainID
+		for appChainID := range gigastakeApp.ChainIDs {
+			chainID = appChainID
+			break
+		}
 
 		inputs = append(inputs, inputStruct{
 			action: sideTablesAction,
-			table:  types.TableAATs,
-			input: dbAAT{
-				ID:              gigastakeApp.AAT.ID,
-				Gigastake:       true,
-				Address:         gigastakeApp.AAT.Address,
-				PublicKey:       gigastakeApp.AAT.PublicKey,
-				ClientPublicKey: gigastakeApp.AAT.ClientPublicKey,
-				Signature:       gigastakeApp.AAT.Signature,
-				Version:         gigastakeApp.AAT.Version,
+			table:  types.TableChainGigastakeApps,
+			input: dbChainGigastakeApp{
+				GigastakeAppID: gigastakeApp.ID,
+				ChainID:        chainID,
 			},
 		})
 	}

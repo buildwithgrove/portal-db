@@ -84,10 +84,10 @@ func ConvertPortalAppToLegacyApplications(a v2Types.PortalApp, userID string) []
 
 	var legacyApps []*v1Types.Application
 
-	for appID, aat := range a.AATs {
+	for _, aat := range a.AATs {
 		app := baseApp
 
-		app.ID = string(appID)
+		app.ID = string(aat.LegacyAppID)
 
 		app.GatewayAAT = v1Types.GatewayAAT{
 			Address:              aat.Address,
@@ -103,11 +103,9 @@ func ConvertPortalAppToLegacyApplications(a v2Types.PortalApp, userID string) []
 	return legacyApps
 }
 
-func ConvertPortalAppToLegacyApplication(a v2Types.PortalApp, userID string, protocolAppID v2Types.ProtocolAppID) v1Types.Application {
-	aat := a.AATs[protocolAppID]
-
+func ConvertPortalAppToLegacyApplication(a v2Types.PortalApp, userID string, aat v2Types.AAT) v1Types.Application {
 	return v1Types.Application{
-		ID:              string(protocolAppID),
+		ID:              string(aat.LegacyAppID),
 		UserID:          userID,
 		Name:            a.Name,
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
@@ -210,14 +208,14 @@ func ConvertChainToLegacyGigastakeLoadBalancer(c v2Types.Chain) v1Types.LoadBala
 
 func ConvertGigastakeAppToLegacyApplication(a *v2Types.GigastakeApp) *v1Types.Application {
 	return &v1Types.Application{
-		ID:   string(a.AATID),
+		ID:   string(a.ID),
 		Name: a.Name,
 		GatewayAAT: v1Types.GatewayAAT{
-			Address:              a.AAT.Address,
-			ApplicationPublicKey: a.AAT.PublicKey,
-			ApplicationSignature: a.AAT.Signature,
-			ClientPublicKey:      a.AAT.ClientPublicKey,
-			Version:              a.AAT.Version,
+			Address:              a.Address,
+			ApplicationPublicKey: a.PublicKey,
+			ApplicationSignature: a.Signature,
+			ClientPublicKey:      a.ClientPublicKey,
+			Version:              a.Version,
 		},
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,

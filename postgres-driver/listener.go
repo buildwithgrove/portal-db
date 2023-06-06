@@ -104,7 +104,7 @@ func (n notification) parseAppNotificationNotification() *types.Notification {
 
 func (n notification) parseAATNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAAT dbAAT
+	var dbAAT dbPortalApplicationAAT
 	_ = json.Unmarshal(rawData, &dbAAT)
 
 	return &types.Notification{
@@ -123,6 +123,18 @@ func (n notification) parseGigastakeAppsNotification() *types.Notification {
 		Table:  n.Table,
 		Action: n.Action,
 		Data:   dbGigastakeApp.toOutput(),
+	}
+}
+
+func (n notification) parseChainGigastakeAppNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbChainGigastakeApp dbChainGigastakeApp
+	_ = json.Unmarshal(rawData, &dbChainGigastakeApp)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbChainGigastakeApp.toOutput(),
 	}
 }
 
@@ -239,12 +251,14 @@ func (n notification) parseNotification() *types.Notification {
 		return n.parseWhitelistNotification()
 	case types.TableAppNotifications:
 		return n.parseAppNotificationNotification()
-
-	case types.TableAATs:
+	case types.TablePortalAppAATs:
 		return n.parseAATNotification()
 
 	case types.TableGigastakeApps:
 		return n.parseGigastakeAppsNotification()
+
+	case types.TableChainGigastakeApps:
+		return n.parseChainGigastakeAppNotification()
 
 	case types.TableChains:
 		return n.parseChainNotification()

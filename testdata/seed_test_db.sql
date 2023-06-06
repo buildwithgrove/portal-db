@@ -608,94 +608,6 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
-INSERT INTO aats (
-        id,
-        portal_application_id,
-        gigastake,
-        address,
-        public_key,
-        private_key,
-        client_public_key,
-        signature,
-        version
-    )
-VALUES (
-        'test_protocol_app_1',
-        'test_app_1',
-        false,
-        'test_34715cae753e67c75fbb340442e7de8e',
-        'test_34715cae753e67c75fbb340442e7de8e',
-        'test_11b8d394ca331d7c7a71ca1896d630f6',
-        'test_89a3af6a587aec02cfade6f5000424c2',
-        'test_1dc39a2e5a84a35bf030969a0b3231f7',
-        '0.0.1'
-    ),
-    (
-        'test_protocol_app_2',
-        'test_app_2',
-        false,
-        'test_8237c72345f12d1b1a8b64a1a7f66fa4',
-        'test_8237c72345f12d1b1a8b64a1a7f66fa4',
-        'test_2e83c836a29b423a47d8e18c779fd422',
-        'test_04c71d90a92f40416b6f1d7d8af17e02',
-        'test_f48d33b30ddaf60a1e5bb50d2ba8da5a',
-        '0.0.1'
-    ),
-    (
-        'test_protocol_app_3',
-        'test_app_3',
-        false,
-        'test_b5e07928fc80083c13ad0201b81bae9b',
-        'test_f608500e4fe3e09014fe2411b4a560b5',
-        'test_8663e187c19f3c6e27317eab4ed6d7d5',
-        'test_328a9cf1b35085eeaa669aa858f6fba9',
-        'test_c3cd8be16ba32e24dd49fdb0247fc9b8',
-        '0.0.1'
-    ),
-    (
-        'test_protocol_app_4',
-        'test_app_3',
-        false,
-        'test_eb2e5bcba557cfe8fa76fd7fff54f9d1',
-        'test_f6a5d8690ecb669865bd752b7796a920',
-        'test_838d29d61a65401f7d56d084cb6e4783',
-        'test_6ee5ea553408f0895923fd1569dc5072',
-        'test_cf05cf9bb26111c548e88fb6157af708',
-        '0.0.1'
-    ),
-    (
-        'test_gigastake_app_1',
-        NULL,
-        true,
-        'test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5',
-        'test_37a0e8437f5149dc98a9a5b207efc2d0',
-        'test_0a6df2b97ae546da83f1a90b9b0c1e83',
-        'test_65c29f0cc82e418b81a528a0c0682a9f',
-        'test_f22651fb566346fca30b605e5f46e3ca',
-        '0.0.1'
-    ),
-    (
-        'test_gigastake_app_2',
-        NULL,
-        true,
-        'test_5c60d434db4e42d2b5d2ea6eeb8933c4',
-        'test_a7e28f8d716541a0a332a5dc6b7e4e6e',
-        'test_86b9e8e14a784db8a0a4c2ee532b6a12',
-        'test_ba4e53dada8f4f939048e56dc8f88f37',
-        'test_52e991c26da841bc882ad3a3ee9ee964',
-        '0.0.1'
-    ),
-    (
-        'test_gigastake_app_3',
-        NULL,
-        true,
-        'test_e570c841d5cd4f6197e0428ed7c517fd',
-        'test_4f805bbbf96c4a649efc3f4f95616f2e',
-        'test_25a9063b3b7b42148dc17033fbbab5c6',
-        'test_789f9d6adcc846f1a079bf68237b5f5c',
-        'test_01eac46efc9242a2be73879f1d09f1dc',
-        '0.0.1'
-    );
 INSERT INTO portal_application_settings (
         application_id,
         secret_key,
@@ -835,6 +747,56 @@ VALUES (
         'trigger456',
         ARRAY ['full'::notification_event,'half'::notification_event],
         '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO portal_application_aats (
+        application_id,
+        portal_application_id,
+        address,
+        public_key,
+        private_key,
+        client_public_key,
+        signature,
+        version
+    )
+VALUES (
+        'test_protocol_app_1',
+        'test_app_1',
+        'test_34715cae753e67c75fbb340442e7de8e',
+        'test_34715cae753e67c75fbb340442e7de8e',
+        'test_11b8d394ca331d7c7a71ca1896d630f6',
+        'test_89a3af6a587aec02cfade6f5000424c2',
+        'test_1dc39a2e5a84a35bf030969a0b3231f7',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_2',
+        'test_app_2',
+        'test_8237c72345f12d1b1a8b64a1a7f66fa4',
+        'test_8237c72345f12d1b1a8b64a1a7f66fa4',
+        'test_2e83c836a29b423a47d8e18c779fd422',
+        'test_04c71d90a92f40416b6f1d7d8af17e02',
+        'test_f48d33b30ddaf60a1e5bb50d2ba8da5a',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_3',
+        'test_app_3',
+        'test_b5e07928fc80083c13ad0201b81bae9b',
+        'test_f608500e4fe3e09014fe2411b4a560b5',
+        'test_8663e187c19f3c6e27317eab4ed6d7d5',
+        'test_328a9cf1b35085eeaa669aa858f6fba9',
+        'test_c3cd8be16ba32e24dd49fdb0247fc9b8',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_4',
+        'test_app_3',
+        'test_eb2e5bcba557cfe8fa76fd7fff54f9d1',
+        'test_f6a5d8690ecb669865bd752b7796a920',
+        'test_838d29d61a65401f7d56d084cb6e4783',
+        'test_6ee5ea553408f0895923fd1569dc5072',
+        'test_cf05cf9bb26111c548e88fb6157af708',
+        '0.0.1'
     );
 INSERT INTO chains (
         id,
@@ -1057,10 +1019,16 @@ VALUES (
         'harmony-0',
         ARRAY ['hmy-rpc.gateway.pokt.network']
     );
+-- Insert data into aats
 INSERT INTO gigastake_applications (
-        aat_id,
+        id,
         name,
-        chain_id,
+        address,
+        public_key,
+        private_key,
+        client_public_key,
+        signature,
+        version,
         created_at,
         updated_at,
         lb_id
@@ -1068,7 +1036,12 @@ INSERT INTO gigastake_applications (
 VALUES (
         'test_gigastake_app_1',
         'pokt_gigastake',
-        '0001',
+        'test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5',
+        'test_37a0e8437f5149dc98a9a5b207efc2d0',
+        'test_0a6df2b97ae546da83f1a90b9b0c1e83',
+        'test_65c29f0cc82e418b81a528a0c0682a9f',
+        'test_f22651fb566346fca30b605e5f46e3ca',
+        '0.0.1',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000',
         'legacy_lb_1'
@@ -1076,7 +1049,12 @@ VALUES (
     (
         'test_gigastake_app_2',
         'optimism_gigastake',
-        '0053',
+        'test_5c60d434db4e42d2b5d2ea6eeb8933c4',
+        'test_a7e28f8d716541a0a332a5dc6b7e4e6e',
+        'test_86b9e8e14a784db8a0a4c2ee532b6a12',
+        'test_ba4e53dada8f4f939048e56dc8f88f37',
+        'test_52e991c26da841bc882ad3a3ee9ee964',
+        '0.0.1',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000',
         'legacy_lb_2'
@@ -1084,11 +1062,21 @@ VALUES (
     (
         'test_gigastake_app_3',
         'harmony_gigastake',
-        '0040',
+        'test_e570c841d5cd4f6197e0428ed7c517fd',
+        'test_4f805bbbf96c4a649efc3f4f95616f2e',
+        'test_25a9063b3b7b42148dc17033fbbab5c6',
+        'test_789f9d6adcc846f1a079bf68237b5f5c',
+        'test_01eac46efc9242a2be73879f1d09f1dc',
+        '0.0.1',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000',
         'legacy_lb_3'
     );
+-- Insert into chains_gigastake_applications
+INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+VALUES ('0001', 'test_gigastake_app_1'),
+    ('0053', 'test_gigastake_app_2'),
+    ('0040', 'test_gigastake_app_3');
 INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
 VALUES (
         '0xtest_6789abcdef0123456789abcdef01234567',

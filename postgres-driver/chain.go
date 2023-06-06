@@ -181,21 +181,15 @@ func (pg *PostgresDriver) WriteChainAndGigastakeApps(ctx context.Context, input 
 	}
 
 	for _, gigastakeApp := range input.GigastakeApps {
-		protocolAppID, err := pg.generateID(ctx)
+		gigastakeAppID, err := pg.generateID(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		gigastakeApp.AATID = types.ProtocolAppID(protocolAppID)
-		gigastakeApp.AAT.ID = types.ProtocolAppID(protocolAppID)
-		gigastakeApp.ChainID = chain.ID
+		gigastakeApp.ID = types.GigastakeAppID(gigastakeAppID)
+		gigastakeApp.ChainIDs = map[types.RelayChainID]struct{}{chain.ID: struct{}{}}
 		gigastakeApp.CreatedAt = createdAt
 		gigastakeApp.UpdatedAt = createdAt
-
-		err = pg.insertGigastakeAAT(ctx, qtx, *gigastakeApp)
-		if err != nil {
-			return nil, err
-		}
 
 		err = pg.upsertGigastakeApp(ctx, qtx, *gigastakeApp)
 		if err != nil {

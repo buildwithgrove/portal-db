@@ -58,21 +58,21 @@ func Test_GetChainDomains(t *testing.T) {
 	}
 }
 
-func Test_GetGigastakeAATs(t *testing.T) {
+func Test_GetGigastakeApps(t *testing.T) {
 	tests := []struct {
 		name     string
 		chain    Chain
-		expected []AAT
+		expected []GigastakeApp
 	}{
 		{
-			name: "Should return all AATs of the chain",
+			name: "Should return all gigastake apps of the chain",
 			chain: Chain{
-				GigastakeApps: map[ProtocolAppID]*GigastakeApp{
-					"aat_1": {AAT: AAT{Version: "0.0.1", ClientPublicKey: "clientPublicKey1", PublicKey: "applicationPublicKey1", Signature: "applicationSignature1"}},
-					"aat_2": {AAT: AAT{Version: "0.0.2", ClientPublicKey: "clientPublicKey2", PublicKey: "applicationPublicKey2", Signature: "applicationSignature2"}},
+				GigastakeApps: map[GigastakeAppID]*GigastakeApp{
+					"aat_1": {Version: "0.0.1", ClientPublicKey: "clientPublicKey1", PublicKey: "applicationPublicKey1", Signature: "applicationSignature1"},
+					"aat_2": {Version: "0.0.2", ClientPublicKey: "clientPublicKey2", PublicKey: "applicationPublicKey2", Signature: "applicationSignature2"},
 				},
 			},
-			expected: []AAT{
+			expected: []GigastakeApp{
 				{Version: "0.0.1", ClientPublicKey: "clientPublicKey1", PublicKey: "applicationPublicKey1", Signature: "applicationSignature1"},
 				{Version: "0.0.2", ClientPublicKey: "clientPublicKey2", PublicKey: "applicationPublicKey2", Signature: "applicationSignature2"},
 			},
@@ -81,7 +81,7 @@ func Test_GetGigastakeAATs(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			aats := test.chain.GetGigastakeAATs()
+			aats := test.chain.GetGigastakeApps()
 			assert.ElementsMatch(t, test.expected, aats)
 		})
 	}

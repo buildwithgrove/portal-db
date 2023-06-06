@@ -622,15 +622,16 @@ var (
 			ID:        "test_app_1",
 			AccountID: "account_1",
 			Name:      "pokt_app_123",
-			AATs: map[types.ProtocolAppID]types.AAT{
-				"test_protocol_app_1": {
-					ID:              "test_protocol_app_1",
+			AATs: map[types.AATID]types.AAT{
+				1: {
+					ID:              1,
 					Address:         "test_34715cae753e67c75fbb340442e7de8e",
 					PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
 					ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
 					PrivateKey:      "",
 					Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 					Version:         "0.0.1",
+					LegacyAppID:     "test_protocol_app_1",
 				},
 			},
 			Settings: types.Settings{
@@ -676,15 +677,16 @@ var (
 			ID:        "test_app_2",
 			AccountID: "account_2",
 			Name:      "pokt_app_456",
-			AATs: map[types.ProtocolAppID]types.AAT{
-				"test_protocol_app_2": {
-					ID:              "test_protocol_app_2",
+			AATs: map[types.AATID]types.AAT{
+				2: {
+					ID:              2,
 					Address:         "test_8237c72345f12d1b1a8b64a1a7f66fa4",
 					PublicKey:       "test_8237c72345f12d1b1a8b64a1a7f66fa4",
 					ClientPublicKey: "test_04c71d90a92f40416b6f1d7d8af17e02",
 					PrivateKey:      "",
 					Signature:       "test_f48d33b30ddaf60a1e5bb50d2ba8da5a",
 					Version:         "0.0.1",
+					LegacyAppID:     "test_protocol_app_2",
 				},
 			},
 			Settings: types.Settings{
@@ -729,24 +731,26 @@ var (
 			ID:        "test_app_3",
 			AccountID: "account_3",
 			Name:      "pokt_app_789",
-			AATs: map[types.ProtocolAppID]types.AAT{
-				"test_protocol_app_3": {
-					ID:              "test_protocol_app_3",
+			AATs: map[types.AATID]types.AAT{
+				3: {
+					ID:              3,
 					Address:         "test_b5e07928fc80083c13ad0201b81bae9b",
 					PublicKey:       "test_f608500e4fe3e09014fe2411b4a560b5",
 					ClientPublicKey: "test_328a9cf1b35085eeaa669aa858f6fba9",
 					PrivateKey:      "",
 					Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
 					Version:         "0.0.1",
+					LegacyAppID:     "test_protocol_app_3",
 				},
-				"test_protocol_app_4": {
-					ID:              "test_protocol_app_4",
+				4: {
+					ID:              4,
 					Address:         "test_eb2e5bcba557cfe8fa76fd7fff54f9d1",
 					PublicKey:       "test_f6a5d8690ecb669865bd752b7796a920",
 					ClientPublicKey: "test_6ee5ea553408f0895923fd1569dc5072",
 					PrivateKey:      "",
 					Signature:       "test_cf05cf9bb26111c548e88fb6157af708",
 					Version:         "0.0.1",
+					LegacyAppID:     "test_protocol_app_4",
 				},
 			},
 			Settings: types.Settings{
@@ -767,60 +771,48 @@ var (
 		},
 	}
 
-	GigastakeApps = map[types.ProtocolAppID]*types.GigastakeApp{
+	GigastakeApps = map[types.GigastakeAppID]*types.GigastakeApp{
 		"test_gigastake_app_1": {
-			AATID:   "test_gigastake_app_1",
-			ChainID: "0001",
-			Name:    "pokt_gigastake",
-			AAT: types.AAT{
-				ID:              "test_gigastake_app_1",
-				Gigastake:       true,
-				Address:         "test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5",
-				PublicKey:       "test_37a0e8437f5149dc98a9a5b207efc2d0",
-				PrivateKey:      "",
-				ClientPublicKey: "test_65c29f0cc82e418b81a528a0c0682a9f",
-				Signature:       "test_f22651fb566346fca30b605e5f46e3ca",
-				Version:         "0.0.1",
-			},
-			CreatedAt:  MockTimestamp,
-			UpdatedAt:  MockTimestamp,
-			LegacyLBID: "legacy_lb_1",
+			ID:              "test_gigastake_app_1",
+			ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
+			Name:            "pokt_gigastake",
+			Address:         "test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5",
+			PublicKey:       "test_37a0e8437f5149dc98a9a5b207efc2d0",
+			PrivateKey:      "",
+			ClientPublicKey: "test_65c29f0cc82e418b81a528a0c0682a9f",
+			Signature:       "test_f22651fb566346fca30b605e5f46e3ca",
+			Version:         "0.0.1",
+			CreatedAt:       MockTimestamp,
+			UpdatedAt:       MockTimestamp,
+			LegacyLBID:      "legacy_lb_1",
 		},
 		"test_gigastake_app_2": {
-			AATID:   "test_gigastake_app_2",
-			ChainID: "0053",
-			Name:    "optimism_gigastake",
-			AAT: types.AAT{
-				ID:              "test_gigastake_app_2",
-				Gigastake:       true,
-				Address:         "test_5c60d434db4e42d2b5d2ea6eeb8933c4",
-				PublicKey:       "test_a7e28f8d716541a0a332a5dc6b7e4e6e",
-				PrivateKey:      "",
-				ClientPublicKey: "test_ba4e53dada8f4f939048e56dc8f88f37",
-				Signature:       "test_52e991c26da841bc882ad3a3ee9ee964",
-				Version:         "0.0.1",
-			},
-			CreatedAt:  MockTimestamp,
-			UpdatedAt:  MockTimestamp,
-			LegacyLBID: "legacy_lb_2",
+			ID:              "test_gigastake_app_2",
+			ChainIDs:        map[types.RelayChainID]struct{}{"0053": {}},
+			Name:            "optimism_gigastake",
+			Address:         "test_5c60d434db4e42d2b5d2ea6eeb8933c4",
+			PublicKey:       "test_a7e28f8d716541a0a332a5dc6b7e4e6e",
+			PrivateKey:      "",
+			ClientPublicKey: "test_ba4e53dada8f4f939048e56dc8f88f37",
+			Signature:       "test_52e991c26da841bc882ad3a3ee9ee964",
+			Version:         "0.0.1",
+			CreatedAt:       MockTimestamp,
+			UpdatedAt:       MockTimestamp,
+			LegacyLBID:      "legacy_lb_2",
 		},
 		"test_gigastake_app_3": {
-			AATID:   "test_gigastake_app_3",
-			ChainID: "0040",
-			Name:    "harmony_gigastake",
-			AAT: types.AAT{
-				ID:              "test_gigastake_app_3",
-				Gigastake:       true,
-				Address:         "test_e570c841d5cd4f6197e0428ed7c517fd",
-				PublicKey:       "test_4f805bbbf96c4a649efc3f4f95616f2e",
-				PrivateKey:      "",
-				ClientPublicKey: "test_789f9d6adcc846f1a079bf68237b5f5c",
-				Signature:       "test_01eac46efc9242a2be73879f1d09f1dc",
-				Version:         "0.0.1",
-			},
-			CreatedAt:  MockTimestamp,
-			UpdatedAt:  MockTimestamp,
-			LegacyLBID: "legacy_lb_3",
+			ID:              "test_gigastake_app_3",
+			ChainIDs:        map[types.RelayChainID]struct{}{"0040": {}},
+			Name:            "harmony_gigastake",
+			Address:         "test_e570c841d5cd4f6197e0428ed7c517fd",
+			PublicKey:       "test_4f805bbbf96c4a649efc3f4f95616f2e",
+			PrivateKey:      "",
+			ClientPublicKey: "test_789f9d6adcc846f1a079bf68237b5f5c",
+			Signature:       "test_01eac46efc9242a2be73879f1d09f1dc",
+			Version:         "0.0.1",
+			CreatedAt:       MockTimestamp,
+			UpdatedAt:       MockTimestamp,
+			LegacyLBID:      "legacy_lb_3",
 		},
 	}
 
@@ -1019,21 +1011,20 @@ var (
 		PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
 		Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
 		Version:         "0.0.1",
+		LegacyAppID:     "test_create_protocol_app",
 	}
 
 	TestCreateGigastakeApp = types.GigastakeApp{
-		ChainID: "0001",
-		Name:    "pokt_create_gigastake",
-		AAT: types.AAT{
-			Gigastake:       true,
-			Address:         "test_a3b8d425877f4ec8b679f9e10251bb5a",
-			PublicKey:       "test_c96f50fa372c48509a5cbfc6ba3e17bd",
-			PrivateKey:      "test_3f2a8c174ff24a4e8756f72b6e6f32c4",
-			ClientPublicKey: "test_e920176d37b94cc88f597a4db41b5e74",
-			Signature:       "test_0b5b7ef3c63b473689f0f9d9d8f5c2c1",
-			Version:         "0.0.1",
-		},
-		LegacyLBID: "legacy_lb_10",
+		ID:              "test_create_gigastake_1",
+		ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
+		Name:            "pokt_create_gigastake",
+		Address:         "test_a3b8d425877f4ec8b679f9e10251bb5a",
+		PublicKey:       "test_c96f50fa372c48509a5cbfc6ba3e17bd",
+		PrivateKey:      "test_3f2a8c174ff24a4e8756f72b6e6f32c4",
+		ClientPublicKey: "test_e920176d37b94cc88f597a4db41b5e74",
+		Signature:       "test_0b5b7ef3c63b473689f0f9d9d8f5c2c1",
+		Version:         "0.0.1",
+		LegacyLBID:      "legacy_lb_10",
 	}
 
 	// TestCreateChain used to test creation of Chains
@@ -1117,17 +1108,15 @@ var (
 		},
 		GigastakeApps: []*types.GigastakeApp{
 			{
-				Name:       "pokt_create_gigastake_ada",
-				LegacyLBID: "legacy_lb_id_123",
-				AAT: types.AAT{
-					Gigastake:       true,
-					Address:         "test_c3e9d2a1a3214bc7b364f51362a8a8e4",
-					PublicKey:       "test_8a4b6d3f48274d8988d0f5b4866efce1",
-					PrivateKey:      "test_1ef9e2a7b3f74bc899d0f3b4862efce1",
-					ClientPublicKey: "test_c3f9e2a7b2f74bc799d0f3b4962efce1",
-					Signature:       "test_4ef8e2a7b4f74bc989d0f3b4962efce1",
-					Version:         "0.0.1",
-				},
+				ID:              "test_create_gigastake_ada",
+				Name:            "pokt_create_gigastake_ada",
+				LegacyLBID:      "legacy_lb_id_123",
+				Address:         "test_c3e9d2a1a3214bc7b364f51362a8a8e4",
+				PublicKey:       "test_8a4b6d3f48274d8988d0f5b4866efce1",
+				PrivateKey:      "test_1ef9e2a7b3f74bc899d0f3b4862efce1",
+				ClientPublicKey: "test_c3f9e2a7b2f74bc799d0f3b4962efce1",
+				Signature:       "test_4ef8e2a7b4f74bc989d0f3b4962efce1",
+				Version:         "0.0.1",
 			},
 		},
 	}
@@ -1149,7 +1138,7 @@ var (
 		ID:        "test_app_update_b03ca84c",
 		AccountID: "account_1",
 		Name:      "", // name set in test
-		AATs:      map[types.ProtocolAppID]types.AAT{"": {}},
+		AATs:      map[types.AATID]types.AAT{0: {}},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",

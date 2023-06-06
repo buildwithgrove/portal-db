@@ -402,18 +402,6 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 	return string(ns.WhitelistType), nil
 }
 
-type Aat struct {
-	ID                  types.ProtocolAppID `json:"id"`
-	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
-	Gigastake           bool                `json:"gigastake"`
-	Address             string              `json:"address"`
-	PublicKey           string              `json:"public_key"`
-	ClientPublicKey     string              `json:"client_public_key"`
-	Signature           string              `json:"signature"`
-	PrivateKey          sql.NullString      `json:"private_key"`
-	Version             string              `json:"version"`
-}
-
 type Account struct {
 	ID                      types.AccountID   `json:"id"`
 	PlanType                types.PayPlanType `json:"plan_type"`
@@ -493,15 +481,25 @@ type ChainCheck struct {
 	UpdatedAt  time.Time            `json:"updated_at"`
 }
 
+type ChainsGigastakeApplication struct {
+	ChainID                types.RelayChainID   `json:"chain_id"`
+	GigastakeApplicationID types.GigastakeAppID `json:"gigastake_application_id"`
+}
+
 type GigastakeApplication struct {
-	AATID     types.ProtocolAppID `json:"aat_id"`
-	ChainID   types.RelayChainID  `json:"chain_id"`
-	Name      string              `json:"name"`
-	CreatedAt time.Time           `json:"created_at"`
-	UpdatedAt time.Time           `json:"updated_at"`
-	Deleted   bool                `json:"deleted"`
-	DeletedAt sql.NullTime        `json:"deleted_at"`
-	LbID      string              `json:"lb_id"`
+	ID              types.GigastakeAppID `json:"id"`
+	Name            string               `json:"name"`
+	Address         string               `json:"address"`
+	PublicKey       string               `json:"public_key"`
+	ClientPublicKey string               `json:"client_public_key"`
+	Signature       string               `json:"signature"`
+	PrivateKey      sql.NullString       `json:"private_key"`
+	Version         string               `json:"version"`
+	CreatedAt       time.Time            `json:"created_at"`
+	UpdatedAt       time.Time            `json:"updated_at"`
+	Deleted         bool                 `json:"deleted"`
+	DeletedAt       sql.NullTime         `json:"deleted_at"`
+	LbID            string               `json:"lb_id"`
 }
 
 type GlobalBlockedContract struct {
@@ -536,6 +534,18 @@ type PortalApplication struct {
 	PlanType           types.PayPlanType `json:"plan_type"`
 	DailyLimit         sql.NullInt32     `json:"daily_limit"`
 	CustomLimit        sql.NullInt32     `json:"custom_limit"`
+}
+
+type PortalApplicationAat struct {
+	ID                  types.AATID         `json:"id"`
+	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
+	Address             string              `json:"address"`
+	PublicKey           string              `json:"public_key"`
+	ClientPublicKey     string              `json:"client_public_key"`
+	Signature           string              `json:"signature"`
+	PrivateKey          sql.NullString      `json:"private_key"`
+	Version             string              `json:"version"`
+	ApplicationID       types.ProtocolAppID `json:"application_id"`
 }
 
 type PortalApplicationNotification struct {

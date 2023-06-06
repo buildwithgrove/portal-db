@@ -121,15 +121,15 @@ func (_m *MockDriver) ReadChains(ctx context.Context, options types.DriverOption
 }
 
 // ReadGigastakeApps provides a mock function with given fields: ctx, options
-func (_m *MockDriver) ReadGigastakeApps(ctx context.Context, options types.DriverOptions) (map[types.ProtocolAppID]*types.GigastakeApp, error) {
+func (_m *MockDriver) ReadGigastakeApps(ctx context.Context, options types.DriverOptions) (map[types.GigastakeAppID]*types.GigastakeApp, error) {
 	ret := _m.Called(ctx, options)
 
-	var r0 map[types.ProtocolAppID]*types.GigastakeApp
-	if rf, ok := ret.Get(0).(func(context.Context, types.DriverOptions) map[types.ProtocolAppID]*types.GigastakeApp); ok {
+	var r0 map[types.GigastakeAppID]*types.GigastakeApp
+	if rf, ok := ret.Get(0).(func(context.Context, types.DriverOptions) map[types.GigastakeAppID]*types.GigastakeApp); ok {
 		r0 = rf(ctx, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[types.ProtocolAppID]*types.GigastakeApp)
+			r0 = ret.Get(0).(map[types.GigastakeAppID]*types.GigastakeApp)
 		}
 	}
 

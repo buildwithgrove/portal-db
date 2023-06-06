@@ -6,11 +6,13 @@ import "regexp"
 type (
 	AccountID      string
 	UserID         string
+	GigastakeAppID string
 	RelayChainID   string
 	PortalAppID    string
 	ProtocolAppID  string
 	Email          string
 	BlockedAddress string
+	AATID          int32
 )
 
 // Validates that an Email fits a valid email format eg. test@example.com
@@ -44,8 +46,7 @@ const (
 	TableAppSettings      Table = "portal_application_settings"
 	TableAppWhitelists    Table = "portal_application_whitelists"
 	TableAppNotifications Table = "portal_application_notifications"
-
-	TableAATs Table = "aats"
+	TablePortalAppAATs    Table = "portal_application_aats"
 
 	TableGigastakeApps Table = "gigastake_applications"
 
@@ -62,6 +63,8 @@ const (
 	TableChainAltruists    Table = "chain_altruists"
 	TableChainChecks       Table = "chain_checks"
 	TableChainAliasDomains Table = "chain_alias_domains"
+
+	TableChainGigastakeApps Table = "chains_gigastake_applications"
 
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 

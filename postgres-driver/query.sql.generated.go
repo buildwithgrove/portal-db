@@ -152,8 +152,8 @@ SELECT EXISTS (
                 WHERE portal_applications.id = $1::VARCHAR
                 UNION ALL
                 SELECT id
-                FROM aats
-                WHERE aats.id = $1::VARCHAR
+                FROM gigastake_applications
+                WHERE gigastake_applications.id = $1::VARCHAR
                 UNION ALL
                 SELECT id
                 FROM accounts
@@ -737,43 +737,6 @@ func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertA
 	return user_id, err
 }
 
-const insertGigastakeAAT = `-- name: InsertGigastakeAAT :exec
-INSERT INTO aats (
-        id,
-        gigastake,
-        address,
-        public_key,
-        client_public_key,
-        signature,
-        private_key,
-        version
-    )
-VALUES ($1, true, $2, $3, $4, $5, $6, $7)
-`
-
-type InsertGigastakeAATParams struct {
-	ID              types.ProtocolAppID `json:"id"`
-	Address         string              `json:"address"`
-	PublicKey       string              `json:"public_key"`
-	ClientPublicKey string              `json:"client_public_key"`
-	Signature       string              `json:"signature"`
-	PrivateKey      sql.NullString      `json:"private_key"`
-	Version         string              `json:"version"`
-}
-
-func (q *Queries) InsertGigastakeAAT(ctx context.Context, arg InsertGigastakeAATParams) error {
-	_, err := q.db.ExecContext(ctx, insertGigastakeAAT,
-		arg.ID,
-		arg.Address,
-		arg.PublicKey,
-		arg.ClientPublicKey,
-		arg.Signature,
-		arg.PrivateKey,
-		arg.Version,
-	)
-	return err
-}
-
 const insertPortalApplication = `-- name: InsertPortalApplication :one
 INSERT INTO portal_applications (
         id,
@@ -850,23 +813,21 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 }
 
 const insertPortalApplicationAAT = `-- name: InsertPortalApplicationAAT :one
-INSERT INTO aats (
-        id,
+INSERT INTO portal_application_aats (
         portal_application_id,
-        gigastake,
         address,
         public_key,
         private_key,
         client_public_key,
         signature,
-        version
+        version,
+        application_id
     )
-VALUES ($1, $2, false, $3, $4, $5, $6, $7, $8)
-RETURNING id, portal_application_id, gigastake, address, public_key, client_public_key, signature, private_key, version
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, portal_application_id, address, public_key, client_public_key, signature, private_key, version, application_id
 `
 
 type InsertPortalApplicationAATParams struct {
-	ID                  types.ProtocolAppID `json:"id"`
 	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
 	Address             string              `json:"address"`
 	PublicKey           string              `json:"public_key"`
@@ -874,11 +835,11 @@ type InsertPortalApplicationAATParams struct {
 	ClientPublicKey     string              `json:"client_public_key"`
 	Signature           string              `json:"signature"`
 	Version             string              `json:"version"`
+	ApplicationID       types.ProtocolAppID `json:"application_id"`
 }
 
-func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (Aat, error) {
+func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (PortalApplicationAat, error) {
 	row := q.db.QueryRowContext(ctx, insertPortalApplicationAAT,
-		arg.ID,
 		arg.PortalApplicationID,
 		arg.Address,
 		arg.PublicKey,
@@ -886,18 +847,19 @@ func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPort
 		arg.ClientPublicKey,
 		arg.Signature,
 		arg.Version,
+		arg.ApplicationID,
 	)
-	var i Aat
+	var i PortalApplicationAat
 	err := row.Scan(
 		&i.ID,
 		&i.PortalApplicationID,
-		&i.Gigastake,
 		&i.Address,
 		&i.PublicKey,
 		&i.ClientPublicKey,
 		&i.Signature,
 		&i.PrivateKey,
 		&i.Version,
+		&i.ApplicationID,
 	)
 	return i, err
 }
@@ -1259,48 +1221,47 @@ func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]Sele
 }
 
 const selectGigastakeApplications = `-- name: SelectGigastakeApplications :many
-SELECT ga.aat_id,
+SELECT ga.id,
     ga.name,
-    ga.chain_id,
+    ARRAY_AGG(cga.chain_id)::VARCHAR [] AS chain_ids,
     ga.created_at,
     ga.updated_at,
     ga.deleted,
-    a.address,
-    a.public_key,
-    a.client_public_key,
-    a.signature,
-    a.version,
+    ga.address,
+    ga.public_key,
+    ga.client_public_key,
+    ga.signature,
+    ga.version,
     -- legacy field
     ga.lb_id
 FROM gigastake_applications AS ga
-    JOIN aats AS a ON ga.aat_id = a.id
-GROUP BY ga.aat_id,
+    LEFT JOIN chains_gigastake_applications AS cga ON ga.id = cga.gigastake_application_id
+GROUP BY ga.id,
     ga.name,
-    ga.chain_id,
     ga.created_at,
     ga.updated_at,
     ga.deleted,
-    a.address,
-    a.public_key,
-    a.client_public_key,
-    a.signature,
-    a.version,
+    ga.address,
+    ga.public_key,
+    ga.client_public_key,
+    ga.signature,
+    ga.version,
     ga.lb_id
 `
 
 type SelectGigastakeApplicationsRow struct {
-	AATID           types.ProtocolAppID `json:"aat_id"`
-	Name            string              `json:"name"`
-	ChainID         types.RelayChainID  `json:"chain_id"`
-	CreatedAt       time.Time           `json:"created_at"`
-	UpdatedAt       time.Time           `json:"updated_at"`
-	Deleted         bool                `json:"deleted"`
-	Address         string              `json:"address"`
-	PublicKey       string              `json:"public_key"`
-	ClientPublicKey string              `json:"client_public_key"`
-	Signature       string              `json:"signature"`
-	Version         string              `json:"version"`
-	LbID            string              `json:"lb_id"`
+	ID              types.GigastakeAppID `json:"id"`
+	Name            string               `json:"name"`
+	ChainIDs        []string             `json:"chain_ids"`
+	CreatedAt       time.Time            `json:"created_at"`
+	UpdatedAt       time.Time            `json:"updated_at"`
+	Deleted         bool                 `json:"deleted"`
+	Address         string               `json:"address"`
+	PublicKey       string               `json:"public_key"`
+	ClientPublicKey string               `json:"client_public_key"`
+	Signature       string               `json:"signature"`
+	Version         string               `json:"version"`
+	LbID            string               `json:"lb_id"`
 }
 
 func (q *Queries) SelectGigastakeApplications(ctx context.Context) ([]SelectGigastakeApplicationsRow, error) {
@@ -1313,9 +1274,9 @@ func (q *Queries) SelectGigastakeApplications(ctx context.Context) ([]SelectGiga
 	for rows.Next() {
 		var i SelectGigastakeApplicationsRow
 		if err := rows.Scan(
-			&i.AATID,
+			&i.ID,
 			&i.Name,
-			&i.ChainID,
+			pq.Array(&i.ChainIDs),
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
@@ -1428,24 +1389,26 @@ func (q *Queries) SelectPlans(ctx context.Context) ([]SelectPlansRow, error) {
 
 const selectPortalApplications = `-- name: SelectPortalApplications :many
 WITH aats_agg AS (
-    SELECT aats.portal_application_id,
+    SELECT paa.portal_application_id,
         json_object_agg(
-            aats.id,
+            paa.id,
             json_build_object(
                 'address',
-                aats.address,
+                paa.address,
                 'public_key',
-                aats.public_key,
+                paa.public_key,
                 'client_public_key',
-                aats.client_public_key,
+                paa.client_public_key,
                 'signature',
-                aats.signature,
+                paa.signature,
                 'version',
-                aats.version
+                paa.version,
+                'legacy_application_id',
+                paa.application_id
             )
         ) AS aats
-    FROM aats aats
-    GROUP BY aats.portal_application_id
+    FROM portal_application_aats paa
+    GROUP BY paa.portal_application_id
 ),
 notifications_agg AS (
     SELECT pn.application_id,
@@ -1688,8 +1651,7 @@ func (q *Queries) SetGlobalBlockedContractActive(ctx context.Context, arg SetGlo
 }
 
 const transferOwnerCreateRows = `-- name: TransferOwnerCreateRows :exec
-WITH
-updated_user AS (
+WITH updated_user AS (
     UPDATE users
     SET email = users.email
     WHERE id = $4::VARCHAR(24)
@@ -1770,7 +1732,8 @@ delete_new_owner_non_owner_rows AS (
         AND user_id = $2::VARCHAR(24)
         AND role_name <> 'OWNER'
 )
-SELECT user_id FROM delete_old_owner_row
+SELECT user_id
+FROM delete_old_owner_row
 `
 
 type TransferOwnerDeleteOldRowsParams struct {
@@ -2395,39 +2358,70 @@ func (q *Queries) UpsertChainCheck(ctx context.Context, arg UpsertChainCheckPara
 }
 
 const upsertGigastakeApp = `-- name: UpsertGigastakeApp :exec
-INSERT INTO gigastake_applications (
-        aat_id,
-        chain_id,
-        name,
-        created_at,
-        updated_at,
-        lb_id
-    )
-VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (aat_id, chain_id) DO
-UPDATE
-SET name = EXCLUDED.name,
-    created_at = EXCLUDED.created_at,
-    updated_at = EXCLUDED.updated_at,
-    lb_id = EXCLUDED.lb_id
+WITH new_or_updated_gigastake_application AS (
+    INSERT INTO gigastake_applications (
+            id,
+            name,
+            address,
+            public_key,
+            client_public_key,
+            signature,
+            private_key,
+            version,
+            created_at,
+            updated_at,
+            lb_id
+        )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (id) DO
+    UPDATE
+    SET name = EXCLUDED.name,
+        address = EXCLUDED.address,
+        public_key = EXCLUDED.public_key,
+        client_public_key = EXCLUDED.client_public_key,
+        signature = EXCLUDED.signature,
+        private_key = EXCLUDED.private_key,
+        version = EXCLUDED.version,
+        updated_at = EXCLUDED.updated_at,
+        lb_id = EXCLUDED.lb_id
+    RETURNING id
+)
+INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+SELECT unnest($12::VARCHAR []),
+    (
+        SELECT id
+        FROM new_or_updated_gigastake_application
+    ) ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING
 `
 
 type UpsertGigastakeAppParams struct {
-	AATID     types.ProtocolAppID `json:"aat_id"`
-	ChainID   types.RelayChainID  `json:"chain_id"`
-	Name      string              `json:"name"`
-	CreatedAt time.Time           `json:"created_at"`
-	UpdatedAt time.Time           `json:"updated_at"`
-	LbID      string              `json:"lb_id"`
+	ID              types.GigastakeAppID `json:"id"`
+	Name            string               `json:"name"`
+	Address         string               `json:"address"`
+	PublicKey       string               `json:"public_key"`
+	ClientPublicKey string               `json:"client_public_key"`
+	Signature       string               `json:"signature"`
+	PrivateKey      sql.NullString       `json:"private_key"`
+	Version         string               `json:"version"`
+	CreatedAt       time.Time            `json:"created_at"`
+	UpdatedAt       time.Time            `json:"updated_at"`
+	LbID            string               `json:"lb_id"`
+	ChainIDs        []string             `json:"chain_ids"`
 }
 
 func (q *Queries) UpsertGigastakeApp(ctx context.Context, arg UpsertGigastakeAppParams) error {
 	_, err := q.db.ExecContext(ctx, upsertGigastakeApp,
-		arg.AATID,
-		arg.ChainID,
+		arg.ID,
 		arg.Name,
+		arg.Address,
+		arg.PublicKey,
+		arg.ClientPublicKey,
+		arg.Signature,
+		arg.PrivateKey,
+		arg.Version,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.LbID,
+		pq.Array(arg.ChainIDs),
 	)
 	return err
 }
