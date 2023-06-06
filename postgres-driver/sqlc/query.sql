@@ -174,9 +174,10 @@ INSERT INTO portal_application_aats (
         private_key,
         client_public_key,
         signature,
-        version
+        version,
+        application_id
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 -- name: InsertPortalApplicationSetting :one
 INSERT INTO portal_application_settings (

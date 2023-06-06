@@ -67,6 +67,7 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 
 			if test.err == nil {
 				// Ensure the timestamps are the same as the created app
+				test.gigastakeApp.ID = createdGigastakeApp.ID
 				test.gigastakeApp.CreatedAt = createdGigastakeApp.CreatedAt
 				test.gigastakeApp.UpdatedAt = createdGigastakeApp.UpdatedAt
 				test.gigastakeApp.PrivateKey = "" // PrivateKey is never read from the DB

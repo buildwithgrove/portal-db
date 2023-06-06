@@ -114,7 +114,6 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 // toAATs converts AATs from DB rows to map-based PortalApp.AATs struct
 func (a *SelectPortalApplicationsRow) toAATs() (map[types.AATID]types.AAT, error) {
 	var dbAATs map[types.AATID]aatDBRow
-
 	if err := json.Unmarshal(a.AATs, &dbAATs); err != nil {
 		return nil, err
 	}
@@ -123,6 +122,7 @@ func (a *SelectPortalApplicationsRow) toAATs() (map[types.AATID]types.AAT, error
 
 	for aatID, dbAAT := range dbAATs {
 		aats[aatID] = types.AAT{
+			ID:              aatID,
 			Address:         dbAAT.Address,
 			PublicKey:       dbAAT.PublicKey,
 			ClientPublicKey: dbAAT.ClientPublicKey,
@@ -221,6 +221,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		Signature:           aat.Signature,
 		Version:             aat.Version,
 		PrivateKey:          newSQLNullString(aat.PrivateKey),
+		ApplicationID:       aat.LegacyAppID,
 	})
 	if err != nil {
 		return nil, err
@@ -270,7 +271,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	}
 
 	portalApp.AATs = map[types.AATID]types.AAT{
-		createdAAT.ID: types.AAT{
+		createdAAT.ID: {
 			ID:              createdAAT.ID,
 			Address:         createdAAT.Address,
 			PublicKey:       createdAAT.PublicKey,

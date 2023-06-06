@@ -8,7 +8,7 @@ gen_mocks:
 test: test_unit test_env_up run_driver_tests test_env_down
 test_driver: test_env_up run_driver_tests test_env_down
 test_unit:
-	-go test ./... -count=1 -short;
+	go test ./... -count=1 -short;
 
 test_env_up:
 	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build

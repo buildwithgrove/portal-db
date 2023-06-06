@@ -64,6 +64,8 @@ const (
 	TableChainChecks       Table = "chain_checks"
 	TableChainAliasDomains Table = "chain_alias_domains"
 
+	TableChainGigastakeApps Table = "chains_gigastake_applications"
+
 	TableGlobalBlockedContracts Table = "global_blocked_contracts"
 
 	ActionInsert Action = "INSERT"

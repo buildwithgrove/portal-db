@@ -1011,10 +1011,11 @@ var (
 		PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
 		Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
 		Version:         "0.0.1",
+		LegacyAppID:     "test_create_protocol_app",
 	}
 
 	TestCreateGigastakeApp = types.GigastakeApp{
-		ID:              "test_create_gigastake_app_1",
+		ID:              "test_create_gigastake_1",
 		ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 		Name:            "pokt_create_gigastake",
 		Address:         "test_a3b8d425877f4ec8b679f9e10251bb5a",

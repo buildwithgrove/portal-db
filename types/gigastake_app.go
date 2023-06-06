@@ -39,3 +39,7 @@ type (
 func (a *GigastakeApp) Table() Table {
 	return TableGigastakeApps
 }
+
+func (a *ChainGigastakeApp) Table() Table {
+	return TableChainGigastakeApps
+}

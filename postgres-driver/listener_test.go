@@ -78,6 +78,7 @@ func Test_Listen(t *testing.T) {
 						PrivateKey:      "",
 						Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 						Version:         "0.0.1",
+						LegacyAppID:     "test_protocol_app_1",
 					},
 				},
 				types.TableAppSettings: {
@@ -122,7 +123,6 @@ func Test_Listen(t *testing.T) {
 					Action: types.ActionInsert,
 					Data: &types.GigastakeApp{
 						ID:              "test_gigastake_app_1",
-						ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 						Name:            "pokt_gigastake",
 						Address:         "test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5",
 						PublicKey:       "test_37a0e8437f5149dc98a9a5b207efc2d0",
@@ -134,6 +134,14 @@ func Test_Listen(t *testing.T) {
 						UpdatedAt:       testdata.MockTimestamp,
 						Deleted:         false,
 						LegacyLBID:      "legacy_lb_1",
+					},
+				},
+				types.TableChainGigastakeApps: {
+					Table:  types.TableChainGigastakeApps,
+					Action: types.ActionUpdate,
+					Data: &types.ChainGigastakeApp{
+						ChainID:        "0001",
+						GigastakeAppID: "test_gigastake_app_1",
 					},
 				},
 			},

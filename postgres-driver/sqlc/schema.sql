@@ -330,12 +330,12 @@ INSERT
     OR
 UPDATE
     OR DELETE ON portal_application_notifications FOR EACH ROW EXECUTE PROCEDURE notify_event();
-CREATE TRIGGER aats_notify_event
+CREATE TRIGGER portal_application_aats_notify_event
 AFTER
 INSERT
     OR
 UPDATE
-    OR DELETE ON aats FOR EACH ROW EXECUTE PROCEDURE notify_event();
+    OR DELETE ON portal_application_aats FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER gigastake_applications_notify_event
 AFTER
 INSERT
@@ -408,6 +408,12 @@ INSERT
     OR
 UPDATE
     OR DELETE ON chain_checks FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER chains_gigastake_applications_notify_event
+AFTER
+INSERT
+    OR
+UPDATE
+    OR DELETE ON chains_gigastake_applications FOR EACH ROW EXECUTE PROCEDURE notify_event();
 CREATE TRIGGER global_blocked_contracts_notify_event
 AFTER
 INSERT

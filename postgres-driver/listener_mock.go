@@ -163,6 +163,7 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 		aat := types.AAT{}
 		for _, portalAAT := range portalApp.AATs {
 			aat = portalAAT
+			break
 		}
 
 		inputs = append(inputs, inputStruct{
@@ -231,6 +232,23 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				},
 			})
 		}
+
+		for _, notification := range portalApp.AATs {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TablePortalAppAATs,
+				input: dbPortalApplicationAAT{
+					PortalAppID:     portalApp.ID,
+					ID:              notification.ID,
+					Address:         notification.Address,
+					PublicKey:       notification.PublicKey,
+					ClientPublicKey: notification.ClientPublicKey,
+					Signature:       notification.Signature,
+					Version:         notification.Version,
+					LegacyAppID:     notification.LegacyAppID,
+				},
+			})
+		}
 	}
 
 	return inputs
@@ -258,6 +276,23 @@ func gigastakeAppInputs(mainTableAction types.Action, sideTablesAction types.Act
 				UpdatedAt:       gigastakeApp.UpdatedAt,
 				Deleted:         gigastakeApp.Deleted,
 				LegacyLBID:      gigastakeApp.LegacyLBID,
+			},
+		})
+	}
+
+	if sideTablesAction != "" {
+		var chainID types.RelayChainID
+		for appChainID := range gigastakeApp.ChainIDs {
+			chainID = appChainID
+			break
+		}
+
+		inputs = append(inputs, inputStruct{
+			action: sideTablesAction,
+			table:  types.TableChainGigastakeApps,
+			input: dbChainGigastakeApp{
+				GigastakeAppID: gigastakeApp.ID,
+				ChainID:        chainID,
 			},
 		})
 	}

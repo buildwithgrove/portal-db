@@ -820,20 +820,22 @@ INSERT INTO portal_application_aats (
         private_key,
         client_public_key,
         signature,
-        version
+        version,
+        application_id
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING id, portal_application_id, address, public_key, client_public_key, signature, private_key, version, application_id
 `
 
 type InsertPortalApplicationAATParams struct {
-	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
-	Address             string            `json:"address"`
-	PublicKey           string            `json:"public_key"`
-	PrivateKey          sql.NullString    `json:"private_key"`
-	ClientPublicKey     string            `json:"client_public_key"`
-	Signature           string            `json:"signature"`
-	Version             string            `json:"version"`
+	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
+	Address             string              `json:"address"`
+	PublicKey           string              `json:"public_key"`
+	PrivateKey          sql.NullString      `json:"private_key"`
+	ClientPublicKey     string              `json:"client_public_key"`
+	Signature           string              `json:"signature"`
+	Version             string              `json:"version"`
+	ApplicationID       types.ProtocolAppID `json:"application_id"`
 }
 
 func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (PortalApplicationAat, error) {
@@ -845,6 +847,7 @@ func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPort
 		arg.ClientPublicKey,
 		arg.Signature,
 		arg.Version,
+		arg.ApplicationID,
 	)
 	var i PortalApplicationAat
 	err := row.Scan(
