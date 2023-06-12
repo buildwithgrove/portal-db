@@ -51,8 +51,17 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 			err:             nil,
 		},
 		{
+			name: "Should return an error if the GigastakeApp name is empty",
+			gigastakeApp: types.GigastakeApp{
+				Name: "",
+			},
+			testCreatedTime: testdata.MockTimestamp,
+			err:             errEmptyGigastakeAppName,
+		},
+		{
 			name: "Should return an error if the chain doesn't exist",
 			gigastakeApp: types.GigastakeApp{
+				Name:     "whatever",
 				ChainIDs: map[types.RelayChainID]struct{}{"0666": {}},
 			},
 			testCreatedTime: testdata.MockTimestamp,
@@ -76,6 +85,102 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 				gigastakeApps, err := ts.driver.ReadGigastakeApps(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
 				ts.Equal(&test.gigastakeApp, gigastakeApps[test.gigastakeApp.ID])
+			}
+		})
+	}
+}
+
+func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
+	tests := []struct {
+		name               string
+		gigastakeAppUpdate types.UpdateGigasakeApp
+		testUpdatedTime    time.Time
+		err                error
+	}{
+		{
+			name: "Should update GigastakeApp ChainIDs in the database",
+			gigastakeAppUpdate: types.UpdateGigasakeApp{
+				ID:       "test_gigastake_app_1",
+				Name:     "pokt_gigastake",
+				ChainIDs: []types.RelayChainID{"0001", "0040"},
+			},
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name: "Should update both GigastakeApp name and ChainIDs in the database",
+			gigastakeAppUpdate: types.UpdateGigasakeApp{
+				ID:       "test_gigastake_app_1",
+				Name:     "pokt_gigastake_updated",
+				ChainIDs: []types.RelayChainID{"0001", "0040", "0053"},
+			},
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name: "Should update both GigastakeApp name and ChainIDs in the database back to original values",
+			gigastakeAppUpdate: types.UpdateGigasakeApp{
+				ID:       "test_gigastake_app_1",
+				Name:     "pokt_gigastake_updated",
+				ChainIDs: []types.RelayChainID{"0001"},
+			},
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name: "Should return an error if the GigastakeApp name is empty",
+			gigastakeAppUpdate: types.UpdateGigasakeApp{
+				ID:   "test_gigastake_app_1",
+				Name: "",
+			},
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             errEmptyGigastakeAppName,
+		},
+		{
+			name: "Should return an error if the GigastakeApp ChainIDs is empty",
+			gigastakeAppUpdate: types.UpdateGigasakeApp{
+				ID:       "test_gigastake_app_1",
+				Name:     "whatever",
+				ChainIDs: []types.RelayChainID{},
+			},
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             errEmptyChainIDsForGigastakeAppUpdate,
+		},
+		{
+			name: "Should return an error if the chain doesn't exist",
+			gigastakeAppUpdate: types.UpdateGigasakeApp{
+				ID:       "test_gigastake_app_1",
+				Name:     "whatever",
+				ChainIDs: []types.RelayChainID{"0666"},
+			},
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errChainDoesntExist.Error(), "0666"),
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			err := ts.driver.UpdateGigstakeApp(context.Background(), test.gigastakeAppUpdate, test.testUpdatedTime)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				gigastakeApps, err := ts.driver.ReadGigastakeApps(context.Background(), types.DriverOptions{})
+				ts.NoError(err)
+
+				updatedApp := gigastakeApps[test.gigastakeAppUpdate.ID]
+
+				if test.gigastakeAppUpdate.Name != "" {
+					ts.Equal(test.gigastakeAppUpdate.Name, updatedApp.Name)
+				}
+				if len(test.gigastakeAppUpdate.ChainIDs) > 0 {
+					// Validate ChainIDs
+					expectedChainIDs := make(map[types.RelayChainID]struct{})
+					for _, chainID := range test.gigastakeAppUpdate.ChainIDs {
+						expectedChainIDs[chainID] = struct{}{}
+					}
+					ts.Equal(expectedChainIDs, updatedApp.ChainIDs)
+				}
+				ts.Equal(test.testUpdatedTime, updatedApp.UpdatedAt)
 			}
 		})
 	}

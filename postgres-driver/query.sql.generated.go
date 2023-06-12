@@ -737,6 +737,65 @@ func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertA
 	return user_id, err
 }
 
+const insertGigastakeApp = `-- name: InsertGigastakeApp :exec
+WITH new_gigastake_application AS (
+    INSERT INTO gigastake_applications (
+            id,
+            name,
+            address,
+            public_key,
+            client_public_key,
+            signature,
+            private_key,
+            version,
+            created_at,
+            updated_at,
+            lb_id
+        )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING id
+)
+INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+SELECT unnest($12::VARCHAR []),
+    (
+        SELECT id
+        FROM new_gigastake_application
+    ) ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING
+`
+
+type InsertGigastakeAppParams struct {
+	ID              types.GigastakeAppID `json:"id"`
+	Name            string               `json:"name"`
+	Address         string               `json:"address"`
+	PublicKey       string               `json:"public_key"`
+	ClientPublicKey string               `json:"client_public_key"`
+	Signature       string               `json:"signature"`
+	PrivateKey      sql.NullString       `json:"private_key"`
+	Version         string               `json:"version"`
+	CreatedAt       time.Time            `json:"created_at"`
+	UpdatedAt       time.Time            `json:"updated_at"`
+	LbID            string               `json:"lb_id"`
+	ChainIDs        []string             `json:"chain_ids"`
+}
+
+func (q *Queries) InsertGigastakeApp(ctx context.Context, arg InsertGigastakeAppParams) error {
+	_, err := q.db.ExecContext(ctx, insertGigastakeApp,
+		arg.ID,
+		arg.Name,
+		arg.Address,
+		arg.PublicKey,
+		arg.ClientPublicKey,
+		arg.Signature,
+		arg.PrivateKey,
+		arg.Version,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.LbID,
+		pq.Array(arg.ChainIDs),
+	)
+	return err
+}
+
 const insertPortalApplication = `-- name: InsertPortalApplication :one
 INSERT INTO portal_applications (
         id,
@@ -1902,6 +1961,47 @@ func (q *Queries) UpdateFirstDatesSurpassed(ctx context.Context, arg UpdateFirst
 	return err
 }
 
+const updateGigastakeApp = `-- name: UpdateGigastakeApp :exec
+WITH updated_gigastake_application AS (
+    UPDATE gigastake_applications
+    SET name = $2,
+        updated_at = $3
+    WHERE id = $1
+    RETURNING id
+),
+inserted AS (
+    INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+    SELECT unnest($4::VARCHAR []),
+        updated_gigastake_application.id
+    FROM updated_gigastake_application ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING
+)
+DELETE FROM chains_gigastake_applications
+WHERE gigastake_application_id IN (
+        SELECT id
+        FROM updated_gigastake_application
+    )
+    AND chain_id NOT IN (
+        SELECT unnest($4::VARCHAR [])
+    )
+`
+
+type UpdateGigastakeAppParams struct {
+	ID        types.GigastakeAppID `json:"id"`
+	Name      string               `json:"name"`
+	UpdatedAt time.Time            `json:"updated_at"`
+	ChainIDs  []string             `json:"chain_ids"`
+}
+
+func (q *Queries) UpdateGigastakeApp(ctx context.Context, arg UpdateGigastakeAppParams) error {
+	_, err := q.db.ExecContext(ctx, updateGigastakeApp,
+		arg.ID,
+		arg.Name,
+		arg.UpdatedAt,
+		pq.Array(arg.ChainIDs),
+	)
+	return err
+}
+
 const updateInsertWhitelists = `-- name: UpdateInsertWhitelists :exec
 INSERT INTO portal_application_whitelists (
         application_id,
@@ -2353,75 +2453,6 @@ func (q *Queries) UpsertChainCheck(ctx context.Context, arg UpsertChainCheckPara
 		arg.EVMChainID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
-	)
-	return err
-}
-
-const upsertGigastakeApp = `-- name: UpsertGigastakeApp :exec
-WITH new_or_updated_gigastake_application AS (
-    INSERT INTO gigastake_applications (
-            id,
-            name,
-            address,
-            public_key,
-            client_public_key,
-            signature,
-            private_key,
-            version,
-            created_at,
-            updated_at,
-            lb_id
-        )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (id) DO
-    UPDATE
-    SET name = EXCLUDED.name,
-        address = EXCLUDED.address,
-        public_key = EXCLUDED.public_key,
-        client_public_key = EXCLUDED.client_public_key,
-        signature = EXCLUDED.signature,
-        private_key = EXCLUDED.private_key,
-        version = EXCLUDED.version,
-        updated_at = EXCLUDED.updated_at,
-        lb_id = EXCLUDED.lb_id
-    RETURNING id
-)
-INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
-SELECT unnest($12::VARCHAR []),
-    (
-        SELECT id
-        FROM new_or_updated_gigastake_application
-    ) ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING
-`
-
-type UpsertGigastakeAppParams struct {
-	ID              types.GigastakeAppID `json:"id"`
-	Name            string               `json:"name"`
-	Address         string               `json:"address"`
-	PublicKey       string               `json:"public_key"`
-	ClientPublicKey string               `json:"client_public_key"`
-	Signature       string               `json:"signature"`
-	PrivateKey      sql.NullString       `json:"private_key"`
-	Version         string               `json:"version"`
-	CreatedAt       time.Time            `json:"created_at"`
-	UpdatedAt       time.Time            `json:"updated_at"`
-	LbID            string               `json:"lb_id"`
-	ChainIDs        []string             `json:"chain_ids"`
-}
-
-func (q *Queries) UpsertGigastakeApp(ctx context.Context, arg UpsertGigastakeAppParams) error {
-	_, err := q.db.ExecContext(ctx, upsertGigastakeApp,
-		arg.ID,
-		arg.Name,
-		arg.Address,
-		arg.PublicKey,
-		arg.ClientPublicKey,
-		arg.Signature,
-		arg.PrivateKey,
-		arg.Version,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.LbID,
-		pq.Array(arg.ChainIDs),
 	)
 	return err
 }

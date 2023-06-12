@@ -929,8 +929,8 @@ SET active = $2,
     updated_at = $3
 WHERE id = $1
 RETURNING active;
--- name: UpsertGigastakeApp :exec
-WITH new_or_updated_gigastake_application AS (
+-- name: InsertGigastakeApp :exec
+WITH new_gigastake_application AS (
     INSERT INTO gigastake_applications (
             id,
             name,
@@ -944,25 +944,37 @@ WITH new_or_updated_gigastake_application AS (
             updated_at,
             lb_id
         )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (id) DO
-    UPDATE
-    SET name = EXCLUDED.name,
-        address = EXCLUDED.address,
-        public_key = EXCLUDED.public_key,
-        client_public_key = EXCLUDED.client_public_key,
-        signature = EXCLUDED.signature,
-        private_key = EXCLUDED.private_key,
-        version = EXCLUDED.version,
-        updated_at = EXCLUDED.updated_at,
-        lb_id = EXCLUDED.lb_id
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING id
 )
 INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
 SELECT unnest(@chain_ids::VARCHAR []),
     (
         SELECT id
-        FROM new_or_updated_gigastake_application
+        FROM new_gigastake_application
     ) ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING;
+-- name: UpdateGigastakeApp :exec
+WITH updated_gigastake_application AS (
+    UPDATE gigastake_applications
+    SET name = $2,
+        updated_at = $3
+    WHERE id = $1
+    RETURNING id
+),
+inserted AS (
+    INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+    SELECT unnest(@chain_ids::VARCHAR []),
+        updated_gigastake_application.id
+    FROM updated_gigastake_application ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING
+)
+DELETE FROM chains_gigastake_applications
+WHERE gigastake_application_id IN (
+        SELECT id
+        FROM updated_gigastake_application
+    )
+    AND chain_id NOT IN (
+        SELECT unnest(@chain_ids::VARCHAR [])
+    );
 -- name: SelectGlobalBlockedContract :many
 SELECT id,
     blocked_address

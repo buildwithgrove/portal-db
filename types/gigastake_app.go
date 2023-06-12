@@ -28,6 +28,13 @@ type (
 		LegacyLBID string `json:"legacyLBID"`
 	}
 
+	// UpdateGigastakeApp represents the fields that can be updated on a GigastakeApp
+	UpdateGigasakeApp struct {
+		ID       GigastakeAppID `json:"id"`
+		Name     string         `json:"name"`
+		ChainIDs []RelayChainID `json:"chainIDs"`
+	}
+
 	// GigastakeApp represents the relationship between a Chain and GigastakeApp
 	// Only used by the listener
 	ChainGigastakeApp struct {

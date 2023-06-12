@@ -2,10 +2,16 @@ package postgresdriver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
+)
+
+var (
+	errEmptyGigastakeAppName              = errors.New("gigastake app name cannot be empty")
+	errEmptyChainIDsForGigastakeAppUpdate = errors.New("chainIDs cannot be empty for gigastake app update")
 )
 
 /* ----- postgresdriver GigastakeApp Read Methods ----- */
@@ -55,7 +61,7 @@ func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, 
 	}, nil
 }
 
-/* ----- postgresdriver Chain Create Methods ----- */
+/* ----- postgresdriver GigastakeApp Create Methods ----- */
 
 // WriteGigastakeApp creates a single GigastakeApp in the database
 func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp types.GigastakeApp, createdAt time.Time) (*types.GigastakeApp, error) {
@@ -81,7 +87,7 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 
 	qtx := pg.WithTx(tx)
 
-	err = pg.upsertGigastakeApp(ctx, qtx, gigastakeApp)
+	err = pg.insertGigastakeApp(ctx, qtx, gigastakeApp)
 	if err != nil {
 		return nil, err
 	}
@@ -97,15 +103,15 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 	return &gigastakeApp, nil
 }
 
-// upsertGigastakeApp performs either an insert or update on a GigastakeApp in the database
-// The method must take a transaction as it is used in both WriteGigastakeApp and WriteChainAndGigastakeApps
-func (pg *PostgresDriver) upsertGigastakeApp(ctx context.Context, qtx *Queries, gigastakeApp types.GigastakeApp) error {
+// insertGigastakeApp performs an insert on a GigastakeApp in the database.
+// It must take a transaction as it is used in both WriteGigastakeApp and WriteChainAndGigastakeApps
+func (pg *PostgresDriver) insertGigastakeApp(ctx context.Context, qtx *Queries, gigastakeApp types.GigastakeApp) error {
 	chainIDs := []string{}
 	for chainID := range gigastakeApp.ChainIDs {
 		chainIDs = append(chainIDs, string(chainID))
 	}
 
-	err := qtx.UpsertGigastakeApp(ctx, UpsertGigastakeAppParams{
+	err := qtx.InsertGigastakeApp(ctx, InsertGigastakeAppParams{
 		ID:              gigastakeApp.ID,
 		ChainIDs:        chainIDs,
 		Name:            gigastakeApp.Name,
@@ -129,7 +135,61 @@ func (pg *PostgresDriver) upsertGigastakeApp(ctx context.Context, qtx *Queries, 
 
 // validateGigastakeAppInput performs all necessary data validation checks on incoming GigastakeApp data
 func (pg *PostgresDriver) validateGigastakeAppInput(ctx context.Context, gigastakeApp types.GigastakeApp) error {
+	if gigastakeApp.Name == "" {
+		return errEmptyGigastakeAppName
+	}
+
 	for chainID := range gigastakeApp.ChainIDs {
+		chainExists, err := pg.CheckChainExists(ctx, chainID)
+		if err != nil {
+			return err
+		}
+		if !chainExists {
+			return fmt.Errorf(errChainDoesntExist.Error(), chainID)
+		}
+	}
+
+	return nil
+}
+
+/* ----- postgresdriver GigastakeApp Create Methods ----- */
+
+// UpdateGigstakeApp updates a single GigastakeApp in the database.
+func (pg *PostgresDriver) UpdateGigstakeApp(ctx context.Context, gigastakeAppUpdate types.UpdateGigasakeApp, updatedAt time.Time) error {
+	err := pg.validateUpdateGigastakeAppInput(ctx, gigastakeAppUpdate)
+	if err != nil {
+		return err
+	}
+
+	chainIDs := []string{}
+	for _, chainID := range gigastakeAppUpdate.ChainIDs {
+		chainIDs = append(chainIDs, string(chainID))
+	}
+
+	err = pg.UpdateGigastakeApp(ctx, UpdateGigastakeAppParams{
+		ID:        gigastakeAppUpdate.ID,
+		Name:      gigastakeAppUpdate.Name,
+		ChainIDs:  chainIDs,
+		UpdatedAt: updatedAt,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateGigastakeAppInput performs all necessary data validation checks on incoming GigastakeApp data
+func (pg *PostgresDriver) validateUpdateGigastakeAppInput(ctx context.Context, gigastakeAppUpdate types.UpdateGigasakeApp) error {
+	if gigastakeAppUpdate.Name == "" {
+		return errEmptyGigastakeAppName
+	}
+
+	if len(gigastakeAppUpdate.ChainIDs) == 0 {
+		return errEmptyChainIDsForGigastakeAppUpdate
+	}
+
+	for _, chainID := range gigastakeAppUpdate.ChainIDs {
 		chainExists, err := pg.CheckChainExists(ctx, chainID)
 		if err != nil {
 			return err
