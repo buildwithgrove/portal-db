@@ -85,7 +85,7 @@ type (
 		/* UpdateChain updates Chain and ChainCheck for a given Chain. */
 		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
 		/* UpdateGigstakeApp updates fields on a GigastakeApp. */
-		UpdateGigstakeApp(ctx context.Context, gigastakeApp types.UpdateGigasakeApp, updatedAt time.Time) error
+		UpdateGigstakeApp(ctx context.Context, gigastakeApp types.UpdateGigastakeApp, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */
 		SetChainActiveStatus(ctx context.Context, chainID types.RelayChainID, active bool, updatedAt time.Time) (bool, error)
 

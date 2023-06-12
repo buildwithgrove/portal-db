@@ -93,13 +93,13 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
 	tests := []struct {
 		name               string
-		gigastakeAppUpdate types.UpdateGigasakeApp
+		gigastakeAppUpdate types.UpdateGigastakeApp
 		testUpdatedTime    time.Time
 		err                error
 	}{
 		{
 			name: "Should update GigastakeApp ChainIDs in the database",
-			gigastakeAppUpdate: types.UpdateGigasakeApp{
+			gigastakeAppUpdate: types.UpdateGigastakeApp{
 				ID:       "test_gigastake_app_1",
 				Name:     "pokt_gigastake",
 				ChainIDs: []types.RelayChainID{"0001", "0040"},
@@ -109,7 +109,7 @@ func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
 		},
 		{
 			name: "Should update both GigastakeApp name and ChainIDs in the database",
-			gigastakeAppUpdate: types.UpdateGigasakeApp{
+			gigastakeAppUpdate: types.UpdateGigastakeApp{
 				ID:       "test_gigastake_app_1",
 				Name:     "pokt_gigastake_updated",
 				ChainIDs: []types.RelayChainID{"0001", "0040", "0053"},
@@ -119,7 +119,7 @@ func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
 		},
 		{
 			name: "Should update both GigastakeApp name and ChainIDs in the database back to original values",
-			gigastakeAppUpdate: types.UpdateGigasakeApp{
+			gigastakeAppUpdate: types.UpdateGigastakeApp{
 				ID:       "test_gigastake_app_1",
 				Name:     "pokt_gigastake_updated",
 				ChainIDs: []types.RelayChainID{"0001"},
@@ -129,7 +129,7 @@ func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
 		},
 		{
 			name: "Should return an error if the GigastakeApp name is empty",
-			gigastakeAppUpdate: types.UpdateGigasakeApp{
+			gigastakeAppUpdate: types.UpdateGigastakeApp{
 				ID:   "test_gigastake_app_1",
 				Name: "",
 			},
@@ -138,7 +138,7 @@ func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
 		},
 		{
 			name: "Should return an error if the GigastakeApp ChainIDs is empty",
-			gigastakeAppUpdate: types.UpdateGigasakeApp{
+			gigastakeAppUpdate: types.UpdateGigastakeApp{
 				ID:       "test_gigastake_app_1",
 				Name:     "whatever",
 				ChainIDs: []types.RelayChainID{},
@@ -148,7 +148,7 @@ func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
 		},
 		{
 			name: "Should return an error if the chain doesn't exist",
-			gigastakeAppUpdate: types.UpdateGigasakeApp{
+			gigastakeAppUpdate: types.UpdateGigastakeApp{
 				ID:       "test_gigastake_app_1",
 				Name:     "whatever",
 				ChainIDs: []types.RelayChainID{"0666"},

@@ -155,7 +155,7 @@ func (pg *PostgresDriver) validateGigastakeAppInput(ctx context.Context, gigasta
 /* ----- postgresdriver GigastakeApp Create Methods ----- */
 
 // UpdateGigstakeApp updates a single GigastakeApp in the database.
-func (pg *PostgresDriver) UpdateGigstakeApp(ctx context.Context, gigastakeAppUpdate types.UpdateGigasakeApp, updatedAt time.Time) error {
+func (pg *PostgresDriver) UpdateGigstakeApp(ctx context.Context, gigastakeAppUpdate types.UpdateGigastakeApp, updatedAt time.Time) error {
 	err := pg.validateUpdateGigastakeAppInput(ctx, gigastakeAppUpdate)
 	if err != nil {
 		return err
@@ -180,7 +180,7 @@ func (pg *PostgresDriver) UpdateGigstakeApp(ctx context.Context, gigastakeAppUpd
 }
 
 // validateGigastakeAppInput performs all necessary data validation checks on incoming GigastakeApp data
-func (pg *PostgresDriver) validateUpdateGigastakeAppInput(ctx context.Context, gigastakeAppUpdate types.UpdateGigasakeApp) error {
+func (pg *PostgresDriver) validateUpdateGigastakeAppInput(ctx context.Context, gigastakeAppUpdate types.UpdateGigastakeApp) error {
 	if gigastakeAppUpdate.Name == "" {
 		return errEmptyGigastakeAppName
 	}

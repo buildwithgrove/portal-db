@@ -29,7 +29,7 @@ type (
 	}
 
 	// UpdateGigastakeApp represents the fields that can be updated on a GigastakeApp
-	UpdateGigasakeApp struct {
+	UpdateGigastakeApp struct {
 		ID       GigastakeAppID `json:"id"`
 		Name     string         `json:"name"`
 		ChainIDs []RelayChainID `json:"chainIDs"`

@@ -415,11 +415,11 @@ func (_m *MockDriver) UpdateChain(ctx context.Context, chain types.Chain, update
 }
 
 // UpdateGigstakeApp provides a mock function with given fields: ctx, gigastakeApp, updatedAt
-func (_m *MockDriver) UpdateGigstakeApp(ctx context.Context, gigastakeApp types.UpdateGigasakeApp, updatedAt time.Time) error {
+func (_m *MockDriver) UpdateGigstakeApp(ctx context.Context, gigastakeApp types.UpdateGigastakeApp, updatedAt time.Time) error {
 	ret := _m.Called(ctx, gigastakeApp, updatedAt)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateGigasakeApp, time.Time) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateGigastakeApp, time.Time) error); ok {
 		r0 = rf(ctx, gigastakeApp, updatedAt)
 	} else {
 		r0 = ret.Error(0)
