@@ -1961,7 +1961,7 @@ func (q *Queries) UpdateFirstDatesSurpassed(ctx context.Context, arg UpdateFirst
 	return err
 }
 
-const updateGigastakeApp = `-- name: UpdateGigastakeApp :exec
+const updateGigastakeAppNameAndChainIDs = `-- name: UpdateGigastakeAppNameAndChainIDs :exec
 WITH updated_gigastake_application AS (
     UPDATE gigastake_applications
     SET name = $2,
@@ -1985,15 +1985,15 @@ WHERE gigastake_application_id IN (
     )
 `
 
-type UpdateGigastakeAppParams struct {
+type UpdateGigastakeAppNameAndChainIDsParams struct {
 	ID        types.GigastakeAppID `json:"id"`
 	Name      string               `json:"name"`
 	UpdatedAt time.Time            `json:"updated_at"`
 	ChainIDs  []string             `json:"chain_ids"`
 }
 
-func (q *Queries) UpdateGigastakeApp(ctx context.Context, arg UpdateGigastakeAppParams) error {
-	_, err := q.db.ExecContext(ctx, updateGigastakeApp,
+func (q *Queries) UpdateGigastakeAppNameAndChainIDs(ctx context.Context, arg UpdateGigastakeAppNameAndChainIDsParams) error {
+	_, err := q.db.ExecContext(ctx, updateGigastakeAppNameAndChainIDs,
 		arg.ID,
 		arg.Name,
 		arg.UpdatedAt,

@@ -953,7 +953,7 @@ SELECT unnest(@chain_ids::VARCHAR []),
         SELECT id
         FROM new_gigastake_application
     ) ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING;
--- name: UpdateGigastakeApp :exec
+-- name: UpdateGigastakeAppNameAndChainIDs :exec
 WITH updated_gigastake_application AS (
     UPDATE gigastake_applications
     SET name = $2,

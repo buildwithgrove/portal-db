@@ -90,7 +90,7 @@ func (ts *PGDriverTestSuite) Test_WriteGigastakeApp() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
+func (ts *PGDriverTestSuite) Test_UpdateGigastakeApp() {
 	tests := []struct {
 		name               string
 		gigastakeAppUpdate types.UpdateGigastakeApp
@@ -160,7 +160,7 @@ func (ts *PGDriverTestSuite) Test_UpdateGigstakeApp() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			err := ts.driver.UpdateGigstakeApp(context.Background(), test.gigastakeAppUpdate, test.testUpdatedTime)
+			err := ts.driver.UpdateGigastakeApp(context.Background(), test.gigastakeAppUpdate, test.testUpdatedTime)
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
