@@ -173,6 +173,21 @@ func (q *Queries) CheckIDExists(ctx context.Context, id string) (bool, error) {
 	return exists, err
 }
 
+const checkPlanExists = `-- name: CheckPlanExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM pay_plans
+        WHERE plan_type = $1
+    )
+`
+
+func (q *Queries) CheckPlanExists(ctx context.Context, planType types.PayPlanType) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkPlanExists, planType)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkPlanTypeExists = `-- name: CheckPlanTypeExists :one
 SELECT EXISTS(
         SELECT 1

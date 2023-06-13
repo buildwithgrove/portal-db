@@ -28,9 +28,15 @@ type (
 )
 
 var (
-	errUnmarshallingWhitelists    = errors.New("error unmarshalling whitelists")
-	errUnmarshallingNotifications = errors.New("error unmarshalling notifications")
-	errUnmarshallingAATs          = errors.New("error unmarshalling AATs")
+	errUnmarshallingWhitelists      = errors.New("error unmarshalling whitelists")
+	errUnmarshallingNotifications   = errors.New("error unmarshalling notifications")
+	errUnmarshallingAATs            = errors.New("error unmarshalling AATs")
+	errInvalidAddressLength         = errors.New("invalid length for address")
+	errInvalidPublicKeyLength       = errors.New("invalid length for publicKey")
+	errInvalidClientPublicKeyLength = errors.New("invalid length for clientPublicKey")
+	errInvalidSignatureLength       = errors.New("invalid length for signature")
+	errInvalidVersionLength         = errors.New("invalid length for version")
+	errInvalidPrivateKeyLength      = errors.New("invalid length for privateKey")
 )
 
 /* ----- postgresdriver PortalApp Read Methods ----- */
@@ -180,6 +186,10 @@ func (a *SelectPortalApplicationsRow) toWhitelists() (types.Whitelists, error) {
 
 // WritePortalApp creates a single PortalApp in the database, including its AAT and Settings rows
 func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.PortalApp, aat types.AAT, createdAt time.Time) (*types.PortalApp, error) {
+	err := pg.validatePortalAppInput(ctx, portalApp, aat)
+	if err != nil {
+		return nil, err
+	}
 	portalAppID, err := pg.generateID(ctx)
 	if err != nil {
 		return nil, err
@@ -288,6 +298,26 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	}
 
 	return &portalApp, nil
+}
+
+// validatePortalAppInput performs all necessary data validation checks on incoming PortalApp data
+func (pg *PostgresDriver) validatePortalAppInput(ctx context.Context, portalApp types.PortalApp, aat types.AAT) error {
+	planExists, err := pg.CheckPlanExists(ctx, portalApp.LegacyFields.PlanType)
+	if err != nil {
+		return err
+	}
+	if !planExists {
+		return fmt.Errorf(errPayPlanDoesntExist.Error(), portalApp.LegacyFields.PlanType)
+	}
+	accountExists, err := pg.CheckAccountExists(ctx, portalApp.AccountID)
+	if err != nil {
+		return err
+	}
+	if !accountExists {
+		return fmt.Errorf(errAccountDoesntExist.Error(), portalApp.AccountID)
+	}
+
+	return nil
 }
 
 /* ----- postgresdriver PortalApp Update Methods ----- */

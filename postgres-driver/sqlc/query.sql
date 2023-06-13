@@ -519,6 +519,12 @@ SELECT EXISTS(
         WHERE id = $1
             AND deleted = false
     );
+-- name: CheckPlanExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM pay_plans
+        WHERE plan_type = $1
+    );
 -- name: CheckPortalAppExists :one
 SELECT EXISTS(
         SELECT 1

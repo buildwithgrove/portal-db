@@ -104,6 +104,27 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
+		{
+			name: "Should fail when plan does not exist",
+			portalApp: types.PortalApp{
+				LegacyFields: types.LegacyFields{
+					PlanType: "nonexistent-plan",
+				},
+			},
+			aat: testdata.TestCreatePortalAppAAT,
+			err: fmt.Errorf(errPayPlanDoesntExist.Error(), "nonexistent-plan"),
+		},
+		{
+			name: "Should fail when account does not exist",
+			portalApp: types.PortalApp{
+				LegacyFields: types.LegacyFields{
+					PlanType: types.FreetierV0,
+				},
+				AccountID: "nonexistent-account",
+			},
+			aat: testdata.TestCreatePortalAppAAT,
+			err: fmt.Errorf(errAccountDoesntExist.Error(), "nonexistent-account"),
+		},
 	}
 
 	for _, test := range tests {
@@ -111,17 +132,19 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			createdPortalApp, err := ts.driver.WritePortalApp(context.Background(), test.portalApp, test.aat, test.testCreatedTime)
 			ts.Equal(test.err, err)
 
-			test.portalApp.ID = createdPortalApp.ID
-			test.portalApp.AATs = createdPortalApp.AATs
-			ts.Equal(&test.portalApp, createdPortalApp)
+			if test.err == nil {
+				test.portalApp.ID = createdPortalApp.ID
+				test.portalApp.AATs = createdPortalApp.AATs
+				ts.Equal(&test.portalApp, createdPortalApp)
 
-			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
-			ts.Equal(test.err, err)
-			for appID, aat := range test.portalApp.AATs {
-				aat.PrivateKey = "" // PrivateKey is never read from the DB
-				test.portalApp.AATs[appID] = aat
+				portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
+				ts.Equal(test.err, err)
+				for appID, aat := range test.portalApp.AATs {
+					aat.PrivateKey = "" // PrivateKey is never read from the DB
+					test.portalApp.AATs[appID] = aat
+				}
+				ts.Equal(&test.portalApp, portalApps[createdPortalApp.ID])
 			}
-			ts.Equal(&test.portalApp, portalApps[createdPortalApp.ID])
 		})
 	}
 }

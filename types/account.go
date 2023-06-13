@@ -66,12 +66,19 @@ type (
 		RoleName    RoleName    `json:"roleName"`
 	}
 
-	// UpdateAccountUserRole contains all fields required to update an Account User's Role
+	// UpdateAccountUserRole contains all fields required to accept an Account User
 	UpdateAcceptAccountUser struct {
 		PortalAppID      PortalAppID    `json:"portalAppID"`
 		UserID           UserID         `json:"userID"`
 		AuthProviderType AuthType       `json:"type"`
 		ProviderUserID   ProviderUserID `json:"providerUserID"`
+	}
+
+	// UpdateRemoveAccountUser contains all fields required to remove an Account User's Role
+	UpdateRemoveAccountUser struct {
+		UserID      UserID      `json:"userID"`
+		PortalAppID PortalAppID `json:"portalAppID"`
+		AccountID   AccountID   `json:"accountID"`
 	}
 )
 

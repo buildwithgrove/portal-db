@@ -546,8 +546,7 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 
 	// If transferring OWNER role
 	if updateAccountUser.RoleName == types.RoleOwner {
-
-		// cannot transfer OWNER to a user who has not accepted their invite
+		// Cannot transfer OWNER to a user who has not accepted their invite
 		acceptedParams := CheckAccountUserAcceptedParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
 		userAccepted, err := pg.CheckAccountUserAccepted(ctx, acceptedParams)
 		if err != nil {
@@ -584,6 +583,11 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 // UpdateAcceptAccountUser creates a new portal UserAuthProvider in the DB when a user accepts their team invite.
 // Also updates User.SignedUp and AccountUserAccess.Accepted fields to true.
 func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error {
+	err := pg.validateUpdateAcceptAccountUserInput(ctx, acceptAccountUser)
+	if err != nil {
+		return err
+	}
+
 	tx, err := pg.DB.Begin()
 	if err != nil {
 		return err
@@ -591,11 +595,6 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 	defer func() { _ = tx.Rollback() }()
 
 	qtx := pg.WithTx(tx)
-
-	err = pg.validateUpdateAcceptAccountUserInput(ctx, qtx, acceptAccountUser)
-	if err != nil {
-		return err
-	}
 
 	params := UpdateUserAcceptedInviteParams{
 		PortalApplicationID: acceptAccountUser.PortalAppID,
@@ -620,7 +619,7 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 }
 
 // validateUpdateAcceptAccountUserInput validates the input to set an AccountUserAccess role to Accepted
-func (pg *PostgresDriver) validateUpdateAcceptAccountUserInput(ctx context.Context, qtx *Queries, acceptAccountUser types.UpdateAcceptAccountUser) error {
+func (pg *PostgresDriver) validateUpdateAcceptAccountUserInput(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser) error {
 	if acceptAccountUser.AuthProviderType == "" {
 		return errNoAuthProviderType
 	}
@@ -632,7 +631,7 @@ func (pg *PostgresDriver) validateUpdateAcceptAccountUserInput(ctx context.Conte
 	}
 
 	existsParams := CheckAccountUserExistsParams{UserID: acceptAccountUser.UserID, PortalApplicationID: acceptAccountUser.PortalAppID}
-	accountUserExists, err := qtx.CheckAccountUserExists(ctx, existsParams)
+	accountUserExists, err := pg.CheckAccountUserExists(ctx, existsParams)
 	if err != nil {
 		return err
 	}

@@ -1005,11 +1005,11 @@ var (
 	}
 
 	TestCreatePortalAppAAT = types.AAT{
-		Address:         "test_1a8b64a1a7f66fa48237c72345f12dgr",
-		PublicKey:       "test_8237c72345f1a7f66fa41b1b8b644g2f",
-		ClientPublicKey: "test_d4222e83c836a29b423a47d8e18c779f",
-		PrivateKey:      "test_a92f40416b6f1d7d8af17e0204c71d90",
-		Signature:       "test_da5af48d33b30ddaf60a1e5bb50d2b8f",
+		Address:         "test_d24a1810570804902ffdf8328d338ccc663",
+		PublicKey:       "test_7137982b1e7dc54f55bb4f658724bc1eece31aa39058dc6d45c79dca2ba",
+		ClientPublicKey: "test_ba7b889d6c96dfa1b3838672439ce8dfd4451bc3cf6ce0e942e347e3762",
+		PrivateKey:      "test_e42879ebe7c1dabc291240b8c1830656ea21b94336fbc044a5b6c70e876e3c34132501323e769eccfb00f8e88ccfc6ee2808a7b8a8e97dd646b2fd26eb300719d87668ec7f8698f38bbe02734fc8c50b72d917b7047af8106d2624b0eb036570d17aef2bafc489befd2811e2774227ec7b70ed2140c5d6f2dd7b5af7502d8a96cd137de68fe0f9ef2541df11eaaeb7997aae357ab025ac269c3",
+		Signature:       "test_15f627b3e92893431e8a59711c6d169a724f53f7dbad89110bd21a4c34315786e0bc9f943bdb73e3bd660cf2bf5a10a71b85a3c9062cb3413c29367ea72",
 		Version:         "0.0.1",
 		LegacyAppID:     "test_create_protocol_app",
 	}
@@ -1018,11 +1018,11 @@ var (
 		ID:              "test_create_gigastake_1",
 		ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 		Name:            "pokt_create_gigastake",
-		Address:         "test_a3b8d425877f4ec8b679f9e10251bb5a",
-		PublicKey:       "test_c96f50fa372c48509a5cbfc6ba3e17bd",
-		PrivateKey:      "test_3f2a8c174ff24a4e8756f72b6e6f32c4",
-		ClientPublicKey: "test_e920176d37b94cc88f597a4db41b5e74",
-		Signature:       "test_0b5b7ef3c63b473689f0f9d9d8f5c2c1",
+		Address:         "test_f9b26cd01e10b2054ef4f69e64edbdbfb0d",
+		PublicKey:       "test_bc795ac9141ec75166ae11f3217bd04a1a3a62492efc8579e34819cfbdf",
+		PrivateKey:      "test_4e08a4e43824108a351cfb10ff6bacc7577a937c43847d1d426dd791e779f99e15cd8589ef69f6a2688da68a17359952dbdb6ff48308e06b4a940639838e9a05fb75234a23a8417abf567f4c5aaabd1ede7dcfbcf87f4cbf71e67853bc8ccc7940013a30c3ff2d402d7fc5d476b83e5a1f2fdf22be75f7f35df759cd7d08ba50f2f498f93240d13f235437a95634f12bc8c6252407bb80d3422",
+		ClientPublicKey: "test_94389a8890dc6ab49a74a37b7140413b4c6bb0640689cc2dc628d49b17b",
+		Signature:       "test_ed37b11a1c4456a3e9b4ce0d69fc3ea962887924c6cfca969170d6c4a552bf13c8cd73649fd27929730b4229a834b090bf7a0ed7f506a98f315f961fda4",
 		Version:         "0.0.1",
 		LegacyLBID:      "legacy_lb_10",
 	}
@@ -1147,6 +1147,7 @@ var (
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
 		LegacyFields: types.LegacyFields{
+			PlanType:           types.FreetierV0,
 			CustomLimit:        0,
 			RequestTimeout:     5_000,
 			FirstDateSurpassed: MockTimestamp,
