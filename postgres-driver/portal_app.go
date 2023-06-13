@@ -28,15 +28,9 @@ type (
 )
 
 var (
-	errUnmarshallingWhitelists      = errors.New("error unmarshalling whitelists")
-	errUnmarshallingNotifications   = errors.New("error unmarshalling notifications")
-	errUnmarshallingAATs            = errors.New("error unmarshalling AATs")
-	errInvalidAddressLength         = errors.New("invalid length for address")
-	errInvalidPublicKeyLength       = errors.New("invalid length for publicKey")
-	errInvalidClientPublicKeyLength = errors.New("invalid length for clientPublicKey")
-	errInvalidSignatureLength       = errors.New("invalid length for signature")
-	errInvalidVersionLength         = errors.New("invalid length for version")
-	errInvalidPrivateKeyLength      = errors.New("invalid length for privateKey")
+	errUnmarshallingWhitelists    = errors.New("error unmarshalling whitelists")
+	errUnmarshallingNotifications = errors.New("error unmarshalling notifications")
+	errUnmarshallingAATs          = errors.New("error unmarshalling AATs")
 )
 
 /* ----- postgresdriver PortalApp Read Methods ----- */
