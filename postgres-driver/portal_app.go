@@ -28,6 +28,7 @@ type (
 )
 
 var (
+	errEmptyPortalAppName         = errors.New("portal app name cannot be empty")
 	errUnmarshallingWhitelists    = errors.New("error unmarshalling whitelists")
 	errUnmarshallingNotifications = errors.New("error unmarshalling notifications")
 	errUnmarshallingAATs          = errors.New("error unmarshalling AATs")
@@ -296,6 +297,10 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 // validatePortalAppInput performs all necessary data validation checks on incoming PortalApp data
 func (pg *PostgresDriver) validatePortalAppInput(ctx context.Context, portalApp types.PortalApp, aat types.AAT) error {
+	if portalApp.Name == "" {
+		return errEmptyPortalAppName
+	}
+
 	planExists, err := pg.CheckPlanExists(ctx, portalApp.LegacyFields.PlanType)
 	if err != nil {
 		return err
