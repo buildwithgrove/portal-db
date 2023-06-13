@@ -237,7 +237,7 @@ type dbGigastakeApp struct {
 	CreatedAt       time.Time            `json:"created_at"`
 	UpdatedAt       time.Time            `json:"updated_at"`
 	Deleted         bool                 `json:"deleted"`
-	LegacyLBID      string               `json:"legacy_lb_id"`
+	LegacyLBID      string               `json:"lb_id"`
 }
 
 type dbChainGigastakeApp struct {
