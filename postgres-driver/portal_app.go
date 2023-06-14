@@ -185,6 +185,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	if err != nil {
 		return nil, err
 	}
+
 	portalAppID, err := pg.generateID(ctx)
 	if err != nil {
 		return nil, err
@@ -260,6 +261,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 	portalApp.Notifications = map[types.NotificationType]types.AppNotification{
 		types.NotificationTypeEmail: {
+			Type:        types.NotificationTypeEmail,
 			Active:      true,
 			Destination: string(accountOwnerEmail),
 			Events: map[types.NotificationEvent]bool{
