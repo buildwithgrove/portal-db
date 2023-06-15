@@ -553,6 +553,14 @@ SELECT EXISTS (
         WHERE user_id = $1
             AND portal_application_id = $2
     );
+-- name: CheckUserProviderExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM users
+            JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+        WHERE users.email = $1
+            AND user_auth_providers.type = $2
+    );
 -- name: CheckAccountUserRole :one
 SELECT role_name
 FROM account_user_access

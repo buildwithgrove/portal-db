@@ -23,6 +23,7 @@ type (
 
 var (
 	errUserDoesntExist          = errors.New("error user does not exist for portal ID '%s'")
+	errUserAlreadyExists        = errors.New("error user already exists for email'%s' and provider type '%s'")
 	errUserHasAccount           = errors.New("error cannot delete user because they are still on an account team")
 	errNoEmail                  = errors.New("error no email")
 	errInvalidEmail             = errors.New("error email input is not a valid email address '%s'")
@@ -191,6 +192,17 @@ func (pg *PostgresDriver) validateWriteUserNewSignUpInput(ctx context.Context, u
 			return fmt.Errorf(errInvalidAuthProviderType.Error(), user.ProviderUserID.AuthType())
 		}
 		return errAuthProviderTypeNotFound
+	}
+
+	userExists, err := pg.CheckUserProviderExists(ctx, CheckUserProviderExistsParams{
+		Email: user.Email,
+		Type:  user.ProviderUserID.AuthType(),
+	})
+	if err != nil {
+		return err
+	}
+	if userExists {
+		return fmt.Errorf(errUserAlreadyExists.Error(), user.Email, user.ProviderUserID.AuthType())
 	}
 
 	return nil

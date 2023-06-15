@@ -52,7 +52,8 @@ CREATE TABLE user_auth_providers (
     provider auth_provider NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
     federated BOOLEAN NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, type)
 );
 CREATE TABLE user_roles (
     role_name VARCHAR(25) PRIMARY KEY,

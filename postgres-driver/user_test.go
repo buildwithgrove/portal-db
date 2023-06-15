@@ -110,6 +110,14 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 			},
 			err: fmt.Errorf(errInvalidAuthProviderType.Error(), types.AuthType("wtf")),
 		},
+		{
+			name: "Should fail if user already exists with provided email and auth provider type",
+			createUser: types.CreateUser{
+				Email:          "geralt.of.rivia623@example.com",
+				ProviderUserID: "auth0|geralt_of_rivia",
+			},
+			err: fmt.Errorf(errUserAlreadyExists.Error(), "geralt.of.rivia623@example.com", "auth0_username"),
+		},
 	}
 
 	for _, test := range tests {

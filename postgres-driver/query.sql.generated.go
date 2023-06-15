@@ -275,6 +275,28 @@ func (q *Queries) CheckUserIDFromEmail(ctx context.Context, email types.Email) (
 	return id, err
 }
 
+const checkUserProviderExists = `-- name: CheckUserProviderExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM users
+            JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+        WHERE users.email = $1
+            AND user_auth_providers.type = $2
+    )
+`
+
+type CheckUserProviderExistsParams struct {
+	Email types.Email    `json:"email"`
+	Type  types.AuthType `json:"type"`
+}
+
+func (q *Queries) CheckUserProviderExists(ctx context.Context, arg CheckUserProviderExistsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkUserProviderExists, arg.Email, arg.Type)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createUserNewSignUp = `-- name: CreateUserNewSignUp :one
 WITH inserted_user AS (
     INSERT INTO users (id, email, signed_up, created_at, updated_at)
