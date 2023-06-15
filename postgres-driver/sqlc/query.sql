@@ -83,6 +83,8 @@ notifications_agg AS (
         json_object_agg(
             pn.type,
             json_build_object(
+                'type',
+                pn.type,
                 'active',
                 pn.active,
                 'destination',
@@ -649,6 +651,59 @@ delete_new_owner_non_owner_rows AS (
 SELECT user_id
 FROM delete_old_owner_row;
 -- name: TransferOwnerCreateRows :exec
+WITH updated_user AS (
+    UPDATE users
+    SET email = users.email
+    WHERE id = @new_owner_id::VARCHAR(24)
+),
+insert_old_owner_admin_rows AS (
+    INSERT INTO account_user_access (
+            portal_application_id,
+            user_id,
+            account_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT DISTINCT on (pa.id) pa.id,
+        @old_owner_id::VARCHAR(24),
+        aua.account_id,
+        'ADMIN',
+        false,
+        true,
+        aua.created_at,
+        aua.updated_at
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+    WHERE aua.account_id = $1
+        AND NOT EXISTS (
+            SELECT 1
+            FROM account_user_access
+            WHERE user_id = @old_owner_id::VARCHAR(24)
+                AND portal_application_id = pa.id
+        )
+),
+insert_new_owner_row AS (
+    INSERT INTO account_user_access (
+            user_id,
+            account_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT @new_owner_id::VARCHAR(24),
+        $1,
+        'OWNER',
+        true,
+        true,
+        $2,
+        $3
+)
+SELECT 1;
 WITH updated_user AS (
     UPDATE users
     SET email = users.email

@@ -106,6 +106,7 @@ func Test_Listen(t *testing.T) {
 					Action: types.ActionUpdate,
 					Data: &types.AppNotification{
 						AppID:       "test_app_1",
+						Type:        types.NotificationTypeEmail,
 						Active:      true,
 						Destination: "test@test.com",
 						Trigger:     "trigger123",

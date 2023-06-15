@@ -1489,6 +1489,8 @@ notifications_agg AS (
         json_object_agg(
             pn.type,
             json_build_object(
+                'type',
+                pn.type,
                 'active',
                 pn.active,
                 'destination',
@@ -1732,18 +1734,18 @@ WITH updated_user AS (
 ),
 insert_old_owner_admin_rows AS (
     INSERT INTO account_user_access (
+            portal_application_id,
             user_id,
             account_id,
-            portal_application_id,
             role_name,
             owner,
             accepted,
             created_at,
             updated_at
         )
-    SELECT DISTINCT $5::VARCHAR(24),
+    SELECT DISTINCT on (pa.id) pa.id,
+        $5::VARCHAR(24),
         aua.account_id,
-        pa.id,
         'ADMIN',
         false,
         true,
@@ -1752,6 +1754,12 @@ insert_old_owner_admin_rows AS (
     FROM account_user_access AS aua
         JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
+        AND NOT EXISTS (
+            SELECT 1
+            FROM account_user_access
+            WHERE user_id = $5::VARCHAR(24)
+                AND portal_application_id = pa.id
+        )
 ),
 insert_new_owner_row AS (
     INSERT INTO account_user_access (

@@ -652,6 +652,7 @@ var (
 			},
 			Notifications: map[types.NotificationType]types.AppNotification{
 				types.NotificationTypeEmail: {
+					Type:        types.NotificationTypeEmail,
 					Active:      true,
 					Destination: "test@test.com",
 					Trigger:     "trigger123",
@@ -707,6 +708,7 @@ var (
 			},
 			Notifications: map[types.NotificationType]types.AppNotification{
 				types.NotificationTypeEmail: {
+					Type:        types.NotificationTypeEmail,
 					Active:      true,
 					Destination: "email@pokt.network",
 					Trigger:     "trigger456",
@@ -983,6 +985,7 @@ var (
 		},
 		Notifications: map[types.NotificationType]types.AppNotification{
 			types.NotificationTypeEmail: types.AppNotification{
+				Type:        types.NotificationTypeEmail,
 				Active:      true,
 				Destination: "ulfric.stormcloak123@test.com",
 				Events: map[types.NotificationEvent]bool{
@@ -1479,6 +1482,7 @@ var (
 		},
 		Notifications: map[types.NotificationType]types.AppNotification{
 			types.NotificationTypeEmail: {
+				Type:        types.NotificationTypeEmail,
 				Active:      true,
 				Destination: "james.holden123@test.com",
 				Events: map[types.NotificationEvent]bool{
@@ -1547,6 +1551,8 @@ var (
 				},
 			},
 		},
+		PlanType:   "FREETIER_V0",
+		DailyLimit: 250_000,
 	}
 
 	LegacyUpdateBlockchain = v1Types.UpdateBlockchain{

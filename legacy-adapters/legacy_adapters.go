@@ -322,6 +322,7 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 		},
 		Notifications: map[v2Types.NotificationType]v2Types.AppNotification{
 			v2Types.NotificationTypeEmail: {
+				Type:        v2Types.NotificationTypeEmail,
 				Active:      true,
 				Destination: owner.Email,
 				Events: map[v2Types.NotificationEvent]bool{

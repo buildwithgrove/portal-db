@@ -105,8 +105,17 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			err:             nil,
 		},
 		{
+			name: "Should fail when name not provided",
+			portalApp: types.PortalApp{
+				Name: "",
+			},
+			aat: testdata.TestCreatePortalAppAAT,
+			err: errEmptyPortalAppName,
+		},
+		{
 			name: "Should fail when plan does not exist",
 			portalApp: types.PortalApp{
+				Name: "whatever",
 				LegacyFields: types.LegacyFields{
 					PlanType: "nonexistent-plan",
 				},
@@ -117,6 +126,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when account does not exist",
 			portalApp: types.PortalApp{
+				Name: "whatever",
 				LegacyFields: types.LegacyFields{
 					PlanType: types.FreetierV0,
 				},
@@ -182,6 +192,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			},
 			testUpdatedNotifications: map[types.NotificationType]types.AppNotification{
 				types.NotificationTypeEmail: {
+					Type:        types.NotificationTypeEmail,
 					Active:      true,
 					Destination: "user@example.com",
 					Trigger:     "daily",
@@ -194,6 +205,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 					},
 				},
 				types.NotificationTypeWebhook: {
+					Type:        types.NotificationTypeWebhook,
 					Active:      true,
 					Destination: "https://example.com/webhook",
 					Trigger:     "hourly",
@@ -258,6 +270,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedNotifications: map[types.NotificationType]types.AppNotification{
 				types.NotificationTypeEmail: {
+					Type:        types.NotificationTypeEmail,
 					Active:      true,
 					Destination: "user@example.com",
 					Trigger:     "daily",
@@ -270,6 +283,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 					},
 				},
 				types.NotificationTypeWebhook: {
+					Type:        types.NotificationTypeWebhook,
 					Active:      true,
 					Destination: "https://example.com/webhook",
 					Trigger:     "hourly",
