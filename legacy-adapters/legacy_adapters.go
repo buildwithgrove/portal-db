@@ -433,7 +433,12 @@ func ConvertToV2UpdatePortalApp(u v1Types.UpdateApplication, lbID string) v2Type
 	}
 
 	if u.Limit != nil {
-		update.CustomLimit = int32(u.Limit.CustomLimit)
+		update.PlanType = v2Types.PayPlanType(u.Limit.PayPlan.Type)
+		if u.Limit.PayPlan.Type == v1Types.Enterprise {
+			update.CustomLimit = int32(u.Limit.CustomLimit)
+		} else {
+			update.DailyLimit = int32(u.Limit.PayPlan.Limit)
+		}
 	}
 
 	return update
