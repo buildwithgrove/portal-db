@@ -104,8 +104,8 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		AATs:          appAATs,
 		Whitelists:    appWhitelists,
 		Notifications: notifications,
-		CreatedAt:     a.CreatedAt.UTC(),
-		UpdatedAt:     a.UpdatedAt.UTC(),
+		CreatedAt:     a.CreatedAt.Time.UTC(),
+		UpdatedAt:     a.UpdatedAt.Time.UTC(),
 		Deleted:       a.Deleted,
 		// TODO remove legacy fields when migration to V2 schema complete
 		LegacyFields: legacyFields,
@@ -195,26 +195,26 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	portalApp.CreatedAt = createdAt
 	portalApp.UpdatedAt = createdAt
 
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
 	_, err = qtx.InsertPortalApplication(ctx, InsertPortalApplicationParams{
 		ID:        portalApp.ID,
-		AccountID: newSQLNullString(string(portalApp.AccountID)),
+		AccountID: newText(string(portalApp.AccountID)),
 		Name:      portalApp.Name,
-		CreatedAt: portalApp.CreatedAt,
-		UpdatedAt: portalApp.UpdatedAt,
+		CreatedAt: newTimestamptz(portalApp.CreatedAt),
+		UpdatedAt: newTimestamptz(portalApp.UpdatedAt),
 		// TODO remove legacy fields when migration to V2 schema complete
 		PlanType:           portalApp.LegacyFields.PlanType,
-		DailyLimit:         newSQLNullInt32(portalApp.LegacyFields.DailyLimit, true),
-		CustomLimit:        newSQLNullInt32(portalApp.LegacyFields.CustomLimit, true),
-		RequestTimeout:     newSQLNullInt32(portalApp.LegacyFields.RequestTimeout, true),
-		FirstDateSurpassed: newSQLNullTime(portalApp.LegacyFields.FirstDateSurpassed),
+		DailyLimit:         newInt4(portalApp.LegacyFields.DailyLimit, true),
+		CustomLimit:        newInt4(portalApp.LegacyFields.CustomLimit, true),
+		RequestTimeout:     newInt4(portalApp.LegacyFields.RequestTimeout, true),
+		FirstDateSurpassed: newTimestamptz(portalApp.LegacyFields.FirstDateSurpassed),
 	})
 	if err != nil {
 		return nil, err
@@ -226,7 +226,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		ClientPublicKey:     aat.ClientPublicKey,
 		Signature:           aat.Signature,
 		Version:             aat.Version,
-		PrivateKey:          newSQLNullString(aat.PrivateKey),
+		PrivateKey:          newText(aat.PrivateKey),
 		ApplicationID:       aat.LegacyAppID,
 	})
 	if err != nil {
@@ -235,8 +235,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	_, err = qtx.InsertPortalApplicationSetting(ctx, InsertPortalApplicationSettingParams{
 		ApplicationID:     portalApp.ID,
 		Environment:       portalApp.Settings.Environment,
-		SecretKey:         newSQLNullString(portalApp.Settings.SecretKey),
-		SecretKeyRequired: newSQLNullBool(&portalApp.Settings.SecretKeyRequired),
+		SecretKey:         newText(portalApp.Settings.SecretKey),
+		SecretKeyRequired: newBool(&portalApp.Settings.SecretKeyRequired),
 		MonthlyRelayLimit: portalApp.Settings.MonthlyRelayLimit,
 	})
 	if err != nil {
@@ -254,6 +254,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 			types.NotificationEventThreeQuarters,
 			types.NotificationEventFull,
 		},
+		UpdatedAt: newTimestamptz(portalApp.UpdatedAt),
 	})
 	if err != nil {
 		return nil, err
@@ -272,7 +273,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		},
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -325,16 +326,16 @@ func (pg *PostgresDriver) validatePortalAppInput(ctx context.Context, portalApp 
 
 // UpdatePortalApp updates a single PortalApp in the database: Name field and its Notifications, Whitelists and Settings
 func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.UpdatePortalApp, updatedAt time.Time) error {
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
 	if update.Name != "" || update.PlanType != "" || update.DailyLimit != 0 || update.CustomLimit != 0 {
-		updateApp := UpdatePortalAppFieldsParams{ID: update.AppID, UpdatedAt: updatedAt}
+		updateApp := UpdatePortalAppFieldsParams{ID: update.AppID, UpdatedAt: newTimestamptz(updatedAt)}
 		if update.Name != "" {
 			updateApp.Name = update.Name
 		}
@@ -342,10 +343,10 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 			updateApp.PlanType = string(update.PlanType)
 		}
 		if update.DailyLimit != 0 {
-			updateApp.DailyLimit = newSQLNullInt32(update.DailyLimit, false)
+			updateApp.DailyLimit = newInt4(update.DailyLimit, false)
 		}
 		if update.CustomLimit != 0 {
-			updateApp.CustomLimit = newSQLNullInt32(update.CustomLimit, false)
+			updateApp.CustomLimit = newInt4(update.CustomLimit, false)
 		}
 		err := qtx.UpdatePortalAppFields(ctx, updateApp)
 		if err != nil {
@@ -371,7 +372,7 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 		}
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}
@@ -383,12 +384,12 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 func (pg *PostgresDriver) updateSettings(ctx context.Context, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
 	updateSettings := UpdatePortalAppSettingsParams{
 		ApplicationID:     update.AppID,
-		SecretKey:         newSQLNullString(update.Settings.SecretKey),
-		SecretKeyRequired: newSQLNullBool(&update.Settings.SecretKeyRequired),
+		SecretKey:         newText(update.Settings.SecretKey),
+		SecretKeyRequired: newBool(&update.Settings.SecretKeyRequired),
 		MonthlyRelayLimit: update.Settings.MonthlyRelayLimit,
 		Environment:       update.Settings.Environment,
 		FavoritedChainIDs: update.Settings.FavoritedChainIDs,
-		UpdatedAt:         updatedAt,
+		UpdatedAt:         newTimestamptz(updatedAt),
 	}
 
 	err := qtx.UpdatePortalAppSettings(ctx, updateSettings)
@@ -409,7 +410,7 @@ func (pg *PostgresDriver) updateNotifications(ctx context.Context, qtx *Queries,
 			Destination:   appNotification.Destination,
 			Trigger:       appNotification.Trigger,
 			Events:        appNotification.Events,
-			UpdatedAt:     updatedAt,
+			UpdatedAt:     newTimestamptz(updatedAt),
 		}
 
 		// Upsert notification row for application_id & type if active: true in update struct
@@ -434,38 +435,52 @@ func (pg *PostgresDriver) updateNotifications(ctx context.Context, qtx *Queries,
 
 // updateWhitelists updates the PortalApp's whitelists rows in the portal_application_whitelists table
 func (pg *PostgresDriver) updateWhitelists(ctx context.Context, qtx *Queries, update types.UpdatePortalApp, updatedAt time.Time) error {
-	// Map all whitelist rows from update struct to insert query params
-	updateWhitelists := UpdateInsertWhitelistsParams{ApplicationID: update.AppID, CreatedAt: updatedAt}
+	updateWhitelists := UpdateInsertWhitelistsParams{ApplicationID: update.AppID, CreatedAt: newTimestamptz(updatedAt)}
+	updateDeleteWhitelists := UpdateDeleteWhitelistsParams{ApplicationID: update.AppID}
+
 	for _, appWhitelist := range update.Whitelists.AppWhitelists {
 		for _, whitelistValue := range appWhitelist.Values {
-			updateWhitelists.Types = append(updateWhitelists.Types, appWhitelist.Type)
-			updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
-			updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, "")
+			exists, err := pg.CheckIfAppWhitelistExists(ctx, CheckIfAppWhitelistExistsParams{
+				ApplicationID: updateWhitelists.ApplicationID,
+				Type:          appWhitelist.Type,
+				Value:         whitelistValue,
+			})
+			if err != nil {
+				return err
+			}
+
+			updateDeleteWhitelists.Types = append(updateDeleteWhitelists.Types, appWhitelist.Type)
+			updateDeleteWhitelists.Values = append(updateDeleteWhitelists.Values, whitelistValue)
+			updateDeleteWhitelists.ChainIDs = append(updateDeleteWhitelists.ChainIDs, "")
+
+			if !exists {
+				updateWhitelists.Types = append(updateWhitelists.Types, appWhitelist.Type)
+				updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
+				updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, "")
+			}
 		}
 	}
+
 	for _, chainWhitelist := range update.Whitelists.ChainWhitelists {
 		for _, blockchainValues := range chainWhitelist.Values {
 			for _, whitelistValue := range blockchainValues.Values {
 				updateWhitelists.Types = append(updateWhitelists.Types, chainWhitelist.Type)
 				updateWhitelists.ChainIDs = append(updateWhitelists.ChainIDs, blockchainValues.ChainID)
 				updateWhitelists.Values = append(updateWhitelists.Values, whitelistValue)
+
+				updateDeleteWhitelists.Types = append(updateDeleteWhitelists.Types, chainWhitelist.Type)
+				updateDeleteWhitelists.ChainIDs = append(updateDeleteWhitelists.ChainIDs, blockchainValues.ChainID)
+				updateDeleteWhitelists.Values = append(updateDeleteWhitelists.Values, whitelistValue)
 			}
 		}
 	}
 
-	// Insert all whitelist rows for application_id in update struct that are not in DB
 	err := qtx.UpdateInsertWhitelists(ctx, updateWhitelists)
 	if err != nil {
 		return err
 	}
 
-	// Delete all whitelist rows for application_id in DB that are not in update struct
-	err = qtx.UpdateDeleteWhitelists(ctx, UpdateDeleteWhitelistsParams{
-		ApplicationID: updateWhitelists.ApplicationID,
-		Types:         updateWhitelists.Types,
-		Values:        updateWhitelists.Values,
-		ChainIDs:      updateWhitelists.ChainIDs,
-	})
+	err = qtx.UpdateDeleteWhitelists(ctx, updateDeleteWhitelists)
 	if err != nil {
 		return err
 	}
@@ -474,11 +489,10 @@ func (pg *PostgresDriver) updateWhitelists(ctx context.Context, qtx *Queries, up
 }
 
 // UpdatePortalAppsFirstDateSurpassed updates multiple PortalApps' LegacyFields.FirstDateSurpassed fields
-// TODO legacy method - determine if still needed and remove if not when V2 migration completed
 func (pg *PostgresDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error {
 	params := UpdateFirstDatesSurpassedParams{
 		ApplicationIDs:     update.PortalAppIDs,
-		FirstDateSurpassed: newSQLNullTime(update.FirstDateSurpassed),
+		FirstDateSurpassed: newTimestamptz(update.FirstDateSurpassed),
 	}
 
 	err := pg.UpdateFirstDatesSurpassed(ctx, params)
@@ -493,7 +507,7 @@ func (pg *PostgresDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context
 
 // SetPortalAppDeleted updates a single PortalApp in the database's Deleted field to true
 func (pg *PostgresDriver) SetPortalAppDeleted(ctx context.Context, portalAppID types.PortalAppID, deletedAt time.Time) error {
-	params := DeletePortalAppParams{ID: portalAppID, DeletedAt: newSQLNullTime(deletedAt)}
+	params := DeletePortalAppParams{ID: portalAppID, DeletedAt: newTimestamptz(deletedAt)}
 
 	err := pg.DeletePortalApp(ctx, params)
 	if err != nil {

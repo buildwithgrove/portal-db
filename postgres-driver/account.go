@@ -2,7 +2,6 @@ package postgresdriver
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -93,8 +92,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 			CovalentAPIKeyFree: a.CovalentAPIKeyFree.String,
 			CovalentAPIKeyPaid: a.CovalentAPIKeyPaid.String,
 		},
-		CreatedAt: a.CreatedAt.UTC(),
-		UpdatedAt: a.UpdatedAt.UTC(),
+		CreatedAt: a.CreatedAt.Time.UTC(),
+		UpdatedAt: a.UpdatedAt.Time.UTC(),
 		Deleted:   a.Deleted,
 	}, nil
 }
@@ -129,11 +128,11 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
@@ -151,8 +150,8 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        account.ID,
 		PlanType:  account.PlanType,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
+		CreatedAt: newTimestamptz(createdAt),
+		UpdatedAt: newTimestamptz(createdAt),
 	})
 	if err != nil {
 		return nil, err
@@ -175,14 +174,14 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 		RoleName:  types.RoleOwner,
 		Owner:     true,
 		Accepted:  true,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
+		CreatedAt: newTimestamptz(createdAt),
+		UpdatedAt: newTimestamptz(createdAt),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -227,10 +226,10 @@ func (pg *PostgresDriver) UpsertAccountIntegration(ctx context.Context, integrat
 
 	accountIntegrations, err := pg.UpsertAccountIntegrations(ctx, UpsertAccountIntegrationsParams{
 		AccountID:          integrations.AccountID,
-		CovalentAPIKeyFree: newSQLNullString(integrations.CovalentAPIKeyFree),
-		CovalentAPIKeyPaid: newSQLNullString(integrations.CovalentAPIKeyPaid),
-		CreatedAt:          newSQLNullTime(time),
-		UpdatedAt:          newSQLNullTime(time),
+		CovalentAPIKeyFree: newText(integrations.CovalentAPIKeyFree),
+		CovalentAPIKeyPaid: newText(integrations.CovalentAPIKeyPaid),
+		CreatedAt:          newTimestamptz(time),
+		UpdatedAt:          newTimestamptz(time),
 	})
 	if err != nil {
 		return nil, err
@@ -250,7 +249,7 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 	err := pg.UpdateAccountFields(ctx, UpdateAccountFieldsParams{
 		ID:        update.AccountID,
 		PlanType:  update.PlanType,
-		UpdatedAt: updatedAt,
+		UpdatedAt: newTimestamptz(updatedAt),
 	})
 	if err != nil {
 		return nil, err
@@ -295,7 +294,7 @@ func (pg *PostgresDriver) SetAccountDeleted(ctx context.Context, accountID types
 		return err
 	}
 
-	params := DeleteAccountParams{ID: accountID, DeletedAt: newSQLNullTime(deletedAt)}
+	params := DeleteAccountParams{ID: accountID, DeletedAt: newTimestamptz(deletedAt)}
 
 	err = pg.DeleteAccount(ctx, params)
 	if err != nil {
@@ -330,9 +329,9 @@ func (pg *PostgresDriver) WriteAccountUser(ctx context.Context, createAccountUse
 	// determine if user for a given email already exists
 	userID, err := pg.CheckUserIDFromEmail(ctx, createAccountUser.Email)
 	if err != nil {
-		switch err {
+		switch {
 
-		case sql.ErrNoRows:
+		case errNoRows(err):
 			// user with provided email does not exist in DB so create a new User and AccountUserAccess entry
 			createdUserID, err := pg.writeAccountUserAccessNoUser(ctx, createAccountUser, createdAt)
 			if err != nil {
@@ -408,8 +407,8 @@ func (pg *PostgresDriver) writeAccountUserAccessNoUser(
 		PortalApplicationID: createAccountUser.PortalAppID,
 		Email:               createAccountUser.Email,
 		RoleName:            createAccountUser.RoleName,
-		CreatedAt:           createdAt,
-		UpdatedAt:           createdAt,
+		CreatedAt:           newTimestamptz(createdAt),
+		UpdatedAt:           newTimestamptz(createdAt),
 	}
 
 	createdUserID, err := pg.InsertAccountUserAccessNoUser(ctx, params)
@@ -436,8 +435,8 @@ func (pg *PostgresDriver) writeAccountUserAccess(
 		RoleName:            createAccountUser.RoleName,
 		Owner:               false,
 		Accepted:            false,
-		CreatedAt:           createdAt,
-		UpdatedAt:           createdAt,
+		CreatedAt:           newTimestamptz(createdAt),
+		UpdatedAt:           newTimestamptz(createdAt),
 	}
 
 	createdUserID, err := pg.InsertAccountUserAccess(ctx, params)
@@ -472,7 +471,7 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 		PortalApplicationID: updateAccountUser.PortalAppID,
 		UserID:              updateAccountUser.UserID,
 		RoleName:            updateAccountUser.RoleName,
-		UpdatedAt:           updatedAt,
+		UpdatedAt:           newTimestamptz(updatedAt),
 	})
 	if err != nil {
 		return err
@@ -483,16 +482,16 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 
 // transferOwner creates a new account_user_access row for the new OWNER and updates the old OWNER to ADMIN for all the Account's PortalApps
 func (pg *PostgresDriver) transferOwner(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error {
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
 	// Disable listener trigger
-	_, err = tx.ExecContext(ctx, "ALTER TABLE account_user_access DISABLE TRIGGER account_user_access_notify_event;")
+	_, err = tx.Exec(ctx, "ALTER TABLE account_user_access DISABLE TRIGGER account_user_access_notify_event;")
 	if err != nil {
 		return err
 	}
@@ -505,7 +504,7 @@ func (pg *PostgresDriver) transferOwner(ctx context.Context, updateAccountUser t
 	}
 
 	// Enable listener trigger
-	_, err = tx.ExecContext(ctx, "ALTER TABLE account_user_access ENABLE TRIGGER account_user_access_notify_event;")
+	_, err = tx.Exec(ctx, "ALTER TABLE account_user_access ENABLE TRIGGER account_user_access_notify_event;")
 	if err != nil {
 		return err
 	}
@@ -514,14 +513,14 @@ func (pg *PostgresDriver) transferOwner(ctx context.Context, updateAccountUser t
 		AccountID:  updateAccountUser.AccountID,
 		OldOwnerID: oldOwnerID,
 		NewOwnerID: string(updateAccountUser.UserID),
-		CreatedAt:  updatedAt,
-		UpdatedAt:  updatedAt,
+		CreatedAt:  newTimestamptz(updatedAt),
+		UpdatedAt:  newTimestamptz(updatedAt),
 	})
 	if err != nil {
 		return err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}
@@ -588,11 +587,11 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 		return err
 	}
 
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
@@ -610,7 +609,7 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 		return err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}
@@ -666,8 +665,8 @@ func (pg *PostgresDriver) validateRemoveAccountUserInput(ctx context.Context, us
 		AccountID: accountID,
 	})
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errNoRows(err):
 			return fmt.Errorf(errAccountUserDoesntExist.Error(), userID, portalAppID)
 		default:
 			return err

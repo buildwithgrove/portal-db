@@ -1,16 +1,20 @@
 package postgresdriver
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgxlisten"
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 type (
 	// ListenerMock simulates a listener that receives notifications from a PostgreSQL database.
 	ListenerMock struct {
-		Notify chan *pq.Notification
+		Notify   chan *pgconn.Notification
+		handlers map[string]pgxlisten.Handler
 	}
 	inputStruct struct {
 		action types.Action
@@ -19,17 +23,56 @@ type (
 	}
 )
 
-func NewListenerMock() *ListenerMock {
-	return &ListenerMock{Notify: make(chan *pq.Notification, 32)}
+func NewListenerMock(outCh chan *types.Notification) *ListenerMock {
+	listenerMock := &ListenerMock{
+		Notify:   make(chan *pgconn.Notification, 32),
+		handlers: make(map[string]pgxlisten.Handler),
+	}
+
+	handler := &PGXNotificationHandler{outCh: outCh}
+	listenerMock.Handle(listenerChannel, handler)
+
+	return listenerMock
 }
 
 // NotificationChannel returns a channel that receives pq.Notification instances.
-func (l *ListenerMock) NotificationChannel() <-chan *pq.Notification {
+func (l *ListenerMock) NotificationChannel() <-chan *pgconn.Notification {
 	return l.Notify
 }
 
-func (l *ListenerMock) Listen(channel string) error {
+func (l *ListenerMock) Listen(ctx context.Context) error {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			case notif := <-l.Notify:
+				if handler, ok := l.handlers[notif.Channel]; ok {
+					pgxNotif := &pgconn.Notification{
+						Channel: notif.Channel,
+						Payload: notif.Payload,
+					}
+
+					err := handler.HandleNotification(ctx, pgxNotif, nil)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				}
+			}
+		}
+	}()
+
 	return nil
+}
+
+func (l *ListenerMock) Handle(channel string, handler pgxlisten.Handler) {
+	if l.handlers == nil {
+		l.handlers = make(map[string]pgxlisten.Handler)
+	}
+
+	l.handlers[channel] = handler
 }
 
 // MockEvent simulates a database event by sending mock notifications to the ListenerMock's Notify channel.
@@ -43,20 +86,21 @@ func (l *ListenerMock) MockEvent(mainTableAction, sideTablesAction types.Action,
 }
 
 // mockInput creates a mock pq.Notification based on the inputStruct provided.
-func mockInput(inStruct inputStruct) *pq.Notification {
+func mockInput(inStruct inputStruct) *pgconn.Notification {
 	notification, _ := json.Marshal(notification{
 		Table:  inStruct.table,
 		Action: inStruct.action,
 		Data:   inStruct.input,
 	})
 
-	return &pq.Notification{
-		Extra: string(notification),
+	return &pgconn.Notification{
+		Channel: listenerChannel,
+		Payload: string(notification),
 	}
 }
 
 // mockContent creates a list of mock notifications for a given mainTableAction, sideTablesAction, and content.
-func mockContent(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) []*pq.Notification {
+func mockContent(mainTableAction, sideTablesAction types.Action, content types.SavedOnDB) []*pgconn.Notification {
 	var inputs []inputStruct
 
 	switch content.(type) {
@@ -72,7 +116,7 @@ func mockContent(mainTableAction, sideTablesAction types.Action, content types.S
 		panic("invalid content type")
 	}
 
-	var notifications []*pq.Notification
+	var notifications []*pgconn.Notification
 
 	for _, input := range inputs {
 		notifications = append(notifications, mockInput(input))

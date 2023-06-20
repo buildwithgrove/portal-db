@@ -1,22 +1,139 @@
 package postgresdriver
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgxlisten"
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
-type Listener interface {
-	NotificationChannel() <-chan *pq.Notification
-	Listen(channel string) error
+const listenerChannel = "events"
+
+type (
+	// Listener interface establishes the structure for handling and listening to PostgreSQL notifications.
+	Listener interface {
+		Handle(channel string, handler pgxlisten.Handler)
+		Listen(ctx context.Context) error
+	}
+	// PGXNotificationHandler structure for handling PostgreSQL notifications.
+	PGXNotificationHandler struct {
+		outCh chan *types.Notification
+	}
+	// notification structure for parsing PostgreSQL notifications.
+	notification struct {
+		Table  types.Table  `json:"table"`
+		Action types.Action `json:"action"`
+		Data   any          `json:"data"`
+	}
+)
+
+// NewPGXListener creates a new pgxlisten.Listener with a connection and output channel.
+func NewPGXListener(conn *pgx.Conn, outCh chan *types.Notification) *pgxlisten.Listener {
+	connectFunc := func(ctx context.Context) (*pgx.Conn, error) {
+		if conn.IsClosed() {
+			return nil, fmt.Errorf("provided connection is closed")
+		}
+		return conn, nil
+	}
+
+	listener := &pgxlisten.Listener{
+		Connect:  connectFunc,
+		LogError: logError,
+	}
+
+	handler := &PGXNotificationHandler{outCh: outCh}
+	listener.Handle(listenerChannel, handler)
+
+	return listener
 }
 
-type notification struct {
-	Table  types.Table  `json:"table"`
-	Action types.Action `json:"action"`
-	Data   any          `json:"data"`
+// HandleNotification handles incoming PostgreSQL notifications by parsing them in a separate goroutine.
+func (h *PGXNotificationHandler) HandleNotification(ctx context.Context, n *pgconn.Notification, conn *pgx.Conn) error {
+	go h.parsePGXNotification(n)
+	return nil
 }
+
+// parsePGXNotification parses incoming PostgreSQL notifications and sends them to the output channel.
+func (h *PGXNotificationHandler) parsePGXNotification(n *pgconn.Notification) {
+	if n != nil {
+		var notification *notification
+
+		err := json.Unmarshal([]byte(n.Payload), &notification)
+		if err != nil {
+			return
+		}
+
+		h.outCh <- notification.parseNotification()
+	}
+}
+
+// logError logs errors that occur while listening to PostgreSQL notifications.
+func logError(ctx context.Context, err error) {
+	fmt.Printf("listener notification error: %v", err)
+}
+
+// CloseListener closes the notification channel and stops listening for PostgreSQL notifications.
+func (d *PostgresDriver) CloseListener() {
+	close(d.notification)
+}
+
+// parseNotification parses the notification based on the notified table and returns a types.Notification.
+func (n notification) parseNotification() *types.Notification {
+	switch n.Table {
+	case types.TableAccounts:
+		return n.parseAccountNotification()
+	case types.TableAccountUserAccess:
+		return n.parseAccountUserAccessNotification()
+	case types.TableAccountIntegrations:
+		return n.parseAccountIntegrationsNotification()
+
+	case types.TablePortalApps:
+		return n.parsePortalAppNotification()
+	case types.TableAppSettings:
+		return n.parseSettingsNotification()
+	case types.TableAppWhitelists:
+		return n.parseWhitelistNotification()
+	case types.TableAppNotifications:
+		return n.parseAppNotificationNotification()
+	case types.TablePortalAppAATs:
+		return n.parseAATNotification()
+
+	case types.TableGigastakeApps:
+		return n.parseGigastakeAppsNotification()
+
+	case types.TableChainGigastakeApps:
+		return n.parseChainGigastakeAppNotification()
+
+	case types.TableChains:
+		return n.parseChainNotification()
+	case types.TableChainAltruists:
+		return n.parseChainAltruistNotification()
+	case types.TableChainAliasDomains:
+		return n.parseChainAliasDomainsNotification()
+	case types.TableChainChecks:
+		return n.parseChainCheckNotification()
+
+	case types.TableUsers:
+		return n.parseUsersNotification()
+	case types.TableUserAuthProviders:
+		return n.parseUserAuthProviderNotification()
+
+	case types.TablePayPlans:
+		return n.parsePayPlanNotification()
+
+	case types.TableGlobalBlockedContracts:
+		return n.parseGlobalBlockedContractNotification()
+
+	default:
+		return nil
+	}
+}
+
+/* ---------- Table Data Parser Methods ---------- */
 
 func (n notification) parseAccountNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
@@ -232,74 +349,4 @@ func (n notification) parseGlobalBlockedContractNotification() *types.Notificati
 		Action: n.Action,
 		Data:   dbBlockedContract.toOutput(),
 	}
-}
-
-func (n notification) parseNotification() *types.Notification {
-	switch n.Table {
-	case types.TableAccounts:
-		return n.parseAccountNotification()
-	case types.TableAccountUserAccess:
-		return n.parseAccountUserAccessNotification()
-	case types.TableAccountIntegrations:
-		return n.parseAccountIntegrationsNotification()
-
-	case types.TablePortalApps:
-		return n.parsePortalAppNotification()
-	case types.TableAppSettings:
-		return n.parseSettingsNotification()
-	case types.TableAppWhitelists:
-		return n.parseWhitelistNotification()
-	case types.TableAppNotifications:
-		return n.parseAppNotificationNotification()
-	case types.TablePortalAppAATs:
-		return n.parseAATNotification()
-
-	case types.TableGigastakeApps:
-		return n.parseGigastakeAppsNotification()
-
-	case types.TableChainGigastakeApps:
-		return n.parseChainGigastakeAppNotification()
-
-	case types.TableChains:
-		return n.parseChainNotification()
-	case types.TableChainAltruists:
-		return n.parseChainAltruistNotification()
-	case types.TableChainAliasDomains:
-		return n.parseChainAliasDomainsNotification()
-	case types.TableChainChecks:
-		return n.parseChainCheckNotification()
-
-	case types.TableUsers:
-		return n.parseUsersNotification()
-	case types.TableUserAuthProviders:
-		return n.parseUserAuthProviderNotification()
-
-	case types.TablePayPlans:
-		return n.parsePayPlanNotification()
-
-	case types.TableGlobalBlockedContracts:
-		return n.parseGlobalBlockedContractNotification()
-
-	default:
-		return nil
-	}
-}
-
-func parsePQNotification(n *pq.Notification, outCh chan *types.Notification) {
-	if n != nil {
-		var notification notification
-		_ = json.Unmarshal([]byte(n.Extra), &notification)
-		outCh <- notification.parseNotification()
-	}
-}
-
-func Listen(inCh <-chan *pq.Notification, outCh chan *types.Notification) {
-	for {
-		n := <-inCh
-		go parsePQNotification(n, outCh)
-	}
-}
-
-func (d *PostgresDriver) CloseListener() {
-	close(d.notification)
 }

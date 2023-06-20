@@ -52,8 +52,8 @@ func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, 
 		ClientPublicKey: g.ClientPublicKey,
 		Signature:       g.Signature,
 		Version:         g.Version,
-		CreatedAt:       g.CreatedAt.UTC(),
-		UpdatedAt:       g.UpdatedAt.UTC(),
+		CreatedAt:       g.CreatedAt.Time.UTC(),
+		UpdatedAt:       g.UpdatedAt.Time.UTC(),
 		Deleted:         g.Deleted,
 
 		// TODO remove legacy field when migration to V2 schema complete
@@ -79,11 +79,11 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 	gigastakeApp.CreatedAt = createdAt
 	gigastakeApp.UpdatedAt = createdAt
 
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
@@ -92,7 +92,7 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 		return nil, err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -119,10 +119,10 @@ func (pg *PostgresDriver) insertGigastakeApp(ctx context.Context, qtx *Queries, 
 		PublicKey:       gigastakeApp.PublicKey,
 		ClientPublicKey: gigastakeApp.ClientPublicKey,
 		Signature:       gigastakeApp.Signature,
-		PrivateKey:      newSQLNullString(gigastakeApp.PrivateKey),
+		PrivateKey:      newText(gigastakeApp.PrivateKey),
 		Version:         gigastakeApp.Version,
-		CreatedAt:       gigastakeApp.CreatedAt,
-		UpdatedAt:       gigastakeApp.UpdatedAt,
+		CreatedAt:       newTimestamptz(gigastakeApp.CreatedAt),
+		UpdatedAt:       newTimestamptz(gigastakeApp.UpdatedAt),
 		// TODO remove legacy field when migration to V2 schema complete
 		LbID: gigastakeApp.LegacyLBID,
 	})
@@ -170,7 +170,7 @@ func (pg *PostgresDriver) UpdateGigastakeApp(ctx context.Context, gigastakeAppUp
 		ID:        gigastakeAppUpdate.ID,
 		Name:      gigastakeAppUpdate.Name,
 		ChainIDs:  chainIDs,
-		UpdatedAt: updatedAt,
+		UpdatedAt: newTimestamptz(updatedAt),
 	})
 	if err != nil {
 		return err

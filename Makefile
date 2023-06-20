@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 make: gen_sql gen_mocks
 
 gen_sql:
@@ -11,12 +13,15 @@ test_unit:
 	go test ./... -count=1 -short;
 
 test_env_up:
-	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build
+	@echo "🧪 Starting up Portal DB test database ..."
+	@docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build
 	@echo "⏳ Waiting for test DB to be ready ..."
-	until pg_isready -h localhost -p 5432 -U postgres -d postgres >/dev/null 2>&1; do sleep 0.01; done
+	@attempts=0; until pg_isready -h localhost -p 5432 -U postgres -d postgres >/dev/null || [[ $$attempts -eq 5 ]]; do sleep 1; ((attempts++)); done
+	@[[ $$attempts -lt 5 ]] && echo "🐘 Test Portal DB is up ..." || (echo "❌ Test Portal DB failed to start" && make test_env_down >/dev/null && exit 1)
 	@echo "🚀 Test environment is up ..."
 test_env_down:
-	docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans -v
+	@echo "🧪 Shutting down Pocket HTTP DB test environment ..."
+	@docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans >/dev/null
 	@echo "✅ Test environment is down."
 run_driver_tests:
 	-go test ./... -run Test_RunPGDriverSuite -count=1;

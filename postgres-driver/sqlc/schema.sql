@@ -76,10 +76,10 @@ CREATE TABLE accounts (
 CREATE TABLE IF NOT EXISTS account_integrations (
     id INT GENERATED ALWAYS AS IDENTITY,
     account_id VARCHAR(10) NOT NULL UNIQUE REFERENCES accounts(id) ON DELETE CASCADE,
-    covalent_api_key_free VARCHAR UNIQUE,
-    covalent_api_key_paid VARCHAR UNIQUE,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
+    covalent_api_key_free VARCHAR(255) UNIQUE,
+    covalent_api_key_paid VARCHAR(255) UNIQUE,
+    created_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NULL,
     PRIMARY KEY (id)
 );
 -- Chains Tables
@@ -185,7 +185,7 @@ CREATE TABLE portal_application_notifications (
     type notification_type NOT NULL,
     destination VARCHAR(255),
     trigger VARCHAR(255),
-    events notification_event ARRAY,
+    events VARCHAR(100) ARRAY,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (application_id, type)
 );
