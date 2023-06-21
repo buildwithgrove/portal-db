@@ -16,20 +16,27 @@ import (
 )
 
 // The PostgresDriver struct satisfies the Driver interface which defines all database driver methods
-type PostgresDriver struct {
-	*Queries
-	DB           *pgx.Conn
-	notification chan *types.Notification
-	listener     Listener
-}
+type (
+	PostgresDriver struct {
+		*Queries
+		DB           *pgx.Conn
+		notification chan *types.Notification
+		listener     Listener
+	}
 
-type CloudSQLConfig struct {
-	DBUser                 string
-	DBPassword             string
-	DBName                 string
-	InstanceConnectionName string
-	PrivateIP              string
-}
+	CloudSQLConfig struct {
+		DBUser                 string
+		DBPassword             string
+		DBName                 string
+		InstanceConnectionName string
+		PublicIP               string
+		PrivateIP              string
+	}
+)
+
+var (
+	errCantSetPrivateandPublicIP error = errors.New("cannot set both private and public IP; must set one or the other")
+)
 
 /* ---------- Postgres Connection Funcs ---------- */
 
@@ -41,21 +48,29 @@ NewCloudSQLPGXConnection
 - Returns the established connection.
 */
 func NewCloudSQLPGXConnection(ctx context.Context, options CloudSQLConfig) (*pgx.Conn, error) {
+	if options.PublicIP != "" && options.PrivateIP != "" {
+		return nil, errCantSetPrivateandPublicIP
+	}
+
 	dsn := fmt.Sprintf("user=%s password=%s database=%s", options.DBUser, options.DBPassword, options.DBName)
 
 	config, err := pgx.ParseConfig(dsn)
 	if err != nil {
 		return nil, err
 	}
+
 	var opts []cloudsqlconn.Option
+	if options.PublicIP != "" {
+		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPublicIP()))
+	}
 	if options.PrivateIP != "" {
 		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPrivateIP()))
 	}
+
 	dialer, err := cloudsqlconn.NewDialer(context.Background(), opts...)
 	if err != nil {
 		return nil, err
 	}
-
 	config.DialFunc = func(ctx context.Context, network, instance string) (net.Conn, error) {
 		return dialer.Dial(ctx, options.InstanceConnectionName)
 	}
