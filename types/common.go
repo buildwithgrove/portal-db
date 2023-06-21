@@ -13,7 +13,24 @@ type (
 	Email          string
 	BlockedAddress string
 	AATID          int32
+
+	AppEnv string
 )
+
+const (
+	AppEnvProduction  AppEnv = "production"
+	AppEnvDevelopment AppEnv = "development"
+	AppEnvTest        AppEnv = "test"
+)
+
+func (e AppEnv) IsValid() bool {
+	switch e {
+	case AppEnvProduction, AppEnvDevelopment, AppEnvTest:
+		return true
+	default:
+		return false
+	}
+}
 
 // Validates that an Email fits a valid email format eg. test@example.com
 func (e Email) IsValid() bool {
