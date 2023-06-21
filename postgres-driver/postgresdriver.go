@@ -65,6 +65,11 @@ func NewCloudSQLPGXConnection(options CloudSQLConfig) (*pgx.Conn, error) {
 		return nil, fmt.Errorf("pgx.ConnectConfig: %v", err)
 	}
 
+err = registerCustomEnumTypes(ctx, conn)
+if err != nil {
+	return nil, err
+}
+
 	return conn, nil
 }
 
