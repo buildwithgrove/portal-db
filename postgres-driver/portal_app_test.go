@@ -113,12 +113,22 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			err: errEmptyPortalAppName,
 		},
 		{
+			name: "Should fail when invalid environment provided",
+			portalApp: types.PortalApp{
+				Name:     "sebastian",
+				Settings: types.Settings{Environment: types.Environment("under da sea")},
+			},
+			aat: testdata.TestCreatePortalAppAAT,
+			err: fmt.Errorf(errInvalidEnvironment.Error(), "under da sea"),
+		},
+		{
 			name: "Should fail when plan does not exist",
 			portalApp: types.PortalApp{
 				Name: "whatever",
 				LegacyFields: types.LegacyFields{
 					PlanType: "nonexistent-plan",
 				},
+				Settings: types.Settings{Environment: types.EnvironmentProduction},
 			},
 			aat: testdata.TestCreatePortalAppAAT,
 			err: fmt.Errorf(errPayPlanDoesntExist.Error(), "nonexistent-plan"),
@@ -130,6 +140,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 				LegacyFields: types.LegacyFields{
 					PlanType: types.FreetierV0,
 				},
+				Settings:  types.Settings{Environment: types.EnvironmentProduction},
 				AccountID: "nonexistent-account",
 			},
 			aat: testdata.TestCreatePortalAppAAT,

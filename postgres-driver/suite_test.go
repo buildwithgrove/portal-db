@@ -1,6 +1,7 @@
 package postgresdriver
 
 import (
+	"context"
 	"testing"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -38,11 +39,13 @@ func (ts *PGDriverTestSuite) SetupSuite() {
 
 // Initializes a real instance of the Postgres driver that connects to the test Postgres Docker container
 func (ts *PGDriverTestSuite) initPostgresDriver() error {
-	mainConn, err := NewPGXConnection(connectionString)
+	ctx := context.Background()
+
+	mainConn, err := NewPGXConnection(ctx, connectionString)
 	if err != nil {
 		panic(err)
 	}
-	listenerConn, err := NewPGXConnection(connectionString)
+	listenerConn, err := NewPGXConnection(ctx, connectionString)
 	if err != nil {
 		panic(err)
 	}
