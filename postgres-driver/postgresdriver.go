@@ -40,9 +40,7 @@ NewCloudSQLPGXConnection
 - Establishes a dialer with the desired options (like using private IP).
 - Returns the established connection.
 */
-func NewCloudSQLPGXConnection(options CloudSQLConfig) (*pgx.Conn, error) {
-	ctx := context.Background()
-
+func NewCloudSQLPGXConnection(ctx context.Context, options CloudSQLConfig) (*pgx.Conn, error) {
 	dsn := fmt.Sprintf("user=%s password=%s database=%s", options.DBUser, options.DBPassword, options.DBName)
 
 	config, err := pgx.ParseConfig(dsn)
@@ -83,9 +81,7 @@ NewPGXConnection (mainly used for testing)
 - Registers custom enum types to the connection if any.
 - Returns the established connection.
 */
-func NewPGXConnection(connectionString string) (*pgx.Conn, error) {
-	ctx := context.Background()
-
+func NewPGXConnection(ctx context.Context, connectionString string) (*pgx.Conn, error) {
 	config, err := pgx.ParseConfig(connectionString)
 	if err != nil {
 		return nil, err
