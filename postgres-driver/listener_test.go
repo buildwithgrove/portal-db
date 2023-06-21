@@ -1,6 +1,7 @@
 package postgresdriver
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -217,8 +218,15 @@ func Test_Listen(t *testing.T) {
 
 			c := require.New(t)
 
-			listenerMock := NewListenerMock()
-			driver := NewPostgresDriverFromDBInstance(nil, listenerMock)
+			channel := make(chan *types.Notification, 32)
+
+			listenerMock := NewListenerMock(channel)
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			err := listenerMock.Listen(ctx)
+			c.NoError(err)
+
+			driver, _ := NewPostgresDriver(nil, listenerMock, channel)
 
 			listenerMock.MockEvent(types.ActionInsert, types.ActionUpdate, test.content)
 

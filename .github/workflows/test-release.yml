@@ -72,7 +72,7 @@ jobs:
               'main',
               {
                 name: 'beta',
-                prerelease: true
+                prerelease: 'rc'
               },
             ]
           tag_format: "v${version}"

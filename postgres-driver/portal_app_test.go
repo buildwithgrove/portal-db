@@ -47,7 +47,7 @@ func (ts *PGDriverTestSuite) Test_SetPortalAppDeleted() {
 		{
 			name: "Should set a PortalApp's deleted field to true, causing it to not appear in the ReadPortalApps query",
 			deleteParams: DeletePortalAppParams{
-				ID: testdata.PortalApps["test_app_3"].ID, DeletedAt: newSQLNullTime(testdata.MockTimestamp),
+				ID: testdata.PortalApps["test_app_3"].ID, DeletedAt: newTimestamptz(testdata.MockTimestamp),
 			},
 			portalAppsBeforeDelete: map[types.PortalAppID]*types.PortalApp{
 				testdata.PortalApps["test_app_1"].ID: testdata.PortalApps["test_app_1"],

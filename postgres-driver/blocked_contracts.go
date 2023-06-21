@@ -2,7 +2,6 @@ package postgresdriver
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -23,8 +22,8 @@ var (
 func (pg *PostgresDriver) ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error) {
 	dbBlockedContracts, err := pg.SelectGlobalBlockedContract(ctx)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errNoRows(err):
 			return types.GlobalBlockedContracts{}, nil
 		default:
 			return types.GlobalBlockedContracts{}, err
@@ -52,8 +51,8 @@ func (pg *PostgresDriver) WriteBlockedContract(ctx context.Context, blockedAddre
 
 	params := AddGlobalBlockedContractParams{
 		BlockedAddress: blockedAddress,
-		CreatedAt:      createdAt,
-		UpdatedAt:      createdAt,
+		CreatedAt:      newTimestamptz(createdAt),
+		UpdatedAt:      newTimestamptz(createdAt),
 	}
 
 	err := pg.AddGlobalBlockedContract(ctx, params)
@@ -78,13 +77,13 @@ func (pg *PostgresDriver) UpdateBlockedContractActive(ctx context.Context, block
 	params := SetGlobalBlockedContractActiveParams{
 		BlockedAddress: blockedAddress,
 		Active:         active,
-		UpdatedAt:      updatedAt,
+		UpdatedAt:      newTimestamptz(updatedAt),
 	}
 
 	_, err := pg.SetGlobalBlockedContractActive(ctx, params)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errNoRows(err):
 			return fmt.Errorf(errContractDoesntExist.Error(), blockedAddress)
 		default:
 			return err
@@ -102,8 +101,8 @@ func (pg *PostgresDriver) RemoveBlockedContract(ctx context.Context, blockedAddr
 
 	_, err := pg.RemoveGlobalBlockedContract(ctx, blockedAddress)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errNoRows(err):
 			return fmt.Errorf(errContractDoesntExist.Error(), blockedAddress)
 		default:
 			return err

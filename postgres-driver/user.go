@@ -2,7 +2,6 @@ package postgresdriver
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,8 +52,8 @@ func (pg *PostgresDriver) ReadUserIDsMap(ctx context.Context) (map[types.Provide
 func (pg *PostgresDriver) ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error) {
 	userData, err := pg.GetUserDataFromPortalUserID(ctx, userID)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errNoRows(err):
 			return nil, fmt.Errorf(errUserDoesntExist.Error(), userID)
 		default:
 			return nil, err
@@ -91,8 +90,8 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 		Email:         u.Email,
 		SignedUp:      u.SignedUp,
 		AuthProviders: authProviders,
-		CreatedAt:     u.CreatedAt.UTC(),
-		UpdatedAt:     u.UpdatedAt.UTC(),
+		CreatedAt:     u.CreatedAt.Time.UTC(),
+		UpdatedAt:     u.UpdatedAt.Time.UTC(),
 	}, nil
 }
 
@@ -120,15 +119,15 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		Type:           authType,
 		Provider:       authType.Provider(),
 		Federated:      authType.IsFederated(),
-		CreatedAt:      createdAt,
-		UpdatedAt:      createdAt,
+		CreatedAt:      newTimestamptz(createdAt),
+		UpdatedAt:      newTimestamptz(createdAt),
 	}
 
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return nil, types.AccountID(""), err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
@@ -147,8 +146,8 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 	account, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        accountID,
 		PlanType:  types.FreetierV0,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
+		CreatedAt: newTimestamptz(createdAt),
+		UpdatedAt: newTimestamptz(createdAt),
 	})
 	if err != nil {
 		return nil, types.AccountID(""), err
@@ -162,14 +161,14 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		RoleName:  types.RoleOwner,
 		Owner:     true,
 		Accepted:  true,
-		CreatedAt: createdAt,
-		UpdatedAt: createdAt,
+		CreatedAt: newTimestamptz(createdAt),
+		UpdatedAt: newTimestamptz(createdAt),
 	})
 	if err != nil {
 		return nil, types.AccountID(""), err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, types.AccountID(""), err
 	}
@@ -232,7 +231,7 @@ func (pg *PostgresDriver) validateDeletePortalUserInput(ctx context.Context, use
 	if err != nil {
 		return err
 	}
-	if !userExists {
+	if err != nil || !userExists {
 		return fmt.Errorf(errUserDoesntExist.Error(), userID)
 	}
 

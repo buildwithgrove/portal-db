@@ -90,8 +90,8 @@ func (c *SelectChainsRow) toChain() (*types.Chain, error) {
 		Altruists:      altruists,
 		Checks:         checks,
 		AliasDomains:   domains,
-		CreatedAt:      c.CreatedAt.UTC(),
-		UpdatedAt:      c.UpdatedAt.UTC(),
+		CreatedAt:      c.CreatedAt.Time.UTC(),
+		UpdatedAt:      c.UpdatedAt.Time.UTC(),
 	}
 
 	return chain, nil
@@ -163,11 +163,11 @@ func (pg *PostgresDriver) WriteChainAndGigastakeApps(ctx context.Context, input 
 		return nil, err
 	}
 
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
@@ -197,7 +197,7 @@ func (pg *PostgresDriver) WriteChainAndGigastakeApps(ctx context.Context, input 
 		}
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -220,11 +220,11 @@ func validateWriteChainAndGigastakeApps(input types.NewChainInput) error {
 
 // WriteChain creates a single Chain in the database
 func (pg *PostgresDriver) WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error) {
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
@@ -236,7 +236,7 @@ func (pg *PostgresDriver) WriteChain(ctx context.Context, chain types.Chain, cre
 		return nil, err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -246,11 +246,11 @@ func (pg *PostgresDriver) WriteChain(ctx context.Context, chain types.Chain, cre
 
 // UpdateChain updates a single Chain in the database
 func (pg *PostgresDriver) UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error {
-	tx, err := pg.DB.Begin()
+	tx, err := pg.DB.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	qtx := pg.WithTx(tx)
 
@@ -266,7 +266,7 @@ func (pg *PostgresDriver) UpdateChain(ctx context.Context, chain types.Chain, up
 		return err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}
@@ -287,12 +287,12 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 		Description:    chain.Description,
 		EnforceResult:  chain.EnforceResult,
 		Ticker:         chain.Ticker,
-		Path:           newSQLNullString(chain.Path),
-		RequestTimeout: newSQLNullInt32(chain.RequestTimeout, true),
-		LogLimitBlocks: newSQLNullInt32(chain.LogLimitBlocks, true),
+		Path:           newText(chain.Path),
+		RequestTimeout: newInt4(chain.RequestTimeout, true),
+		LogLimitBlocks: newInt4(chain.LogLimitBlocks, true),
 		AllowedMethods: chain.AllowedMethods,
-		CreatedAt:      chain.CreatedAt,
-		UpdatedAt:      chain.UpdatedAt,
+		CreatedAt:      newTimestamptz(chain.CreatedAt),
+		UpdatedAt:      newTimestamptz(chain.UpdatedAt),
 	})
 	if err != nil {
 		return err
@@ -303,9 +303,9 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 			ChainID:   createdChainID,
 			URL:       altruist.URL,
 			AuthType:  altruist.AuthType,
-			Auth:      newSQLNullString(altruist.Auth),
-			CreatedAt: chain.CreatedAt,
-			UpdatedAt: chain.UpdatedAt,
+			Auth:      newText(altruist.Auth),
+			CreatedAt: newTimestamptz(chain.CreatedAt),
+			UpdatedAt: newTimestamptz(chain.UpdatedAt),
 		})
 		if err != nil {
 			return err
@@ -315,23 +315,27 @@ func (pg *PostgresDriver) upsertChain(ctx context.Context, qtx *Queries, chain t
 		err := qtx.UpsertChainCheck(ctx, UpsertChainCheckParams{
 			ChainID:    createdChainID,
 			Type:       checkType,
-			Payload:    newSQLNullString(check.Payload),
-			ResultKey:  newSQLNullString(check.ResultKey),
-			Allowance:  newSQLNullInt32(check.Allowance, false),
-			EVMChainID: newSQLNullInt32(check.EVMChainID, false),
-			CreatedAt:  chain.CreatedAt,
-			UpdatedAt:  chain.UpdatedAt,
+			Payload:    newText(check.Payload),
+			ResultKey:  newText(check.ResultKey),
+			Allowance:  newInt4(check.Allowance, false),
+			EVMChainID: newInt4(check.EVMChainID, false),
+			CreatedAt:  newTimestamptz(chain.CreatedAt),
+			UpdatedAt:  newTimestamptz(chain.UpdatedAt),
 		})
 		if err != nil {
 			return err
 		}
 	}
 	for alias, domains := range chain.AliasDomains {
+		domainsStrs := []string{}
+		for _, domain := range domains {
+			domainsStrs = append(domainsStrs, string(domain))
+		}
 		err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
 			ChainID:   createdChainID,
 			Alias:     alias,
-			Domains:   domains,
-			UpdatedAt: chain.UpdatedAt,
+			Domains:   domainsStrs,
+			UpdatedAt: newTimestamptz(chain.UpdatedAt),
 		})
 		if err != nil {
 			return err
@@ -421,7 +425,7 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 		return false, fmt.Errorf(errChainDoesntExist.Error(), chainID)
 	}
 
-	params := UpdateChainActiveParams{ID: chainID, Active: active, UpdatedAt: updatedAt}
+	params := UpdateChainActiveParams{ID: chainID, Active: active, UpdatedAt: newTimestamptz(updatedAt)}
 
 	activeStatus, err := pg.UpdateChainActive(ctx, params)
 	if err != nil {

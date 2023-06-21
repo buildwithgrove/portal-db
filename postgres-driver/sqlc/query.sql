@@ -247,6 +247,15 @@ WHERE EXCLUDED.active IS true;
 DELETE FROM portal_application_notifications
 WHERE application_id = $1
     and type = $2;
+-- name: CheckIfAppWhitelistExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM portal_application_whitelists
+        WHERE application_id = $1
+            AND type = $2
+            AND value = $3
+            AND chain_id IS NULL
+    );
 -- name: UpdateInsertWhitelists :exec
 INSERT INTO portal_application_whitelists (
         application_id,
@@ -452,7 +461,7 @@ RETURNING *;
 SELECT aua.user_id,
     aua.role_name,
     aua.owner,
-    ur.permissions AS permissions,
+    ur.permissions::permissions[] AS permissions,
     CASE
         WHEN aua.owner THEN array_agg(pa.id)::VARCHAR []
         ELSE ARRAY [aua.portal_application_id]::VARCHAR []
