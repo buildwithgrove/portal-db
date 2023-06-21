@@ -29,7 +29,7 @@ run_all_tests:
 	-go test ./... -count=1;
 reset_test_db:
 	@echo "🧨 Starting the database reset operation..."
-	@docker exec -it test-database psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/reset_test_db.sql >/dev/null || (echo "❌ Database reset operation failed:" && docker exec -it test-database psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/reset_test_db.sql)
+	@docker exec -it test-database psql -U postgres -d postgres -f /scripts/reset_test_db.sql >/dev/null || (echo "❌ Database reset operation failed:" && docker exec -it test-database psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/reset_test_db.sql)
 	@echo "✅ Database reset operation completed successfully!"
 test_dev: reset_test_db run_driver_tests
 
