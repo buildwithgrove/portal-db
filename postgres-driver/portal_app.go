@@ -29,7 +29,7 @@ type (
 
 var (
 	errEmptyPortalAppName         = errors.New("portal app name cannot be empty")
-	errInvalidEnvironment         = errors.New("invalid environment provided: %s")
+	errInvalidEnvironment         = errors.New("invalid portal app environment provided: %s")
 	errUnmarshallingWhitelists    = errors.New("error unmarshalling whitelists")
 	errUnmarshallingNotifications = errors.New("error unmarshalling notifications")
 	errUnmarshallingAATs          = errors.New("error unmarshalling AATs")
