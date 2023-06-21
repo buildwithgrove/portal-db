@@ -41,6 +41,8 @@ NewCloudSQLPGXConnection
 - Returns the established connection.
 */
 func NewCloudSQLPGXConnection(options CloudSQLConfig) (*pgx.Conn, error) {
+	ctx := context.Background()
+
 	dsn := fmt.Sprintf("user=%s password=%s database=%s", options.DBUser, options.DBPassword, options.DBName)
 
 	config, err := pgx.ParseConfig(dsn)
@@ -65,10 +67,10 @@ func NewCloudSQLPGXConnection(options CloudSQLConfig) (*pgx.Conn, error) {
 		return nil, fmt.Errorf("pgx.ConnectConfig: %v", err)
 	}
 
-err = registerCustomEnumTypes(ctx, conn)
-if err != nil {
-	return nil, err
-}
+	err = registerCustomEnumTypes(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
 
 	return conn, nil
 }
@@ -82,12 +84,13 @@ NewPGXConnection (mainly used for testing)
 - Returns the established connection.
 */
 func NewPGXConnection(connectionString string) (*pgx.Conn, error) {
+	ctx := context.Background()
+
 	config, err := pgx.ParseConfig(connectionString)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx := context.Background()
 	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
 		return nil, err
