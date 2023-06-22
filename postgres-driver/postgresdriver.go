@@ -75,7 +75,7 @@ func NewCloudSQLPGXConnection(ctx context.Context, options CloudSQLConfig) (*pgx
 		return dialer.Dial(ctx, options.InstanceConnectionName)
 	}
 
-	conn, err := pgx.ConnectConfig(context.Background(), config)
+	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("pgx.ConnectConfig: %v", err)
 	}
