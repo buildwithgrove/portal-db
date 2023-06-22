@@ -67,7 +67,7 @@ func NewCloudSQLPGXConnection(ctx context.Context, options CloudSQLConfig) (*pgx
 		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPrivateIP()))
 	}
 
-	dialer, err := cloudsqlconn.NewDialer(context.Background(), opts...)
+	dialer, err := cloudsqlconn.NewDialer(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
