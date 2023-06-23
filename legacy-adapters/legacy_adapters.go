@@ -87,7 +87,7 @@ func ConvertPortalAppToLegacyApplications(a v2Types.PortalApp, userID string) []
 	for _, aat := range a.AATs {
 		app := baseApp
 
-		app.ID = string(aat.LegacyAppID)
+		app.ID = string(aat.ID)
 
 		app.GatewayAAT = v1Types.GatewayAAT{
 			Address:              aat.Address,
@@ -105,7 +105,7 @@ func ConvertPortalAppToLegacyApplications(a v2Types.PortalApp, userID string) []
 
 func ConvertPortalAppToLegacyApplication(a v2Types.PortalApp, userID string, aat v2Types.AAT) v1Types.Application {
 	return v1Types.Application{
-		ID:              string(aat.LegacyAppID),
+		ID:              string(aat.ID),
 		UserID:          userID,
 		Name:            a.Name,
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),

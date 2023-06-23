@@ -12,7 +12,6 @@ type (
 	ProtocolAppID  string
 	Email          string
 	BlockedAddress string
-	AATID          int32
 
 	AppEnv string
 )

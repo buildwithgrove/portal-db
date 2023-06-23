@@ -221,7 +221,6 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 				ClientPublicKey: aat.ClientPublicKey,
 				Signature:       aat.Signature,
 				Version:         aat.Version,
-				LegacyAppID:     aat.LegacyAppID,
 			},
 		})
 
@@ -289,7 +288,6 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 					ClientPublicKey: notification.ClientPublicKey,
 					Signature:       notification.Signature,
 					Version:         notification.Version,
-					LegacyAppID:     notification.LegacyAppID,
 				},
 			})
 		}

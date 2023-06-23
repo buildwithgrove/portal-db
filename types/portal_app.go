@@ -79,7 +79,7 @@ type (
 		AccountID     AccountID                            `json:"accountID"`
 		Settings      Settings                             `json:"settings"`
 		Whitelists    Whitelists                           `json:"whitelists"`
-		AATs          map[AATID]AAT                        `json:"aat"`
+		AATs          map[ProtocolAppID]AAT                `json:"aat"`
 		Notifications map[NotificationType]AppNotification `json:"notifications"`
 		CreatedAt     time.Time                            `json:"createdAt"`
 		UpdatedAt     time.Time                            `json:"updatedAt"`
@@ -120,20 +120,18 @@ type (
 
 	// AAT contains the data needed to perform relays
 	AAT struct {
-		AppID           PortalAppID `json:"appID,omitempty"`
-		ID              AATID       `json:"id"`
-		Address         string      `json:"address"`
-		PublicKey       string      `json:"publicKey"`
-		ClientPublicKey string      `json:"clientPublicKey"`
-		Signature       string      `json:"signature"`
-		Version         string      `json:"version"`
+		AppID           PortalAppID   `json:"appID,omitempty"`
+		ID              ProtocolAppID `json:"id"`
+		Address         string        `json:"address"`
+		PublicKey       string        `json:"publicKey"`
+		ClientPublicKey string        `json:"clientPublicKey"`
+		Signature       string        `json:"signature"`
+		Version         string        `json:"version"`
 
 		// PrivateKey used when read from the DB, will always be ""
 		// Only used for saving to DB
 		// TODO remove when decided to not support saving private key to DB
 		PrivateKey string `json:"privateKey,omitempty"`
-		// TODO - remove when v2 migration finished
-		LegacyAppID ProtocolAppID `json:"legacyAppID"`
 	}
 
 	// Whitelist (singular) is used by the listener in PHD to receive a single whitelist row

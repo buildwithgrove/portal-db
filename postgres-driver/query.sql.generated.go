@@ -149,6 +149,10 @@ SELECT EXISTS (
                 WHERE portal_applications.id = $1::VARCHAR
                 UNION ALL
                 SELECT id
+                FROM portal_application_aats
+                WHERE portal_application_aats.id = $1::VARCHAR
+                UNION ALL
+                SELECT id
                 FROM gigastake_applications
                 WHERE gigastake_applications.id = $1::VARCHAR
                 UNION ALL
@@ -931,20 +935,21 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 
 const insertPortalApplicationAAT = `-- name: InsertPortalApplicationAAT :one
 INSERT INTO portal_application_aats (
+        id,
         portal_application_id,
         address,
         public_key,
         private_key,
         client_public_key,
         signature,
-        version,
-        application_id
+        version
     )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, portal_application_id, address, public_key, client_public_key, signature, private_key, version, application_id
+RETURNING id, portal_application_id, address, public_key, client_public_key, signature, private_key, version
 `
 
 type InsertPortalApplicationAATParams struct {
+	ID                  types.ProtocolAppID `json:"id"`
 	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
 	Address             string              `json:"address"`
 	PublicKey           string              `json:"public_key"`
@@ -952,11 +957,11 @@ type InsertPortalApplicationAATParams struct {
 	ClientPublicKey     string              `json:"client_public_key"`
 	Signature           string              `json:"signature"`
 	Version             string              `json:"version"`
-	ApplicationID       types.ProtocolAppID `json:"application_id"`
 }
 
 func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (PortalApplicationAat, error) {
 	row := q.db.QueryRow(ctx, insertPortalApplicationAAT,
+		arg.ID,
 		arg.PortalApplicationID,
 		arg.Address,
 		arg.PublicKey,
@@ -964,7 +969,6 @@ func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPort
 		arg.ClientPublicKey,
 		arg.Signature,
 		arg.Version,
-		arg.ApplicationID,
 	)
 	var i PortalApplicationAat
 	err := row.Scan(
@@ -976,7 +980,6 @@ func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPort
 		&i.Signature,
 		&i.PrivateKey,
 		&i.Version,
-		&i.ApplicationID,
 	)
 	return i, err
 }
@@ -1504,9 +1507,7 @@ WITH aats_agg AS (
                 'signature',
                 paa.signature,
                 'version',
-                paa.version,
-                'legacy_application_id',
-                paa.application_id
+                paa.version
             )
         ) AS aats
     FROM portal_application_aats paa

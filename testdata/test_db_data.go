@@ -622,16 +622,15 @@ var (
 			ID:        "test_app_1",
 			AccountID: "account_1",
 			Name:      "pokt_app_123",
-			AATs: map[types.AATID]types.AAT{
-				1: {
-					ID:              1,
+			AATs: map[types.ProtocolAppID]types.AAT{
+				"test_protocol_app_1": {
+					ID:              "test_protocol_app_1",
 					Address:         "test_34715cae753e67c75fbb340442e7de8e",
 					PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
 					ClientPublicKey: "test_89a3af6a587aec02cfade6f5000424c2",
 					PrivateKey:      "",
 					Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 					Version:         "0.0.1",
-					LegacyAppID:     "test_protocol_app_1",
 				},
 			},
 			Settings: types.Settings{
@@ -678,16 +677,15 @@ var (
 			ID:        "test_app_2",
 			AccountID: "account_2",
 			Name:      "pokt_app_456",
-			AATs: map[types.AATID]types.AAT{
-				2: {
-					ID:              2,
+			AATs: map[types.ProtocolAppID]types.AAT{
+				"test_protocol_app_2": {
+					ID:              "test_protocol_app_2",
 					Address:         "test_8237c72345f12d1b1a8b64a1a7f66fa4",
 					PublicKey:       "test_8237c72345f12d1b1a8b64a1a7f66fa4",
 					ClientPublicKey: "test_04c71d90a92f40416b6f1d7d8af17e02",
 					PrivateKey:      "",
 					Signature:       "test_f48d33b30ddaf60a1e5bb50d2ba8da5a",
 					Version:         "0.0.1",
-					LegacyAppID:     "test_protocol_app_2",
 				},
 			},
 			Settings: types.Settings{
@@ -733,26 +731,24 @@ var (
 			ID:        "test_app_3",
 			AccountID: "account_3",
 			Name:      "pokt_app_789",
-			AATs: map[types.AATID]types.AAT{
-				3: {
-					ID:              3,
+			AATs: map[types.ProtocolAppID]types.AAT{
+				"test_protocol_app_3": {
+					ID:              "test_protocol_app_3",
 					Address:         "test_b5e07928fc80083c13ad0201b81bae9b",
 					PublicKey:       "test_f608500e4fe3e09014fe2411b4a560b5",
 					ClientPublicKey: "test_328a9cf1b35085eeaa669aa858f6fba9",
 					PrivateKey:      "",
 					Signature:       "test_c3cd8be16ba32e24dd49fdb0247fc9b8",
 					Version:         "0.0.1",
-					LegacyAppID:     "test_protocol_app_3",
 				},
-				4: {
-					ID:              4,
+				"test_protocol_app_4": {
+					ID:              "test_protocol_app_4",
 					Address:         "test_eb2e5bcba557cfe8fa76fd7fff54f9d1",
 					PublicKey:       "test_f6a5d8690ecb669865bd752b7796a920",
 					ClientPublicKey: "test_6ee5ea553408f0895923fd1569dc5072",
 					PrivateKey:      "",
 					Signature:       "test_cf05cf9bb26111c548e88fb6157af708",
 					Version:         "0.0.1",
-					LegacyAppID:     "test_protocol_app_4",
 				},
 			},
 			Settings: types.Settings{
@@ -1014,7 +1010,6 @@ var (
 		PrivateKey:      "test_e42879ebe7c1dabc291240b8c1830656ea21b94336fbc044a5b6c70e876e3c34132501323e769eccfb00f8e88ccfc6ee2808a7b8a8e97dd646b2fd26eb300719d87668ec7f8698f38bbe02734fc8c50b72d917b7047af8106d2624b0eb036570d17aef2bafc489befd2811e2774227ec7b70ed2140c5d6f2dd7b5af7502d8a96cd137de68fe0f9ef2541df11eaaeb7997aae357ab025ac269c3",
 		Signature:       "test_15f627b3e92893431e8a59711c6d169a724f53f7dbad89110bd21a4c34315786e0bc9f943bdb73e3bd660cf2bf5a10a71b85a3c9062cb3413c29367ea72",
 		Version:         "0.0.1",
-		LegacyAppID:     "test_create_protocol_app",
 	}
 
 	TestCreateGigastakeApp = types.GigastakeApp{
@@ -1141,7 +1136,7 @@ var (
 		ID:        "test_app_update_b03ca84c",
 		AccountID: "account_1",
 		Name:      "", // name set in test
-		AATs:      map[types.AATID]types.AAT{0: {}},
+		AATs:      map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",

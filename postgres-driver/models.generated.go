@@ -536,7 +536,7 @@ type PortalApplication struct {
 }
 
 type PortalApplicationAat struct {
-	ID                  types.AATID         `json:"id"`
+	ID                  types.ProtocolAppID `json:"id"`
 	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
 	Address             string              `json:"address"`
 	PublicKey           string              `json:"public_key"`
@@ -544,7 +544,6 @@ type PortalApplicationAat struct {
 	Signature           string              `json:"signature"`
 	PrivateKey          pgtype.Text         `json:"private_key"`
 	Version             string              `json:"version"`
-	ApplicationID       types.ProtocolAppID `json:"application_id"`
 }
 
 type PortalApplicationNotification struct {

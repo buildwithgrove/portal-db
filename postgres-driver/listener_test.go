@@ -71,7 +71,7 @@ func Test_Listen(t *testing.T) {
 					Table:  types.TablePortalAppAATs,
 					Action: types.ActionUpdate,
 					Data: &types.AAT{
-						ID:              1,
+						ID:              "test_protocol_app_1",
 						AppID:           "test_app_1",
 						Address:         "test_34715cae753e67c75fbb340442e7de8e",
 						PublicKey:       "test_34715cae753e67c75fbb340442e7de8e",
@@ -79,7 +79,6 @@ func Test_Listen(t *testing.T) {
 						PrivateKey:      "",
 						Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
 						Version:         "0.0.1",
-						LegacyAppID:     "test_protocol_app_1",
 					},
 				},
 				types.TableAppSettings: {

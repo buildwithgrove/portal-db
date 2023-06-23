@@ -14,8 +14,8 @@ var testPortalApplication = PortalApp{
 	ID:        "test_app_1",
 	Name:      "test_portal_app_123",
 	AccountID: "account_1",
-	AATs: map[AATID]AAT{
-		1: {
+	AATs: map[ProtocolAppID]AAT{
+		"test_protocol_app_1": {
 			Address:         "test_34715cae753e67c75fbb340442e7de8e",
 			PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
 			ClientPublicKey: "test_9e9ca4fe13725d412003f4bc518f6974",

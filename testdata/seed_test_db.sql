@@ -749,7 +749,7 @@ VALUES (
         '2022-11-11 11:11:11.000000'
     );
 INSERT INTO portal_application_aats (
-        application_id,
+        id,
         portal_application_id,
         address,
         public_key,

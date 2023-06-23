@@ -211,16 +211,14 @@ CREATE TABLE portal_application_whitelists (
 CREATE UNIQUE INDEX portal_application_whitelists_null_chain_idx ON portal_application_whitelists (application_id, value, type)
 WHERE chain_id IS NULL;
 CREATE TABLE IF NOT EXISTS portal_application_aats (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(24) PRIMARY KEY,
     portal_application_id VARCHAR(24) NOT NULL REFERENCES portal_applications(id) ON DELETE CASCADE,
     address VARCHAR(40) NOT NULL,
     public_key VARCHAR(64) NOT NULL,
     client_public_key VARCHAR(64) NOT NULL,
     signature VARCHAR(128) NOT NULL,
     private_key VARCHAR(400) NULL,
-    version VARCHAR(10) NOT NULL,
-    -- legacy field
-    application_id VARCHAR(24) NOT NULL
+    version VARCHAR(10) NOT NULL
 );
 -- Account User Access Table
 CREATE TABLE account_user_access (

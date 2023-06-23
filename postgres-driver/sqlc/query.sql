@@ -7,6 +7,10 @@ SELECT EXISTS (
                 WHERE portal_applications.id = @id::VARCHAR
                 UNION ALL
                 SELECT id
+                FROM portal_application_aats
+                WHERE portal_application_aats.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
                 FROM gigastake_applications
                 WHERE gigastake_applications.id = @id::VARCHAR
                 UNION ALL
@@ -70,9 +74,7 @@ WITH aats_agg AS (
                 'signature',
                 paa.signature,
                 'version',
-                paa.version,
-                'legacy_application_id',
-                paa.application_id
+                paa.version
             )
         ) AS aats
     FROM portal_application_aats paa
@@ -170,14 +172,14 @@ VALUES (
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
 INSERT INTO portal_application_aats (
+        id,
         portal_application_id,
         address,
         public_key,
         private_key,
         client_public_key,
         signature,
-        version,
-        application_id
+        version
     )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
