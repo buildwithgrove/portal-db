@@ -17,12 +17,12 @@ type (
 		BlockchainID string              `json:"chain_id"`
 	}
 	aatDBRow struct {
-		ID              types.ProtocolAppID `json:"id"`
-		Address         string              `json:"address"`
-		PublicKey       string              `json:"public_key"`
-		ClientPublicKey string              `json:"client_public_key"`
-		Signature       string              `json:"signature"`
-		Version         string              `json:"version"`
+		ID              types.ProtocolAppID      `json:"id"`
+		PublicKey       types.PortalAppPublicKey `json:"public_key"`
+		Address         string                   `json:"address"`
+		ClientPublicKey string                   `json:"client_public_key"`
+		Signature       string                   `json:"signature"`
+		Version         string                   `json:"version"`
 	}
 )
 
@@ -669,11 +669,11 @@ type dbPortalApplicationWhitelist struct {
 }
 
 type dbPortalApplicationAAT struct {
-	ID              types.ProtocolAppID `json:"id"`
-	PortalAppID     types.PortalAppID   `json:"portal_application_id"`
-	Address         string              `json:"address"`
-	PublicKey       string              `json:"public_key"`
-	ClientPublicKey string              `json:"client_public_key"`
-	Signature       string              `json:"signature"`
-	Version         string              `json:"version"`
+	ID              types.ProtocolAppID      `json:"id"`
+	PortalAppID     types.PortalAppID        `json:"portal_application_id"`
+	PublicKey       types.PortalAppPublicKey `json:"public_key"`
+	Address         string                   `json:"address"`
+	ClientPublicKey string                   `json:"client_public_key"`
+	Signature       string                   `json:"signature"`
+	Version         string                   `json:"version"`
 }

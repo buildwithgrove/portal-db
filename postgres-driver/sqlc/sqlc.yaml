@@ -60,6 +60,8 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"
           - column: "portal_application_aats.id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.ProtocolAppID"
+          - column: "portal_application_aats.public_key"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppPublicKey"
           - column: "gigastake_applications.id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.GigastakeAppID"
           - column: "gigastake_applications.aat_id"

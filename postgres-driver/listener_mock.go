@@ -284,7 +284,7 @@ func portalAppInputs(mainTableAction, sideTablesAction types.Action, content typ
 					PortalAppID:     portalApp.ID,
 					ID:              notification.ID,
 					Address:         notification.Address,
-					PublicKey:       notification.PublicKey,
+					PublicKey:       types.PortalAppPublicKey(notification.PublicKey),
 					ClientPublicKey: notification.ClientPublicKey,
 					Signature:       notification.Signature,
 					Version:         notification.Version,

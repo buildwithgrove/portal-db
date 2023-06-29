@@ -536,14 +536,14 @@ type PortalApplication struct {
 }
 
 type PortalApplicationAat struct {
-	ID                  types.ProtocolAppID `json:"id"`
-	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
-	Address             string              `json:"address"`
-	PublicKey           string              `json:"public_key"`
-	ClientPublicKey     string              `json:"client_public_key"`
-	Signature           string              `json:"signature"`
-	PrivateKey          pgtype.Text         `json:"private_key"`
-	Version             string              `json:"version"`
+	ID                  types.ProtocolAppID      `json:"id"`
+	PortalApplicationID types.PortalAppID        `json:"portal_application_id"`
+	Address             string                   `json:"address"`
+	PublicKey           types.PortalAppPublicKey `json:"public_key"`
+	ClientPublicKey     string                   `json:"client_public_key"`
+	Signature           string                   `json:"signature"`
+	PrivateKey          pgtype.Text              `json:"private_key"`
+	Version             string                   `json:"version"`
 }
 
 type PortalApplicationNotification struct {

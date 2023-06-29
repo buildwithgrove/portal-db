@@ -949,14 +949,14 @@ RETURNING id, portal_application_id, address, public_key, client_public_key, sig
 `
 
 type InsertPortalApplicationAATParams struct {
-	ID                  types.ProtocolAppID `json:"id"`
-	PortalApplicationID types.PortalAppID   `json:"portal_application_id"`
-	Address             string              `json:"address"`
-	PublicKey           string              `json:"public_key"`
-	PrivateKey          pgtype.Text         `json:"private_key"`
-	ClientPublicKey     string              `json:"client_public_key"`
-	Signature           string              `json:"signature"`
-	Version             string              `json:"version"`
+	ID                  types.ProtocolAppID      `json:"id"`
+	PortalApplicationID types.PortalAppID        `json:"portal_application_id"`
+	Address             string                   `json:"address"`
+	PublicKey           types.PortalAppPublicKey `json:"public_key"`
+	PrivateKey          pgtype.Text              `json:"private_key"`
+	ClientPublicKey     string                   `json:"client_public_key"`
+	Signature           string                   `json:"signature"`
+	Version             string                   `json:"version"`
 }
 
 func (q *Queries) InsertPortalApplicationAAT(ctx context.Context, arg InsertPortalApplicationAATParams) (PortalApplicationAat, error) {

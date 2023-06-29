@@ -11,6 +11,9 @@ type (
 	NotificationEvent string
 	NotificationType  string
 	WhitelistType     string
+
+	PortalAppPublicKey string
+	PortalAppOrigin    string
 )
 
 const (
@@ -120,13 +123,13 @@ type (
 
 	// AAT contains the data needed to perform relays
 	AAT struct {
-		AppID           PortalAppID   `json:"appID,omitempty"`
-		ID              ProtocolAppID `json:"id"`
-		Address         string        `json:"address"`
-		PublicKey       string        `json:"publicKey"`
-		ClientPublicKey string        `json:"clientPublicKey"`
-		Signature       string        `json:"signature"`
-		Version         string        `json:"version"`
+		AppID           PortalAppID        `json:"appID,omitempty"`
+		ID              ProtocolAppID      `json:"id"`
+		PublicKey       PortalAppPublicKey `json:"publicKey"`
+		Address         string             `json:"address"`
+		ClientPublicKey string             `json:"clientPublicKey"`
+		Signature       string             `json:"signature"`
+		Version         string             `json:"version"`
 
 		// PrivateKey used when read from the DB, will always be ""
 		// Only used for saving to DB

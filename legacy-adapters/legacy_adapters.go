@@ -91,7 +91,7 @@ func ConvertPortalAppToLegacyApplications(a v2Types.PortalApp, userID string) []
 
 		app.GatewayAAT = v1Types.GatewayAAT{
 			Address:              aat.Address,
-			ApplicationPublicKey: aat.PublicKey,
+			ApplicationPublicKey: string(aat.PublicKey),
 			ApplicationSignature: aat.Signature,
 			ClientPublicKey:      aat.ClientPublicKey,
 			Version:              aat.Version,
@@ -111,7 +111,7 @@ func ConvertPortalAppToLegacyApplication(a v2Types.PortalApp, userID string, aat
 		GatewaySettings: ConvertToLegacyGatewaySettings(a),
 		GatewayAAT: v1Types.GatewayAAT{
 			Address:              aat.Address,
-			ApplicationPublicKey: aat.PublicKey,
+			ApplicationPublicKey: string(aat.PublicKey),
 			ApplicationSignature: aat.Signature,
 			ClientPublicKey:      aat.ClientPublicKey,
 			Version:              aat.Version,
@@ -345,7 +345,7 @@ func ConvertToV2PortalAppAndAAT(lb v1Types.LoadBalancer) (v2Types.PortalApp, v2T
 
 	aat := v2Types.AAT{ // AAT ID (ProtocolAppID) is created inside postgresdriver
 		Address:         app.GatewayAAT.Address,
-		PublicKey:       app.GatewayAAT.ApplicationPublicKey,
+		PublicKey:       v2Types.PortalAppPublicKey(app.GatewayAAT.ApplicationPublicKey),
 		ClientPublicKey: app.GatewayAAT.ClientPublicKey,
 		PrivateKey:      app.GatewayAAT.PrivateKey,
 		Signature:       app.GatewayAAT.ApplicationSignature,
