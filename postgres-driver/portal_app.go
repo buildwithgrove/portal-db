@@ -85,11 +85,10 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 
 	// TODO remove legacy fields when migration to V2 schema complete
 	legacyFields := types.LegacyFields{
-		PlanType:           a.PlanType,
-		DailyLimit:         a.DailyLimit.Int32,
-		CustomLimit:        a.CustomLimit.Int32,
-		RequestTimeout:     a.RequestTimeout.Int32,
-		FirstDateSurpassed: a.FirstDateSurpassed.Time.UTC(),
+		PlanType:       a.PlanType,
+		DailyLimit:     a.DailyLimit.Int32,
+		CustomLimit:    a.CustomLimit.Int32,
+		RequestTimeout: a.RequestTimeout.Int32,
 	}
 
 	return &types.PortalApp{
@@ -101,12 +100,13 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 			SecretKey:         a.SecretKey.String,
 			SecretKeyRequired: a.SecretKeyRequired.Bool,
 		},
-		AATs:          appAATs,
-		Whitelists:    appWhitelists,
-		Notifications: notifications,
-		CreatedAt:     a.CreatedAt.Time.UTC(),
-		UpdatedAt:     a.UpdatedAt.Time.UTC(),
-		Deleted:       a.Deleted,
+		AATs:               appAATs,
+		Whitelists:         appWhitelists,
+		Notifications:      notifications,
+		FirstDateSurpassed: a.FirstDateSurpassed.Time.UTC(),
+		CreatedAt:          a.CreatedAt.Time.UTC(),
+		UpdatedAt:          a.UpdatedAt.Time.UTC(),
+		Deleted:            a.Deleted,
 		// TODO remove legacy fields when migration to V2 schema complete
 		LegacyFields: legacyFields,
 	}, nil
@@ -218,7 +218,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		DailyLimit:         newInt4(portalApp.LegacyFields.DailyLimit, true),
 		CustomLimit:        newInt4(portalApp.LegacyFields.CustomLimit, true),
 		RequestTimeout:     newInt4(portalApp.LegacyFields.RequestTimeout, true),
-		FirstDateSurpassed: newTimestamptz(portalApp.LegacyFields.FirstDateSurpassed),
+		FirstDateSurpassed: newTimestamptz(portalApp.FirstDateSurpassed),
 	})
 	if err != nil {
 		return nil, err
@@ -516,8 +516,13 @@ func (pg *PostgresDriver) updateWhitelists(ctx context.Context, qtx *Queries, up
 
 // UpdatePortalAppsFirstDateSurpassed updates multiple PortalApps' LegacyFields.FirstDateSurpassed fields
 func (pg *PostgresDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error {
+	portalAppIDs := []string{}
+	for _, portalAppID := range update.PortalAppIDs {
+		portalAppIDs = append(portalAppIDs, string(portalAppID))
+	}
+
 	params := UpdateFirstDatesSurpassedParams{
-		ApplicationIDs:     update.PortalAppIDs,
+		PortalAppIds:       portalAppIDs,
 		FirstDateSurpassed: newTimestamptz(update.FirstDateSurpassed),
 	}
 
@@ -546,18 +551,18 @@ func (pg *PostgresDriver) SetPortalAppDeleted(ctx context.Context, portalAppID t
 /* ----- Used by Listener ----- */
 func (json dbPortalApplication) toOutput() *types.PortalApp {
 	return &types.PortalApp{
-		ID:        json.ID,
-		AccountID: types.AccountID(json.AccountID),
-		Name:      json.Name,
-		CreatedAt: json.CreatedAt,
-		UpdatedAt: json.UpdatedAt,
-		Deleted:   json.Deleted,
+		ID:                 json.ID,
+		AccountID:          types.AccountID(json.AccountID),
+		Name:               json.Name,
+		FirstDateSurpassed: json.FirstDateSurpassed,
+		CreatedAt:          json.CreatedAt,
+		UpdatedAt:          json.UpdatedAt,
+		Deleted:            json.Deleted,
 		LegacyFields: types.LegacyFields{
-			PlanType:           types.PayPlanType(json.PlanType),
-			DailyLimit:         json.DailyLimit,
-			CustomLimit:        json.CustomLimit,
-			RequestTimeout:     json.RequestTimeout,
-			FirstDateSurpassed: json.FirstDateSurpassed,
+			PlanType:       types.PayPlanType(json.PlanType),
+			DailyLimit:     json.DailyLimit,
+			CustomLimit:    json.CustomLimit,
+			RequestTimeout: json.RequestTimeout,
 		},
 	}
 }

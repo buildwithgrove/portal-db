@@ -1996,11 +1996,11 @@ WHERE id = ANY ($2::VARCHAR [])
 
 type UpdateFirstDatesSurpassedParams struct {
 	FirstDateSurpassed pgtype.Timestamptz `json:"first_date_surpassed"`
-	ApplicationIDs     []string           `json:"application_ids"`
+	PortalAppIds       []string           `json:"portal_app_ids"`
 }
 
 func (q *Queries) UpdateFirstDatesSurpassed(ctx context.Context, arg UpdateFirstDatesSurpassedParams) error {
-	_, err := q.db.Exec(ctx, updateFirstDatesSurpassed, arg.FirstDateSurpassed, arg.ApplicationIDs)
+	_, err := q.db.Exec(ctx, updateFirstDatesSurpassed, arg.FirstDateSurpassed, arg.PortalAppIds)
 	return err
 }
 

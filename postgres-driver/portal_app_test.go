@@ -426,7 +426,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalAppsFirstDateSurpassed() {
 		{
 			name: "Should update multiple PortalApps in the database with a LegacyFields.FirstDateSurpassed timestamp ",
 			update: &types.UpdateFirstDateSurpassed{
-				PortalAppIDs:       []string{string(testdata.PortalApps["test_app_1"].ID), string(testdata.PortalApps["test_app_2"].ID)},
+				PortalAppIDs:       []types.PortalAppID{testdata.PortalApps["test_app_1"].ID, testdata.PortalApps["test_app_2"].ID},
 				FirstDateSurpassed: time.Date(2023, time.February, 14, 0, 0, 0, 0, time.UTC),
 			},
 			err: nil,
@@ -445,7 +445,7 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalAppsFirstDateSurpassed() {
 			for _, appID := range test.update.PortalAppIDs {
 				portalApp, ok := portalApps[types.PortalAppID(appID)]
 				ts.True(ok)
-				ts.Equal(test.update.FirstDateSurpassed, portalApp.LegacyFields.FirstDateSurpassed)
+				ts.Equal(test.update.FirstDateSurpassed, portalApp.FirstDateSurpassed)
 			}
 		})
 	}

@@ -77,7 +77,7 @@ func ConvertPortalAppToLegacyApplications(a v2Types.PortalApp, userID string) []
 			ThreeQuarters: a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventThreeQuarters],
 			Full:          a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventFull],
 		},
-		FirstDateSurpassed: a.LegacyFields.FirstDateSurpassed,
+		FirstDateSurpassed: a.FirstDateSurpassed,
 		CreatedAt:          a.CreatedAt,
 		UpdatedAt:          a.UpdatedAt,
 	}
@@ -127,7 +127,7 @@ func ConvertPortalAppToLegacyApplication(a v2Types.PortalApp, userID string, aat
 			ThreeQuarters: a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventThreeQuarters],
 			Full:          a.Notifications[v2Types.NotificationTypeEmail].Events[v2Types.NotificationEventFull],
 		},
-		FirstDateSurpassed: a.LegacyFields.FirstDateSurpassed,
+		FirstDateSurpassed: a.FirstDateSurpassed,
 		CreatedAt:          a.CreatedAt,
 		UpdatedAt:          a.UpdatedAt,
 	}

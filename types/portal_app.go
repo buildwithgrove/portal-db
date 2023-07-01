@@ -77,16 +77,17 @@ func (w WhitelistType) IsValid() bool {
 type (
 	// PortalApp represents a single application in the Portal
 	PortalApp struct {
-		ID            PortalAppID                          `json:"id"`
-		Name          string                               `json:"name"`
-		AccountID     AccountID                            `json:"accountID"`
-		Settings      Settings                             `json:"settings"`
-		Whitelists    Whitelists                           `json:"whitelists"`
-		AATs          map[ProtocolAppID]AAT                `json:"aat"`
-		Notifications map[NotificationType]AppNotification `json:"notifications"`
-		CreatedAt     time.Time                            `json:"createdAt"`
-		UpdatedAt     time.Time                            `json:"updatedAt"`
-		Deleted       bool                                 `json:"deleted"`
+		ID                 PortalAppID                          `json:"id"`
+		Name               string                               `json:"name"`
+		AccountID          AccountID                            `json:"accountID"`
+		Settings           Settings                             `json:"settings"`
+		Whitelists         Whitelists                           `json:"whitelists"`
+		AATs               map[ProtocolAppID]AAT                `json:"aat"`
+		Notifications      map[NotificationType]AppNotification `json:"notifications"`
+		CreatedAt          time.Time                            `json:"createdAt"`
+		UpdatedAt          time.Time                            `json:"updatedAt"`
+		Deleted            bool                                 `json:"deleted"`
+		FirstDateSurpassed time.Time                            `json:"firstDateSurpassed"`
 		// TODO - remove when v2 migration finished
 		// Fields required for compatibility with the old Portal API and Services (temporary)
 		LegacyFields LegacyFields `json:"legacyFields"`
@@ -95,11 +96,10 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		PlanType           PayPlanType `json:"planType"`
-		DailyLimit         int32       `json:"dailyLimit"`
-		CustomLimit        int32       `json:"customLimit"`
-		RequestTimeout     int32       `json:"requestTimeout"`
-		FirstDateSurpassed time.Time   `json:"firstDateSurpassed"`
+		PlanType       PayPlanType `json:"planType"`
+		DailyLimit     int32       `json:"dailyLimit"`
+		CustomLimit    int32       `json:"customLimit"`
+		RequestTimeout int32       `json:"requestTimeout"`
 	}
 
 	Settings struct {
@@ -205,8 +205,8 @@ type (
 	}
 
 	UpdateFirstDateSurpassed struct {
-		PortalAppIDs       []string  `json:"applicationIDs"`
-		FirstDateSurpassed time.Time `json:"firstDateSurpassed"`
+		PortalAppIDs       []PortalAppID `json:"applicationIDs"`
+		FirstDateSurpassed time.Time     `json:"firstDateSurpassed"`
 	}
 
 	Origin    string

@@ -48,9 +48,7 @@ type (
 		UpdatePortalApp(ctx context.Context, update types.UpdatePortalApp, updatedAt time.Time) error
 		/* SetPortalAppDeleted sets the portal app Deleted field to true. */
 		SetPortalAppDeleted(ctx context.Context, portalAppID types.PortalAppID, deletedAt time.Time) error
-
 		/* UpdatePortalAppsFirstDateSurpassed updates multiple PortalApps firstDateSurpassed field. */
-		// TODO legacy method - determine if still needed and remove if not when V2 migration completed
 		UpdatePortalAppsFirstDateSurpassed(ctx context.Context, update *types.UpdateFirstDateSurpassed) error
 
 		/* WriteUserNewSignUp creates a new portal User in the DB from a CreateUser input. */

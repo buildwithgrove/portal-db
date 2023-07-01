@@ -302,7 +302,7 @@ WHERE (
 -- name: UpdateFirstDatesSurpassed :exec
 UPDATE portal_applications
 SET first_date_surpassed = @first_date_surpassed
-WHERE id = ANY (@application_ids::VARCHAR []);
+WHERE id = ANY (@portal_app_ids::VARCHAR []);
 -- name: DeletePortalApp :exec
 UPDATE portal_applications
 SET deleted = true,
