@@ -3,6 +3,8 @@ package types
 import (
 	"sort"
 	"time"
+
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
 /* Enums */
@@ -222,7 +224,16 @@ func (a *PortalApp) AAT() AAT {
 	return AAT{}
 }
 
-// MonthlyLimit returns the monthly relay limit for a given application
+// TODO For Legacy Fields Only
+// DailyLimit returns the daily relay limit for a given portal app
+func (a *PortalApp) DailyLimit() int32 {
+	if a.LegacyFields.PlanType == types.PlanTypeEnterprise {
+		return a.LegacyFields.CustomLimit
+	}
+	return a.LegacyFields.DailyLimit
+}
+
+// MonthlyLimit returns the monthly relay limit for a given portal app
 func (a *PortalApp) MonthlyLimit() int32 {
 	return a.Settings.MonthlyRelayLimit
 }
