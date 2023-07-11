@@ -100,5 +100,7 @@ type (
 		UpdateBlockedContractActive(ctx context.Context, blockedAddress types.BlockedAddress, active bool, updatedAt time.Time) error
 		/* RemoveBlockedContract deletes a blocked address from the global blocked contracts table. */
 		RemoveBlockedContract(ctx context.Context, blockedAddress types.BlockedAddress) error
+
+		Ping(ctx context.Context) error
 	}
 )
