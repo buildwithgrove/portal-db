@@ -1,15 +1,49 @@
-name: Tag & Go List
+name: Test & Release
 
 on:
-  workflow_run:
-    workflows: ["Lint & Test"]
-    branches: [main]
-    types:
-      - completed
+  push:
+    branches:
+      - main
+      - beta
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+
+      - name: Run Golang ci Action
+        uses: golangci/golangci-lint-action@v3
+
+  test:
+    name: Test
+    needs: lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+
+      - name: Set up cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build the Docker test stack
+        run: make test_env_up
+
+      - name: Run Postgres Driver tests
+        run: make run_driver_tests
+
   release:
-    runs-on: ubuntu-latest
+    needs: [lint, test]
+    runs-on: ubuntu-22.04
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
@@ -20,7 +54,7 @@ jobs:
       - uses: actions/setup-go@v3
 
       - name: Set up cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -30,11 +64,17 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Tag
-        uses: codfish/semantic-release-action@v2.0.0
+        uses: codfish/semantic-release-action@v2.1.0
         id: semantic
         with:
           branches: |
-            ['main']
+            [
+              'main',
+              {
+                name: 'beta',
+                prerelease: 'rc'
+              },
+            ]
           tag_format: "v${version}"
           additional_packages: |
             ['@semantic-release/commit-analyzer']
@@ -43,14 +83,14 @@ jobs:
 
       - name: Go List
         if: steps.semantic.outputs.new-release-published == 'true'
-        run: GOPROXY=proxy.golang.org go list -m github.com/pokt-foundation/portal-db@v${{ steps.semantic.outputs.release-version }}
+        run: GOPROXY=proxy.golang.org go list -m github.com/pokt-foundation/portal-db/v2@v${{ steps.semantic.outputs.release-version }}
 
   docker:
     if: needs.release.outputs.version
     name: Docker Build & Push
     needs: [release]
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     environment: CI
 
     steps:

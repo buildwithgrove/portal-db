@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 make: gen_sql gen_mocks
 
 gen_sql:
@@ -5,14 +7,31 @@ gen_sql:
 gen_mocks:
 	mockery --name=Driver --filename=mock_driver.go --recursive --inpackage
 
-test: test_env_up run_driver_tests test_env_down
+test: test_unit test_env_up run_driver_tests test_env_down
+test_driver: test_env_up run_driver_tests test_env_down
+test_unit:
+	go test ./... -count=1 -short;
+
 test_env_up:
-	docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build;
-	sleep 2;
+	@echo "🧪 Starting up Portal DB test database ..."
+	@docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build
+	@echo "⏳ Waiting for test DB to be ready ..."
+	@attempts=0; until pg_isready -h localhost -p 5432 -U postgres -d postgres >/dev/null || [[ $$attempts -eq 5 ]]; do sleep 1; ((attempts++)); done
+	@[[ $$attempts -lt 5 ]] && echo "🐘 Test Portal DB is up ..." || (echo "❌ Test Portal DB failed to start" && make test_env_down >/dev/null && exit 1)
+	@echo "🚀 Test environment is up ..."
 test_env_down:
-	docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans -v
+	@echo "🧪 Shutting down Pocket HTTP DB test environment ..."
+	@docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans >/dev/null
+	@echo "✅ Test environment is down."
 run_driver_tests:
-	-go test ./... -run Test_RunPGDriverSuite -count=1 -v;
+	-go test ./... -run Test_RunPGDriverSuite -count=1;
+run_all_tests:
+	-go test ./... -count=1;
+reset_test_db:
+	@echo "🧨 Starting the database reset operation..."
+	@docker exec -it test-database psql -U postgres -d postgres -f /scripts/reset_test_db.sql >/dev/null || (echo "❌ Database reset operation failed:" && docker exec -it test-database psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/reset_test_db.sql)
+	@echo "✅ Database reset operation completed successfully!"
+test_dev: reset_test_db run_driver_tests
 
 init-pre-commit:
 	wget https://github.com/pre-commit/pre-commit/releases/download/v2.20.0/pre-commit-2.20.0.pyz;

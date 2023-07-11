@@ -1,280 +1,368 @@
-INSERT INTO pay_plans (plan_type, daily_limit)
-VALUES ('FREETIER_V0', 250000),
-    ('PAY_AS_YOU_GO_V0', 0),
-    ('ENTERPRISE', 0),
-    ('TEST_PLAN_V0', 100),
-    ('TEST_PLAN_10K', 10000),
-    ('TEST_PLAN_90K', 90000);
-INSERT INTO user_roles (name, permissions)
-VALUES (
-        'OWNER',
-        '{ "read:endpoint", "write:endpoint", "delete:endpoint", "transfer:endpoint" }'
-    ),
-    ('ADMIN', '{ "read:endpoint", "write:endpoint" }'),
-    ('MEMBER', '{ "read:endpoint" }');
-INSERT INTO applications (
-        application_id,
-        name,
-        status,
-        url,
-        user_id,
-        dummy,
+-- Insert pay_plans
+INSERT INTO pay_plans (
+        plan_type,
+        chain_ids,
+        monthly_relay_limit,
+        throughput_limit,
+        application_limit,
         created_at,
-        updated_at
+        updated_at,
+        daily_limit
     )
 VALUES (
-        'test_app_47hfnths73j2se',
-        'pokt_app_123',
-        'IN_SERVICE',
-        'https://test.app123.io',
-        'test_user_1dbffbdfeeb225',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'test_app_5hdf7sh23jd828',
-        'pokt_app_456',
-        'IN_SERVICE',
-        'https://test.app456.io',
-        'test_user_04228205bd261a',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    ),
-    (
-        'test_app_97djd63jd78r7f',
-        'pokt_app_789',
-        'IN_SERVICE',
-        'https://test.app789.io',
-        'test_user_redirect233344',
-        true,
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    );
-INSERT INTO app_limits (
-        application_id,
-        pay_plan,
-        custom_limit
-    )
-VALUES (
-        'test_app_47hfnths73j2se',
         'FREETIER_V0',
-        null
+        ARRAY ['0001', '0053'],
+        5000000,
+        5000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        250000
     ),
     (
-        'test_app_5hdf7sh23jd828',
-        'ENTERPRISE',
-        2000000
-    ),
-    (
-        'test_app_97djd63jd78r7f',
         'PAY_AS_YOU_GO_V0',
-        null
+        ARRAY ['0001', '0053'],
+        10000000,
+        10000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        0
+    ),
+    (
+        'ENTERPRISE',
+        ARRAY ['0001', '0053'],
+        10000000,
+        10000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        0
+    ),
+    (
+        'TEST_PLAN_V0',
+        ARRAY ['0001', '0053'],
+        10000000,
+        10000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        0
+    ),
+    (
+        'TEST_PLAN_10K',
+        ARRAY ['0001', '0053'],
+        10000000,
+        10000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        10000
+    ),
+    (
+        'TEST_PLAN_90K',
+        ARRAY ['0001', '0053'],
+        90000000,
+        10000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        90000
+    ),
+    (
+        'basic_plan',
+        ARRAY ['0001', '0053'],
+        5000000,
+        5000,
+        2,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        1000
+    ),
+    (
+        'pro_plan',
+        ARRAY ['0001', '0053','0021', '0064'],
+        10000000,
+        10000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        5000
+    ),
+    (
+        'enterprise_plan',
+        ARRAY ['0001', '0053','0021', '0064', '0034'],
+        20000000,
+        20000,
+        10,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        10000
+    ),
+    (
+        'developer_plan',
+        ARRAY ['0001', '0053','0021', '0034'],
+        500000,
+        500,
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        100
+    ),
+    (
+        'startup_plan',
+        ARRAY ['0001', '0053', '0064', '0034'],
+        1000000,
+        1000,
+        5,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        500
     );
-INSERT INTO gateway_aat (
-        application_id,
-        address,
-        public_key,
-        signature,
-        client_public_key,
-        private_key
-    )
+-- Insert users
+INSERT INTO users (id, email, signed_up, created_at, updated_at)
 VALUES (
-        'test_app_47hfnths73j2se',
-        'test_34715cae753e67c75fbb340442e7de8e',
-        'test_11b8d394ca331d7c7a71ca1896d630f6',
-        'test_89a3af6a587aec02cfade6f5000424c2',
-        'test_1dc39a2e5a84a35bf030969a0b3231f7',
-        'test_d2ce53f115f4ecb2208e9188800a85cf'
+        'user_1',
+        'james.holden123@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_5hdf7sh23jd828',
-        'test_558c0225c7019e14ccf2e7379ad3eb50',
-        'test_96c981db344ab6920b7e87853838e285',
-        'test_1272a8ab4cbbf636f09bf4fa5395b885',
-        'test_d709871777b89ed3051190f229ea3f01',
-        'test_53e50765d8bc1fb41b3b0065dd8094de'
+        'user_2',
+        'paul.atreides456@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_app_97djd63jd78r7f',
-        'test_58a37510a103f3de57296af882b2603c',
-        'test_cc49729227c22f3934a966d99a6be72b',
-        'test_8d5f4a3006b5603bcecfb44a819c272a',
-        'test_28a54385e49b65a860f61db62449703b',
-        'test_8d5f4a3006b5603bcecfb44a819c272a'
+        'user_3',
+        'ellen.ripley789@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_4',
+        'ulfric.stormcloak123@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_5',
+        'chrisjen.avasarala1@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_6',
+        'amos.burton789@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_7',
+        'frodo.baggins123@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_8',
+        'rick.deckard456@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_9',
+        'tyrion.lannister789@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_10',
+        'daenerys.targaryen123@test.com',
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_11',
+        'bernard.marx@test.com',
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_12',
+        'george.foreman@test.com',
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
-INSERT INTO gateway_settings (
-        application_id,
-        secret_key,
-        secret_key_required,
-        whitelist_blockchains,
-        whitelist_origins,
-        whitelist_user_agents
-    )
-VALUES (
-        'test_app_47hfnths73j2se',
-        'test_40f482d91a5ef2300ebb4e2308c',
-        true,
-        '{ "chain_1" }',
-        '{ "origin_1", "origin_2" }',
-        '{ "user_agent_1", "user_agent_2", "user_agent_3" }'
-    ),
-    (
-        'test_app_5hdf7sh23jd828',
-        'test_90210ac4bdd3423e24877d1ff92',
-        false,
-        null,
-        null,
-        null
-    ),
-    (
-        'test_app_97djd63jd78r7f',
-        'test_8fd84jf74jf83kd83kd92okg355',
-        false,
-        null,
-        null,
-        null
-    );
-INSERT INTO whitelist_contracts (
-        application_id,
-        blockchain_id,
-        contract
-    )
-VALUES (
-        'test_app_47hfnths73j2se',
-        'TST1',
-        'test_address_12345'
-    ),
-    (
-        'test_app_47hfnths73j2se',
-        'TST2',
-        'test_address_67890'
-    ),
-    (
-        'test_app_47hfnths73j2se',
-        'TST1',
-        'test_address_44444'
-    );
-INSERT INTO whitelist_methods (
-        application_id,
-        blockchain_id,
-        method
-    )
-VALUES (
-        'test_app_47hfnths73j2se',
-        'TST1',
-        'GET'
-    ),
-    (
-        'test_app_47hfnths73j2se',
-        'TST2',
-        'PUT'
-    ),
-    (
-        'test_app_47hfnths73j2se',
-        'TST2',
-        'POST'
-    );
-INSERT INTO notification_settings (
-        application_id,
-        signed_up,
-        on_quarter,
-        on_half,
-        on_three_quarters,
-        on_full
-    )
-VALUES (
-        'test_app_47hfnths73j2se',
-        true,
-        false,
-        false,
-        true,
-        true
-    ),
-    (
-        'test_app_5hdf7sh23jd828',
-        true,
-        false,
-        false,
-        true,
-        true
-    ),
-    (
-        'test_app_97djd63jd78r7f',
-        true,
-        false,
-        false,
-        true,
-        true
-    );
-INSERT INTO loadbalancers (
-        lb_id,
+INSERT INTO user_auth_providers (
         user_id,
-        name,
-        request_timeout,
-        gigastake,
-        gigastake_redirect,
+        provider,
+        type,
+        provider_user_id,
+        federated,
+        created_at
+    )
+VALUES (
+        'user_1',
+        'auth0',
+        'auth0_username',
+        'auth0|james_holden',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_1',
+        'auth0',
+        'auth0_github',
+        'github|james_holden',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_2',
+        'auth0',
+        'auth0_username',
+        'auth0|paul_atreides',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_2',
+        'auth0',
+        'auth0_github',
+        'github|paul_atreides',
+        true,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_3',
+        'auth0',
+        'auth0_username',
+        'auth0|ellen_ripley',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_4',
+        'auth0',
+        'auth0_username',
+        'auth0|ulfric_stormcloak',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_5',
+        'auth0',
+        'auth0_username',
+        'auth0|chrisjen_avasarala',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_6',
+        'auth0',
+        'auth0_username',
+        'auth0|amos_burton',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_7',
+        'auth0',
+        'auth0_username',
+        'auth0|frodo_baggins',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_8',
+        'auth0',
+        'auth0_username',
+        'auth0|rick_deckard',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_9',
+        'auth0',
+        'auth0_username',
+        'auth0|tyrion_lannister',
+        false,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'user_11',
+        'auth0',
+        'auth0_username',
+        'auth0|bernard_marx',
+        false,
+        '2022-11-11 11:11:11.000000'
+    );
+-- Insert accounts
+INSERT INTO accounts (
+        id,
+        plan_type,
+        partner_chain_ids,
+        partner_throughput_limit,
+        partner_application_limit,
         created_at,
         updated_at
     )
 VALUES (
-        'test_lb_34987u329rfn23f',
-        'test_user_1dbffbdfeeb225',
-        'pokt_app_123',
-        5000,
-        true,
-        true,
+        'account_1',
+        'basic_plan',
+        ARRAY ['0001', '0053'],
+        2000,
+        1,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_3890ru23jfi32fj',
-        'test_user_04228205bd261a',
-        'pokt_app_456',
+        'account_2',
+        'pro_plan',
+        ARRAY ['0001', '0053','0021', '0064'],
         5000,
-        true,
-        true,
+        3,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_34gg4g43g34g5hh',
-        'test_user_redirect233344',
-        'test_lb_redirect',
-        5000,
-        false,
-        false,
+        'account_3',
+        'startup_plan',
+        ARRAY ['0001', '0053', '0064', '0034'],
+        1000,
+        2,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
-    );
-INSERT INTO stickiness_options (
-        lb_id,
-        duration,
-        sticky_max,
-        stickiness,
-        origins
-    )
-VALUES (
-        'test_lb_34987u329rfn23f',
-        60,
-        300,
-        true,
-        '{ "chrome-extension://", "moz-extension://" }'
     ),
     (
-        'test_lb_3890ru23jfi32fj',
-        40,
-        400,
-        true,
-        '{ "chrome-extension://" }'
+        'account_4',
+        'enterprise_plan',
+        ARRAY ['0001'],
+        1000,
+        2,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_34gg4g43g34g5hh',
-        20,
-        600,
-        false,
-        '{ "test-extension://", "test-extension2://" }'
+        'account_5',
+        'basic_plan',
+        ARRAY ['0006', '0040'],
+        6000,
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
 INSERT INTO account_integrations (
         account_id,
@@ -283,198 +371,735 @@ INSERT INTO account_integrations (
         updated_at
     )
 VALUES (
-        'account1',
-        'test_covalent_api_key_1',
+        'account_1',
+        'covalent_api_key_1',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        'account2',
-        'test_covalent_api_key_2',
+        'account_2',
+        'covalent_api_key_2',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'covalent_api_key_3',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_4',
+        'covalent_api_key_4',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
-INSERT INTO user_access (
-        lb_id,
+-- Insert user_roles
+INSERT INTO user_roles (
         role_name,
-        user_id,
-        email,
-        accepted,
-        account_id
+        permissions,
+        created_at,
+        updated_at
     )
 VALUES (
-        'test_lb_34987u329rfn23f',
         'OWNER',
-        'test_user_1dbffbdfeeb225',
-        'owner1@test.com',
-        true,
-        'account1'
+        ARRAY ['read:endpoint'::permissions, 'write:endpoint'::permissions, 'delete:endpoint'::permissions, 'transfer:endpoint'::permissions],
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_34987u329rfn23f',
         'ADMIN',
-        'test_user_admin1234',
-        'admin1@test.com',
-        true,
-        NULL
+        ARRAY ['read:endpoint'::permissions, 'write:endpoint'::permissions],
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_34987u329rfn23f',
         'MEMBER',
-        'test_user_member1234',
-        'member1@test.com',
-        true,
-        NULL
-    ),
-    (
-        'test_lb_3890ru23jfi32fj',
-        'OWNER',
-        'test_user_04228205bd261a',
-        'owner2@test.com',
-        true,
-        'account2'
-    ),
-    (
-        'test_lb_3890ru23jfi32fj',
-        'ADMIN',
-        'test_user_admin5678',
-        'admin2@test.com',
-        true,
-        NULL
-    ),
-    (
-        'test_lb_34gg4g43g34g5hh',
-        'OWNER',
-        'test_user_redirect233344',
-        'owner3@test.com',
-        true,
-        'account3'
-    ),
-    (
-        'test_lb_34gg4g43g34g5hh',
-        'MEMBER',
-        '',
-        'member2@test.com',
-        false,
-        NULL
+        ARRAY ['read:endpoint'::permissions],
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
-INSERT INTO lb_apps (lb_id, app_id)
+INSERT INTO portal_applications (
+        id,
+        account_id,
+        name,
+        request_timeout,
+        first_date_surpassed,
+        plan_type,
+        daily_limit,
+        custom_limit,
+        created_at,
+        updated_at
+    )
 VALUES (
-        'test_lb_34987u329rfn23f',
-        'test_app_47hfnths73j2se'
+        'test_app_1',
+        'account_1',
+        'pokt_app_123',
+        5000,
+        '2022-11-11 11:11:11.000000',
+        'FREETIER_V0',
+        250000,
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_3890ru23jfi32fj',
-        'test_app_5hdf7sh23jd828'
+        'test_app_2',
+        'account_2',
+        'pokt_app_456',
+        10000,
+        '2022-11-11 11:11:11.000000',
+        'PAY_AS_YOU_GO_V0',
+        0,
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     ),
     (
-        'test_lb_34gg4g43g34g5hh',
-        'test_app_97djd63jd78r7f'
+        'test_app_3',
+        'account_3',
+        'pokt_app_789',
+        10000,
+        '2022-11-11 11:11:11.000000',
+        'ENTERPRISE',
+        NULL,
+        '4200000',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );
-INSERT INTO blockchains (
-        blockchain_id,
-        active,
-        altruist,
-        blockchain,
-        blockchain_aliases,
+-- Insert account_user_access
+INSERT INTO account_user_access (
+        account_id,
+        user_id,
+        portal_application_id,
+        role_name,
+        owner,
+        accepted,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'account_1',
+        'user_1',
+        NULL,
+        'OWNER',
+        true,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_1',
+        'user_2',
+        'test_app_1',
+        'ADMIN',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_1',
+        'user_8',
+        'test_app_1',
+        'ADMIN',
+        false,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'user_3',
+        NULL,
+        'OWNER',
+        true,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'user_4',
+        'test_app_2',
+        'MEMBER',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'user_9',
+        'test_app_2',
+        'MEMBER',
+        false,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_2',
+        'user_2',
+        'test_app_2',
+        'MEMBER',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'user_5',
+        NULL,
+        'OWNER',
+        true,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'user_6',
+        'test_app_3',
+        'ADMIN',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'user_7',
+        'test_app_3',
+        'MEMBER',
+        false,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_3',
+        'user_10',
+        'test_app_3',
+        'MEMBER',
+        false,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_4',
+        'user_4',
+        NULL,
+        'OWNER',
+        true,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'account_5',
+        'user_4',
+        NULL,
+        'OWNER',
+        true,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO portal_application_settings (
+        application_id,
+        secret_key,
+        secret_key_required,
+        monthly_relay_limit,
+        environment,
+        favorited_chain_ids,
+        updated_at
+    )
+VALUES (
+        'test_app_1',
+        'test_40f482d91a5ef2300ebb4e2308c',
+        true,
+        2500000,
+        'production',
+        ARRAY ['0001', '0053'],
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_2',
+        'test_9c9e3b193cfba5348f93bb2f3e3fb794',
+        false,
+        1500000,
+        'production',
+        ARRAY ['0021', '0064'],
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_3',
+        'test_9f48b13e2bc5fd31ab367841f11495c1',
+        false,
+        4500000,
+        'production',
+        ARRAY ['0001', '0034'],
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO portal_application_whitelists (
+        application_id,
+        type,
+        value,
         chain_id,
-        chain_id_check,
+        created_at
+    )
+VALUES (
+        'test_app_1',
+        'blockchains',
+        '0053',
+        NULL,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_1',
+        'contracts',
+        '0x1234567890abcdef',
+        '0001',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_1',
+        'methods',
+        'GET',
+        '0001',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_1',
+        'origins',
+        'https://test.com',
+        NULL,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_1',
+        'userAgents',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        NULL,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_2',
+        'blockchains',
+        '0021',
+        NULL,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_2',
+        'contracts',
+        '0x0987654321abcdef',
+        '0064',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_2',
+        'methods',
+        'POST',
+        '0064',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_2',
+        'origins',
+        'https://example.com',
+        NULL,
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_2',
+        'userAgents',
+        'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
+        NULL,
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO portal_application_notifications (
+        application_id,
+        active,
+        type,
+        destination,
+        trigger,
+        events,
+        updated_at
+    )
+VALUES (
+        'test_app_1',
+        true,
+        'email',
+        'test@test.com',
+        'trigger123',
+        ARRAY ['quarter'::notification_event,'threeQuarters'::notification_event,'full'::notification_event],
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        'test_app_2',
+        true,
+        'email',
+        'email@pokt.network',
+        'trigger456',
+        ARRAY ['full'::notification_event,'half'::notification_event],
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO portal_application_aats (
+        id,
+        portal_application_id,
+        address,
+        public_key,
+        private_key,
+        client_public_key,
+        signature,
+        version
+    )
+VALUES (
+        'test_protocol_app_1',
+        'test_app_1',
+        'test_34715cae753e67c75fbb340442e7de8e',
+        'test_34715cae753e67c75fbb340442e7de8e',
+        'test_11b8d394ca331d7c7a71ca1896d630f6',
+        'test_89a3af6a587aec02cfade6f5000424c2',
+        'test_1dc39a2e5a84a35bf030969a0b3231f7',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_2',
+        'test_app_2',
+        'test_8237c72345f12d1b1a8b64a1a7f66fa4',
+        'test_8237c72345f12d1b1a8b64a1a7f66fa4',
+        'test_2e83c836a29b423a47d8e18c779fd422',
+        'test_04c71d90a92f40416b6f1d7d8af17e02',
+        'test_f48d33b30ddaf60a1e5bb50d2ba8da5a',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_3',
+        'test_app_3',
+        'test_b5e07928fc80083c13ad0201b81bae9b',
+        'test_f608500e4fe3e09014fe2411b4a560b5',
+        'test_8663e187c19f3c6e27317eab4ed6d7d5',
+        'test_328a9cf1b35085eeaa669aa858f6fba9',
+        'test_c3cd8be16ba32e24dd49fdb0247fc9b8',
+        '0.0.1'
+    ),
+    (
+        'test_protocol_app_4',
+        'test_app_3',
+        'test_eb2e5bcba557cfe8fa76fd7fff54f9d1',
+        'test_f6a5d8690ecb669865bd752b7796a920',
+        'test_838d29d61a65401f7d56d084cb6e4783',
+        'test_6ee5ea553408f0895923fd1569dc5072',
+        'test_cf05cf9bb26111c548e88fb6157af708',
+        '0.0.1'
+    );
+INSERT INTO chains (
+        id,
+        blockchain,
         description,
         enforce_result,
-        log_limit_blocks,
-        network,
         path,
-        request_timeout,
         ticker,
+        log_limit_blocks,
+        request_timeout,
+        active,
         created_at,
         updated_at
     )
 VALUES (
         '0001',
-        true,
-        'https://test:test_93uhfniu23f8@shared-test2.nodes.pokt.network:12345',
         'pokt-mainnet',
-        '{ "pokt-mainnet" }',
-        null,
-        null,
-        'POKT Network Mainnet',
+        'Pocket Network Mainnet',
         'JSON',
-        100000,
-        'POKT-mainnet',
-        '',
-        null,
+        '/v1/query/height',
         'POKT',
+        0,
+        0,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'optimism-mainnet',
+        'Optimism Mainnet',
+        'JSON',
+        '',
+        'OP',
+        100000,
+        0,
+        true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
         '0021',
-        true,
-        'https://test:test_u32fh239hf@shared-test2.nodes.eth.network:12345',
         'eth-mainnet',
-        '{ "eth-mainnet" }',
-        '1',
-        '{\"method\":\"eth_chainId\",\"id\":1,\"jsonrpc\":\"2.0\"}',
         'Ethereum Mainnet',
         'JSON',
-        100000,
-        'ETH-1',
         '',
-        null,
         'ETH',
+        100000,
+        0,
+        true,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'sui-testnet',
+        'Sui Testnet',
+        'JSON',
+        '',
+        'SUI-TESTNET',
+        100000,
+        60000,
+        false,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0040',
+        'harmony-0',
+        'Harmony Shard 0',
+        'JSON',
+        '',
+        'HMY',
+        0,
+        0,
+        true,
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
-INSERT INTO redirects (
-        blockchain_id,
-        alias,
-        loadbalancer,
-        domain,
+INSERT INTO chain_altruists (
+        chain_id,
+        url,
+        auth,
+        auth_type,
         created_at,
         updated_at
     )
 VALUES (
         '0001',
-        'test-mainnet',
-        'test_lb_34gg4g43g34g5hh',
-        'test-rpc1.testnet.pokt.network',
+        'https://altruist-0001.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
     (
-        '0001',
-        'test-mainnet',
-        'test_lb_34gg4g43g34g5hh',
-        'test-rpc2.testnet.pokt.network',
+        '0053',
+        'https://altruist-0053.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'https://altruist-0021.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'https://altruist-0064.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2023-01-23T23:52:00.176019Z'
+    ),
+    (
+        '0040',
+        'https://altruist-0040.com:1234',
+        'test_pocket:auth123456',
+        'basic_auth',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO chain_checks (
+        chain_id,
+        type,
+        payload,
+        result_key,
+        allowance,
+        evm_chain_id,
+        created_at,
+        updated_at
+    )
+VALUES (
+        '0001',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"query"}',
+        'result.sync_info',
+        1,
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}',
+        'result',
+        2,
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}',
+        'result',
+        5,
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'chain',
+        '{"method":"eth_chainId","id":1,"jsonrpc":"2.0"}',
+        'id',
+        NULL,
+        1,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"sui_blockNumber","params":[]}',
+        'result',
+        7,
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0040',
+        'sync',
+        '{"id":1,"jsonrpc":"2.0","method":"hmy_blockNumber","params":[]}',
+        'result',
+        8,
+        NULL,
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    );
+INSERT INTO chain_alias_domains (
+        chain_id,
+        alias,
+        domains
+    )
+VALUES (
+        '0001',
+        'pokt-mainnet',
+        ARRAY ['pokt-rpc.gateway.pokt.network']
+    ),
+    (
+        '0053',
+        'optimism-mainnet',
+        ARRAY ['op-rpc.gateway.pokt.network']
     ),
     (
         '0021',
         'eth-mainnet',
-        'test_lb_34gg4g43g34g5hh',
-        'test-rpc.testnet.eth.network',
-        '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
-    );
-INSERT INTO sync_check_options (
-        blockchain_id,
-        allowance,
-        body,
-        path,
-        result_key
-    )
-VALUES (
-        '0001',
-        1,
-        '{}',
-        '/v1/query/height',
-        'height'
+        ARRAY ['eth-rpc.gateway.pokt.network']
     ),
     (
-        '0021',
-        5,
-        '{\"method\":\"eth_blockNumber\",\"id\":1,\"jsonrpc\":\"2.0\"}',
-        null,
-        'result'
+        '0040',
+        'harmony-0',
+        ARRAY ['hmy-rpc.gateway.pokt.network']
+    );
+-- Insert data into aats
+INSERT INTO gigastake_applications (
+        id,
+        name,
+        address,
+        public_key,
+        private_key,
+        client_public_key,
+        signature,
+        version,
+        created_at,
+        updated_at,
+        lb_id
+    )
+VALUES (
+        'test_gigastake_app_1',
+        'pokt_gigastake',
+        'test_8d4f6a5b0c6e9f1db12c1f662e5ec8c5',
+        'test_37a0e8437f5149dc98a9a5b207efc2d0',
+        'test_0a6df2b97ae546da83f1a90b9b0c1e83',
+        'test_65c29f0cc82e418b81a528a0c0682a9f',
+        'test_f22651fb566346fca30b605e5f46e3ca',
+        '0.0.1',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        'legacy_lb_1'
+    ),
+    (
+        'test_gigastake_app_2',
+        'optimism_gigastake',
+        'test_5c60d434db4e42d2b5d2ea6eeb8933c4',
+        'test_a7e28f8d716541a0a332a5dc6b7e4e6e',
+        'test_86b9e8e14a784db8a0a4c2ee532b6a12',
+        'test_ba4e53dada8f4f939048e56dc8f88f37',
+        'test_52e991c26da841bc882ad3a3ee9ee964',
+        '0.0.1',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        'legacy_lb_2'
+    ),
+    (
+        'test_gigastake_app_3',
+        'harmony_gigastake',
+        'test_e570c841d5cd4f6197e0428ed7c517fd',
+        'test_4f805bbbf96c4a649efc3f4f95616f2e',
+        'test_25a9063b3b7b42148dc17033fbbab5c6',
+        'test_789f9d6adcc846f1a079bf68237b5f5c',
+        'test_01eac46efc9242a2be73879f1d09f1dc',
+        '0.0.1',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000',
+        'legacy_lb_3'
+    );
+-- Insert into chains_gigastake_applications
+INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+VALUES ('0001', 'test_gigastake_app_1'),
+    ('0053', 'test_gigastake_app_2'),
+    ('0040', 'test_gigastake_app_3');
+INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
+VALUES (
+        '0xtest_6789abcdef0123456789abcdef01234567',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_f0123456789abcdef0123456789abcdef01',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_cdef0123456789abcdef0123456789abcdef',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_56789abcdef0123456789abcdef01234567',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0xtest_789abcdef0123456789abcdef0123456789',
+        '2022-11-11 11:11:11.000000',
+        '2022-11-11 11:11:11.000000'
     );

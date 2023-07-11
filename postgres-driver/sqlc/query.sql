@@ -1,400 +1,161 @@
--- name: SelectBlockchains :many
-SELECT b.blockchain_id,
-    b.altruist,
-    b.blockchain,
-    b.blockchain_aliases,
-    b.chain_id,
-    b.chain_id_check,
-    b.description,
-    b.enforce_result,
-    b.log_limit_blocks,
-    b.network,
-    b.path,
-    b.request_timeout,
-    b.ticker,
-    b.active,
-    s.allowance AS s_allowance,
-    s.body AS s_body,
-    s.path AS s_path,
-    s.result_key AS s_result_key,
-    COALESCE(redirects.r, '[]') AS redirects,
-    b.created_at,
-    b.updated_at
-FROM blockchains AS b
-    LEFT JOIN sync_check_options AS s ON b.blockchain_id = s.blockchain_id
-    LEFT JOIN LATERAL (
-        SELECT json_agg(
-                json_build_object(
-                    'alias',
-                    r.alias,
-                    'loadBalancerID',
-                    r.loadbalancer,
-                    'domain',
-                    r.domain
-                )
-            ) AS r
-        FROM redirects AS r
-        WHERE b.blockchain_id = r.blockchain_id
-    ) redirects ON true
-ORDER BY b.blockchain_id ASC;
--- name: SelectPayPlans :many
+-- name: CheckIDExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM (
+                SELECT id
+                FROM portal_applications
+                WHERE portal_applications.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM portal_application_aats
+                WHERE portal_application_aats.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM gigastake_applications
+                WHERE gigastake_applications.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM accounts
+                WHERE accounts.id = @id::VARCHAR
+                UNION ALL
+                SELECT id
+                FROM users
+                WHERE users.id = @id::VARCHAR
+            ) AS id_table
+    );
+-- name: SelectPlans :many
 SELECT plan_type,
+    chain_ids,
+    monthly_relay_limit,
+    throughput_limit,
+    application_limit,
+    created_at,
     daily_limit
-FROM pay_plans
-ORDER BY plan_type ASC;
--- name: InsertBlockchain :exec
-INSERT into blockchains (
-        blockchain_id,
-        active,
-        altruist,
-        blockchain,
-        blockchain_aliases,
-        chain_id,
-        chain_id_check,
-        description,
-        enforce_result,
-        log_limit_blocks,
-        network,
-        path,
-        request_timeout,
-        ticker,
-        created_at,
-        updated_at
-    )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8,
-        $9,
-        $10,
-        $11,
-        $12,
-        $13,
-        $14,
-        $15,
-        $16
-    );
--- name: InsertRedirect :exec
-INSERT into redirects (
-        blockchain_id,
-        alias,
-        loadbalancer,
-        domain,
-        created_at,
-        updated_at
-    )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6
-    );
--- name: InsertSyncCheckOptions :exec
-INSERT into sync_check_options (
-        blockchain_id,
-        allowance,
-        body,
-        path,
-        result_key
-    )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5
-    );
--- name: ActivateBlockchain :exec
-UPDATE blockchains
-SET active = $2,
-    updated_at = $3
-WHERE blockchain_id = $1;
--- name: UpdateBlockchain :exec
-UPDATE blockchains as b
-SET altruist = COALESCE($2, b.altruist),
-    blockchain = COALESCE($3, b.blockchain),
-    blockchain_aliases = COALESCE($4, b.blockchain_aliases),
-    chain_id_check = COALESCE($5, b.chain_id_check),
-    description = COALESCE($6, b.description),
-    enforce_result = COALESCE($7, b.enforce_result),
-    log_limit_blocks = COALESCE($8, b.log_limit_blocks),
-    network = COALESCE($9, b.network),
-    path = COALESCE($10, b.path),
-    request_timeout = COALESCE($11, b.request_timeout),
-    ticker = COALESCE($12, b.ticker),
-    updated_at = $13
-WHERE b.blockchain_id = $1;
--- name: DeleteRedirect :exec
-DELETE FROM redirects
-WHERE blockchain_id = $1
-    AND domain = $2;
--- name: UpdateSyncCheckOptions :exec
-UPDATE sync_check_options as s
-SET allowance = COALESCE($2, s.allowance),
-    body = COALESCE($3, s.body),
-    path = COALESCE($4, s.path),
-    result_key = COALESCE($5, s.result_key)
-WHERE s.blockchain_id = $1;
--- name: SelectApplications :many
-SELECT a.application_id,
-    a.contact_email,
-    a.created_at,
-    a.description,
-    a.dummy,
-    a.name,
-    a.owner,
-    a.status,
-    a.updated_at,
-    a.url,
-    a.user_id,
-    a.first_date_surpassed,
-    ga.address AS ga_address,
-    ga.client_public_key AS ga_client_public_key,
-    ga.private_key AS ga_private_key,
-    ga.public_key AS ga_public_key,
-    ga.signature AS ga_signature,
-    ga.version AS ga_version,
-    gs.secret_key,
-    gs.secret_key_required,
-    gs.whitelist_blockchains,
-    gs.whitelist_origins,
-    gs.whitelist_user_agents,
-    CASE
-        WHEN wc.application_id IS NOT NULL THEN json_agg(
-            DISTINCT jsonb_build_object(
-                'blockchainID',
-                wc.blockchain_id,
-                'contracts',
-                wc.contracts
-            )
-        )::VARCHAR
-        ELSE NULL
-    END as whitelist_contracts,
-    CASE
-        WHEN wm.application_id IS NOT NULL THEN json_agg(
-            DISTINCT jsonb_build_object(
-                'blockchainID',
-                wm.blockchain_id,
-                'methods',
-                wm.methods
-            )
-        )::VARCHAR
-        ELSE NULL
-    END as whitelist_methods,
-    ns.signed_up,
-    ns.signed_up,
-    ns.on_quarter,
-    ns.on_half,
-    ns.on_three_quarters,
-    ns.on_full,
-    al.custom_limit,
-    al.pay_plan,
-    pp.daily_limit as plan_limit
-FROM applications AS a
-    LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
-    LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
-    LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
-    LEFT JOIN app_limits AS al ON a.application_id = al.application_id
-    LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
-    LEFT JOIN (
-        SELECT application_id,
-            blockchain_id,
-            json_agg(contract) AS contracts
-        FROM whitelist_contracts
-        GROUP BY application_id,
-            blockchain_id
-    ) wc ON a.application_id = wc.application_id
-    LEFT JOIN (
-        SELECT application_id,
-            blockchain_id,
-            json_agg(method) AS methods
-        FROM whitelist_methods
-        GROUP BY application_id,
-            blockchain_id
-    ) wm ON a.application_id = wm.application_id
-GROUP BY a.application_id,
+FROM pay_plans;
+-- name: SelectGigastakeApplications :many
+SELECT ga.id,
+    ga.name,
+    ARRAY_AGG(cga.chain_id)::VARCHAR [] AS chain_ids,
+    ga.created_at,
+    ga.updated_at,
+    ga.deleted,
     ga.address,
-    ga.client_public_key,
-    ga.private_key,
     ga.public_key,
+    ga.client_public_key,
     ga.signature,
     ga.version,
-    gs.secret_key,
-    gs.secret_key_required,
-    gs.whitelist_blockchains,
-    gs.whitelist_origins,
-    gs.whitelist_user_agents,
-    ns.signed_up,
-    ns.on_quarter,
-    ns.on_half,
-    ns.on_three_quarters,
-    ns.on_full,
-    al.custom_limit,
-    al.pay_plan,
-    pp.daily_limit,
-    wc.application_id,
-    wm.application_id;
--- name: SelectOneApplication :one
-SELECT a.application_id,
-    a.contact_email,
-    a.created_at,
-    a.description,
-    a.dummy,
-    a.name,
-    a.owner,
-    a.status,
-    a.updated_at,
-    a.url,
-    a.user_id,
-    a.first_date_surpassed,
-    ga.address AS ga_address,
-    ga.client_public_key AS ga_client_public_key,
-    ga.private_key AS ga_private_key,
-    ga.public_key AS ga_public_key,
-    ga.signature AS ga_signature,
-    ga.version AS ga_version,
-    gs.secret_key,
-    gs.secret_key_required,
-    gs.whitelist_blockchains,
-    gs.whitelist_origins,
-    gs.whitelist_user_agents,
-    CASE
-        WHEN wc.application_id IS NOT NULL THEN json_agg(
-            DISTINCT jsonb_build_object(
-                'blockchainID',
-                wc.blockchain_id,
-                'contracts',
-                wc.contracts
-            )
-        )::VARCHAR
-        ELSE NULL
-    END as whitelist_contracts,
-    CASE
-        WHEN wm.application_id IS NOT NULL THEN json_agg(
-            DISTINCT jsonb_build_object(
-                'blockchainID',
-                wm.blockchain_id,
-                'methods',
-                wm.methods
-            )
-        )::VARCHAR
-        ELSE NULL
-    END as whitelist_methods,
-    ns.signed_up,
-    ns.on_quarter,
-    ns.on_half,
-    ns.on_three_quarters,
-    ns.on_full,
-    al.custom_limit,
-    al.pay_plan,
-    pp.daily_limit as plan_limit
-FROM applications AS a
-    LEFT JOIN gateway_aat AS ga ON a.application_id = ga.application_id
-    LEFT JOIN gateway_settings AS gs ON a.application_id = gs.application_id
-    LEFT JOIN notification_settings AS ns ON a.application_id = ns.application_id
-    LEFT JOIN app_limits AS al ON a.application_id = al.application_id
-    LEFT JOIN pay_plans AS pp ON al.pay_plan = pp.plan_type
-    LEFT JOIN (
-        SELECT application_id,
-            blockchain_id,
-            json_agg(contract) AS contracts
-        FROM whitelist_contracts
-        GROUP BY application_id,
-            blockchain_id
-    ) wc ON a.application_id = wc.application_id
-    LEFT JOIN (
-        SELECT application_id,
-            blockchain_id,
-            json_agg(method) AS methods
-        FROM whitelist_methods
-        GROUP BY application_id,
-            blockchain_id
-    ) wm ON a.application_id = wm.application_id
-WHERE a.application_id = $1
-GROUP BY a.application_id,
+    -- legacy field
+    ga.lb_id
+FROM gigastake_applications AS ga
+    LEFT JOIN chains_gigastake_applications AS cga ON ga.id = cga.gigastake_application_id
+GROUP BY ga.id,
+    ga.name,
+    ga.created_at,
+    ga.updated_at,
+    ga.deleted,
     ga.address,
-    ga.client_public_key,
-    ga.private_key,
     ga.public_key,
+    ga.client_public_key,
     ga.signature,
     ga.version,
-    gs.secret_key,
-    gs.secret_key_required,
-    gs.whitelist_blockchains,
-    gs.whitelist_origins,
-    gs.whitelist_user_agents,
-    ns.signed_up,
-    ns.on_quarter,
-    ns.on_half,
-    ns.on_three_quarters,
-    ns.on_full,
-    al.custom_limit,
-    al.pay_plan,
-    pp.daily_limit,
-    wc.application_id,
-    wm.application_id;
--- name: SelectAppLimit :one
-SELECT application_id,
-    pay_plan,
-    custom_limit
-FROM app_limits
-WHERE application_id = $1;
--- name: SelectGatewaySettings :one
-SELECT gs.application_id AS application_id,
-    gs.secret_key AS secret_key,
-    gs.secret_key_required AS secret_key_required,
-    gs.whitelist_blockchains AS whitelist_blockchains,
-    json_agg(
-        json_build_object(
-            'blockchain_id',
-            wc.blockchain_id,
-            'contracts',
-            wc.contracts
-        )
-    )::VARCHAR as whitelist_contracts,
-    json_agg(
-        json_build_object(
-            'blockchain_id',
-            wm.blockchain_id,
-            'methods',
-            wm.methods
-        )
-    )::VARCHAR as whitelist_methods,
-    gs.whitelist_origins AS whitelist_origins,
-    gs.whitelist_user_agents AS whitelist_user_agents
-FROM gateway_settings AS gs
-    LEFT JOIN whitelist_contracts AS wc ON gs.application_id = wc.application_id
-    LEFT JOIN whitelist_methods AS wm ON gs.application_id = wm.application_id
-WHERE gs.application_id = $1;
--- name: SelectNotificationSettings :one
-SELECT application_id,
-    signed_up,
-    on_quarter,
-    on_half,
-    on_three_quarters,
-    on_full
-FROM notification_settings
-WHERE application_id = $1;
--- name: InsertApplication :exec
-INSERT into applications (
-        application_id,
-        user_id,
+    ga.lb_id;
+-- name: SelectPortalApplications :many
+WITH aats_agg AS (
+    SELECT paa.portal_application_id,
+        json_object_agg(
+            paa.id,
+            json_build_object(
+                'address',
+                paa.address,
+                'public_key',
+                paa.public_key,
+                'client_public_key',
+                paa.client_public_key,
+                'signature',
+                paa.signature,
+                'version',
+                paa.version
+            )
+        ) AS aats
+    FROM portal_application_aats paa
+    GROUP BY paa.portal_application_id
+),
+notifications_agg AS (
+    SELECT pn.application_id,
+        json_object_agg(
+            pn.type,
+            json_build_object(
+                'type',
+                pn.type,
+                'active',
+                pn.active,
+                'destination',
+                pn.destination,
+                'trigger',
+                pn.trigger,
+                'events',
+                (
+                    SELECT json_object_agg(
+                            event,
+                            true
+                        )
+                    FROM (
+                            SELECT unnest(pn.events) AS event
+                        ) subquery
+                    WHERE event IS NOT NULL
+                )
+            )
+        ) AS notifications
+    FROM portal_application_notifications pn
+    GROUP BY pn.application_id
+),
+whitelists_agg AS (
+    SELECT paw.application_id,
+        json_agg(
+            json_build_object(
+                'type',
+                paw.type,
+                'value',
+                paw.value,
+                'chain_id',
+                paw.chain_id
+            )
+        ) AS whitelists
+    FROM portal_application_whitelists paw
+    GROUP BY paw.application_id
+)
+SELECT p.*,
+    pas.secret_key,
+    pas.secret_key_required,
+    pas.monthly_relay_limit,
+    pas.environment,
+    COALESCE(aats_agg.aats, '[]'::json) AS aats,
+    COALESCE(notifications_agg.notifications, '[]'::json) AS notifications,
+    COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists
+FROM portal_applications p
+    LEFT JOIN portal_application_settings pas ON p.id = pas.application_id
+    LEFT JOIN aats_agg ON p.id = aats_agg.portal_application_id
+    LEFT JOIN notifications_agg ON p.id = notifications_agg.application_id
+    LEFT JOIN whitelists_agg ON p.id = whitelists_agg.application_id
+WHERE (
+        $1::BOOLEAN
+        OR p.deleted = false
+    );
+-- name: InsertPortalApplication :one
+INSERT INTO portal_applications (
+        id,
+        account_id,
         name,
-        contact_email,
-        description,
-        owner,
-        url,
-        status,
-        dummy,
         created_at,
-        updated_at
+        updated_at,
+        request_timeout,
+        first_date_surpassed,
+        -- legacy field
+        plan_type,
+        -- legacy field
+        daily_limit,
+        -- legacy field
+        custom_limit
     )
 VALUES (
         $1,
@@ -406,346 +167,274 @@ VALUES (
         $7,
         $8,
         $9,
-        $10,
-        $11
-    );
--- name: InsertAppLimit :exec
-INSERT into app_limits (application_id, pay_plan, custom_limit)
-VALUES ($1, $2, $3);
--- name: InsertGatewayAAT :exec
-INSERT into gateway_aat (
-        application_id,
+        $10
+    )
+RETURNING *;
+-- name: InsertPortalApplicationAAT :one
+INSERT INTO portal_application_aats (
+        id,
+        portal_application_id,
         address,
-        client_public_key,
-        private_key,
         public_key,
+        private_key,
+        client_public_key,
         signature,
         version
     )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7
-    );
--- name: InsertGatewaySettings :exec
-INSERT into gateway_settings (
-        application_id,
-        secret_key,
-        secret_key_required
-    )
-VALUES ($1, $2, $3);
--- name: InsertNotificationSettings :exec
-INSERT into notification_settings (
-        application_id,
-        signed_up,
-        on_quarter,
-        on_half,
-        on_three_quarters,
-        on_full
-    )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6
-    );
--- name: UpsertApplication :exec
-INSERT INTO applications AS a (
-        application_id,
-        name,
-        status,
-        first_date_surpassed,
-        updated_at
-    )
-VALUES ($1, $2, $3, $4, $5) ON CONFLICT (application_id) DO
-UPDATE
-SET name = COALESCE(EXCLUDED.name, a.name),
-    status = COALESCE(EXCLUDED.status, a.status),
-    first_date_surpassed = COALESCE(
-        EXCLUDED.first_date_surpassed,
-        a.first_date_surpassed
-    );
--- name: UpsertAppLimit :exec
-INSERT INTO app_limits AS al (
-        application_id,
-        pay_plan,
-        custom_limit
-    )
-VALUES ($1, $2, $3) ON CONFLICT (application_id) DO
-UPDATE
-SET pay_plan = COALESCE(EXCLUDED.pay_plan, al.pay_plan),
-    custom_limit = COALESCE(EXCLUDED.custom_limit, al.custom_limit);
--- name: UpsertGatewaySettings :exec
-INSERT INTO gateway_settings AS gs (
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING *;
+-- name: InsertPortalApplicationSetting :one
+INSERT INTO portal_application_settings (
         application_id,
         secret_key,
         secret_key_required,
-        whitelist_origins,
-        whitelist_user_agents,
-        whitelist_blockchains
+        monthly_relay_limit,
+        environment
     )
-VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (application_id) DO
-UPDATE
-SET secret_key = COALESCE(EXCLUDED.secret_key, gs.secret_key),
-    secret_key_required = COALESCE(
-        EXCLUDED.secret_key_required,
-        gs.secret_key_required
-    ),
-    whitelist_origins = COALESCE(EXCLUDED.whitelist_origins, '{}'::text []),
-    whitelist_user_agents = COALESCE(
-        EXCLUDED.whitelist_user_agents,
-        '{}'::text []
-    ),
-    whitelist_blockchains = COALESCE(
-        EXCLUDED.whitelist_blockchains,
-        '{}'::text []
-    );
--- name: UpdateWhitelistContracts :exec
-WITH new_data (application_id, blockchain_id, contract) AS (
-    SELECT $1 as application_id,
-        $2 as blockchain_id,
-        unnest(@contracts::VARCHAR []) as contract
-),
-deleted_data AS (
-    DELETE FROM whitelist_contracts
-    WHERE application_id = $1
-        AND blockchain_id = $2
-        AND contract NOT IN (
-            SELECT contract
-            FROM new_data
-        )
-    RETURNING *
-)
-INSERT INTO whitelist_contracts (application_id, blockchain_id, contract)
-SELECT application_id,
-    blockchain_id,
-    contract
-FROM new_data ON CONFLICT (application_id, blockchain_id, contract) DO NOTHING;
--- name: DeleteNotPresentWhitelistContracts :exec
-DELETE FROM whitelist_contracts
-WHERE application_id = $1
-    AND blockchain_id NOT IN (
-        SELECT unnest(@blockchain_ids::VARCHAR [])
-    );
--- name: UpdateWhitelistMethods :exec
-WITH new_data (application_id, blockchain_id, method) AS (
-    SELECT $1 as application_id,
-        $2 as blockchain_id,
-        unnest(@methods::VARCHAR []) as method
-),
-deleted_data AS (
-    DELETE FROM whitelist_methods
-    WHERE application_id = $1
-        AND blockchain_id = $2
-        AND method NOT IN (
-            SELECT method
-            FROM new_data
-        )
-    RETURNING *
-)
-INSERT INTO whitelist_methods (application_id, blockchain_id, method)
-SELECT application_id,
-    blockchain_id,
-    method
-FROM new_data ON CONFLICT (application_id, blockchain_id, method) DO NOTHING;
--- name: DeleteNotPresentWhitelistMethods :exec
-DELETE FROM whitelist_methods
-WHERE application_id = $1
-    AND blockchain_id NOT IN (
-        SELECT unnest(@blockchain_ids::VARCHAR [])
-    );
--- name: UpsertNotificationSettings :exec
-INSERT INTO notification_settings AS ns (
-        application_id,
-        signed_up,
-        on_quarter,
-        on_half,
-        on_three_quarters,
-        on_full
-    )
-VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (application_id) DO
-UPDATE
-SET signed_up = COALESCE(EXCLUDED.signed_up, ns.signed_up),
-    on_quarter = COALESCE(EXCLUDED.on_quarter, ns.on_quarter),
-    on_half = COALESCE(EXCLUDED.on_half, ns.on_half),
-    on_three_quarters = COALESCE(EXCLUDED.on_three_quarters, ns.on_three_quarters),
-    on_full = COALESCE(EXCLUDED.on_full, ns.on_full);
--- name: UpdateFirstDateSurpassed :exec
-UPDATE applications
-SET first_date_surpassed = @first_date_surpassed
-WHERE application_id = ANY (@application_ids::VARCHAR []);
--- name: RemoveApp :exec
-UPDATE applications
-SET status = COALESCE($2, status)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING *;
+-- name: GetUserEmail :one
+SELECT email
+FROM users
+WHERE users.id = $1;
+-- name: GetAccountOwnerEmail :one
+SELECT users.email
+FROM users
+    JOIN account_user_access AS aua ON users.id = aua.user_id
+WHERE aua.account_id = $1
+    AND aua.owner = true;
+-- name: UpdatePortalAppFields :exec
+UPDATE portal_applications
+SET name = COALESCE(NULLIF(@name::VARCHAR, ''), name),
+    plan_type = COALESCE(NULLIF(@plan_type::VARCHAR, ''), plan_type),
+    daily_limit = COALESCE($2, daily_limit),
+    custom_limit = COALESCE($3, custom_limit),
+    updated_at = $4
+WHERE id = $1;
+-- name: UpdatePortalAppSettings :exec
+UPDATE portal_application_settings
+SET secret_key = COALESCE($2, secret_key),
+    secret_key_required = COALESCE($3, secret_key_required),
+    monthly_relay_limit = COALESCE($4, monthly_relay_limit),
+    environment = COALESCE($5, environment),
+    favorited_chain_ids = COALESCE($6, favorited_chain_ids),
+    updated_at = COALESCE($7, updated_at)
 WHERE application_id = $1;
--- name: CheckAccountIDExists :one
-SELECT EXISTS(
-        SELECT 1
-        FROM user_access
-        WHERE account_id = $1
-    );
--- name: SelectLoadBalancers :many
-SELECT lb.lb_id,
-    lb.name,
-    lb.request_timeout,
-    lb.gigastake,
-    lb.gigastake_redirect,
-    lb.user_id,
-    so.duration AS s_duration,
-    so.sticky_max AS s_sticky_max,
-    so.stickiness AS s_stickiness,
-    so.origins AS s_origins,
-    uac.account_id,
-    ai.covalent_api_key_free,
-    ai.covalent_api_key_paid,
-    STRING_AGG(la.app_id, ',') AS app_ids,
-    COALESCE(user_access.ua, '[]') AS users,
-    lb.created_at,
-    lb.updated_at
-FROM loadbalancers AS lb
-    LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
-    LEFT JOIN user_access AS uac ON lb.lb_id = uac.lb_id
-    AND uac.role_name = 'OWNER'
-    LEFT JOIN account_integrations AS ai ON uac.account_id = ai.account_id
-    LEFT JOIN LATERAL (
-        SELECT jsonb_agg(
-                json_build_object(
-                    'userID',
-                    ua.user_id,
-                    'roleName',
-                    ua.role_name,
-                    'email',
-                    ua.email,
-                    'accepted',
-                    ua.accepted
-                )
-            ) AS ua
-        FROM user_access AS ua
-        WHERE lb.lb_id = ua.lb_id
-    ) user_access ON true
-GROUP BY lb.lb_id,
-    lb.lb_id,
-    lb.name,
-    lb.created_at,
-    lb.updated_at,
-    lb.request_timeout,
-    lb.gigastake,
-    lb.gigastake_redirect,
-    lb.user_id,
-    so.duration,
-    so.sticky_max,
-    so.stickiness,
-    so.origins,
-    uac.account_id,
-    ai.covalent_api_key_free,
-    ai.covalent_api_key_paid,
-    user_access.ua
-ORDER BY lb.lb_id ASC;
--- name: SelectOneLoadBalancer :one
-SELECT lb.lb_id,
-    lb.name,
-    lb.request_timeout,
-    lb.gigastake,
-    lb.gigastake_redirect,
-    lb.user_id,
-    so.duration AS s_duration,
-    so.sticky_max AS s_sticky_max,
-    so.stickiness AS s_stickiness,
-    so.origins AS s_origins,
-    uac.account_id,
-    ai.covalent_api_key_free,
-    ai.covalent_api_key_paid,
-    STRING_AGG(la.app_id, ',') AS app_ids,
-    COALESCE(user_access.ua, '[]') AS users,
-    lb.created_at,
-    lb.updated_at
-FROM loadbalancers AS lb
-    LEFT JOIN stickiness_options AS so ON lb.lb_id = so.lb_id
-    LEFT JOIN lb_apps AS la ON lb.lb_id = la.lb_id
-    LEFT JOIN user_access AS uac ON lb.lb_id = uac.lb_id
-    AND uac.role_name = 'OWNER'
-    LEFT JOIN account_integrations AS ai ON uac.account_id = ai.account_id
-    LEFT JOIN LATERAL (
-        SELECT jsonb_agg(
-                json_build_object(
-                    'userID',
-                    ua.user_id,
-                    'roleName',
-                    ua.role_name,
-                    'email',
-                    ua.email,
-                    'accepted',
-                    ua.accepted
-                )
-            ) AS ua
-        FROM user_access AS ua
-        WHERE lb.lb_id = ua.lb_id
-    ) user_access ON true
-WHERE lb.lb_id = $1
-GROUP BY lb.lb_id,
-    lb.lb_id,
-    lb.name,
-    lb.created_at,
-    lb.updated_at,
-    lb.request_timeout,
-    lb.gigastake,
-    lb.gigastake_redirect,
-    lb.user_id,
-    so.duration,
-    so.sticky_max,
-    so.stickiness,
-    so.origins,
-    uac.account_id,
-    ai.covalent_api_key_free,
-    ai.covalent_api_key_paid,
-    user_access.ua
-ORDER BY lb.lb_id ASC;
--- name: SelectUserRoles :many
-SELECT ua.lb_id,
-    ua.user_id,
-    ua.role_name,
-    ur.permissions as permissions
-FROM user_access as ua
-    LEFT JOIN user_roles AS ur ON ua.role_name = ur.name
-WHERE ua.accepted = true
-    AND ua.user_id IS NOT NULL;
--- name: InsertLoadBalancer :exec
-INSERT into loadbalancers (
-        lb_id,
-        name,
-        user_id,
-        request_timeout,
-        gigastake,
-        gigastake_redirect,
-        created_at,
+-- name: UpdateUpsertPortalAppNotification :exec
+INSERT INTO portal_application_notifications (
+        application_id,
+        type,
+        active,
+        destination,
+        trigger,
+        events,
         updated_at
     )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8
+SELECT $1,
+    @type::notification_type,
+    @active::BOOLEAN,
+    @destination::VARCHAR(255),
+    @trigger::VARCHAR(255),
+    @events::notification_event [],
+    $2
+WHERE @active IS true ON CONFLICT (application_id, type) DO
+UPDATE
+SET active = EXCLUDED.active,
+    destination = EXCLUDED.destination,
+    trigger = EXCLUDED.trigger,
+    events = EXCLUDED.events,
+    updated_at = EXCLUDED.updated_at
+WHERE EXCLUDED.active IS true;
+-- name: UpdateDeletePortalAppNotification :exec
+DELETE FROM portal_application_notifications
+WHERE application_id = $1
+    and type = $2;
+-- name: CheckIfAppWhitelistExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM portal_application_whitelists
+        WHERE application_id = $1
+            AND type = $2
+            AND value = $3
+            AND chain_id IS NULL
     );
--- name: InsertStickinessOptions :exec
-INSERT INTO stickiness_options (
-        lb_id,
-        duration,
-        sticky_max,
-        stickiness,
-        origins
+-- name: UpdateInsertWhitelists :exec
+INSERT INTO portal_application_whitelists (
+        application_id,
+        type,
+        chain_id,
+        value,
+        created_at
     )
-VALUES ($1, $2, $3, $4, $5);
+VALUES(
+        $1,
+        unnest(@types::whitelist_type []),
+        NULLIF(unnest(@chain_ids::VARCHAR []), ''),
+        unnest(@values::VARCHAR []),
+        @created_at::TIMESTAMPTZ
+    ) ON CONFLICT (application_id, chain_id, type, value) DO NOTHING;
+-- name: UpdateDeleteWhitelists :exec
+DELETE FROM portal_application_whitelists
+WHERE (
+        type IN ('methods', 'contracts')
+        AND application_id = $1
+        AND NOT EXISTS (
+            SELECT 1
+            FROM unnest(@types::whitelist_type []) t1(type),
+                unnest(@values::VARCHAR []) t2(value),
+                unnest(@chain_ids::VARCHAR []) t3(chain_id)
+            WHERE t1.type = portal_application_whitelists.type
+                AND t2.value = portal_application_whitelists.value
+                AND t3.chain_id = portal_application_whitelists.chain_id
+        )
+    )
+    OR (
+        type IN ('blockchains', 'origins', 'userAgents')
+        AND application_id = $1
+        AND NOT EXISTS (
+            SELECT 1
+            FROM unnest(@types::whitelist_type []) t1(type),
+                unnest(@values::VARCHAR []) t2(value)
+            WHERE t1.type = portal_application_whitelists.type
+                AND t2.value = portal_application_whitelists.value
+        )
+    );
+-- name: UpdateFirstDatesSurpassed :exec
+UPDATE portal_applications
+SET first_date_surpassed = @first_date_surpassed
+WHERE id = ANY (@portal_app_ids::VARCHAR []);
+-- name: DeletePortalApp :exec
+UPDATE portal_applications
+SET deleted = true,
+    deleted_at = $2
+WHERE id = $1;
+-- name: SelectAccounts :many
+WITH app_role_agg_owner AS (
+    SELECT aua.user_id,
+        aua.account_id,
+        jsonb_object_agg(pa.id, 'OWNER') AS portal_application_roles
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+    WHERE aua.owner = true
+    GROUP BY aua.user_id,
+        aua.account_id
+),
+app_role_agg_non_owner AS (
+    SELECT aua.user_id,
+        aua.account_id,
+        jsonb_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    WHERE aua.owner = false
+    GROUP BY aua.user_id,
+        aua.account_id
+),
+app_role_agg AS (
+    SELECT COALESCE(aro.user_id, aroo.user_id) as user_id,
+        COALESCE(aro.account_id, aroo.account_id) as account_id,
+        COALESCE(aro.portal_application_roles, '{}'::jsonb) || COALESCE(aroo.portal_application_roles, '{}'::jsonb) as portal_application_roles
+    FROM app_role_agg_owner aro
+        FULL JOIN app_role_agg_non_owner aroo ON aro.user_id = aroo.user_id
+        AND aro.account_id = aroo.account_id
+)
+SELECT a.*,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
+    json_agg(
+        json_build_object(
+            'user_id',
+            u.id,
+            'email',
+            u.email,
+            'accepted',
+            aua.accepted,
+            'owner',
+            aua.owner,
+            'portal_application_roles',
+            ara.portal_application_roles
+        )
+    ) AS users
+FROM accounts AS a
+    LEFT JOIN account_user_access AS aua ON a.id = aua.account_id
+    LEFT JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
+    LEFT JOIN users AS u ON aua.user_id = u.id
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
+    LEFT JOIN app_role_agg AS ara ON u.id = ara.user_id
+    AND a.id = ara.account_id
+WHERE (
+        $1::BOOLEAN
+        OR a.deleted = false
+    )
+GROUP BY a.id,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid;
+-- name: SelectAccount :one
+WITH app_role_agg_owner AS (
+    SELECT aua.user_id,
+        aua.account_id,
+        jsonb_object_agg(pa.id, 'OWNER') AS portal_application_roles
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+    WHERE aua.owner = true
+    GROUP BY aua.user_id,
+        aua.account_id
+),
+app_role_agg_non_owner AS (
+    SELECT aua.user_id,
+        aua.account_id,
+        jsonb_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    WHERE aua.owner = false
+    GROUP BY aua.user_id,
+        aua.account_id
+),
+app_role_agg AS (
+    SELECT COALESCE(aro.user_id, aroo.user_id) as user_id,
+        COALESCE(aro.account_id, aroo.account_id) as account_id,
+        COALESCE(aro.portal_application_roles, '{}'::jsonb) || COALESCE(aroo.portal_application_roles, '{}'::jsonb) as portal_application_roles
+    FROM app_role_agg_owner aro
+        FULL JOIN app_role_agg_non_owner aroo ON aro.user_id = aroo.user_id
+        AND aro.account_id = aroo.account_id
+)
+SELECT a.*,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid,
+    json_agg(
+        json_build_object(
+            'user_id',
+            u.id,
+            'email',
+            u.email,
+            'accepted',
+            aua.accepted,
+            'owner',
+            aua.owner,
+            'portal_application_roles',
+            ara.portal_application_roles
+        )
+    ) AS users
+FROM accounts AS a
+    LEFT JOIN account_user_access AS aua ON a.id = aua.account_id
+    LEFT JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+    LEFT JOIN account_integrations AS ai ON a.id = ai.account_id
+    LEFT JOIN users AS u ON aua.user_id = u.id
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
+    LEFT JOIN app_role_agg AS ara ON u.id = ara.user_id
+    AND a.id = ara.account_id
+WHERE a.id = $1
+GROUP BY a.id,
+    ai.covalent_api_key_free,
+    ai.covalent_api_key_paid;
+-- name: UpdateAccountFields :exec
+UPDATE accounts
+SET plan_type = COALESCE($1, plan_type),
+    partner_chain_ids = COALESCE($2, partner_chain_ids),
+    partner_throughput_limit = COALESCE($3, partner_throughput_limit),
+    partner_application_limit = COALESCE($4, partner_application_limit),
+    updated_at = $5
+WHERE id = $6;
 -- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
         account_id,
@@ -770,100 +459,622 @@ SET covalent_api_key_free = CASE
     END,
     updated_at = EXCLUDED.updated_at
 RETURNING *;
--- name: InsertUserAccessOwner :exec
-INSERT INTO user_access (
-        lb_id,
-        role_name,
-        user_id,
-        email,
-        accepted,
-        created_at,
-        updated_at,
-        account_id
-    )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
--- name: InsertUserAccess :exec
-INSERT INTO user_access (
-        lb_id,
-        role_name,
-        user_id,
-        email,
-        accepted,
-        created_at,
-        updated_at
-    )
-VALUES ($1, $2, $3, $4, $5, $6, $7);
--- name: InsertUserAccessNoConflict :exec
-INSERT INTO user_access (
-        lb_id,
-        role_name,
-        user_id,
-        email,
-        accepted,
+-- name: SelectUserPermissions :many
+SELECT aua.user_id,
+    aua.role_name,
+    aua.owner,
+    ur.permissions::permissions[] AS permissions,
+    CASE
+        WHEN aua.owner THEN array_agg(pa.id)::VARCHAR []
+        ELSE ARRAY [aua.portal_application_id]::VARCHAR []
+    END AS portal_application_ids
+FROM account_user_access AS aua
+    LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
+    LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+WHERE aua.accepted = true
+    AND aua.user_id IS NOT NULL
+    AND pa.id IS NOT NULL
+GROUP BY aua.user_id,
+    aua.role_name,
+    aua.owner,
+    ur.permissions,
+    aua.portal_application_id;
+-- name: SelectUserIDs :many
+SELECT user_id,
+    provider_user_id
+FROM user_auth_providers;
+-- name: InsertAccount :one
+INSERT INTO accounts (
+        id,
+        plan_type,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (lb_id, user_id) DO NOTHING;
--- name: GetUserAccessAccepted :one
+VALUES ($1, $2, $3, $4)
+RETURNING *;
+-- name: DeleteAccount :exec
+UPDATE accounts
+SET deleted = true,
+    deleted_at = $2
+WHERE id = $1;
+-- name: CheckChainExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM chains
+        WHERE id = $1
+            AND deleted = false
+    );
+-- name: CheckAliasExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM chain_alias_domains
+        WHERE chain_id = $1
+            AND alias = $2
+    );
+-- name: CheckPlanTypeExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM pay_plans
+        WHERE plan_type = $1
+    );
+-- name: CheckUserEmail :one
+SELECT email
+FROM users
+WHERE id = $1;
+-- name: CheckUserIDFromEmail :one
+SELECT id
+FROM users
+WHERE email = $1;
+-- name: CheckAccountExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM accounts
+        WHERE id = $1
+            AND deleted = false
+    );
+-- name: CheckPlanExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM pay_plans
+        WHERE plan_type = $1
+    );
+-- name: CheckPortalAppExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM portal_applications
+        WHERE id = $1
+            AND deleted = false
+    );
+-- name: CheckUserExists :one
+SELECT EXISTS(
+        SELECT 1
+        FROM users
+        WHERE id = $1
+    );
+-- name: CheckUserAccountExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM account_user_access
+        WHERE user_id = $1
+    );
+-- name: CheckAccountUserExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM account_user_access
+        WHERE user_id = $1
+            AND portal_application_id = $2
+    );
+-- name: CheckUserProviderExists :one
+SELECT EXISTS (
+        SELECT 1
+        FROM users
+            JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+        WHERE users.email = $1
+            AND user_auth_providers.type = $2
+    );
+-- name: CheckAccountUserRole :one
+SELECT role_name
+FROM account_user_access
+WHERE user_id = $1
+    AND account_id = $2;
+-- name: CheckAccountUserAccepted :one
 SELECT accepted
-FROM user_access
-WHERE email = $1
-    AND lb_id = $2;
--- name: UpdateUserAccess :exec
-UPDATE user_access as ua
-SET role_name = COALESCE($3, ua.role_name),
-    account_id = COALESCE($4, ua.account_id),
-    updated_at = $5
-WHERE ua.email = $1
-    AND ua.lb_id = $2;
--- name: GetPreviousOwner :one
-SELECT account_id,
-    email
-FROM user_access
-WHERE lb_id = $1
-    AND role_name = 'OWNER';
--- name: UpdateAccountIDNullOldOwner :exec
-UPDATE user_access
-SET account_id = NULL,
-    role_name = 'ADMIN'
-WHERE lb_id = $1
-    AND email = $2;
--- name: SetUserAccessAccepted :exec
-UPDATE user_access as ua
-SET user_id = $3,
-    accepted = $4,
-    updated_at = $5
-WHERE ua.email = $1
-    AND ua.lb_id = $2;
--- name: DeleteUserAccess :exec
-DELETE FROM user_access as ua
-WHERE ua.email = $1
-    AND ua.lb_id = $2;
--- name: UpsertStickinessOptions :exec
-INSERT INTO stickiness_options AS so (
-        lb_id,
-        duration,
-        sticky_max,
-        stickiness,
-        origins
+FROM account_user_access
+WHERE user_id = $1
+    AND portal_application_id = $2;
+-- name: InsertAccountUserAccess :one
+WITH updated_user AS (
+    UPDATE users
+    SET email = $7
+    WHERE id = $1
+    RETURNING id,
+        email
+) -- Must update email to trigger listener notification for users table
+INSERT INTO account_user_access (
+        user_id,
+        account_id,
+        portal_application_id,
+        role_name,
+        owner,
+        accepted,
+        created_at,
+        updated_at
     )
-VALUES ($1, $2, $3, $4, $5) ON CONFLICT (lb_id) DO
+VALUES (
+        $1,
+        $2,
+        NULLIF(@portal_application_id::VARCHAR, ''),
+        $3,
+        $4,
+        $5,
+        $6,
+        $8
+    )
+RETURNING user_id;
+-- name: InsertAccountUserAccessNoUser :one
+WITH inserted_user AS (
+    INSERT INTO users (
+            id,
+            email,
+            signed_up,
+            created_at,
+            updated_at
+        )
+    VALUES ($1, $2, false, $3, $4)
+    RETURNING id,
+        email
+)
+INSERT INTO account_user_access (
+        user_id,
+        account_id,
+        portal_application_id,
+        role_name,
+        owner,
+        accepted,
+        created_at,
+        updated_at
+    )
+VALUES (
+        (
+            SELECT id
+            FROM inserted_user
+        ),
+        $6,
+        $7,
+        $5,
+        false,
+        false,
+        $3,
+        $4
+    )
+RETURNING user_id;
+-- name: UpdateAccountUserRole :exec
+UPDATE account_user_access
+SET role_name = $3,
+    updated_at = $4
+WHERE portal_application_id = $1
+    AND user_id = $2;
+-- name: TransferOwnerDeleteOldRows :one
+WITH delete_old_owner_row AS (
+    DELETE FROM account_user_access
+    WHERE account_user_access.account_id = $1
+        AND role_name = 'OWNER'
+    RETURNING user_id
+),
+delete_new_owner_non_owner_rows AS (
+    DELETE FROM account_user_access
+    WHERE account_user_access.account_id = $1
+        AND user_id = @new_owner_id::VARCHAR(24)
+        AND role_name <> 'OWNER'
+)
+SELECT user_id
+FROM delete_old_owner_row;
+-- name: TransferOwnerCreateRows :exec
+WITH updated_user AS (
+    UPDATE users
+    SET email = users.email
+    WHERE id = @new_owner_id::VARCHAR(24)
+),
+insert_old_owner_admin_rows AS (
+    INSERT INTO account_user_access (
+            portal_application_id,
+            user_id,
+            account_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT DISTINCT on (pa.id) pa.id,
+        @old_owner_id::VARCHAR(24),
+        aua.account_id,
+        'ADMIN',
+        false,
+        true,
+        aua.created_at,
+        aua.updated_at
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+    WHERE aua.account_id = $1
+        AND NOT EXISTS (
+            SELECT 1
+            FROM account_user_access
+            WHERE user_id = @old_owner_id::VARCHAR(24)
+                AND portal_application_id = pa.id
+        )
+),
+insert_new_owner_row AS (
+    INSERT INTO account_user_access (
+            user_id,
+            account_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT @new_owner_id::VARCHAR(24),
+        $1,
+        'OWNER',
+        true,
+        true,
+        $2,
+        $3
+)
+SELECT 1;
+WITH updated_user AS (
+    UPDATE users
+    SET email = users.email
+    WHERE id = @new_owner_id::VARCHAR(24)
+),
+insert_old_owner_admin_rows AS (
+    INSERT INTO account_user_access (
+            user_id,
+            account_id,
+            portal_application_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT DISTINCT @old_owner_id::VARCHAR(24),
+        aua.account_id,
+        pa.id,
+        'ADMIN',
+        false,
+        true,
+        aua.created_at,
+        aua.updated_at
+    FROM account_user_access AS aua
+        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+    WHERE aua.account_id = $1
+),
+insert_new_owner_row AS (
+    INSERT INTO account_user_access (
+            user_id,
+            account_id,
+            role_name,
+            owner,
+            accepted,
+            created_at,
+            updated_at
+        )
+    SELECT @new_owner_id::VARCHAR(24),
+        $1,
+        'OWNER',
+        true,
+        true,
+        $2,
+        $3
+)
+SELECT 1;
+-- name: CreateUserNewSignUp :one
+WITH inserted_user AS (
+    INSERT INTO users (id, email, signed_up, created_at, updated_at)
+    VALUES ($1, $2, true, $3, $4) ON CONFLICT (email) DO NOTHING
+    RETURNING id
+)
+INSERT INTO user_auth_providers (
+        user_id,
+        type,
+        provider,
+        provider_user_id,
+        federated
+    )
+VALUES (
+        (
+            SELECT COALESCE(
+                    (
+                        SELECT id
+                        FROM inserted_user
+                    ),
+                    (
+                        SELECT id
+                        FROM users
+                        WHERE users.email = $2
+                    )
+                )
+        ),
+        $5,
+        $6,
+        $7,
+        $8
+    )
+RETURNING user_id;
+-- name: UpdateUserAcceptedInvite :exec
+WITH inserted_provider AS (
+    INSERT INTO user_auth_providers (
+            user_id,
+            type,
+            provider,
+            provider_user_id,
+            federated
+        )
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING user_id
+),
+updated_access AS (
+    UPDATE account_user_access
+    SET accepted = true
+    WHERE user_id = (
+            SELECT user_id
+            FROM inserted_provider
+        )
+        AND portal_application_id = $6
+)
+UPDATE users
+SET signed_up = true
+WHERE id = (
+        SELECT user_id
+        FROM inserted_provider
+    );
+-- name: DeleteAccountUser :exec
+DELETE FROM account_user_access
+WHERE portal_application_id = $1
+    AND user_id = $2;
+-- name: GetPortalUserID :one
+SELECT user_id
+FROM user_auth_providers
+WHERE provider_user_id = $1;
+-- name: GetUserDataFromPortalUserID :one
+SELECT users.*,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+WHERE users.id = $1
+GROUP BY users.id;
+-- name: GetUserDataFromAuthProviderUserID :one
+SELECT users.*,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+WHERE user_auth_providers.provider_user_id = $1
+GROUP BY users.id;
+-- name: DeleteUser :one
+DELETE FROM users
+WHERE id = $1
+RETURNING id;
+-- name: SelectChains :many
+SELECT c.*,
+    COALESCE(
+        json_agg(DISTINCT ca) FILTER (
+            WHERE ca.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_altruists,
+    COALESCE(
+        json_agg(DISTINCT cc) FILTER (
+            WHERE cc.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_checks,
+    COALESCE(
+        json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
+            WHERE cga.alias IS NOT NULL
+        ),
+        '{}'
+    )::json AS alias_domains_map
+FROM chains c
+    LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
+    LEFT JOIN chain_checks cc ON c.id = cc.chain_id
+    LEFT JOIN chain_alias_domains cga ON c.id = cga.chain_id
+WHERE (
+        @include_deleted::BOOLEAN
+        OR c.deleted = false
+    )
+GROUP BY c.id;
+-- name: UpsertChain :one
+INSERT INTO chains (
+        id,
+        blockchain,
+        description,
+        enforce_result,
+        path,
+        ticker,
+        request_timeout,
+        log_limit_blocks,
+        allowed_methods,
+        created_at,
+        updated_at
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11
+    ) ON CONFLICT (id) DO
 UPDATE
-SET duration = COALESCE(EXCLUDED.duration, so.duration),
-    sticky_max = COALESCE(EXCLUDED.sticky_max, so.sticky_max),
-    stickiness = COALESCE(EXCLUDED.stickiness, so.stickiness),
-    origins = COALESCE(EXCLUDED.origins, so.origins);
--- name: InsertLbApps :exec
-INSERT into lb_apps (lb_id, app_id)
-SELECT @lb_id,
-    unnest(@app_ids::VARCHAR []);
--- name: UpdateLB :exec
-UPDATE loadbalancers AS l
-SET name = COALESCE($2, l.name),
+SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
+    description = COALESCE(EXCLUDED.description, chains.description),
+    enforce_result = COALESCE(EXCLUDED.enforce_result, chains.enforce_result),
+    path = COALESCE(EXCLUDED.path, chains.path),
+    ticker = COALESCE(EXCLUDED.ticker, chains.ticker),
+    request_timeout = COALESCE(EXCLUDED.request_timeout, chains.request_timeout),
+    log_limit_blocks = COALESCE(
+        EXCLUDED.log_limit_blocks,
+        chains.log_limit_blocks
+    ),
+    allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
+    updated_at = EXCLUDED.updated_at
+RETURNING id;
+-- name: UpsertChainAltruist :exec
+INSERT INTO chain_altruists (
+        chain_id,
+        url,
+        auth,
+        auth_type,
+        created_at,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (chain_id, url) DO
+UPDATE
+SET auth = COALESCE(EXCLUDED.auth, chain_altruists.auth),
+    auth_type = COALESCE(EXCLUDED.auth_type, chain_altruists.auth_type),
+    updated_at = EXCLUDED.updated_at;
+-- name: DeleteUnusedChainAltruists :exec
+DELETE FROM chain_altruists
+WHERE chain_id = $1
+    AND url NOT IN (
+        SELECT unnest(@urls::VARCHAR [])
+    );
+-- name: UpsertChainAliasDomains :exec
+INSERT INTO chain_alias_domains (
+        chain_id,
+        alias,
+        domains,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, alias) DO
+UPDATE
+SET domains = COALESCE(
+        EXCLUDED.domains,
+        chain_alias_domains.domains
+    ),
+    updated_at = EXCLUDED.updated_at;
+-- name: DeleteUnusedChainAliasDomains :exec
+DELETE FROM chain_alias_domains
+WHERE chain_id = $1
+    AND alias NOT IN (
+        SELECT unnest(@aliases::VARCHAR [])
+    );
+-- name: DeleteChainAliasDomain :exec
+DELETE FROM chain_alias_domains
+WHERE chain_id = $1
+    AND alias = $2;
+-- name: UpsertChainCheck :exec
+INSERT INTO chain_checks (
+        chain_id,
+        type,
+        payload,
+        result_key,
+        allowance,
+        evm_chain_id,
+        created_at,
+        updated_at
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8
+    ) ON CONFLICT (chain_id, type) DO
+UPDATE
+SET payload = COALESCE(EXCLUDED.payload, chain_checks.payload),
+    result_key = COALESCE(EXCLUDED.result_key, chain_checks.result_key),
+    allowance = COALESCE(EXCLUDED.allowance, chain_checks.allowance),
+    evm_chain_id = COALESCE(EXCLUDED.evm_chain_id, chain_checks.evm_chain_id),
+    updated_at = EXCLUDED.updated_at;
+-- name: DeleteUnusedChainChecks :exec
+DELETE FROM chain_checks
+WHERE chain_id = $1
+    AND type NOT IN (
+        SELECT unnest(@types::chain_check_type [])
+    );
+-- name: UpdateChainActive :one
+UPDATE chains
+SET active = $2,
     updated_at = $3
-WHERE l.lb_id = $1;
--- name: RemoveLB :exec
-UPDATE loadbalancers
-SET user_id = '',
-    updated_at = $2
-WHERE lb_id = $1;
+WHERE id = $1
+RETURNING active;
+-- name: InsertGigastakeApp :exec
+WITH new_gigastake_application AS (
+    INSERT INTO gigastake_applications (
+            id,
+            name,
+            address,
+            public_key,
+            client_public_key,
+            signature,
+            private_key,
+            version,
+            created_at,
+            updated_at,
+            lb_id
+        )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING id
+)
+INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+SELECT unnest(@chain_ids::VARCHAR []),
+    (
+        SELECT id
+        FROM new_gigastake_application
+    ) ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING;
+-- name: UpdateGigastakeAppNameAndChainIDs :exec
+WITH updated_gigastake_application AS (
+    UPDATE gigastake_applications
+    SET name = $2,
+        updated_at = $3
+    WHERE id = $1
+    RETURNING id
+),
+inserted AS (
+    INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
+    SELECT unnest(@chain_ids::VARCHAR []),
+        updated_gigastake_application.id
+    FROM updated_gigastake_application ON CONFLICT (chain_id, gigastake_application_id) DO NOTHING
+)
+DELETE FROM chains_gigastake_applications
+WHERE gigastake_application_id IN (
+        SELECT id
+        FROM updated_gigastake_application
+    )
+    AND chain_id NOT IN (
+        SELECT unnest(@chain_ids::VARCHAR [])
+    );
+-- name: SelectGlobalBlockedContract :many
+SELECT id,
+    blocked_address
+FROM global_blocked_contracts
+WHERE active = true;
+-- name: AddGlobalBlockedContract :exec
+INSERT INTO global_blocked_contracts (blocked_address, created_at, updated_at)
+VALUES ($1, $2, $3);
+-- name: SetGlobalBlockedContractActive :one
+UPDATE global_blocked_contracts
+SET active = $2,
+    updated_at = $3
+WHERE blocked_address = $1
+RETURNING id;
+-- name: RemoveGlobalBlockedContract :one
+DELETE FROM global_blocked_contracts
+WHERE blocked_address = $1
+RETURNING id;
+-- name: GetLastCreatedUserID :one
+SELECT id
+FROM users
+ORDER BY created_at DESC
+LIMIT 1;
