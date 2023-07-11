@@ -54,5 +54,9 @@ func (ts *PGDriverTestSuite) initPostgresDriver() error {
 	}
 	ts.driver = driver
 
+	if err := ts.driver.Ping(); err != nil {
+		return err
+	}
+
 	return nil
 }

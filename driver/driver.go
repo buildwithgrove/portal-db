@@ -11,6 +11,12 @@ type (
 	Driver interface {
 		Reader
 		Writer
+		Pinger
+	}
+
+	// Pinger ensures to provide a healthcheck to perform against the db
+	Pinger interface {
+		Ping() error
 	}
 
 	Reader interface {
