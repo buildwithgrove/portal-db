@@ -13,6 +13,11 @@ type (
 		Writer
 	}
 
+	// Pinger ensures to provide a healthcheck to perform against the db
+	Pinger interface {
+		Ping() error
+	}
+
 	Reader interface {
 		/* ReadPayPlans returns all pay plans in the database and marshals to types struct */
 		ReadPayPlans(ctx context.Context) ([]*types.PayPlan, error)
@@ -26,6 +31,8 @@ type (
 		ReadBlockchains(ctx context.Context) ([]*types.Blockchain, error)
 
 		NotificationChannel() <-chan *types.Notification
+
+		Pinger
 	}
 
 	Writer interface {
@@ -66,5 +73,7 @@ type (
 		/* ActivateChain toggles chain.active field on or off */
 		ActivateChain(ctx context.Context, id string, active bool) error
 		RemoveRedirect(ctx context.Context, blockchainID, domain string) error
+
+		Pinger
 	}
 )

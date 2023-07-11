@@ -76,6 +76,11 @@ func NewPostgresDriverFromDBInstance(db *sql.DB, listener Listener) *PostgresDri
 	return driver
 }
 
+// Ping ensures the database connection is healthy
+func (d *PostgresDriver) Ping() error {
+	return d.db.Ping()
+}
+
 /* NotificationChannel returns receiver Notification channel  */
 func (d *PostgresDriver) NotificationChannel() <-chan *types.Notification {
 	return d.notification
