@@ -1,62 +1,167 @@
 package postgresdriver
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 
-	"github.com/lib/pq"
-	"github.com/pokt-foundation/portal-db/types"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgxlisten"
+	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
-type Listener interface {
-	NotificationChannel() <-chan *pq.Notification
-	Listen(channel string) error
+const listenerChannel = "events"
+
+type (
+	// Listener interface establishes the structure for handling and listening to PostgreSQL notifications.
+	Listener interface {
+		Handle(channel string, handler pgxlisten.Handler)
+		Listen(ctx context.Context) error
+	}
+	// PGXNotificationHandler structure for handling PostgreSQL notifications.
+	PGXNotificationHandler struct {
+		outCh chan *types.Notification
+	}
+	// notification structure for parsing PostgreSQL notifications.
+	notification struct {
+		Table  types.Table  `json:"table"`
+		Action types.Action `json:"action"`
+		Data   any          `json:"data"`
+	}
+)
+
+// NewPGXListener creates a new pgxlisten.Listener with a connection and output channel.
+func NewPGXListener(conn *pgx.Conn, outCh chan *types.Notification) *pgxlisten.Listener {
+	connectFunc := func(ctx context.Context) (*pgx.Conn, error) {
+		if conn.IsClosed() {
+			return nil, fmt.Errorf("provided connection is closed")
+		}
+		return conn, nil
+	}
+
+	listener := &pgxlisten.Listener{
+		Connect:  connectFunc,
+		LogError: logError,
+	}
+
+	handler := &PGXNotificationHandler{outCh: outCh}
+	listener.Handle(listenerChannel, handler)
+
+	return listener
 }
 
-type notification struct {
-	Table  types.Table  `json:"table"`
-	Action types.Action `json:"action"`
-	Data   any          `json:"data"`
+// HandleNotification handles incoming PostgreSQL notifications by parsing them in a separate goroutine.
+func (h *PGXNotificationHandler) HandleNotification(ctx context.Context, n *pgconn.Notification, conn *pgx.Conn) error {
+	go h.parsePGXNotification(n)
+	return nil
 }
 
-func (n notification) parseLoadBalancerNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbLoadBalancer dbLoadBalancerJSON
-	_ = json.Unmarshal(rawData, &dbLoadBalancer)
+// parsePGXNotification parses incoming PostgreSQL notifications and sends them to the output channel.
+func (h *PGXNotificationHandler) parsePGXNotification(n *pgconn.Notification) {
+	if n != nil {
+		var notification *notification
 
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbLoadBalancer.toOutput(),
+		err := json.Unmarshal([]byte(n.Payload), &notification)
+		if err != nil {
+			return
+		}
+
+		h.outCh <- notification.parseNotification()
 	}
 }
 
-func (n notification) parseStickinessOptionsNotification() *types.Notification {
-	rawData, _ := json.Marshal(n.Data)
-	var dbStickinessOpts dbStickinessOptionsJSON
-	_ = json.Unmarshal(rawData, &dbStickinessOpts)
+// logError logs errors that occur while listening to PostgreSQL notifications.
+func logError(ctx context.Context, err error) {
+	fmt.Printf("listener notification error: %v", err)
+}
 
-	return &types.Notification{
-		Table:  n.Table,
-		Action: n.Action,
-		Data:   dbStickinessOpts.toOutput(),
+// CloseListener closes the notification channel and stops listening for PostgreSQL notifications.
+func (d *PostgresDriver) CloseListener() {
+	close(d.notification)
+}
+
+// parseNotification parses the notification based on the notified table and returns a types.Notification.
+func (n notification) parseNotification() *types.Notification {
+	switch n.Table {
+	case types.TableAccounts:
+		return n.parseAccountNotification()
+	case types.TableAccountUserAccess:
+		return n.parseAccountUserAccessNotification()
+	case types.TableAccountIntegrations:
+		return n.parseAccountIntegrationsNotification()
+
+	case types.TablePortalApps:
+		return n.parsePortalAppNotification()
+	case types.TableAppSettings:
+		return n.parseSettingsNotification()
+	case types.TableAppWhitelists:
+		return n.parseWhitelistNotification()
+	case types.TableAppNotifications:
+		return n.parseAppNotificationNotification()
+	case types.TablePortalAppAATs:
+		return n.parseAATNotification()
+
+	case types.TableGigastakeApps:
+		return n.parseGigastakeAppsNotification()
+
+	case types.TableChainGigastakeApps:
+		return n.parseChainGigastakeAppNotification()
+
+	case types.TableChains:
+		return n.parseChainNotification()
+	case types.TableChainAltruists:
+		return n.parseChainAltruistNotification()
+	case types.TableChainAliasDomains:
+		return n.parseChainAliasDomainsNotification()
+	case types.TableChainChecks:
+		return n.parseChainCheckNotification()
+
+	case types.TableUsers:
+		return n.parseUsersNotification()
+	case types.TableUserAuthProviders:
+		return n.parseUserAuthProviderNotification()
+
+	case types.TablePayPlans:
+		return n.parsePayPlanNotification()
+
+	case types.TableGlobalBlockedContracts:
+		return n.parseGlobalBlockedContractNotification()
+
+	default:
+		return nil
 	}
 }
 
-func (n notification) parseUserAccessNotification() *types.Notification {
+/* ---------- Table Data Parser Methods ---------- */
+
+func (n notification) parseAccountNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbUserAccess dbUserAccessJSON
-	_ = json.Unmarshal(rawData, &dbUserAccess)
+	var dbAccount dbAccount
+	_ = json.Unmarshal(rawData, &dbAccount)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbUserAccess.toOutput(),
+		Data:   dbAccount.toOutput(),
+	}
+}
+
+func (n notification) parseAccountUserAccessNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbAccountUser dbAccountUserAccess
+	_ = json.Unmarshal(rawData, &dbAccountUser)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbAccountUser.toOutput(),
 	}
 }
 
 func (n notification) parseAccountIntegrationsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAccountIntegrations dbAccountIntegrationsJSON
+	var dbAccountIntegrations dbAccountIntegration
 	_ = json.Unmarshal(rawData, &dbAccountIntegrations)
 
 	return &types.Notification{
@@ -66,193 +171,182 @@ func (n notification) parseAccountIntegrationsNotification() *types.Notification
 	}
 }
 
-func (n notification) parseLbApps() *types.Notification {
+func (n notification) parsePortalAppNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var lbApp types.LbApp
-	_ = json.Unmarshal(rawData, &lbApp)
+	var dbPortalApp dbPortalApplication
+	_ = json.Unmarshal(rawData, &dbPortalApp)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   &lbApp,
+		Data:   dbPortalApp.toOutput(),
 	}
 }
 
-func (n notification) parseApplicationNotification() *types.Notification {
+func (n notification) parseSettingsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbApp dbAppJSON
-	_ = json.Unmarshal(rawData, &dbApp)
+	var dbAppSettings dbPortalApplicationSetting
+	_ = json.Unmarshal(rawData, &dbAppSettings)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbApp.toOutput(),
+		Data:   dbAppSettings.toOutput(),
 	}
 }
 
-func (n notification) parseAppLimitNotification() *types.Notification {
+func (n notification) parseWhitelistNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbAppLimit dbAppLimitJSON
-	_ = json.Unmarshal(rawData, &dbAppLimit)
+	var dbAppWhitelist dbPortalApplicationWhitelist
+	_ = json.Unmarshal(rawData, &dbAppWhitelist)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbAppLimit.toOutput(),
+		Data:   dbAppWhitelist.toOutput(),
 	}
 }
 
-func (n notification) parseGatewayAATNotification() *types.Notification {
+func (n notification) parseAppNotificationNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbGatewayAAT dbGatewayAATJSON
-	_ = json.Unmarshal(rawData, &dbGatewayAAT)
+	var dbAppNotification dbPortalApplicationNotification
+	_ = json.Unmarshal(rawData, &dbAppNotification)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbGatewayAAT.toOutput(),
+		Data:   dbAppNotification.toOutput(),
 	}
 }
 
-func (n notification) parseGatewaySettingsNotification() *types.Notification {
+func (n notification) parseAATNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbGatewaySettings dbGatewaySettingsJSON
-	_ = json.Unmarshal(rawData, &dbGatewaySettings)
+	var dbAAT dbPortalApplicationAAT
+	_ = json.Unmarshal(rawData, &dbAAT)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbGatewaySettings.toOutput(),
+		Data:   dbAAT.toOutput(),
 	}
 }
 
-func (n notification) parseWhitelistContractNotification() *types.Notification {
+func (n notification) parseGigastakeAppsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbWhitelistContract dbWhitelistContractJSON
-	_ = json.Unmarshal(rawData, &dbWhitelistContract)
+	var dbGigastakeApp dbGigastakeApp
+	_ = json.Unmarshal(rawData, &dbGigastakeApp)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbWhitelistContract.toOutput(),
+		Data:   dbGigastakeApp.toOutput(),
 	}
 }
 
-func (n notification) parseWhitelistMethodNotification() *types.Notification {
+func (n notification) parseChainGigastakeAppNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbWhitelistMethod dbWhitelistMethodJSON
-	_ = json.Unmarshal(rawData, &dbWhitelistMethod)
+	var dbChainGigastakeApp dbChainGigastakeApp
+	_ = json.Unmarshal(rawData, &dbChainGigastakeApp)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbWhitelistMethod.toOutput(),
+		Data:   dbChainGigastakeApp.toOutput(),
 	}
 }
 
-func (n notification) parseNotificationSettingsNotification() *types.Notification {
+func (n notification) parseChainNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbNotificationSettings dbNotificationSettingsJSON
-	_ = json.Unmarshal(rawData, &dbNotificationSettings)
+	var dbChain dbChain
+	_ = json.Unmarshal(rawData, &dbChain)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbNotificationSettings.toOutput(),
+		Data:   dbChain.toOutput(),
 	}
 }
 
-func (n notification) parseBlockchainNotification() *types.Notification {
+func (n notification) parseChainAltruistNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbBlockchain dbBlockchainJSON
-	_ = json.Unmarshal(rawData, &dbBlockchain)
+	var dbChainAltruist dbChainAltruist
+	_ = json.Unmarshal(rawData, &dbChainAltruist)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbBlockchain.toOutput(),
+		Data:   dbChainAltruist.toOutput(),
 	}
 }
 
-func (n notification) parseRedirectNotification() *types.Notification {
+func (n notification) parseChainCheckNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbRedirect dbRedirectJSON
-	_ = json.Unmarshal(rawData, &dbRedirect)
+	var dbChainCheck dbChainCheck
+	_ = json.Unmarshal(rawData, &dbChainCheck)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbRedirect.toOutput(),
+		Data:   dbChainCheck.toOutput(),
 	}
 }
 
-func (n notification) parseSyncOptionsNotification() *types.Notification {
+func (n notification) parseChainAliasDomainsNotification() *types.Notification {
 	rawData, _ := json.Marshal(n.Data)
-	var dbSyncOpts dbSyncCheckOptionsJSON
-	_ = json.Unmarshal(rawData, &dbSyncOpts)
+	var dbAlias dbChainAliasDomains
+	_ = json.Unmarshal(rawData, &dbAlias)
 
 	return &types.Notification{
 		Table:  n.Table,
 		Action: n.Action,
-		Data:   dbSyncOpts.toOutput(),
+		Data:   dbAlias.toOutput(),
 	}
 }
 
-func (n notification) parseNotification() *types.Notification {
-	switch n.Table {
-	case types.TableLoadBalancers:
-		return n.parseLoadBalancerNotification()
-	case types.TableStickinessOptions:
-		return n.parseStickinessOptionsNotification()
-	case types.TableUserAccess:
-		return n.parseUserAccessNotification()
-	case types.TableAccountIntegrations:
-		return n.parseAccountIntegrationsNotification()
+func (n notification) parseUsersNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbUser dbUser
+	_ = json.Unmarshal(rawData, &dbUser)
 
-	case types.TableLbApps:
-		return n.parseLbApps()
-
-	case types.TableApplications:
-		return n.parseApplicationNotification()
-	case types.TableAppLimits:
-		return n.parseAppLimitNotification()
-	case types.TableGatewayAAT:
-		return n.parseGatewayAATNotification()
-	case types.TableGatewaySettings:
-		return n.parseGatewaySettingsNotification()
-	case types.TableWhitelistContracts:
-		return n.parseWhitelistContractNotification()
-	case types.TableWhitelistMethods:
-		return n.parseWhitelistMethodNotification()
-	case types.TableNotificationSettings:
-		return n.parseNotificationSettingsNotification()
-
-	case types.TableBlockchains:
-		return n.parseBlockchainNotification()
-	case types.TableRedirects:
-		return n.parseRedirectNotification()
-	case types.TableSyncCheckOptions:
-		return n.parseSyncOptionsNotification()
-	}
-
-	return nil
-}
-
-func parsePQNotification(n *pq.Notification, outCh chan *types.Notification) {
-	if n != nil {
-		var notification notification
-		_ = json.Unmarshal([]byte(n.Extra), &notification)
-		outCh <- notification.parseNotification()
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbUser.toOutput(),
 	}
 }
 
-func Listen(inCh <-chan *pq.Notification, outCh chan *types.Notification) {
-	for {
-		n := <-inCh
-		go parsePQNotification(n, outCh)
+func (n notification) parseUserAuthProviderNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbUserAuthProvider dbUserAuthProvider
+	_ = json.Unmarshal(rawData, &dbUserAuthProvider)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbUserAuthProvider.toOutput(),
 	}
 }
 
-func (d *PostgresDriver) CloseListener() {
-	close(d.notification)
+func (n notification) parsePayPlanNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbPayPlan dbPayPlan
+	_ = json.Unmarshal(rawData, &dbPayPlan)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbPayPlan.toOutput(),
+	}
+}
+
+func (n notification) parseGlobalBlockedContractNotification() *types.Notification {
+	rawData, _ := json.Marshal(n.Data)
+	var dbBlockedContract dbGlobalBlockedContract
+	_ = json.Unmarshal(rawData, &dbBlockedContract)
+
+	return &types.Notification{
+		Table:  n.Table,
+		Action: n.Action,
+		Data:   dbBlockedContract.toOutput(),
+	}
 }

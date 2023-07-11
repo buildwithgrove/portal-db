@@ -2,20 +2,14 @@ package postgresdriver
 
 import (
 	"context"
-	"fmt"
 	"testing"
-	"time"
 
-	"github.com/lib/pq"
+	"github.com/pokt-foundation/portal-db/v2/types"
 	"github.com/stretchr/testify/suite"
 )
 
 const (
 	connectionString = "postgres://postgres:pgpassword@localhost:5432/postgres?sslmode=disable" // pragma: allowlist secret
-)
-
-var (
-	testCtx = context.Background()
 )
 
 type (
@@ -27,6 +21,10 @@ type (
 )
 
 func Test_RunPGDriverSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping end to end test")
+	}
+
 	testSuite := new(PGDriverTestSuite)
 	testSuite.connectionString = connectionString
 
@@ -41,20 +39,28 @@ func (ts *PGDriverTestSuite) SetupSuite() {
 
 // Initializes a real instance of the Postgres driver that connects to the test Postgres Docker container
 func (ts *PGDriverTestSuite) initPostgresDriver() error {
-	reportProblem := func(ev pq.ListenerEventType, err error) {
-		if err != nil {
-			fmt.Printf("Problem with listener, error: %s, event type: %d", err.Error(), ev)
-		}
-	}
-	listener := pq.NewListener(ts.connectionString, 10*time.Second, time.Minute, reportProblem)
+	ctx := context.Background()
 
-	driver, err := NewPostgresDriver(ts.connectionString, listener)
+	mainConn, err := NewPGXConnection(ctx, connectionString)
 	if err != nil {
-		return err
+		panic(err)
+	}
+	listenerConn, err := NewPGXConnection(ctx, connectionString)
+	if err != nil {
+		panic(err)
+	}
+
+	notificationChannel := make(chan *types.Notification, 32)
+
+	listener := NewPGXListener(listenerConn, notificationChannel)
+
+	driver, err := NewPostgresDriver(mainConn, listener, notificationChannel)
+	if err != nil {
+		panic(err)
 	}
 	ts.driver = driver
 
-	if err := ts.driver.Ping(); err != nil {
+	if err := ts.driver.Ping(ctx); err != nil {
 		return err
 	}
 

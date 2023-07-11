@@ -1,6 +1,8 @@
 .env
 .env*
 
+.DS_Store
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -17,6 +19,6 @@
 bin
 
 pre-commit-2.20.0.pyz
-*.pyz
+pre-commit-2.20.0.pyz.*
 test.json
 tmp
