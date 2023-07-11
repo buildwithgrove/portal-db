@@ -35,6 +35,14 @@ Contains all database structs and their associated methods which are used across
 
 # Development
 
+## Code Generation
+⚠️ IMPORTANT - Before any commit the default `make` target **MUST** be run. ⚠️
+
+In order for this target to properly generate the Go code and mocks the following dependencies **MUST** be installed:
+
+- [SQLC](https://docs.sqlc.dev/en/stable/overview/install.html)
+- [Mockery](https://vektra.github.io/mockery/latest/installation/)
+
 ## Modifying Functionality
 
 - Start by updating the `postgresdrver/sqlc/schema.yml` and/or `postgresdrver/sqlc/query.yml` files
