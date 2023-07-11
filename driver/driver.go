@@ -11,7 +11,6 @@ type (
 	Driver interface {
 		Reader
 		Writer
-		Pinger
 	}
 
 	// Pinger ensures to provide a healthcheck to perform against the db
@@ -32,6 +31,8 @@ type (
 		ReadBlockchains(ctx context.Context) ([]*types.Blockchain, error)
 
 		NotificationChannel() <-chan *types.Notification
+
+		Pinger
 	}
 
 	Writer interface {
@@ -72,5 +73,7 @@ type (
 		/* ActivateChain toggles chain.active field on or off */
 		ActivateChain(ctx context.Context, id string, active bool) error
 		RemoveRedirect(ctx context.Context, blockchainID, domain string) error
+
+		Pinger
 	}
 )
