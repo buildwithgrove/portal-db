@@ -225,7 +225,13 @@ func Test_Listen(t *testing.T) {
 			err := listenerMock.Listen(ctx)
 			c.NoError(err)
 
-			driver, _ := NewPostgresDriver(nil, listenerMock, channel)
+			driver, errCh, _ := NewPostgresDriver(nil, channel)
+
+			go func() {
+				for err := range errCh {
+					t.Errorf("error in listener: %v", err)
+				}
+			}()
 
 			listenerMock.MockEvent(types.ActionInsert, types.ActionUpdate, test.content)
 
@@ -241,4 +247,5 @@ func Test_Listen(t *testing.T) {
 			c.Equal(test.expectedNotifications, notificationsMap)
 		})
 	}
+
 }

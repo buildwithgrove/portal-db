@@ -2,6 +2,7 @@ package postgresdriver
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -41,24 +42,25 @@ func (ts *PGDriverTestSuite) SetupSuite() {
 func (ts *PGDriverTestSuite) initPostgresDriver() error {
 	ctx := context.Background()
 
-	mainConn, err := NewPGXConnection(ctx, connectionString)
-	if err != nil {
-		panic(err)
-	}
-	listenerConn, err := NewPGXConnection(ctx, connectionString)
+	mainConnPool, err := NewPGXPool(ctx, connectionString)
 	if err != nil {
 		panic(err)
 	}
 
 	notificationChannel := make(chan *types.Notification, 32)
 
-	listener := NewPGXListener(listenerConn, notificationChannel)
-
-	driver, err := NewPostgresDriver(mainConn, listener, notificationChannel)
+	driver, errCh, err := NewPostgresDriver(mainConnPool, notificationChannel)
 	if err != nil {
 		panic(err)
 	}
 	ts.driver = driver
+
+	// This goroutine continuously monitors the error channel and logs any errors that come in.
+	go func() {
+		for err := range errCh {
+			fmt.Printf("error from listener: %v", err)
+		}
+	}()
 
 	if err := ts.driver.Ping(ctx); err != nil {
 		return err
