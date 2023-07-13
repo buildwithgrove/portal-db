@@ -136,7 +136,7 @@ NewPostgresDriver
 - Returns the created PostgresDriver instance.
 */
 func NewPostgresDriver(pool *pgxpool.Pool, listener Listener, notificationChannel chan *types.Notification) (*PostgresDriver, chan error, error) {
-	errCh := make(chan error)
+	errCh := make(chan error, 100)
 
 	driver := &PostgresDriver{
 		Queries:      New(pool),
