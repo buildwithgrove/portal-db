@@ -53,16 +53,16 @@ NewCloudSQLPGXPool
 - Returns the established connection pool.
 - It is important to note that this function will return an error if both PublicIP and PrivateIP are provided in the CloudSQLConfig.
 */
-func NewCloudSQLPGXPool(ctx context.Context, options CloudSQLConfig) (*pgxpool.Pool, error) {
+func NewCloudSQLPGXPool(options CloudSQLConfig) (*pgxpool.Pool, func() error, error) {
 	if options.PublicIP != "" && options.PrivateIP != "" {
-		return nil, errCantSetPrivateandPublicIP
+		return nil, nil, errCantSetPrivateandPublicIP
 	}
 
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", options.DBUser, options.DBPassword, options.DBName)
 
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var opts []cloudsqlconn.Option
@@ -73,12 +73,12 @@ func NewCloudSQLPGXPool(ctx context.Context, options CloudSQLConfig) (*pgxpool.P
 		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPrivateIP()))
 	}
 
-	dialer, err := cloudsqlconn.NewDialer(ctx, opts...)
+	d, err := cloudsqlconn.NewDialer(context.Background(), opts...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	config.ConnConfig.DialFunc = func(ctx context.Context, network, instance string) (net.Conn, error) {
-		return dialer.Dial(ctx, options.InstanceConnectionName)
+	config.ConnConfig.DialFunc = func(ctx context.Context, _, _ string) (net.Conn, error) {
+		return d.Dial(ctx, options.InstanceConnectionName)
 	}
 
 	config.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
@@ -90,12 +90,14 @@ func NewCloudSQLPGXPool(ctx context.Context, options CloudSQLConfig) (*pgxpool.P
 		return true
 	}
 
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		return nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
+		return nil, nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
 	}
 
-	return pool, nil
+	cleanup := func() error { return d.Close() }
+
+	return pool, cleanup, nil
 }
 
 /*
@@ -106,10 +108,10 @@ NewPGXPool
 - Returns the established connection pool.
 - This function is ideal for creating multiple reusable connections to a PostgreSQL database, particularly useful for handling multiple concurrent database operations.
 */
-func NewPGXPool(ctx context.Context, connectionString string) (*pgxpool.Pool, error) {
+func NewPGXPool(connectionString string) (*pgxpool.Pool, func() error, error) {
 	config, err := pgxpool.ParseConfig(connectionString)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	config.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
@@ -121,12 +123,14 @@ func NewPGXPool(ctx context.Context, connectionString string) (*pgxpool.Pool, er
 		return true
 	}
 
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		return nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
+		return nil, nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
 	}
 
-	return pool, nil
+	cleanup := func() error { return nil }
+
+	return pool, cleanup, nil
 }
 
 /*

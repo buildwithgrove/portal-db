@@ -34,17 +34,17 @@ func Test_RunPGDriverSuite(t *testing.T) {
 
 // SetupSuite runs before each test suite run
 func (ts *PGDriverTestSuite) SetupSuite() {
-	err := ts.initPostgresDriver()
+	_, err := ts.initPostgresDriver()
 	ts.NoError(err)
 }
 
 // Initializes a real instance of the Postgres driver that connects to the test Postgres Docker container
-func (ts *PGDriverTestSuite) initPostgresDriver() error {
+func (ts *PGDriverTestSuite) initPostgresDriver() (func() error, error) {
 	ctx := context.Background()
 
-	mainConnPool, err := NewPGXPool(ctx, connectionString)
+	mainConnPool, cleanup, err := NewPGXPool(connectionString)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	notificationChannel := make(chan *types.Notification, 32)
@@ -65,8 +65,8 @@ func (ts *PGDriverTestSuite) initPostgresDriver() error {
 	}()
 
 	if err := ts.driver.Ping(ctx); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return cleanup, nil
 }
