@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"strings"
 	"time"
@@ -15,6 +14,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pokt-foundation/portal-db/v2/types"
 	"github.com/pokt-foundation/utils-go/id"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // The PostgresDriver struct satisfies the Driver interface which defines all database driver methods
@@ -77,25 +78,19 @@ func NewCloudSQLPGXPool(options CloudSQLConfig) (*pgxpool.Pool, func() error, er
 	if err != nil {
 		return nil, nil, err
 	}
+
 	config.ConnConfig.DialFunc = func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return d.Dial(ctx, options.InstanceConnectionName)
 	}
-
-	config.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
-		err = registerCustomEnumTypes(ctx, conn)
-		if err != nil {
-			log.Printf("Unable to register custom enum types: %v", err)
-			return false
-		}
-		return true
-	}
-
-	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	pool, err := createAndConfigurePool(config)
 	if err != nil {
-		return nil, nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
+		return nil, nil, err
 	}
 
-	cleanup := func() error { return d.Close() }
+	cleanup := func() error {
+		pool.Close()
+		return d.Close()
+	}
 
 	return pool, cleanup, nil
 }
@@ -114,23 +109,92 @@ func NewPGXPool(connectionString string) (*pgxpool.Pool, func() error, error) {
 		return nil, nil, err
 	}
 
-	config.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
-		err := registerCustomEnumTypes(ctx, conn)
-		if err != nil {
-			log.Printf("Unable to register custom enum types: %v", err)
-			return false
-		}
-		return true
-	}
-
-	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	pool, err := createAndConfigurePool(config)
 	if err != nil {
-		return nil, nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
+		return nil, nil, err
 	}
 
-	cleanup := func() error { return nil }
+	cleanup := func() error {
+		pool.Close()
+		return nil
+	}
 
 	return pool, cleanup, nil
+}
+
+// Configures the connection pool with custom enum types.
+func createAndConfigurePool(config *pgxpool.Config) (*pgxpool.Pool, error) {
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		return nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
+	}
+
+	// Collect the custom data types once, store them in memory, and register them for every future connection.
+	customTypes, err := getCustomDataTypes(context.Background(), pool)
+	if err != nil {
+		return nil, err
+	}
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		for _, t := range customTypes {
+			conn.TypeMap().RegisterType(t)
+		}
+		return nil
+	}
+
+	// Immediately close the old pool and open a new one with the new config.
+	pool.Close()
+	pool, err = pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		return nil, err
+	}
+
+	return pool, nil
+}
+
+// Any custom DB types made with CREATE TYPE need to be registered with pgx.
+// https://github.com/kyleconroy/sqlc/issues/2116
+// https://stackoverflow.com/questions/75658429/need-to-update-psql-row-of-a-composite-type-in-golang-with-jack-pgx
+// https://pkg.go.dev/github.com/jackc/pgx/v5/pgtype
+func getCustomDataTypes(ctx context.Context, pool *pgxpool.Pool) ([]*pgtype.Type, error) {
+	// Get a single connection just to load type information.
+	conn, err := pool.Acquire(ctx)
+	defer conn.Release()
+	if err != nil {
+		return nil, err
+	}
+
+	dataTypeNames := []string{
+		"auth_provider",
+		"_auth_provider",
+		"auth_type",
+		"_auth_type",
+		"chain_auth_type",
+		"_chain_auth_type",
+		"chain_check_type",
+		"_chain_check_type",
+		"environment",
+		"_environment",
+		"notification_event",
+		"_notification_event",
+		"notification_type",
+		"_notification_type",
+		"permissions",
+		"_permissions",
+		"whitelist_type",
+		"_whitelist_type",
+	}
+
+	var typesToRegister []*pgtype.Type
+	for _, typeName := range dataTypeNames {
+		dataType, err := conn.Conn().LoadType(ctx, typeName)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to load type %s: %v", typeName, err)
+		}
+		// You need to register only for this connection too, otherwise the array type will look for the register element type.
+		conn.Conn().TypeMap().RegisterType(dataType)
+		typesToRegister = append(typesToRegister, dataType)
+	}
+	return typesToRegister, nil
 }
 
 /*
@@ -167,41 +231,6 @@ func (d *PostgresDriver) Ping(ctx context.Context) error {
 // NotificationChannel returns receiver Notification channel
 func (pg *PostgresDriver) NotificationChannel() <-chan *types.Notification {
 	return pg.notification
-}
-
-// registerCustomEnumTypes registers the custom enum types used in the DB
-func registerCustomEnumTypes(ctx context.Context, conn *pgx.Conn) error {
-	// Add new custom enum types to this slice, including _ for array types
-	dataTypeNames := []string{
-		"auth_provider",
-		"_auth_provider",
-		"auth_type",
-		"_auth_type",
-		"chain_auth_type",
-		"_chain_auth_type",
-		"chain_check_type",
-		"_chain_check_type",
-		"environment",
-		"_environment",
-		"notification_event",
-		"_notification_event",
-		"notification_type",
-		"_notification_type",
-		"permissions",
-		"_permissions",
-		"whitelist_type",
-		"_whitelist_type",
-	}
-
-	for _, typeName := range dataTypeNames {
-		dataType, err := conn.LoadType(ctx, typeName)
-		if err != nil {
-			return err
-		}
-		conn.TypeMap().RegisterType(dataType)
-	}
-
-	return nil
 }
 
 /* ---------- Postgres Driver Util Methods ---------- */
