@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgxlisten"
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
@@ -31,13 +32,14 @@ type (
 	}
 )
 
-// NewPGXListener creates a new pgxlisten.Listener with a connection and output channel.
-func NewPGXListener(conn *pgx.Conn, outCh chan *types.Notification) *pgxlisten.Listener {
+// NewPGXPoolListener creates a new pgxlisten.Listener with a connection from the provided pool and output channel.
+func NewPGXPoolListener(pool *pgxpool.Pool, outCh chan *types.Notification) *pgxlisten.Listener {
 	connectFunc := func(ctx context.Context) (*pgx.Conn, error) {
-		if conn.IsClosed() {
-			return nil, fmt.Errorf("provided connection is closed")
+		conn, err := pool.Acquire(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to acquire connection: %v", err)
 		}
-		return conn, nil
+		return conn.Conn(), nil
 	}
 
 	listener := &pgxlisten.Listener{
