@@ -225,7 +225,7 @@ func Test_Listen(t *testing.T) {
 			err := listenerMock.Listen(ctx)
 			c.NoError(err)
 
-			driver, errCh, _ := NewPostgresDriver(nil, channel)
+			driver, errCh, _ := NewPostgresDriver(nil, listenerMock, channel)
 
 			go func() {
 				for err := range errCh {

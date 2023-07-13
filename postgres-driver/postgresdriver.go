@@ -92,7 +92,7 @@ func NewCloudSQLPGXPool(ctx context.Context, options CloudSQLConfig) (*pgxpool.P
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, fmt.Errorf("pgxpool.New: %v", err)
+		return nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
 	}
 
 	return pool, nil
@@ -123,87 +123,10 @@ func NewPGXPool(ctx context.Context, connectionString string) (*pgxpool.Pool, er
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, fmt.Errorf("pgxpool.ConnectConfig: %v", err)
+		return nil, fmt.Errorf("pgxpool.NewWithConfig: %v", err)
 	}
 
 	return pool, nil
-}
-
-/* <--------- PGX Pool Connection ---------> */
-
-/*
-NewCloudSQLPGXConnection
-- Creates a connection to a Cloud SQL instance using the provided CloudSQLConfig.
-- Uses the Cloud SQL Connector for Go and pgx for the connection.
-- Establishes a dialer with the desired options (like using private IP).
-- Returns the established connection.
-*/
-func NewCloudSQLPGXConnection(ctx context.Context, options CloudSQLConfig) (*pgx.Conn, error) {
-	if options.PublicIP != "" && options.PrivateIP != "" {
-		return nil, errCantSetPrivateandPublicIP
-	}
-
-	dsn := fmt.Sprintf("user=%s password=%s database=%s", options.DBUser, options.DBPassword, options.DBName)
-
-	config, err := pgx.ParseConfig(dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	var opts []cloudsqlconn.Option
-	if options.PublicIP != "" {
-		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPublicIP()))
-	}
-	if options.PrivateIP != "" {
-		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPrivateIP()))
-	}
-
-	dialer, err := cloudsqlconn.NewDialer(ctx, opts...)
-	if err != nil {
-		return nil, err
-	}
-	config.DialFunc = func(ctx context.Context, network, instance string) (net.Conn, error) {
-		return dialer.Dial(ctx, options.InstanceConnectionName)
-	}
-
-	conn, err := pgx.ConnectConfig(ctx, config)
-	if err != nil {
-		return nil, fmt.Errorf("pgx.ConnectConfig: %v", err)
-	}
-
-	err = registerCustomEnumTypes(ctx, conn)
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
-}
-
-/*
-NewPGXConnection (mainly used for testing)
-- Establishes a connection to a PostgreSQL database using the provided connection string.
-- Parses the connection string into a pgx configuration object.
-- Connects to the database using the created configuration.
-- Registers custom enum types to the connection if any.
-- Returns the established connection.
-*/
-func NewPGXConnection(ctx context.Context, connectionString string) (*pgx.Conn, error) {
-	config, err := pgx.ParseConfig(connectionString)
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err := pgx.ConnectConfig(ctx, config)
-	if err != nil {
-		return nil, err
-	}
-
-	err = registerCustomEnumTypes(ctx, conn)
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
 }
 
 /*
@@ -212,15 +135,15 @@ NewPostgresDriver
 - Initiates the listening of notifications in a separate goroutine.
 - Returns the created PostgresDriver instance.
 */
-func NewPostgresDriver(pool *pgxpool.Pool, notificationChannel chan *types.Notification) (*PostgresDriver, chan error, error) {
+func NewPostgresDriver(pool *pgxpool.Pool, listener Listener, notificationChannel chan *types.Notification) (*PostgresDriver, chan error, error) {
+	errCh := make(chan error)
+
 	driver := &PostgresDriver{
 		Queries:      New(pool),
 		DB:           pool,
-		listener:     NewPGXPoolListener(pool, notificationChannel),
+		listener:     listener,
 		notification: notificationChannel,
 	}
-
-	errCh := make(chan error)
 
 	go func() {
 		err := driver.listener.Listen(context.Background())

@@ -49,7 +49,9 @@ func (ts *PGDriverTestSuite) initPostgresDriver() error {
 
 	notificationChannel := make(chan *types.Notification, 32)
 
-	driver, errCh, err := NewPostgresDriver(mainConnPool, notificationChannel)
+	listener := NewPGXPoolListener(mainConnPool, notificationChannel)
+
+	driver, errCh, err := NewPostgresDriver(mainConnPool, listener, notificationChannel)
 	if err != nil {
 		panic(err)
 	}
