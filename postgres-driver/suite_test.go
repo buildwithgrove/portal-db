@@ -2,6 +2,7 @@ package postgresdriver
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -33,36 +34,39 @@ func Test_RunPGDriverSuite(t *testing.T) {
 
 // SetupSuite runs before each test suite run
 func (ts *PGDriverTestSuite) SetupSuite() {
-	err := ts.initPostgresDriver()
+	_, err := ts.initPostgresDriver()
 	ts.NoError(err)
 }
 
 // Initializes a real instance of the Postgres driver that connects to the test Postgres Docker container
-func (ts *PGDriverTestSuite) initPostgresDriver() error {
+func (ts *PGDriverTestSuite) initPostgresDriver() (func() error, error) {
 	ctx := context.Background()
 
-	mainConn, err := NewPGXConnection(ctx, connectionString)
+	mainConnPool, cleanup, err := NewPGXPool(connectionString)
 	if err != nil {
-		panic(err)
-	}
-	listenerConn, err := NewPGXConnection(ctx, connectionString)
-	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	notificationChannel := make(chan *types.Notification, 32)
 
-	listener := NewPGXListener(listenerConn, notificationChannel)
+	listener := NewPGXPoolListener(mainConnPool, notificationChannel)
 
-	driver, err := NewPostgresDriver(mainConn, listener, notificationChannel)
+	driver, errCh, err := NewPostgresDriver(mainConnPool, listener, notificationChannel)
 	if err != nil {
 		panic(err)
 	}
 	ts.driver = driver
 
+	// This goroutine continuously monitors the error channel and logs any errors that come in.
+	go func() {
+		for err := range errCh {
+			fmt.Printf("error from listener: %v", err)
+		}
+	}()
+
 	if err := ts.driver.Ping(ctx); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return cleanup, nil
 }
