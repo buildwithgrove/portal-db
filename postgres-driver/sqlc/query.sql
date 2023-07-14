@@ -463,7 +463,7 @@ RETURNING *;
 SELECT aua.user_id,
     aua.role_name,
     aua.owner,
-    ur.permissions::permissions[] AS permissions,
+    ur.permissions::permissions [] AS permissions,
     CASE
         WHEN aua.owner THEN array_agg(pa.id)::VARCHAR []
         ELSE ARRAY [aua.portal_application_id]::VARCHAR []
@@ -885,7 +885,33 @@ WHERE (
         OR c.deleted = false
     )
 GROUP BY c.id;
--- name: UpsertChain :one
+-- name: SelectChain :one
+SELECT c.*,
+    COALESCE(
+        json_agg(DISTINCT ca) FILTER (
+            WHERE ca.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_altruists,
+    COALESCE(
+        json_agg(DISTINCT cc) FILTER (
+            WHERE cc.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_checks,
+    COALESCE(
+        json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
+            WHERE cga.alias IS NOT NULL
+        ),
+        '{}'
+    )::json AS alias_domains_map
+FROM chains c
+    LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
+    LEFT JOIN chain_checks cc ON c.id = cc.chain_id
+    LEFT JOIN chain_alias_domains cga ON c.id = cga.chain_id
+WHERE c.id = $1
+GROUP BY c.id;
+-- name: InsertChain :one
 INSERT INTO chains (
         id,
         blockchain,
@@ -911,20 +937,20 @@ VALUES (
         $9,
         $10,
         $11
-    ) ON CONFLICT (id) DO
-UPDATE
-SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
-    description = COALESCE(EXCLUDED.description, chains.description),
-    enforce_result = COALESCE(EXCLUDED.enforce_result, chains.enforce_result),
-    path = COALESCE(EXCLUDED.path, chains.path),
-    ticker = COALESCE(EXCLUDED.ticker, chains.ticker),
-    request_timeout = COALESCE(EXCLUDED.request_timeout, chains.request_timeout),
-    log_limit_blocks = COALESCE(
-        EXCLUDED.log_limit_blocks,
-        chains.log_limit_blocks
-    ),
-    allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
-    updated_at = EXCLUDED.updated_at
+    )
+RETURNING id;
+-- name: UpdateChain :one
+UPDATE chains
+SET blockchain = COALESCE($2, chains.blockchain),
+    description = COALESCE($3, chains.description),
+    enforce_result = COALESCE($4, chains.enforce_result),
+    path = COALESCE($5, chains.path),
+    ticker = COALESCE($6, chains.ticker),
+    request_timeout = COALESCE($7, chains.request_timeout),
+    log_limit_blocks = COALESCE($8, chains.log_limit_blocks),
+    allowed_methods = COALESCE($9, chains.allowed_methods),
+    updated_at = $10
+WHERE id = $1
 RETURNING id;
 -- name: UpsertChainAltruist :exec
 INSERT INTO chain_altruists (

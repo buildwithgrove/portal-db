@@ -1218,15 +1218,15 @@ var (
 		CustomLimit: 5_600_000,
 	}
 
-	UpdateChainOne = types.Chain{
+	UpdateChainOne = types.UpdateChain{
 		ID:            "0001",
-		Blockchain:    "mainnet-NEW",
-		Description:   "Pocket Network Mainnet Update",
-		EnforceResult: "JSON",
-		Path:          "/v1/query/height/wow",
-		Ticker:        "POKT-123",
-		Active:        true,
-		Altruists: map[types.AltruistURL]types.Altruist{
+		Blockchain:    newString("mainnet-NEW"),
+		Description:   newString("Pocket Network Mainnet Update"),
+		EnforceResult: newString("JSON"),
+		Path:          newString("/v1/query/height/wow"),
+		Ticker:        newString("POKT-123"),
+		Active:        newBool(true),
+		Altruists: &map[types.AltruistURL]types.Altruist{
 			"https://altruist-0001.com:1234": {
 				URL:      "https://altruist-0001.com:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
@@ -1243,7 +1243,7 @@ var (
 				Auth:     "test_pocket:auth123456",
 			},
 		},
-		Checks: map[types.ChainCheckType]types.Check{
+		Checks: &map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
 				Type:      types.ChainCheckTypeSync,
 				Payload:   `{"id":1,"jsonrpc":"2.0","method":"query"}`,
@@ -1262,29 +1262,27 @@ var (
 				ResultKey: "result.sync_info",
 			},
 		},
-		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
 			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
 			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network"},
 		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
 	}
-	UpdateChainTwo = types.Chain{
+	UpdateChainTwo = types.UpdateChain{
 		ID:            "0001",
-		Blockchain:    "mainnet-ULTRA",
-		Description:   "Pocket Network Mainnet Original",
-		EnforceResult: "JSON",
-		Path:          "/v1/query/height/wow",
-		Ticker:        "POKT-456",
-		Active:        true,
-		Altruists: map[types.AltruistURL]types.Altruist{
+		Blockchain:    newString("mainnet-ULTRA"),
+		Description:   newString("Pocket Network Mainnet Original"),
+		EnforceResult: newString("JSON"),
+		Path:          newString("/v1/query/height/wow"),
+		Ticker:        newString("POKT-456"),
+		Active:        newBool(true),
+		Altruists: &map[types.AltruistURL]types.Altruist{
 			"https://altruist-0001-3.com:1234": {
 				URL:      "https://altruist-0001-3.com:1234",
 				AuthType: types.ChainAuthTypeBasicAuth,
 				Auth:     "test_pocket:auth123456",
 			},
 		},
-		Checks: map[types.ChainCheckType]types.Check{
+		Checks: &map[types.ChainCheckType]types.Check{
 			types.ChainCheckTypeSync: {
 				Type:      types.ChainCheckTypeSync,
 				Payload:   `{"id":1,"jsonrpc":"2.0","method":"query"}`,
@@ -1292,27 +1290,33 @@ var (
 				Allowance: 1,
 			},
 		},
-		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
 			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
 			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network", "pokt-rpc-2.us-west-2.pokt.network"},
 		},
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
 	}
-	UpdateChainThree = types.Chain{
+	UpdateChainThree = types.UpdateChain{
 		ID:            "0001",
-		Blockchain:    "mainnet-ULTRA",
-		Description:   "Pocket Network Mainnet Original",
-		EnforceResult: "JSON",
-		Path:          "/v1/query/height/wow",
-		Ticker:        "POKT-456",
-		Active:        true,
-		CreatedAt:     MockTimestamp,
-		UpdatedAt:     MockTimestamp,
+		Blockchain:    newString("mainnet-ULTRA"),
+		Description:   newString("Pocket Network Mainnet Original"),
+		EnforceResult: newString("JSON"),
+		Path:          newString("/v1/query/height/wow"),
+		Ticker:        newString("POKT-456"),
+		Active:        newBool(true),
 	}
 
 	// UpdateChainNotExists used to test updating a Chain that doesn't exist
-	UpdateChainNotExists = types.Chain{ID: "0073"}
+	UpdateChainNotExists  = types.UpdateChain{ID: "0073"}
+	UpdateChainInvalidURL = types.UpdateChain{ID: "0073",
+		Altruists: &map[types.AltruistURL]types.Altruist{
+			"htz:/bad-domain2": {URL: "htz:/bad-domain2"},
+		},
+	}
+	UpdateChainInvalidDomain = types.UpdateChain{ID: "0073",
+		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
+			"sol-mainnet": {"im-not-a-domain"},
+		},
+	}
 
 	/* ----- Legacy Data ----- */
 
@@ -1590,4 +1594,12 @@ func boolToPointer(boolVar bool) *bool {
 
 func intToPointer(intVar int) *int {
 	return &intVar
+}
+
+func newString(s string) *string {
+	return &s
+}
+
+func newBool(b bool) *bool {
+	return &b
 }

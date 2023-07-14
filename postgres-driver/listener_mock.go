@@ -3,7 +3,7 @@ package postgresdriver
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgxlisten"
@@ -56,7 +56,7 @@ func (l *ListenerMock) Listen(ctx context.Context) error {
 
 					err := handler.HandleNotification(ctx, pgxNotif, nil)
 					if err != nil {
-						fmt.Println(err)
+						log.Println(err)
 						return
 					}
 				}

@@ -303,6 +303,28 @@ func newTimestamptz(value time.Time) pgtype.Timestamptz {
 	}
 }
 
+func newNullString(s *string) pgtype.Text {
+	if s == nil || *s == "" {
+		return pgtype.Text{}
+	}
+
+	return pgtype.Text{
+		String: *s,
+		Valid:  true,
+	}
+}
+
+func newNullInt(i *int32, allowZero bool) pgtype.Int4 {
+	if i == nil || (!allowZero && *i == 0) {
+		return pgtype.Int4{}
+	}
+
+	return pgtype.Int4{
+		Int32: *i,
+		Valid: true,
+	}
+}
+
 func errNoRows(err error) bool {
 	return strings.Contains(err.Error(), "no rows in result set")
 }

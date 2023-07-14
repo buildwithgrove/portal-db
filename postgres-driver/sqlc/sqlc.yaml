@@ -32,6 +32,14 @@ sql:
         output_querier_file_name: querier.generated.go
         output_files_suffix: .generated
         overrides:
+          - column: "chains.blockchain"
+            go_type: "github.com/jackc/pgx/v5/pgtype.Text"
+          - column: "chains.description"
+            go_type: "github.com/jackc/pgx/v5/pgtype.Text"
+          - column: "chains.enforce_result"
+            go_type: "github.com/jackc/pgx/v5/pgtype.Text"
+          - column: "chains.ticker"
+            go_type: "github.com/jackc/pgx/v5/pgtype.Text"
           # Enum Overrides
           - db_type: "auth_provider"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.AuthProvider"
