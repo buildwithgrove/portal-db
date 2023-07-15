@@ -451,17 +451,29 @@ func (_m *MockDriver) UpdateBlockedContractActive(ctx context.Context, blockedAd
 }
 
 // UpdateChain provides a mock function with given fields: ctx, chain, updatedAt
-func (_m *MockDriver) UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error {
+func (_m *MockDriver) UpdateChain(ctx context.Context, chain types.UpdateChain, updatedAt time.Time) (*types.Chain, error) {
 	ret := _m.Called(ctx, chain, updatedAt)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.Chain, time.Time) error); ok {
+	var r0 *types.Chain
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateChain, time.Time) (*types.Chain, error)); ok {
+		return rf(ctx, chain, updatedAt)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateChain, time.Time) *types.Chain); ok {
 		r0 = rf(ctx, chain, updatedAt)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Chain)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, types.UpdateChain, time.Time) error); ok {
+		r1 = rf(ctx, chain, updatedAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateGigastakeApp provides a mock function with given fields: ctx, gigastakeApp, updatedAt

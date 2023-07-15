@@ -436,10 +436,10 @@ type AccountUserAccess struct {
 
 type Chain struct {
 	ID             types.RelayChainID `json:"id"`
-	Blockchain     string             `json:"blockchain"`
-	Description    string             `json:"description"`
-	EnforceResult  string             `json:"enforce_result"`
-	Ticker         string             `json:"ticker"`
+	Blockchain     pgtype.Text        `json:"blockchain"`
+	Description    pgtype.Text        `json:"description"`
+	EnforceResult  pgtype.Text        `json:"enforce_result"`
+	Ticker         pgtype.Text        `json:"ticker"`
 	Path           pgtype.Text        `json:"path"`
 	RequestTimeout pgtype.Int4        `json:"request_timeout"`
 	LogLimitBlocks pgtype.Int4        `json:"log_limit_blocks"`

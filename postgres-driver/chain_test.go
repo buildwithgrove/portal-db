@@ -214,51 +214,44 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 
 func (ts *PGDriverTestSuite) Test_UpdateChain() {
 	tests := []struct {
-		name               string
-		chain, updateChain types.Chain
-		testCreatedTime    time.Time
-		altruistURL        types.AltruistURL
-		aliasDomains       map[types.ChainAlias][]types.ChainDomain
-		err                error
+		name            string
+		update          types.UpdateChain
+		testCreatedTime time.Time
+		err             error
 	}{
 		{
 			name:            "Should update an existing chain in the database",
-			chain:           testdata.UpdateChainOne,
+			update:          testdata.UpdateChainOne,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
 		{
 			name:            "Should update an existing chain again in the database",
-			chain:           testdata.UpdateChainTwo,
+			update:          testdata.UpdateChainTwo,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
 		{
 			name:            "Should not remove any subtables if they are not present in the update struct",
-			chain:           testdata.UpdateChainTwo,
-			updateChain:     testdata.UpdateChainThree,
+			update:          testdata.UpdateChainTwo,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
 		},
 		{
 			name:            "Should fail if chain doesn't exist in the database",
-			chain:           testdata.UpdateChainNotExists,
+			update:          testdata.UpdateChainNotExists,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errChainDoesntExist.Error(), "0073"),
 		},
 		{
 			name:            "Should fail if any input Altruist has an invalid URL",
-			altruistURL:     "htz:/bad-domain2",
-			chain:           *testdata.Chains[types.RelayChainID("0040")],
+			update:          testdata.UpdateChainInvalidURL,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
 		},
 		{
-			name: "Should fail if any input alias has an invalid domain",
-			aliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"sol-mainnet": {"im-not-a-domain"},
-			},
-			chain:           *testdata.TestCreateChain,
+			name:            "Should fail if any input alias has an invalid domain",
+			update:          testdata.UpdateChainInvalidDomain,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidDomain.Error(), "im-not-a-domain", "sol-mainnet"),
 		},
@@ -266,32 +259,75 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			testChain := test.chain
-
-			if test.altruistURL != "" {
-				altruist := testChain.Altruists[test.altruistURL]
-				altruist.URL = test.altruistURL
-				testChain.Altruists[test.altruistURL] = altruist
-			}
-			if len(test.aliasDomains) > 0 {
-				testChain.AliasDomains = test.aliasDomains
-			}
-
-			var testUpdate types.Chain
-			switch {
-			case test.updateChain.ID != "":
-				testUpdate = test.updateChain
-			default:
-				testUpdate = testChain
-			}
-
-			err := ts.driver.UpdateChain(context.Background(), testUpdate, test.testCreatedTime)
-			ts.Equal(test.err, err)
-
+			var initialChain *types.Chain
 			if test.err == nil {
 				chains, err := ts.driver.ReadChains(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
-				ts.Equal(&testChain, chains[testUpdate.ID])
+				chain, ok := chains[test.update.ID]
+				ts.True(ok)
+				initialChain = chain
+			}
+
+			updatedChain, err := ts.driver.UpdateChain(context.Background(), test.update, test.testCreatedTime)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				// Assert that the fields in the updated chain match the expected values
+				// Only check the fields present in the update struct
+				if test.update.Blockchain != nil {
+					ts.Equal(*test.update.Blockchain, updatedChain.Blockchain)
+				} else {
+					ts.Equal(initialChain.Blockchain, updatedChain.Blockchain)
+				}
+
+				if test.update.Description != nil {
+					ts.Equal(*test.update.Description, updatedChain.Description)
+				} else {
+					ts.Equal(initialChain.Description, updatedChain.Description)
+				}
+
+				if test.update.EnforceResult != nil {
+					ts.Equal(*test.update.EnforceResult, updatedChain.EnforceResult)
+				} else {
+					ts.Equal(initialChain.EnforceResult, updatedChain.EnforceResult)
+				}
+
+				if test.update.Path != nil {
+					ts.Equal(*test.update.Path, updatedChain.Path)
+				} else {
+					ts.Equal(initialChain.Path, updatedChain.Path)
+				}
+
+				if test.update.Ticker != nil {
+					ts.Equal(*test.update.Ticker, updatedChain.Ticker)
+				} else {
+					ts.Equal(initialChain.Ticker, updatedChain.Ticker)
+				}
+
+				if test.update.AllowedMethods != nil {
+					ts.Equal(test.update.AllowedMethods, updatedChain.AllowedMethods)
+				} else {
+					ts.Equal(initialChain.AllowedMethods, updatedChain.AllowedMethods)
+				}
+
+				if test.update.LogLimitBlocks != nil {
+					ts.Equal(*test.update.LogLimitBlocks, updatedChain.LogLimitBlocks)
+				} else {
+					ts.Equal(initialChain.LogLimitBlocks, updatedChain.LogLimitBlocks)
+				}
+
+				if test.update.RequestTimeout != nil {
+					ts.Equal(*test.update.RequestTimeout, updatedChain.RequestTimeout)
+				} else {
+					ts.Equal(initialChain.RequestTimeout, updatedChain.RequestTimeout)
+				}
+
+				if test.update.Active != nil {
+					ts.Equal(*test.update.Active, updatedChain.Active)
+				} else {
+					ts.Equal(initialChain.Active, updatedChain.Active)
+				}
+
 			}
 		})
 	}

@@ -799,6 +799,69 @@ func (q *Queries) InsertAccountUserAccessNoUser(ctx context.Context, arg InsertA
 	return user_id, err
 }
 
+const insertChain = `-- name: InsertChain :one
+INSERT INTO chains (
+        id,
+        blockchain,
+        description,
+        enforce_result,
+        path,
+        ticker,
+        request_timeout,
+        log_limit_blocks,
+        allowed_methods,
+        created_at,
+        updated_at
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11
+    )
+RETURNING id
+`
+
+type InsertChainParams struct {
+	ID             types.RelayChainID `json:"id"`
+	Blockchain     pgtype.Text        `json:"blockchain"`
+	Description    pgtype.Text        `json:"description"`
+	EnforceResult  pgtype.Text        `json:"enforce_result"`
+	Path           pgtype.Text        `json:"path"`
+	Ticker         pgtype.Text        `json:"ticker"`
+	RequestTimeout pgtype.Int4        `json:"request_timeout"`
+	LogLimitBlocks pgtype.Int4        `json:"log_limit_blocks"`
+	AllowedMethods []string           `json:"allowed_methods"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) InsertChain(ctx context.Context, arg InsertChainParams) (types.RelayChainID, error) {
+	row := q.db.QueryRow(ctx, insertChain,
+		arg.ID,
+		arg.Blockchain,
+		arg.Description,
+		arg.EnforceResult,
+		arg.Path,
+		arg.Ticker,
+		arg.RequestTimeout,
+		arg.LogLimitBlocks,
+		arg.AllowedMethods,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var id types.RelayChainID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const insertGigastakeApp = `-- name: InsertGigastakeApp :exec
 WITH new_gigastake_application AS (
     INSERT INTO gigastake_applications (
@@ -1245,6 +1308,79 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 	return items, nil
 }
 
+const selectChain = `-- name: SelectChain :one
+SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.request_timeout, c.log_limit_blocks, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
+    COALESCE(
+        json_agg(DISTINCT ca) FILTER (
+            WHERE ca.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_altruists,
+    COALESCE(
+        json_agg(DISTINCT cc) FILTER (
+            WHERE cc.id IS NOT NULL
+        ),
+        '[]'
+    )::json AS chain_checks,
+    COALESCE(
+        json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
+            WHERE cga.alias IS NOT NULL
+        ),
+        '{}'
+    )::json AS alias_domains_map
+FROM chains c
+    LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
+    LEFT JOIN chain_checks cc ON c.id = cc.chain_id
+    LEFT JOIN chain_alias_domains cga ON c.id = cga.chain_id
+WHERE c.id = $1
+GROUP BY c.id
+`
+
+type SelectChainRow struct {
+	ID              types.RelayChainID `json:"id"`
+	Blockchain      pgtype.Text        `json:"blockchain"`
+	Description     pgtype.Text        `json:"description"`
+	EnforceResult   pgtype.Text        `json:"enforce_result"`
+	Ticker          pgtype.Text        `json:"ticker"`
+	Path            pgtype.Text        `json:"path"`
+	RequestTimeout  pgtype.Int4        `json:"request_timeout"`
+	LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
+	AllowedMethods  []string           `json:"allowed_methods"`
+	Active          bool               `json:"active"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	Deleted         pgtype.Bool        `json:"deleted"`
+	DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
+	ChainAltruists  []byte             `json:"chain_altruists"`
+	ChainChecks     []byte             `json:"chain_checks"`
+	AliasDomainsMap []byte             `json:"alias_domains_map"`
+}
+
+func (q *Queries) SelectChain(ctx context.Context, id types.RelayChainID) (SelectChainRow, error) {
+	row := q.db.QueryRow(ctx, selectChain, id)
+	var i SelectChainRow
+	err := row.Scan(
+		&i.ID,
+		&i.Blockchain,
+		&i.Description,
+		&i.EnforceResult,
+		&i.Ticker,
+		&i.Path,
+		&i.RequestTimeout,
+		&i.LogLimitBlocks,
+		&i.AllowedMethods,
+		&i.Active,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Deleted,
+		&i.DeletedAt,
+		&i.ChainAltruists,
+		&i.ChainChecks,
+		&i.AliasDomainsMap,
+	)
+	return i, err
+}
+
 const selectChains = `-- name: SelectChains :many
 SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.request_timeout, c.log_limit_blocks, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
     COALESCE(
@@ -1278,10 +1414,10 @@ GROUP BY c.id
 
 type SelectChainsRow struct {
 	ID              types.RelayChainID `json:"id"`
-	Blockchain      string             `json:"blockchain"`
-	Description     string             `json:"description"`
-	EnforceResult   string             `json:"enforce_result"`
-	Ticker          string             `json:"ticker"`
+	Blockchain      pgtype.Text        `json:"blockchain"`
+	Description     pgtype.Text        `json:"description"`
+	EnforceResult   pgtype.Text        `json:"enforce_result"`
+	Ticker          pgtype.Text        `json:"ticker"`
 	Path            pgtype.Text        `json:"path"`
 	RequestTimeout  pgtype.Int4        `json:"request_timeout"`
 	LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
@@ -1673,7 +1809,7 @@ const selectUserPermissions = `-- name: SelectUserPermissions :many
 SELECT aua.user_id,
     aua.role_name,
     aua.owner,
-    ur.permissions::permissions[] AS permissions,
+    ur.permissions::permissions [] AS permissions,
     CASE
         WHEN aua.owner THEN array_agg(pa.id)::VARCHAR []
         ELSE ARRAY [aua.portal_application_id]::VARCHAR []
@@ -1904,6 +2040,52 @@ func (q *Queries) UpdateAccountUserRole(ctx context.Context, arg UpdateAccountUs
 		arg.UpdatedAt,
 	)
 	return err
+}
+
+const updateChain = `-- name: UpdateChain :one
+UPDATE chains
+SET blockchain = COALESCE($2, chains.blockchain),
+    description = COALESCE($3, chains.description),
+    enforce_result = COALESCE($4, chains.enforce_result),
+    path = COALESCE($5, chains.path),
+    ticker = COALESCE($6, chains.ticker),
+    request_timeout = COALESCE($7, chains.request_timeout),
+    log_limit_blocks = COALESCE($8, chains.log_limit_blocks),
+    allowed_methods = COALESCE($9, chains.allowed_methods),
+    updated_at = $10
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateChainParams struct {
+	ID             types.RelayChainID `json:"id"`
+	Blockchain     pgtype.Text        `json:"blockchain"`
+	Description    pgtype.Text        `json:"description"`
+	EnforceResult  pgtype.Text        `json:"enforce_result"`
+	Path           pgtype.Text        `json:"path"`
+	Ticker         pgtype.Text        `json:"ticker"`
+	RequestTimeout pgtype.Int4        `json:"request_timeout"`
+	LogLimitBlocks pgtype.Int4        `json:"log_limit_blocks"`
+	AllowedMethods []string           `json:"allowed_methods"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) UpdateChain(ctx context.Context, arg UpdateChainParams) (types.RelayChainID, error) {
+	row := q.db.QueryRow(ctx, updateChain,
+		arg.ID,
+		arg.Blockchain,
+		arg.Description,
+		arg.EnforceResult,
+		arg.Path,
+		arg.Ticker,
+		arg.RequestTimeout,
+		arg.LogLimitBlocks,
+		arg.AllowedMethods,
+		arg.UpdatedAt,
+	)
+	var id types.RelayChainID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateChainActive = `-- name: UpdateChainActive :one
@@ -2298,82 +2480,6 @@ func (q *Queries) UpsertAccountIntegrations(ctx context.Context, arg UpsertAccou
 		&i.UpdatedAt,
 	)
 	return i, err
-}
-
-const upsertChain = `-- name: UpsertChain :one
-INSERT INTO chains (
-        id,
-        blockchain,
-        description,
-        enforce_result,
-        path,
-        ticker,
-        request_timeout,
-        log_limit_blocks,
-        allowed_methods,
-        created_at,
-        updated_at
-    )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8,
-        $9,
-        $10,
-        $11
-    ) ON CONFLICT (id) DO
-UPDATE
-SET blockchain = COALESCE(EXCLUDED.blockchain, chains.blockchain),
-    description = COALESCE(EXCLUDED.description, chains.description),
-    enforce_result = COALESCE(EXCLUDED.enforce_result, chains.enforce_result),
-    path = COALESCE(EXCLUDED.path, chains.path),
-    ticker = COALESCE(EXCLUDED.ticker, chains.ticker),
-    request_timeout = COALESCE(EXCLUDED.request_timeout, chains.request_timeout),
-    log_limit_blocks = COALESCE(
-        EXCLUDED.log_limit_blocks,
-        chains.log_limit_blocks
-    ),
-    allowed_methods = COALESCE(EXCLUDED.allowed_methods, chains.allowed_methods),
-    updated_at = EXCLUDED.updated_at
-RETURNING id
-`
-
-type UpsertChainParams struct {
-	ID             types.RelayChainID `json:"id"`
-	Blockchain     string             `json:"blockchain"`
-	Description    string             `json:"description"`
-	EnforceResult  string             `json:"enforce_result"`
-	Path           pgtype.Text        `json:"path"`
-	Ticker         string             `json:"ticker"`
-	RequestTimeout pgtype.Int4        `json:"request_timeout"`
-	LogLimitBlocks pgtype.Int4        `json:"log_limit_blocks"`
-	AllowedMethods []string           `json:"allowed_methods"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-}
-
-func (q *Queries) UpsertChain(ctx context.Context, arg UpsertChainParams) (types.RelayChainID, error) {
-	row := q.db.QueryRow(ctx, upsertChain,
-		arg.ID,
-		arg.Blockchain,
-		arg.Description,
-		arg.EnforceResult,
-		arg.Path,
-		arg.Ticker,
-		arg.RequestTimeout,
-		arg.LogLimitBlocks,
-		arg.AllowedMethods,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-	)
-	var id types.RelayChainID
-	err := row.Scan(&id)
-	return id, err
 }
 
 const upsertChainAliasDomains = `-- name: UpsertChainAliasDomains :exec

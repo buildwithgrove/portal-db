@@ -88,7 +88,7 @@ type (
 		/* WriteChain saves input Chain struct to the database. */
 		WriteChain(ctx context.Context, chain types.Chain, createdAt time.Time) (*types.Chain, error)
 		/* UpdateChain updates Chain and ChainCheck for a given Chain. */
-		UpdateChain(ctx context.Context, chain types.Chain, updatedAt time.Time) error
+		UpdateChain(ctx context.Context, chain types.UpdateChain, updatedAt time.Time) (*types.Chain, error)
 		/* UpdateGigastakeApp updates fields on a GigastakeApp. */
 		UpdateGigastakeApp(ctx context.Context, gigastakeApp types.UpdateGigastakeApp, updatedAt time.Time) error
 		/* ActivateChain toggles Chain.Active field on or off. */

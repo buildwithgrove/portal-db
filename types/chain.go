@@ -57,7 +57,7 @@ func (a AltruistURL) IsValid() bool {
 }
 
 func (r ChainDomain) IsValid() bool {
-	pattern := `^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`
+	pattern := `^([a-zA-Z0-9-*]+\.)+[a-zA-Z]{2,}(:[0-9]{1,5})?$`
 	matched, err := regexp.MatchString(pattern, string(r))
 	if err != nil {
 		return false
@@ -114,6 +114,22 @@ type (
 	NewChainInput struct {
 		Chain         *Chain          `json:"chain"`
 		GigastakeApps []*GigastakeApp `json:"gigastakeApps"`
+	}
+
+	UpdateChain struct {
+		ID             RelayChainID                  `json:"id"`
+		Blockchain     *string                       `json:"blockchain"`
+		Description    *string                       `json:"description"`
+		EnforceResult  *string                       `json:"enforceResult"`
+		Path           *string                       `json:"path"`
+		Ticker         *string                       `json:"ticker"`
+		AllowedMethods []string                      `json:"allowedMethods"`
+		LogLimitBlocks *int32                        `json:"logLimitBlocks"`
+		RequestTimeout *int32                        `json:"requestTimeout"`
+		Active         *bool                         `json:"active"`
+		Altruists      *map[AltruistURL]Altruist     `json:"altruists,omitempty"`
+		Checks         *map[ChainCheckType]Check     `json:"chainChecks,omitempty"`
+		AliasDomains   *map[ChainAlias][]ChainDomain `json:"domains,omitempty"`
 	}
 )
 
