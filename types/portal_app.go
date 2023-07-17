@@ -154,6 +154,18 @@ type (
 		Events      map[NotificationEvent]bool `json:"events"`
 	}
 
+	// MiddlewarePortalApp contains only the fields necessary inside the Portal Middleware for user PortalApps
+	MiddlewarePortalApp struct {
+		ID         PortalAppID                 `json:"id"`
+		Settings   MiddlewarePortalAppSettings `json:"settings"`
+		Whitelists Whitelists                  `json:"whitelists"`
+	}
+
+	MiddlewarePortalAppSettings struct {
+		SecretKey         string `json:"secretKey"`
+		SecretKeyRequired bool   `json:"secretKeyRequired"`
+	}
+
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
 	// It is also used to update Whitelists for an app (sent from Portal UI to PUB to PHD)
 	WhitelistsObject struct {
@@ -299,44 +311,6 @@ func (a *PortalApp) DeleteWhitelist(whitelist Whitelist) {
 	}
 }
 
-// IsOriginWhitelisted returns a boolean indicating whether the given ORIGIN is whitelisted for an application
-func (a *PortalApp) IsOriginWhitelisted(origin Origin) bool {
-	_, ok := a.Whitelists.Origins[origin]
-	return ok
-}
-
-// IsUserAgentWhitelisted returns a boolean indicating whether the given USER AGENT is whitelisted for an application
-func (a *PortalApp) IsUserAgentWhitelisted(userAgent UserAgent) bool {
-	_, ok := a.Whitelists.UserAgents[userAgent]
-	return ok
-}
-
-// IsBlockchainWhitelisted returns a boolean indicating whether the given BLOCKCHAIN is whitelisted for an application
-func (a *PortalApp) IsBlockchainWhitelisted(blockchain RelayChainID) bool {
-	_, ok := a.Whitelists.Blockchains[blockchain]
-	return ok
-}
-
-// IsContractWhitelisted returns a boolean indicating whether the given CONTRACT is whitelisted for a blockchain and application
-func (a *PortalApp) IsContractWhitelisted(chainID RelayChainID, contract Contract) bool {
-	if chainContracts, contractsOK := a.Whitelists.Contracts[chainID]; contractsOK {
-		if _, contractOK := chainContracts[contract]; contractOK {
-			return true
-		}
-	}
-	return false
-}
-
-// IsMethodWhitelisted returns a boolean indicating whether the given METHOD is whitelisted for a blockchain and application
-func (a *PortalApp) IsMethodWhitelisted(chainID RelayChainID, method Method) bool {
-	if chainMethods, methodsOK := a.Whitelists.Methods[chainID]; methodsOK {
-		if _, methodOK := chainMethods[method]; methodOK {
-			return true
-		}
-	}
-	return false
-}
-
 // GetWhitelistsObject returns a GraphQL-compatible WhitelistsObject struct that contains all whitelists for an application (used for Portal UI)
 func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	var origins, userAgents, blockchains []string // App whitelists
@@ -393,6 +367,56 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 			{Type: WhitelistTypeMethods, Values: methodWhitelists},
 		},
 	}
+}
+
+// ConvertPortalAppToMiddlewarePortalApp converts a PortalApp to a MiddlewarePortalApp for use in the Portal Middleware
+func (a *PortalApp) ConvertPortalAppToMiddlewarePortalApp() *MiddlewarePortalApp {
+	return &MiddlewarePortalApp{
+		ID: a.ID,
+		Settings: MiddlewarePortalAppSettings{
+			SecretKey:         a.Settings.SecretKey,
+			SecretKeyRequired: a.Settings.SecretKeyRequired,
+		},
+		Whitelists: a.Whitelists,
+	}
+}
+
+// IsOriginWhitelisted returns a boolean indicating whether the given ORIGIN is whitelisted for an application
+func (a *MiddlewarePortalApp) IsOriginWhitelisted(origin Origin) bool {
+	_, ok := a.Whitelists.Origins[origin]
+	return ok
+}
+
+// IsUserAgentWhitelisted returns a boolean indicating whether the given USER AGENT is whitelisted for an application
+func (a *MiddlewarePortalApp) IsUserAgentWhitelisted(userAgent UserAgent) bool {
+	_, ok := a.Whitelists.UserAgents[userAgent]
+	return ok
+}
+
+// IsBlockchainWhitelisted returns a boolean indicating whether the given BLOCKCHAIN is whitelisted for an application
+func (a *MiddlewarePortalApp) IsBlockchainWhitelisted(blockchain RelayChainID) bool {
+	_, ok := a.Whitelists.Blockchains[blockchain]
+	return ok
+}
+
+// IsContractWhitelisted returns a boolean indicating whether the given CONTRACT is whitelisted for a blockchain and application
+func (a *MiddlewarePortalApp) IsContractWhitelisted(chainID RelayChainID, contract Contract) bool {
+	if chainContracts, contractsOK := a.Whitelists.Contracts[chainID]; contractsOK {
+		if _, contractOK := chainContracts[contract]; contractOK {
+			return true
+		}
+	}
+	return false
+}
+
+// IsMethodWhitelisted returns a boolean indicating whether the given METHOD is whitelisted for a blockchain and application
+func (a *MiddlewarePortalApp) IsMethodWhitelisted(chainID RelayChainID, method Method) bool {
+	if chainMethods, methodsOK := a.Whitelists.Methods[chainID]; methodsOK {
+		if _, methodOK := chainMethods[method]; methodOK {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *PortalApp) Table() Table {
