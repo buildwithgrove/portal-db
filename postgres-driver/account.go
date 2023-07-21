@@ -58,6 +58,21 @@ func (pg *PostgresDriver) ReadAccounts(ctx context.Context, options types.Driver
 	return accounts, nil
 }
 
+// ReadAccountsAccess returns all users in the database that have access to an Accounts structs
+func (pg *PostgresDriver) ReadAccountsAccess(ctx context.Context) ([]types.AccountUserAccess, error) {
+	dbAccounts, err := pg.SelectAccountAppAccess(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	access := []types.AccountUserAccess{}
+	for _, dbAccount := range dbAccounts {
+		access = append(access, dbAccount.toAccountUsers())
+	}
+
+	return access, nil
+}
+
 // toAccount converts Account SELECT output to Account struct
 func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 	var chainIDs map[types.RelayChainID]struct{}
@@ -122,6 +137,21 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	}
 
 	return users, nil
+}
+
+// toAccountUsers converts users from DB rows to map-based Account.Users struct
+func (a *SelectAccountAppAccessRow) toAccountUsers() types.AccountUserAccess {
+	accountAccess := types.AccountUserAccess{
+		UserID:   types.UserID(a.UserID),
+		Owner:    a.RoleName == types.RoleOwner,
+		Accepted: a.Accepted,
+	}
+
+	if !accountAccess.Owner {
+		accountAccess.PortalAppRoles[a.PortalApplicationID] = a.RoleName
+	}
+
+	return accountAccess
 }
 
 // /* ----- postgresdriver Account Create Methods ----- */

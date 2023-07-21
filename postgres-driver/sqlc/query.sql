@@ -459,6 +459,13 @@ SET covalent_api_key_free = CASE
     END,
     updated_at = EXCLUDED.updated_at
 RETURNING *;
+-- name: SelectAccountAppAccess :many
+SELECT aua.user_id,
+    aua.account_id,
+    aua.portal_application_id,
+    aua.role_name,
+    aua.accepted
+FROM account_user_access AS aua;
 -- name: SelectUserPermissions :many
 SELECT aua.user_id,
     aua.role_name,

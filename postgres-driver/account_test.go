@@ -39,6 +39,118 @@ func (ts *PGDriverTestSuite) Test_ReadAccounts() {
 	}
 }
 
+func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
+	tests := []struct {
+		name     string
+		accounts []types.AccountUserAccess
+		err      error
+	}{
+		{
+			name: "Should return every user that have access to one account",
+			accounts: []types.AccountUserAccess{
+				{
+					UserID:   types.UserID("user_1"),
+					Owner:    true,
+					Accepted: true,
+				},
+				{
+					UserID:   types.UserID("user_2"),
+					Owner:    false,
+					Accepted: true,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_1": types.RoleAdmin,
+					},
+				},
+				{
+					UserID:   types.UserID("user_8"),
+					Owner:    false,
+					Accepted: false,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_1": types.RoleAdmin,
+					},
+				},
+				{
+					UserID:   types.UserID("user_3"),
+					Owner:    true,
+					Accepted: true,
+				},
+				{
+					UserID:   types.UserID("user_4"),
+					Owner:    false,
+					Accepted: true,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_2": types.RoleMember,
+					},
+				},
+				{
+					UserID:   types.UserID("user_9"),
+					Owner:    false,
+					Accepted: false,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_2": types.RoleMember,
+					},
+				},
+				{
+					UserID:   types.UserID("user_2"),
+					Owner:    false,
+					Accepted: true,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_2": types.RoleMember,
+					},
+				},
+				{
+					UserID:   types.UserID("user_5"),
+					Owner:    true,
+					Accepted: true,
+				},
+				{
+					UserID:   types.UserID("user_6"),
+					Owner:    false,
+					Accepted: true,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_3": types.RoleAdmin,
+					},
+				},
+				{
+					UserID:   types.UserID("user_7"),
+					Owner:    false,
+					Accepted: true,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_3": types.RoleMember,
+					},
+				},
+				{
+					UserID:   types.UserID("user_10"),
+					Owner:    false,
+					Accepted: false,
+					PortalAppRoles: map[types.PortalAppID]types.RoleName{
+						"test_app_3": types.RoleMember,
+					},
+				},
+				{
+					UserID:   types.UserID("user_4"),
+					Owner:    false,
+					Accepted: true,
+				},
+				{
+					UserID:   types.UserID("user_4"),
+					Owner:    true,
+					Accepted: true,
+				},
+			},
+			err: nil,
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			accounts, err := ts.driver.ReadAccountsAccess(context.Background())
+			ts.Equal(test.err, err)
+			ts.Equal(test.accounts, accounts)
+		})
+	}
+}
+
 func (ts *PGDriverTestSuite) Test_WriteAccount() {
 	tests := []struct {
 		name            string
