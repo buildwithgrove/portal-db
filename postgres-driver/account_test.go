@@ -62,7 +62,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: true,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_1": "ADMIN",
+							"test_app_1": types.RoleAdmin,
 						},
 						AccountID: types.AccountID("account_1"),
 					},
@@ -71,7 +71,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: true,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_2": "MEMBER",
+							"test_app_2": types.RoleMember,
 						},
 						AccountID: types.AccountID("account_2"),
 					},
@@ -90,7 +90,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: true,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_2": "MEMBER",
+							"test_app_2": types.RoleMember,
 						},
 						AccountID: types.AccountID("account_2"),
 					},
@@ -121,7 +121,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: true,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_3": "ADMIN",
+							"test_app_3": types.RoleAdmin,
 						},
 						AccountID: types.AccountID("account_3"),
 					},
@@ -132,7 +132,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: true,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_3": "MEMBER",
+							"test_app_3": types.RoleMember,
 						},
 						AccountID: types.AccountID("account_3"),
 					},
@@ -143,7 +143,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: false,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_1": "ADMIN",
+							"test_app_1": types.RoleAdmin,
 						},
 						AccountID: types.AccountID("account_1"),
 					},
@@ -154,7 +154,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: false,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_2": "MEMBER",
+							"test_app_2": types.RoleMember,
 						},
 						AccountID: types.AccountID("account_2"),
 					},
@@ -165,7 +165,7 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 						Owner:    false,
 						Accepted: false,
 						PortalAppRoles: map[types.PortalAppID]types.RoleName{
-							"test_app_3": "MEMBER",
+							"test_app_3": types.RoleMember,
 						},
 						AccountID: types.AccountID("account_3"),
 					},
