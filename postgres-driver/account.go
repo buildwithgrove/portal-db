@@ -59,15 +59,15 @@ func (pg *PostgresDriver) ReadAccounts(ctx context.Context, options types.Driver
 }
 
 // ReadAccountsAccess returns all users in the database that have access to an Accounts structs
-func (pg *PostgresDriver) ReadAccountsAccess(ctx context.Context) ([]types.AccountUserAccess, error) {
+func (pg *PostgresDriver) ReadAccountsAccess(ctx context.Context) (map[types.UserID][]types.AccountUserAccess, error) {
 	dbAccounts, err := pg.SelectAccountAppAccess(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	access := []types.AccountUserAccess{}
+	access := map[types.UserID][]types.AccountUserAccess{}
 	for _, dbAccount := range dbAccounts {
-		access = append(access, dbAccount.toAccountUsers())
+		access[dbAccount.UserID] = append(access[dbAccount.UserID], dbAccount.toAccountUsers())
 	}
 
 	return access, nil

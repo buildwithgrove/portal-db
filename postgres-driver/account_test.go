@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/pokt-foundation/portal-db/v2/testdata"
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
@@ -42,101 +41,134 @@ func (ts *PGDriverTestSuite) Test_ReadAccounts() {
 
 func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 	tests := []struct {
-		name           string
-		accountsAccess []types.AccountUserAccess
-		err            error
+		name     string
+		accounts map[types.UserID][]types.AccountUserAccess
+		err      error
 	}{
 		{
 			name: "Should return every user that have access to one account",
-			accountsAccess: []types.AccountUserAccess{
-				{
-					UserID:   types.UserID("user_1"),
-					Owner:    true,
-					Accepted: true,
-				},
-				{
-					UserID:   types.UserID("user_2"),
-					Owner:    false,
-					Accepted: true,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_1": types.RoleAdmin,
+			accounts: map[types.UserID][]types.AccountUserAccess{
+				"user_1": {
+					{
+						UserID:    types.UserID("user_1"),
+						Owner:     true,
+						Accepted:  true,
+						AccountID: types.AccountID("account_1"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_8"),
-					Owner:    false,
-					Accepted: false,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_1": types.RoleAdmin,
+				"user_2": {
+					{
+						UserID:   types.UserID("user_2"),
+						Owner:    false,
+						Accepted: true,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_1": "ADMIN",
+						},
+						AccountID: types.AccountID("account_1"),
+					},
+					{
+						UserID:   types.UserID("user_2"),
+						Owner:    false,
+						Accepted: true,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_2": "MEMBER",
+						},
+						AccountID: types.AccountID("account_2"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_3"),
-					Owner:    true,
-					Accepted: true,
-				},
-				{
-					UserID:   types.UserID("user_4"),
-					Owner:    false,
-					Accepted: true,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_2": types.RoleMember,
+				"user_3": {
+					{
+						UserID:    types.UserID("user_3"),
+						Owner:     true,
+						Accepted:  true,
+						AccountID: types.AccountID("account_2"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_9"),
-					Owner:    false,
-					Accepted: false,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_2": types.RoleMember,
+				"user_4": {
+					{
+						UserID:   types.UserID("user_4"),
+						Owner:    false,
+						Accepted: true,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_2": "MEMBER",
+						},
+						AccountID: types.AccountID("account_2"),
+					},
+					{
+						UserID:    types.UserID("user_4"),
+						Owner:     true,
+						Accepted:  true,
+						AccountID: types.AccountID("account_4"),
+					},
+					{
+						UserID:    types.UserID("user_4"),
+						Owner:     true,
+						Accepted:  true,
+						AccountID: types.AccountID("account_5"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_2"),
-					Owner:    false,
-					Accepted: true,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_2": types.RoleMember,
+				"user_5": {
+					{
+						UserID:    types.UserID("user_5"),
+						Owner:     true,
+						Accepted:  true,
+						AccountID: types.AccountID("account_3"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_5"),
-					Owner:    true,
-					Accepted: true,
-				},
-				{
-					UserID:   types.UserID("user_6"),
-					Owner:    false,
-					Accepted: true,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_3": types.RoleAdmin,
+				"user_6": {
+					{
+						UserID:   types.UserID("user_6"),
+						Owner:    false,
+						Accepted: true,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_3": "ADMIN",
+						},
+						AccountID: types.AccountID("account_3"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_7"),
-					Owner:    false,
-					Accepted: true,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_3": types.RoleMember,
+				"user_7": {
+					{
+						UserID:   types.UserID("user_7"),
+						Owner:    false,
+						Accepted: true,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_3": "MEMBER",
+						},
+						AccountID: types.AccountID("account_3"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_10"),
-					Owner:    false,
-					Accepted: false,
-					PortalAppRoles: map[types.PortalAppID]types.RoleName{
-						"test_app_3": types.RoleMember,
+				"user_8": {
+					{
+						UserID:   types.UserID("user_8"),
+						Owner:    false,
+						Accepted: false,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_1": "ADMIN",
+						},
+						AccountID: types.AccountID("account_1"),
 					},
 				},
-				{
-					UserID:   types.UserID("user_4"),
-					Owner:    false,
-					Accepted: true,
+				"user_9": {
+					{
+						UserID:   types.UserID("user_9"),
+						Owner:    false,
+						Accepted: false,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_2": "MEMBER",
+						},
+						AccountID: types.AccountID("account_2"),
+					},
 				},
-				{
-					UserID:   types.UserID("user_4"),
-					Owner:    true,
-					Accepted: true,
+				"user_10": {
+					{
+						UserID:   types.UserID("user_10"),
+						Owner:    false,
+						Accepted: false,
+						PortalAppRoles: map[types.PortalAppID]types.RoleName{
+							"test_app_3": "MEMBER",
+						},
+						AccountID: types.AccountID("account_3"),
+					},
 				},
 			},
 			err: nil,
@@ -145,9 +177,9 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			accountsAccess, err := ts.driver.ReadAccountsAccess(context.Background())
+			accounts, err := ts.driver.ReadAccountsAccess(context.Background())
 			ts.Equal(test.err, err)
-			cmp.Equal(test.accountsAccess, accountsAccess)
+			ts.Equal(test.accounts, accounts)
 		})
 	}
 }
