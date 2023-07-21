@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/cloudsqlconn v1.3.0
+	github.com/google/go-cmp v0.5.9
 	github.com/jackc/pgx/v5 v5.4.1
 	github.com/jackc/pgxlisten v0.0.0-20230309145146-5d7f28456dce
 	github.com/pokt-foundation/portal-db v1.10.8

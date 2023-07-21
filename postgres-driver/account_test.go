@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/pokt-foundation/portal-db/v2/testdata"
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
@@ -41,13 +42,13 @@ func (ts *PGDriverTestSuite) Test_ReadAccounts() {
 
 func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 	tests := []struct {
-		name     string
-		accounts []types.AccountUserAccess
-		err      error
+		name           string
+		accountsAccess []types.AccountUserAccess
+		err            error
 	}{
 		{
 			name: "Should return every user that have access to one account",
-			accounts: []types.AccountUserAccess{
+			accountsAccess: []types.AccountUserAccess{
 				{
 					UserID:   types.UserID("user_1"),
 					Owner:    true,
@@ -144,9 +145,9 @@ func (ts *PGDriverTestSuite) Test_ReadAccountsAccess() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			accounts, err := ts.driver.ReadAccountsAccess(context.Background())
+			accountsAccess, err := ts.driver.ReadAccountsAccess(context.Background())
 			ts.Equal(test.err, err)
-			ts.Equal(test.accounts, accounts)
+			cmp.Equal(test.accountsAccess, accountsAccess)
 		})
 	}
 }
