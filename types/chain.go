@@ -3,6 +3,7 @@ package types
 import (
 	"net/url"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -56,13 +57,36 @@ func (a AltruistURL) IsValid() bool {
 	return false
 }
 
-func (r ChainDomain) IsValid() bool {
-	pattern := `^([a-zA-Z0-9-*]+\.)+[a-zA-Z]{2,}(:[0-9]{1,5})?$`
-	matched, err := regexp.MatchString(pattern, string(r))
+func (d ChainDomain) IsValid() bool {
+	pattern := `^([a-zA-Z0-9-*]+\.)+[a-zA-Z0-9-*]{2,}\.[a-zA-Z]{2,}(:[0-9]{1,5})?$`
+	matched, err := regexp.MatchString(pattern, string(d))
 	if err != nil {
 		return false
 	}
 	return matched
+}
+
+func (d ChainDomain) IsPublicEndpoint() bool {
+	domainComponents := strings.Split(string(d), ".")
+	if len(domainComponents) < 1 {
+		return false
+	}
+	// Public endpoints end with -rpc
+	return strings.HasSuffix(domainComponents[0], "-rpc")
+}
+
+func (d ChainDomain) IsWildcardDomain() bool {
+	// Wildcard domains are private
+	return strings.Contains(string(d), "*")
+}
+
+func (d ChainDomain) GetAlias() ChainAlias {
+	domainComponents := strings.Split(string(d), ".")
+	if len(domainComponents) < 1 {
+		return ""
+	}
+
+	return ChainAlias(domainComponents[0])
 }
 
 /* Chain Struct and Methods */
