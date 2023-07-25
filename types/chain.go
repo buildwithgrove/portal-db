@@ -93,7 +93,7 @@ func (d ChainDomain) GetAlias() ChainAlias {
 type (
 	Chain struct {
 		ID             RelayChainID                 `json:"id"`
-		Blockchain     string                       `json:"blockchain"`
+		Blockchain     ChainAlias                   `json:"blockchain"`
 		Description    string                       `json:"description"`
 		EnforceResult  string                       `json:"enforceResult"`
 		Path           string                       `json:"path"`
@@ -142,7 +142,7 @@ type (
 
 	UpdateChain struct {
 		ID             RelayChainID                  `json:"id"`
-		Blockchain     *string                       `json:"blockchain"`
+		Blockchain     *ChainAlias                   `json:"blockchain"`
 		Description    *string                       `json:"description"`
 		EnforceResult  *string                       `json:"enforceResult"`
 		Path           *string                       `json:"path"`

@@ -262,7 +262,7 @@ func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
 
 	return v1Types.Blockchain{
 		ID:                string(c.ID),
-		Blockchain:        c.Blockchain,
+		Blockchain:        string(c.Blockchain),
 		ChainID:           chainID,
 		ChainIDCheck:      c.Checks[v2Types.ChainCheckTypeChain].Payload,
 		Description:       c.Description,
