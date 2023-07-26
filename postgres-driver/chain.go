@@ -143,7 +143,7 @@ func (c *ChainRow) toChain() (*types.Chain, error) {
 
 	chain := &types.Chain{
 		ID:             types.RelayChainID(c.ID),
-		Blockchain:     c.Blockchain,
+		Blockchain:     types.ChainAlias(c.Blockchain),
 		Description:    c.Description,
 		EnforceResult:  c.EnforceResult,
 		Ticker:         c.Ticker,
@@ -356,7 +356,7 @@ func (pg *PostgresDriver) insertChain(ctx context.Context, qtx *Queries, chain t
 
 	createdChainID, err := qtx.InsertChain(ctx, InsertChainParams{
 		ID:             chain.ID,
-		Blockchain:     newText(chain.Blockchain),
+		Blockchain:     newText(string(chain.Blockchain)),
 		Description:    newText(chain.Description),
 		EnforceResult:  newText(chain.EnforceResult),
 		Ticker:         newText(chain.Ticker),
@@ -427,7 +427,7 @@ func (pg *PostgresDriver) updateChain(ctx context.Context, qtx *Queries, update 
 
 	createdChainID, err := qtx.UpdateChain(ctx, UpdateChainParams{
 		ID:             update.ID,
-		Blockchain:     newNullString(update.Blockchain),
+		Blockchain:     newNullString((*string)(update.Blockchain)),
 		Description:    newNullString(update.Description),
 		EnforceResult:  newNullString(update.EnforceResult),
 		Ticker:         newNullString(update.Ticker),
@@ -660,7 +660,7 @@ func (json dbChainAliasDomains) toOutput() *types.AliasDomains {
 
 type dbChain struct {
 	ID                       types.RelayChainID  `json:"id"`
-	Blockchain               string              `json:"blockchain"`
+	Blockchain               types.ChainAlias    `json:"blockchain"`
 	Description              string              `json:"description"`
 	EnforceResult            string              `json:"enforce_result"`
 	Ticker                   string              `json:"ticker"`

@@ -1220,7 +1220,7 @@ var (
 
 	UpdateChainOne = types.UpdateChain{
 		ID:            "0001",
-		Blockchain:    newString("mainnet-NEW"),
+		Blockchain:    newChainAlias("mainnet-NEW"),
 		Description:   newString("Pocket Network Mainnet Update"),
 		EnforceResult: newString("JSON"),
 		Path:          newString("/v1/query/height/wow"),
@@ -1269,7 +1269,7 @@ var (
 	}
 	UpdateChainTwo = types.UpdateChain{
 		ID:            "0001",
-		Blockchain:    newString("mainnet-ULTRA"),
+		Blockchain:    newChainAlias("mainnet-ULTRA"),
 		Description:   newString("Pocket Network Mainnet Original"),
 		EnforceResult: newString("JSON"),
 		Path:          newString("/v1/query/height/wow"),
@@ -1297,7 +1297,7 @@ var (
 	}
 	UpdateChainThree = types.UpdateChain{
 		ID:            "0001",
-		Blockchain:    newString("mainnet-ULTRA"),
+		Blockchain:    newChainAlias("mainnet-ULTRA"),
 		Description:   newString("Pocket Network Mainnet Original"),
 		EnforceResult: newString("JSON"),
 		Path:          newString("/v1/query/height/wow"),
@@ -1598,6 +1598,10 @@ func intToPointer(intVar int) *int {
 
 func newString(s string) *string {
 	return &s
+}
+
+func newChainAlias(a types.ChainAlias) *types.ChainAlias {
+	return &a
 }
 
 func newBool(b bool) *bool {
