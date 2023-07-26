@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -227,11 +229,27 @@ type (
 	Contract  string
 )
 
-func (a *PortalApp) AAT() AAT {
-	for _, aat := range a.AATs {
-		return aat
+// GetIDForMiddleware returns the PortalAppID for a PortalApp for use in the middleware,
+// with special handling to return the AAT.ID field in the case of a direct app.
+func (a *PortalApp) GetIDForMiddleware() (PortalAppID, error) {
+	switch strings.Contains(string(a.ID), "direct_app") {
+	// Direct apps are Applications from V1 that did not have an associated LoadBalancer.
+	case true:
+		return a.getDirectAppID()
+	// All other apps are V2 PortalApps.
+	default:
+		return a.ID, nil
 	}
-	return AAT{}
+}
+
+// getDirectAppID returns the AAT.ID field for a direct app. This field was formerly
+// the Application.ID field from V1 and is used in the Middleware to look up direct apps.
+func (a *PortalApp) getDirectAppID() (PortalAppID, error) {
+	for id := range a.AATs {
+		return PortalAppID(id), nil
+	}
+
+	return "", errors.New("PortalApp does not have any AATs.")
 }
 
 // TODO For Legacy Fields Only

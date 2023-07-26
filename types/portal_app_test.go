@@ -2,77 +2,199 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	// TODO - remove when v2 migration finished
 )
 
-var testPortalApplication = PortalApp{
-	ID:        "test_app_1",
-	Name:      "test_portal_app_123",
-	AccountID: "account_1",
-	AATs: map[ProtocolAppID]AAT{
-		"test_protocol_app_1": {
-			Address:         "test_34715cae753e67c75fbb340442e7de8e",
-			PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
-			ClientPublicKey: "test_9e9ca4fe13725d412003f4bc518f6974",
-			PrivateKey:      "test_89a3af6a587aec02cfade6f5000424c2",
-			Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
-			Version:         "0.0.1",
-		},
-	},
-	Settings: Settings{
-		Environment:       EnvironmentProduction,
-		SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
-		SecretKeyRequired: true,
-		MonthlyRelayLimit: 250_000,
-		FavoritedChainIDs: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
-	},
-	Whitelists: Whitelists{
-		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
-		UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
-		Blockchains: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
-		Contracts: map[RelayChainID]map[Contract]struct{}{
-			"0001": {"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}, "0xtest_2f78db6436527729929aaf6c616361de0f7": {}},
-			"0056": {"0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}, "0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}},
-			"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
-			"003E": {"0xtest_f958d2ee523a2206206994597c13d831ec7": {}, "0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}},
-		},
-		Methods: map[RelayChainID]map[Method]struct{}{
-			"0001": {"GET": {}, "POST": {}, "PUT": {}},
-			"0056": {"GET": {}, "POST": {}},
-			"0002": {"GET": {}, "POST": {}, "PUT": {}, "DELETE": {}},
-			"003E": {"GET": {}},
-		},
-	},
-	Notifications: map[NotificationType]AppNotification{
-		NotificationTypeEmail: {
-			Active: true, Destination: "test@user.com", Trigger: "what_am_i", // TODO what is trigger?
-			Events: map[NotificationEvent]bool{
-				"signedUp":      true,
-				"quarter":       true,
-				"threeQuarters": true,
+var (
+	testPortalApplication = PortalApp{
+		ID:        "test_app_1",
+		Name:      "test_portal_app_123",
+		AccountID: "account_1",
+		AATs: map[ProtocolAppID]AAT{
+			"test_protocol_app_1": {
+				Address:         "test_34715cae753e67c75fbb340442e7de8e",
+				PublicKey:       "test_11b8d394ca331d7c7a71ca1896d630f6",
+				ClientPublicKey: "test_9e9ca4fe13725d412003f4bc518f6974",
+				PrivateKey:      "test_89a3af6a587aec02cfade6f5000424c2",
+				Signature:       "test_1dc39a2e5a84a35bf030969a0b3231f7",
+				Version:         "0.0.1",
 			},
 		},
-		NotificationTypeWebhook: {
-			Active: false, Destination: "https://wh.destination.io", Trigger: "what_am_i",
-			Events: map[NotificationEvent]bool{
-				"signedUp": true,
-				"full":     true,
+		Settings: Settings{
+			Environment:       EnvironmentProduction,
+			SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
+			SecretKeyRequired: true,
+			MonthlyRelayLimit: 250_000,
+			FavoritedChainIDs: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+		},
+		Whitelists: Whitelists{
+			Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
+			UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
+			Blockchains: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+			Contracts: map[RelayChainID]map[Contract]struct{}{
+				"0001": {"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}, "0xtest_2f78db6436527729929aaf6c616361de0f7": {}},
+				"0056": {"0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}, "0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}},
+				"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
+				"003E": {"0xtest_f958d2ee523a2206206994597c13d831ec7": {}, "0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}},
+			},
+			Methods: map[RelayChainID]map[Method]struct{}{
+				"0001": {"GET": {}, "POST": {}, "PUT": {}},
+				"0056": {"GET": {}, "POST": {}},
+				"0002": {"GET": {}, "POST": {}, "PUT": {}, "DELETE": {}},
+				"003E": {"GET": {}},
 			},
 		},
-	},
-	FirstDateSurpassed: time.Date(2023, time.February, 28, 15, 15, 15, 0, time.UTC),
-	CreatedAt:          time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
-	UpdatedAt:          time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
+		Notifications: map[NotificationType]AppNotification{
+			NotificationTypeEmail: {
+				Active: true, Destination: "test@user.com", Trigger: "what_am_i", // TODO what is trigger?
+				Events: map[NotificationEvent]bool{
+					"signedUp":      true,
+					"quarter":       true,
+					"threeQuarters": true,
+				},
+			},
+			NotificationTypeWebhook: {
+				Active: false, Destination: "https://wh.destination.io", Trigger: "what_am_i",
+				Events: map[NotificationEvent]bool{
+					"signedUp": true,
+					"full":     true,
+				},
+			},
+		},
+		FirstDateSurpassed: time.Date(2023, time.February, 28, 15, 15, 15, 0, time.UTC),
+		CreatedAt:          time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+		UpdatedAt:          time.Date(2023, time.February, 27, 13, 13, 13, 0, time.UTC),
 
-	LegacyFields: LegacyFields{
-		CustomLimit:    0,
-		RequestTimeout: 5_000,
-	},
+		LegacyFields: LegacyFields{
+			CustomLimit:    0,
+			RequestTimeout: 5_000,
+		},
+	}
+
+	testDirectApp = PortalApp{
+		ID:   "direct_app_0001",
+		Name: "test_direct_app",
+		AATs: map[ProtocolAppID]AAT{
+			"test_direct_app_1": {
+				ID:              "test_direct_app_1",
+				Address:         "test_b45a087e45ac70ec70c699f53592d132",
+				PublicKey:       "test_7ad0f2a799b5edfe37d89b1907430411",
+				ClientPublicKey: "test_d2562652c1e18e68d3e1e92a7cbe5e3e",
+				PrivateKey:      "",
+				Signature:       "test_0dc44d7d2b368fcb4982d0611ce6f7be",
+				Version:         "0.0.1",
+			},
+		},
+		CreatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+		UpdatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+	}
+
+	testEmptyMapApp = PortalApp{
+		ID:        "direct_app_0002",
+		Name:      "empty_aats_map",
+		AATs:      map[ProtocolAppID]AAT{},
+		CreatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+		UpdatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+	}
+
+	testNilMapApp = PortalApp{
+		ID:        "direct_app_0003",
+		Name:      "nil_aats_map",
+		AATs:      nil,
+		CreatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+		UpdatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+	}
+)
+
+func Test_PortalApp_GetIDForMiddleware(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name           string
+		portalApp      *PortalApp
+		expectedResult PortalAppID
+		expectedErr    error
+	}{
+		{
+			name:           "Should return the ID of the normal app",
+			portalApp:      &testPortalApplication,
+			expectedResult: "test_app_1",
+			expectedErr:    nil,
+		},
+		{
+			name:           "Should return the ID of the direct app",
+			portalApp:      &testDirectApp,
+			expectedResult: "test_direct_app_1",
+			expectedErr:    nil,
+		},
+		{
+			name:           "Should return error for direct app with empty AATs map",
+			portalApp:      &testEmptyMapApp,
+			expectedResult: "",
+			expectedErr:    errors.New("PortalApp does not have any AATs."),
+		},
+		{
+			name:           "Should return error for direct app with nil AATs map",
+			portalApp:      &testNilMapApp,
+			expectedResult: "",
+			expectedErr:    errors.New("PortalApp does not have any AATs."),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			id, err := test.portalApp.GetIDForMiddleware()
+			c.Equal(test.expectedErr, err)
+			if test.expectedErr == nil {
+				c.Equal(test.expectedResult, id)
+			}
+		})
+	}
+}
+
+func Test_PortalApp_getDirectAppID(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name           string
+		portalApp      *PortalApp
+		expectedResult PortalAppID
+		expectedErr    error
+	}{
+		{
+			name:           "Should return the ID of the direct app",
+			portalApp:      &testDirectApp,
+			expectedResult: "test_direct_app_1",
+			expectedErr:    nil,
+		},
+		{
+			name:           "Should return error for app with empty AATs map",
+			portalApp:      &testEmptyMapApp,
+			expectedResult: "",
+			expectedErr:    errors.New("PortalApp does not have any AATs."),
+		},
+		{
+			name:           "Should return error for app with nil AATs map",
+			portalApp:      &testNilMapApp,
+			expectedResult: "",
+			expectedErr:    errors.New("PortalApp does not have any AATs."),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			id, err := test.portalApp.getDirectAppID()
+			c.Equal(test.expectedErr, err)
+			if test.expectedErr == nil {
+				c.Equal(test.expectedResult, id)
+			}
+		})
+	}
 }
 
 var testMiddlewarePortalApp = MiddlewarePortalApp{
