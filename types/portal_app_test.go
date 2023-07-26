@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -94,6 +93,37 @@ var (
 		UpdatedAt: time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
 	}
 
+	testPortalAppLite = PortalAppLite{
+		ID:         "test_app_1",
+		PublicKeys: []PortalAppPublicKey{"test_11b8d394ca331d7c7a71ca1896d630f6"},
+		Settings: SettingsLite{
+			SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
+			SecretKeyRequired: true,
+		},
+		Whitelists: Whitelists{
+			Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
+			UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
+			Blockchains: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
+			Contracts: map[RelayChainID]map[Contract]struct{}{
+				"0001": {"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}, "0xtest_2f78db6436527729929aaf6c616361de0f7": {}},
+				"0056": {"0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}, "0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}},
+				"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
+				"003E": {"0xtest_f958d2ee523a2206206994597c13d831ec7": {}, "0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}},
+			},
+			Methods: map[RelayChainID]map[Method]struct{}{
+				"0001": {"GET": {}, "POST": {}, "PUT": {}},
+				"0056": {"GET": {}, "POST": {}},
+				"0002": {"GET": {}, "POST": {}, "PUT": {}, "DELETE": {}},
+				"003E": {"GET": {}},
+			},
+		},
+	}
+
+	testMiddlewareDirectPortalApp = PortalAppLite{
+		ID:         "test_direct_app_1",
+		PublicKeys: []PortalAppPublicKey{"test_7ad0f2a799b5edfe37d89b1907430411"},
+	}
+
 	testEmptyMapApp = PortalApp{
 		ID:        "direct_app_0002",
 		Name:      "empty_aats_map",
@@ -111,48 +141,70 @@ var (
 	}
 )
 
-func Test_PortalApp_GetIDForMiddleware(t *testing.T) {
+func Test_ConvertPortalAppToPortalAppLite(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name           string
+		portalApp      PortalApp
+		expectedMidApp PortalAppLite
+	}{
+		{
+			name:           "Should correctly convert PortalApp to PortalAppLite",
+			portalApp:      testPortalApplication,
+			expectedMidApp: testPortalAppLite,
+		},
+		{
+			name:           "Should correctly convert directPortalApp to PortalAppLite",
+			portalApp:      testDirectApp,
+			expectedMidApp: testMiddlewareDirectPortalApp,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			middlewarePortalApp := test.portalApp.ConvertPortalAppToPortalAppLite()
+			c.Equal(test.expectedMidApp.ID, middlewarePortalApp.ID)
+			c.Equal(test.expectedMidApp.Settings, middlewarePortalApp.Settings)
+			c.Equal(test.expectedMidApp.Whitelists, middlewarePortalApp.Whitelists)
+		})
+	}
+}
+
+func Test_PortalApp_getIDForMiddleware(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
 		name           string
 		portalApp      *PortalApp
 		expectedResult PortalAppID
-		expectedErr    error
 	}{
 		{
 			name:           "Should return the ID of the normal app",
 			portalApp:      &testPortalApplication,
 			expectedResult: "test_app_1",
-			expectedErr:    nil,
 		},
 		{
 			name:           "Should return the ID of the direct app",
 			portalApp:      &testDirectApp,
 			expectedResult: "test_direct_app_1",
-			expectedErr:    nil,
 		},
 		{
-			name:           "Should return error for direct app with empty AATs map",
+			name:           "Should return empty string for direct app with empty AATs map",
 			portalApp:      &testEmptyMapApp,
 			expectedResult: "",
-			expectedErr:    errors.New("PortalApp does not have any AATs."),
 		},
 		{
-			name:           "Should return error for direct app with nil AATs map",
+			name:           "Should return empty string for direct app with nil AATs map",
 			portalApp:      &testNilMapApp,
 			expectedResult: "",
-			expectedErr:    errors.New("PortalApp does not have any AATs."),
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			id, err := test.portalApp.GetIDForMiddleware()
-			c.Equal(test.expectedErr, err)
-			if test.expectedErr == nil {
-				c.Equal(test.expectedResult, id)
-			}
+			id := test.portalApp.getIDForMiddleware()
+			c.Equal(test.expectedResult, id)
 		})
 	}
 }
@@ -164,84 +216,68 @@ func Test_PortalApp_getDirectAppID(t *testing.T) {
 		name           string
 		portalApp      *PortalApp
 		expectedResult PortalAppID
-		expectedErr    error
 	}{
 		{
 			name:           "Should return the ID of the direct app",
 			portalApp:      &testDirectApp,
 			expectedResult: "test_direct_app_1",
-			expectedErr:    nil,
 		},
 		{
-			name:           "Should return error for app with empty AATs map",
+			name:           "Should return empty string for app with empty AATs map",
 			portalApp:      &testEmptyMapApp,
 			expectedResult: "",
-			expectedErr:    errors.New("PortalApp does not have any AATs."),
 		},
 		{
-			name:           "Should return error for app with nil AATs map",
+			name:           "Should return empty string for app with nil AATs map",
 			portalApp:      &testNilMapApp,
 			expectedResult: "",
-			expectedErr:    errors.New("PortalApp does not have any AATs."),
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			id, err := test.portalApp.getDirectAppID()
-			c.Equal(test.expectedErr, err)
-			if test.expectedErr == nil {
-				c.Equal(test.expectedResult, id)
-			}
+			id := test.portalApp.getDirectAppID()
+			c.Equal(test.expectedResult, id)
 		})
 	}
 }
 
-var testMiddlewarePortalApp = MiddlewarePortalApp{
-	ID: "test_app_1",
-	Settings: MiddlewarePortalAppSettings{
-		SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
-		SecretKeyRequired: true,
-	},
-	Whitelists: Whitelists{
-		Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
-		UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
-		Blockchains: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
-		Contracts: map[RelayChainID]map[Contract]struct{}{
-			"0001": {"0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be": {}, "0xtest_2f78db6436527729929aaf6c616361de0f7": {}},
-			"0056": {"0xtest_5068778dd592e39a122f4f5a5cf09c90fe2": {}, "0xtest_00000f279d81a1d3cc75430faa017fa5a2e": {}},
-			"0002": {"0xtest_1111117dc0aa78b770fa6a738034120c302": {}, "0xtest_a39b223fe8d0a0e5c4f27ead9083c756cc2": {}},
-			"003E": {"0xtest_f958d2ee523a2206206994597c13d831ec7": {}, "0xtest_0a85d5af5bf1d1762f925bdaddc4201f984": {}},
-		},
-		Methods: map[RelayChainID]map[Method]struct{}{
-			"0001": {"GET": {}, "POST": {}, "PUT": {}},
-			"0056": {"GET": {}, "POST": {}},
-			"0002": {"GET": {}, "POST": {}, "PUT": {}, "DELETE": {}},
-			"003E": {"GET": {}},
-		},
-	},
-}
-
-func Test_ConvertPortalAppToMiddlewarePortalApp(t *testing.T) {
+func Test_PortalApp_GetPublicKeys(t *testing.T) {
 	c := require.New(t)
 
-	test := struct {
+	tests := []struct {
 		name           string
-		portalApp      PortalApp
-		expectedMidApp MiddlewarePortalApp
+		portalApp      *PortalApp
+		expectedResult []PortalAppPublicKey
 	}{
-		name:           "Should correctly convert PortalApp to MiddlewarePortalApp",
-		portalApp:      testPortalApplication,
-		expectedMidApp: testMiddlewarePortalApp,
+		{
+			name:           "Should return all public keys of the normal app",
+			portalApp:      &testPortalApplication,
+			expectedResult: []PortalAppPublicKey{"test_11b8d394ca331d7c7a71ca1896d630f6"},
+		},
+		{
+			name:           "Should return all public keys of the direct app",
+			portalApp:      &testDirectApp,
+			expectedResult: []PortalAppPublicKey{"test_7ad0f2a799b5edfe37d89b1907430411"},
+		},
+		{
+			name:           "Should return empty slice for app without AATs",
+			portalApp:      &testEmptyMapApp,
+			expectedResult: []PortalAppPublicKey{},
+		},
+		{
+			name:           "Should return empty slice for app with nil AATs",
+			portalApp:      &testNilMapApp,
+			expectedResult: []PortalAppPublicKey{},
+		},
 	}
 
-	t.Run(test.name, func(t *testing.T) {
-		middlewarePortalApp := test.portalApp.ConvertPortalAppToMiddlewarePortalApp()
-
-		c.Equal(test.expectedMidApp.ID, middlewarePortalApp.ID)
-		c.Equal(test.expectedMidApp.Settings, middlewarePortalApp.Settings)
-		c.Equal(test.expectedMidApp.Whitelists, middlewarePortalApp.Whitelists)
-	})
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			publicKeys := test.portalApp.GetPublicKeys()
+			c.Equal(test.expectedResult, publicKeys)
+		})
+	}
 }
 
 func Test_PortalApp_IsOriginWhitelisted(t *testing.T) {
@@ -249,25 +285,25 @@ func Test_PortalApp_IsOriginWhitelisted(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		portalApp      MiddlewarePortalApp
+		portalApp      PortalAppLite
 		origin         Origin
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given origin is whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			origin:         Origin("https://portalgun.io"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given origin is whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			origin:         Origin("https://www.example.com"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given origin is not whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			origin:         Origin("https://ricksanchez.io"),
 			expectedResult: false,
 		},
@@ -286,25 +322,25 @@ func Test_PortalApp_IsUserAgentWhitelisted(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		portalApp      MiddlewarePortalApp
+		portalApp      PortalAppLite
 		userAgent      UserAgent
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given user agent is whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			userAgent:      UserAgent("Brave"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given user agent is whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			userAgent:      UserAgent("Safari"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given user agent is not whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			userAgent:      UserAgent("Bird Person"),
 			expectedResult: false,
 		},
@@ -323,25 +359,25 @@ func Test_PortalApp_IsBlockchainWhitelisted(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		portalApp      MiddlewarePortalApp
+		portalApp      PortalAppLite
 		blockchain     RelayChainID
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given blockchain is whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("0001"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given blockchain is whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("003E"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given blockchain is not whitelisted for a given app",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("7009"),
 			expectedResult: false,
 		},
@@ -360,35 +396,35 @@ func Test_PortalApp_IsContractWhitelisted(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		portalApp      MiddlewarePortalApp
+		portalApp      PortalAppLite
 		blockchain     RelayChainID
 		contract       Contract
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given contract is whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("0001"),
 			contract:       Contract("0xtest_5fbfe3e9af3971dd833d26ba9b5c936f0be"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given contract is whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("003E"),
 			contract:       Contract("0xtest_0a85d5af5bf1d1762f925bdaddc4201f984"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given contract is not whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("0056"),
 			contract:       Contract("0xtest_04938rfj439fj3409jf0439fjf4304f4444"),
 			expectedResult: false,
 		},
 		{
 			name:           "Should return false if a given contract is not whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("7009"),
 			contract:       Contract("0xtest_439834fnin3f2032f03re3j2f30fj33f3f3"),
 			expectedResult: false,
@@ -408,35 +444,35 @@ func Test_PortalApp_IsMethodWhitelisted(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		portalApp      MiddlewarePortalApp
+		portalApp      PortalAppLite
 		blockchain     RelayChainID
 		method         Method
 		expectedResult bool
 	}{
 		{
 			name:           "Should return true if a given method is whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("0001"),
 			method:         Method("POST"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return true if a given method is whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("003E"),
 			method:         Method("GET"),
 			expectedResult: true,
 		},
 		{
 			name:           "Should return false if a given method is not whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("0056"),
 			method:         Method("PUT"),
 			expectedResult: false,
 		},
 		{
 			name:           "Should return false if a given method is not whitelisted for a given app and blockchain",
-			portalApp:      testMiddlewarePortalApp,
+			portalApp:      testPortalAppLite,
 			blockchain:     RelayChainID("7009"),
 			method:         Method("GET"),
 			expectedResult: false,

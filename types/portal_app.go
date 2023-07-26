@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"sort"
 	"strings"
 	"time"
@@ -156,14 +155,15 @@ type (
 		Events      map[NotificationEvent]bool `json:"events"`
 	}
 
-	// MiddlewarePortalApp contains only the fields necessary inside the Portal Middleware for user PortalApps
-	MiddlewarePortalApp struct {
-		ID         PortalAppID                 `json:"id"`
-		Settings   MiddlewarePortalAppSettings `json:"settings"`
-		Whitelists Whitelists                  `json:"whitelists"`
+	// PortalAppLite contains only the PortalApp fields actually used in the Portal Middleware.
+	PortalAppLite struct {
+		ID         PortalAppID          `json:"id"`
+		PublicKeys []PortalAppPublicKey `json:"publicKeys"`
+		Settings   SettingsLite         `json:"settings"`
+		Whitelists Whitelists           `json:"whitelists"`
 	}
 
-	MiddlewarePortalAppSettings struct {
+	SettingsLite struct {
 		SecretKey         string `json:"secretKey"`
 		SecretKeyRequired bool   `json:"secretKeyRequired"`
 	}
@@ -228,29 +228,6 @@ type (
 	Method    string
 	Contract  string
 )
-
-// GetIDForMiddleware returns the PortalAppID for a PortalApp for use in the middleware,
-// with special handling to return the AAT.ID field in the case of a direct app.
-func (a *PortalApp) GetIDForMiddleware() (PortalAppID, error) {
-	switch strings.Contains(string(a.ID), "direct_app") {
-	// Direct apps are Applications from V1 that did not have an associated LoadBalancer.
-	case true:
-		return a.getDirectAppID()
-	// All other apps are V2 PortalApps.
-	default:
-		return a.ID, nil
-	}
-}
-
-// getDirectAppID returns the AAT.ID field for a direct app. This field was formerly
-// the Application.ID field from V1 and is used in the Middleware to look up direct apps.
-func (a *PortalApp) getDirectAppID() (PortalAppID, error) {
-	for id := range a.AATs {
-		return PortalAppID(id), nil
-	}
-
-	return "", errors.New("PortalApp does not have any AATs.")
-}
 
 // TODO For Legacy Fields Only
 // DailyLimit returns the daily relay limit for a given portal app
@@ -387,11 +364,13 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	}
 }
 
-// ConvertPortalAppToMiddlewarePortalApp converts a PortalApp to a MiddlewarePortalApp for use in the Portal Middleware
-func (a *PortalApp) ConvertPortalAppToMiddlewarePortalApp() *MiddlewarePortalApp {
-	return &MiddlewarePortalApp{
-		ID: a.ID,
-		Settings: MiddlewarePortalAppSettings{
+// ConvertPortalAppToPortalAppLite converts a PortalApp to a PortalAppLite for use in the Portal Middleware
+// Returns a copy rather than a pointer as its intended be used at the point of returning the request body
+func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
+	return PortalAppLite{
+		ID:         a.getIDForMiddleware(),
+		PublicKeys: a.GetPublicKeys(),
+		Settings: SettingsLite{
 			SecretKey:         a.Settings.SecretKey,
 			SecretKeyRequired: a.Settings.SecretKeyRequired,
 		},
@@ -399,26 +378,57 @@ func (a *PortalApp) ConvertPortalAppToMiddlewarePortalApp() *MiddlewarePortalApp
 	}
 }
 
+// getIDForMiddleware returns the PortalAppID for a PortalApp for use in the middleware,
+// with special handling to return the AAT.ID field in the case of a direct app.
+func (a *PortalApp) getIDForMiddleware() PortalAppID {
+	// Direct apps are Applications from V1 that did not have an associated LoadBalancer.
+	if strings.Contains(string(a.ID), "direct_app") {
+		return a.getDirectAppID()
+	}
+	// All other apps are V2 PortalApps.
+	return a.ID
+}
+
+// getDirectAppID returns the AAT.ID field for a direct app. This field was formerly
+// the Application.ID field from V1 and is used in the Middleware to look up direct apps.
+func (a *PortalApp) getDirectAppID() PortalAppID {
+	for id := range a.AATs {
+		return PortalAppID(id)
+	}
+	return ""
+}
+
+// GetPublicKeys returns all public keys for a PortalApp
+func (a *PortalApp) GetPublicKeys() []PortalAppPublicKey {
+	publicKeys := []PortalAppPublicKey{}
+
+	for _, aat := range a.AATs {
+		publicKeys = append(publicKeys, aat.PublicKey)
+	}
+
+	return publicKeys
+}
+
 // IsOriginWhitelisted returns a boolean indicating whether the given ORIGIN is whitelisted for an application
-func (a *MiddlewarePortalApp) IsOriginWhitelisted(origin Origin) bool {
+func (a *PortalAppLite) IsOriginWhitelisted(origin Origin) bool {
 	_, ok := a.Whitelists.Origins[origin]
 	return ok
 }
 
 // IsUserAgentWhitelisted returns a boolean indicating whether the given USER AGENT is whitelisted for an application
-func (a *MiddlewarePortalApp) IsUserAgentWhitelisted(userAgent UserAgent) bool {
+func (a *PortalAppLite) IsUserAgentWhitelisted(userAgent UserAgent) bool {
 	_, ok := a.Whitelists.UserAgents[userAgent]
 	return ok
 }
 
 // IsBlockchainWhitelisted returns a boolean indicating whether the given BLOCKCHAIN is whitelisted for an application
-func (a *MiddlewarePortalApp) IsBlockchainWhitelisted(blockchain RelayChainID) bool {
+func (a *PortalAppLite) IsBlockchainWhitelisted(blockchain RelayChainID) bool {
 	_, ok := a.Whitelists.Blockchains[blockchain]
 	return ok
 }
 
 // IsContractWhitelisted returns a boolean indicating whether the given CONTRACT is whitelisted for a blockchain and application
-func (a *MiddlewarePortalApp) IsContractWhitelisted(chainID RelayChainID, contract Contract) bool {
+func (a *PortalAppLite) IsContractWhitelisted(chainID RelayChainID, contract Contract) bool {
 	if chainContracts, contractsOK := a.Whitelists.Contracts[chainID]; contractsOK {
 		if _, contractOK := chainContracts[contract]; contractOK {
 			return true
@@ -428,7 +438,7 @@ func (a *MiddlewarePortalApp) IsContractWhitelisted(chainID RelayChainID, contra
 }
 
 // IsMethodWhitelisted returns a boolean indicating whether the given METHOD is whitelisted for a blockchain and application
-func (a *MiddlewarePortalApp) IsMethodWhitelisted(chainID RelayChainID, method Method) bool {
+func (a *PortalAppLite) IsMethodWhitelisted(chainID RelayChainID, method Method) bool {
 	if chainMethods, methodsOK := a.Whitelists.Methods[chainID]; methodsOK {
 		if _, methodOK := chainMethods[method]; methodOK {
 			return true
