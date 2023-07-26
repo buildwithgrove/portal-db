@@ -769,6 +769,84 @@ var (
 		},
 	}
 
+	// This is used for testing the converted values of the above Portal Apps
+	// Does not exist in the test DB seed data as it is never stored in the DB.
+	PortalAppLites = map[types.PortalAppID]*types.PortalAppLite{
+		"test_app_1": {
+			ID: "test_app_1",
+			PublicKeys: []types.PortalAppPublicKey{
+				"test_34715cae753e67c75fbb340442e7de8e",
+			},
+			Settings: types.SettingsLite{
+				SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
+				SecretKeyRequired: true,
+			},
+			Whitelists: types.Whitelists{
+				Origins: map[types.Origin]struct{}{
+					"https://test.com": {},
+				},
+				UserAgents: map[types.UserAgent]struct{}{
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64)": {},
+				},
+				Blockchains: map[types.RelayChainID]struct{}{
+					"0053": {},
+				},
+				Contracts: map[types.RelayChainID]map[types.Contract]struct{}{
+					"0001": {
+						"0x1234567890abcdef": {},
+					},
+				},
+				Methods: map[types.RelayChainID]map[types.Method]struct{}{
+					"0001": {
+						"GET": {},
+					},
+				},
+			},
+		},
+		"test_app_2": {
+			ID: "test_app_2",
+			PublicKeys: []types.PortalAppPublicKey{
+				"test_8237c72345f12d1b1a8b64a1a7f66fa4",
+			},
+			Settings: types.SettingsLite{
+				SecretKey:         "test_9c9e3b193cfba5348f93bb2f3e3fb794",
+				SecretKeyRequired: false,
+			},
+			Whitelists: types.Whitelists{
+				Origins: map[types.Origin]struct{}{
+					"https://example.com": {},
+				},
+				UserAgents: map[types.UserAgent]struct{}{
+					"Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36": {},
+				},
+				Blockchains: map[types.RelayChainID]struct{}{
+					"0021": {},
+				},
+				Contracts: map[types.RelayChainID]map[types.Contract]struct{}{
+					"0064": {
+						"0x0987654321abcdef": {},
+					},
+				},
+				Methods: map[types.RelayChainID]map[types.Method]struct{}{
+					"0064": {
+						"POST": {},
+					},
+				},
+			},
+		},
+		"test_app_3": {
+			ID: "test_app_3",
+			PublicKeys: []types.PortalAppPublicKey{
+				"test_f608500e4fe3e09014fe2411b4a560b5",
+				"test_f6a5d8690ecb669865bd752b7796a920",
+			},
+			Settings: types.SettingsLite{
+				SecretKey:         "test_9f48b13e2bc5fd31ab367841f11495c1",
+				SecretKeyRequired: false,
+			},
+		},
+	}
+
 	GigastakeApps = map[types.GigastakeAppID]*types.GigastakeApp{
 		"test_gigastake_app_1": {
 			ID:              "test_gigastake_app_1",
@@ -782,7 +860,6 @@ var (
 			Version:         "0.0.1",
 			CreatedAt:       MockTimestamp,
 			UpdatedAt:       MockTimestamp,
-			LegacyLBID:      "legacy_lb_1",
 		},
 		"test_gigastake_app_2": {
 			ID:              "test_gigastake_app_2",
@@ -796,7 +873,6 @@ var (
 			Version:         "0.0.1",
 			CreatedAt:       MockTimestamp,
 			UpdatedAt:       MockTimestamp,
-			LegacyLBID:      "legacy_lb_2",
 		},
 		"test_gigastake_app_3": {
 			ID:              "test_gigastake_app_3",
@@ -810,7 +886,6 @@ var (
 			Version:         "0.0.1",
 			CreatedAt:       MockTimestamp,
 			UpdatedAt:       MockTimestamp,
-			LegacyLBID:      "legacy_lb_3",
 		},
 	}
 
@@ -1022,7 +1097,6 @@ var (
 		ClientPublicKey: "test_94389a8890dc6ab49a74a37b7140413b4c6bb0640689cc2dc628d49b17b",
 		Signature:       "test_ed37b11a1c4456a3e9b4ce0d69fc3ea962887924c6cfca969170d6c4a552bf13c8cd73649fd27929730b4229a834b090bf7a0ed7f506a98f315f961fda4",
 		Version:         "0.0.1",
-		LegacyLBID:      "legacy_lb_10",
 	}
 
 	// TestCreateChain used to test creation of Chains
@@ -1108,7 +1182,6 @@ var (
 			{
 				ID:              "test_create_gigastake_ada",
 				Name:            "pokt_create_gigastake_ada",
-				LegacyLBID:      "legacy_lb_id_123",
 				Address:         "test_c3e9d2a1a3214bc7b364f51362a8a8e4",
 				PublicKey:       "test_8a4b6d3f48274d8988d0f5b4866efce1",
 				PrivateKey:      "test_1ef9e2a7b3f74bc899d0f3b4862efce1",
@@ -1428,7 +1501,7 @@ var (
 		Active:        true,
 		Redirects: []v1Types.Redirect{
 			{
-				LoadBalancerID: "legacy_lb_1",
+				LoadBalancerID: "0001-POKT-pokt-mainnet",
 				Alias:          "pokt-mainnet",
 				Domain:         "pokt-rpc.gateway.pokt.network",
 			},

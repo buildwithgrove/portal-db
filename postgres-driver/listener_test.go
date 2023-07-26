@@ -134,7 +134,6 @@ func Test_Listen(t *testing.T) {
 						CreatedAt:       testdata.MockTimestamp,
 						UpdatedAt:       testdata.MockTimestamp,
 						Deleted:         false,
-						LegacyLBID:      "legacy_lb_1",
 					},
 				},
 				types.TableChainGigastakeApps: {

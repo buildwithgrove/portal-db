@@ -1030,8 +1030,7 @@ INSERT INTO gigastake_applications (
         signature,
         version,
         created_at,
-        updated_at,
-        lb_id
+        updated_at
     )
 VALUES (
         'test_gigastake_app_1',
@@ -1043,8 +1042,7 @@ VALUES (
         'test_f22651fb566346fca30b605e5f46e3ca',
         '0.0.1',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'legacy_lb_1'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'test_gigastake_app_2',
@@ -1056,8 +1054,7 @@ VALUES (
         'test_52e991c26da841bc882ad3a3ee9ee964',
         '0.0.1',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'legacy_lb_2'
+        '2022-11-11 11:11:11.000000'
     ),
     (
         'test_gigastake_app_3',
@@ -1069,8 +1066,7 @@ VALUES (
         'test_01eac46efc9242a2be73879f1d09f1dc',
         '0.0.1',
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000',
-        'legacy_lb_3'
+        '2022-11-11 11:11:11.000000'
     );
 -- Insert into chains_gigastake_applications
 INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)

@@ -18,6 +18,11 @@ Once the V2 migration is completed this package may be removed from this repo.
 */
 
 /* V2 Struct to Legacy Struct Adaptors */
+
+func getLegacyRedirectLoadBalancerID(c v2Types.Chain) string {
+	return fmt.Sprintf("%s-%s-%s", c.ID, c.Ticker, c.Blockchain)
+}
+
 func ConvertPortalAppToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v1Types.LoadBalancer {
 	var userID string
 
@@ -186,19 +191,14 @@ func ConvertToLegacyGatewaySettings(a v2Types.PortalApp) v1Types.GatewaySettings
 }
 
 func ConvertChainToLegacyGigastakeLoadBalancer(c v2Types.Chain) v1Types.LoadBalancer {
-	var chainLBID string
 	var apps []*v1Types.Application
 
 	for _, app := range c.GigastakeApps {
-		if chainLBID == "" {
-			chainLBID = string(app.LegacyLBID)
-		}
-
 		apps = append(apps, ConvertGigastakeAppToLegacyApplication(app))
 	}
 
 	return v1Types.LoadBalancer{
-		ID:           chainLBID,
+		ID:           getLegacyRedirectLoadBalancerID(c),
 		Applications: apps,
 		CreatedAt:    c.CreatedAt,
 		UpdatedAt:    c.UpdatedAt,
@@ -223,13 +223,6 @@ func ConvertGigastakeAppToLegacyApplication(a *v2Types.GigastakeApp) *v1Types.Ap
 }
 
 func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
-	var redirectLBID string
-	for _, gigastakeApp := range c.GigastakeApps {
-		if gigastakeApp.LegacyLBID != "" {
-			redirectLBID = string(gigastakeApp.LegacyLBID)
-		}
-	}
-
 	var redirects []v1Types.Redirect
 	var aliases []string
 	for alias, domains := range c.AliasDomains {
@@ -237,7 +230,7 @@ func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
 			redirects = append(redirects, v1Types.Redirect{
 				Alias:          string(alias),
 				Domain:         string(domain),
-				LoadBalancerID: string(redirectLBID),
+				LoadBalancerID: getLegacyRedirectLoadBalancerID(c),
 			})
 		}
 

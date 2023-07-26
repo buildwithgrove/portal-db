@@ -2,6 +2,7 @@ package types
 
 import (
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -154,6 +155,19 @@ type (
 		Events      map[NotificationEvent]bool `json:"events"`
 	}
 
+	// PortalAppLite contains only the PortalApp fields actually used in the Portal Middleware.
+	PortalAppLite struct {
+		ID         PortalAppID          `json:"id"`
+		PublicKeys []PortalAppPublicKey `json:"publicKeys"`
+		Settings   SettingsLite         `json:"settings"`
+		Whitelists Whitelists           `json:"whitelists"`
+	}
+
+	SettingsLite struct {
+		SecretKey         string `json:"secretKey"`
+		SecretKeyRequired bool   `json:"secretKeyRequired"`
+	}
+
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
 	// It is also used to update Whitelists for an app (sent from Portal UI to PUB to PHD)
 	WhitelistsObject struct {
@@ -214,13 +228,6 @@ type (
 	Method    string
 	Contract  string
 )
-
-func (a *PortalApp) AAT() AAT {
-	for _, aat := range a.AATs {
-		return aat
-	}
-	return AAT{}
-}
 
 // TODO For Legacy Fields Only
 // DailyLimit returns the daily relay limit for a given portal app
@@ -299,44 +306,6 @@ func (a *PortalApp) DeleteWhitelist(whitelist Whitelist) {
 	}
 }
 
-// IsOriginWhitelisted returns a boolean indicating whether the given ORIGIN is whitelisted for an application
-func (a *PortalApp) IsOriginWhitelisted(origin Origin) bool {
-	_, ok := a.Whitelists.Origins[origin]
-	return ok
-}
-
-// IsUserAgentWhitelisted returns a boolean indicating whether the given USER AGENT is whitelisted for an application
-func (a *PortalApp) IsUserAgentWhitelisted(userAgent UserAgent) bool {
-	_, ok := a.Whitelists.UserAgents[userAgent]
-	return ok
-}
-
-// IsBlockchainWhitelisted returns a boolean indicating whether the given BLOCKCHAIN is whitelisted for an application
-func (a *PortalApp) IsBlockchainWhitelisted(blockchain RelayChainID) bool {
-	_, ok := a.Whitelists.Blockchains[blockchain]
-	return ok
-}
-
-// IsContractWhitelisted returns a boolean indicating whether the given CONTRACT is whitelisted for a blockchain and application
-func (a *PortalApp) IsContractWhitelisted(chainID RelayChainID, contract Contract) bool {
-	if chainContracts, contractsOK := a.Whitelists.Contracts[chainID]; contractsOK {
-		if _, contractOK := chainContracts[contract]; contractOK {
-			return true
-		}
-	}
-	return false
-}
-
-// IsMethodWhitelisted returns a boolean indicating whether the given METHOD is whitelisted for a blockchain and application
-func (a *PortalApp) IsMethodWhitelisted(chainID RelayChainID, method Method) bool {
-	if chainMethods, methodsOK := a.Whitelists.Methods[chainID]; methodsOK {
-		if _, methodOK := chainMethods[method]; methodOK {
-			return true
-		}
-	}
-	return false
-}
-
 // GetWhitelistsObject returns a GraphQL-compatible WhitelistsObject struct that contains all whitelists for an application (used for Portal UI)
 func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	var origins, userAgents, blockchains []string // App whitelists
@@ -393,6 +362,89 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 			{Type: WhitelistTypeMethods, Values: methodWhitelists},
 		},
 	}
+}
+
+// ConvertPortalAppToPortalAppLite converts a PortalApp to a PortalAppLite for use in the Portal Middleware
+// Returns a copy rather than a pointer as its intended be used at the point of returning the request body
+func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
+	return PortalAppLite{
+		ID:         a.getIDForMiddleware(),
+		PublicKeys: a.GetPublicKeys(),
+		Settings: SettingsLite{
+			SecretKey:         a.Settings.SecretKey,
+			SecretKeyRequired: a.Settings.SecretKeyRequired,
+		},
+		Whitelists: a.Whitelists,
+	}
+}
+
+// getIDForMiddleware returns the PortalAppID for a PortalApp for use in the middleware,
+// with special handling to return the AAT.ID field in the case of a direct app.
+func (a *PortalApp) getIDForMiddleware() PortalAppID {
+	// Direct apps are Applications from V1 that did not have an associated LoadBalancer.
+	if strings.Contains(string(a.ID), "direct_app") {
+		return a.getDirectAppID()
+	}
+	// All other apps are V2 PortalApps.
+	return a.ID
+}
+
+// getDirectAppID returns the AAT.ID field for a direct app. This field was formerly
+// the Application.ID field from V1 and is used in the Middleware to look up direct apps.
+func (a *PortalApp) getDirectAppID() PortalAppID {
+	for id := range a.AATs {
+		return PortalAppID(id)
+	}
+	return ""
+}
+
+// GetPublicKeys returns all public keys for a PortalApp
+func (a *PortalApp) GetPublicKeys() []PortalAppPublicKey {
+	publicKeys := []PortalAppPublicKey{}
+
+	for _, aat := range a.AATs {
+		publicKeys = append(publicKeys, aat.PublicKey)
+	}
+
+	return publicKeys
+}
+
+// IsOriginWhitelisted returns a boolean indicating whether the given ORIGIN is whitelisted for an application
+func (a *PortalAppLite) IsOriginWhitelisted(origin Origin) bool {
+	_, ok := a.Whitelists.Origins[origin]
+	return ok
+}
+
+// IsUserAgentWhitelisted returns a boolean indicating whether the given USER AGENT is whitelisted for an application
+func (a *PortalAppLite) IsUserAgentWhitelisted(userAgent UserAgent) bool {
+	_, ok := a.Whitelists.UserAgents[userAgent]
+	return ok
+}
+
+// IsBlockchainWhitelisted returns a boolean indicating whether the given BLOCKCHAIN is whitelisted for an application
+func (a *PortalAppLite) IsBlockchainWhitelisted(blockchain RelayChainID) bool {
+	_, ok := a.Whitelists.Blockchains[blockchain]
+	return ok
+}
+
+// IsContractWhitelisted returns a boolean indicating whether the given CONTRACT is whitelisted for a blockchain and application
+func (a *PortalAppLite) IsContractWhitelisted(chainID RelayChainID, contract Contract) bool {
+	if chainContracts, contractsOK := a.Whitelists.Contracts[chainID]; contractsOK {
+		if _, contractOK := chainContracts[contract]; contractOK {
+			return true
+		}
+	}
+	return false
+}
+
+// IsMethodWhitelisted returns a boolean indicating whether the given METHOD is whitelisted for a blockchain and application
+func (a *PortalAppLite) IsMethodWhitelisted(chainID RelayChainID, method Method) bool {
+	if chainMethods, methodsOK := a.Whitelists.Methods[chainID]; methodsOK {
+		if _, methodOK := chainMethods[method]; methodOK {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *PortalApp) Table() Table {

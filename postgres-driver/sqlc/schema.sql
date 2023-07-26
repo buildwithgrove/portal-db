@@ -262,8 +262,8 @@ CREATE TABLE IF NOT EXISTS gigastake_applications (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
     deleted_at TIMESTAMPTZ NULL,
-    -- legacy field
-    lb_id VARCHAR NOT NULL
+    -- legacy field DEPRECATED - CAN BE REMOVED FROM DB
+    lb_id VARCHAR
 );
 -- Chains and Gigastake Applications Join Table
 CREATE TABLE chains_gigastake_applications (
