@@ -160,7 +160,7 @@ type (
 		ID         PortalAppID          `json:"id"`
 		PublicKeys []PortalAppPublicKey `json:"publicKeys"`
 		Settings   SettingsLite         `json:"settings,omitempty"`
-		Whitelists Whitelists           `json:"whitelists,omitempty"`
+		Whitelists *Whitelists          `json:"whitelists,omitempty"`
 	}
 
 	SettingsLite struct {
@@ -364,18 +364,46 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	}
 }
 
+func (w *Whitelists) IsEmpty() bool {
+	if w == nil {
+		return true
+	}
+
+	if len(w.Origins) != 0 {
+		return false
+	}
+	if len(w.UserAgents) != 0 {
+		return false
+	}
+	if len(w.Blockchains) != 0 {
+		return false
+	}
+	if len(w.Contracts) != 0 {
+		return false
+	}
+	if len(w.Methods) != 0 {
+		return false
+	}
+
+	return true
+}
+
 // ConvertPortalAppToPortalAppLite converts a PortalApp to a PortalAppLite for use in the Portal Middleware
 // Returns a copy rather than a pointer as its intended be used at the point of returning the request body
 func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
-	return PortalAppLite{
+	portalAppLite := PortalAppLite{
 		ID:         a.getIDForMiddleware(),
 		PublicKeys: a.GetPublicKeys(),
 		Settings: SettingsLite{
 			SecretKey:         a.Settings.SecretKey,
 			SecretKeyRequired: a.Settings.SecretKeyRequired,
 		},
-		Whitelists: a.Whitelists,
 	}
+	if !a.Whitelists.IsEmpty() {
+		portalAppLite.Whitelists = &a.Whitelists
+	}
+
+	return portalAppLite
 }
 
 // getIDForMiddleware returns the PortalAppID for a PortalApp for use in the middleware,
