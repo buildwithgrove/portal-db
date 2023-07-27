@@ -160,7 +160,7 @@ type (
 		ID         PortalAppID          `json:"id"`
 		PublicKeys []PortalAppPublicKey `json:"publicKeys"`
 		Settings   SettingsLite         `json:"settings,omitempty"`
-		Whitelists *Whitelists          `json:"whitelists,omitempty"`
+		Whitelists Whitelists           `json:"whitelists,omitempty"`
 	}
 
 	SettingsLite struct {
@@ -394,13 +394,15 @@ func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
 	portalAppLite := PortalAppLite{
 		ID:         a.getIDForMiddleware(),
 		PublicKeys: a.GetPublicKeys(),
-		Settings: SettingsLite{
-			SecretKey:         a.Settings.SecretKey,
-			SecretKeyRequired: a.Settings.SecretKeyRequired,
-		},
 	}
 	if !a.Whitelists.IsEmpty() {
-		portalAppLite.Whitelists = &a.Whitelists
+		portalAppLite.Whitelists = a.Whitelists
+	}
+	if a.Settings.SecretKeyRequired {
+		portalAppLite.Settings = SettingsLite{
+			SecretKey:         a.Settings.SecretKey,
+			SecretKeyRequired: a.Settings.SecretKeyRequired,
+		}
 	}
 
 	return portalAppLite

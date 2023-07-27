@@ -100,7 +100,7 @@ var (
 			SecretKey:         "test_90210ac4bdd3423e24877d1ff92",
 			SecretKeyRequired: true,
 		},
-		Whitelists: &Whitelists{
+		Whitelists: Whitelists{
 			Origins:     map[Origin]struct{}{"https://www.example.com": {}, "https://subdomain.example.com": {}, "https://portalgun.io": {}},
 			UserAgents:  map[UserAgent]struct{}{"Mozilla Firefox": {}, "Brave": {}, "Google Chrome": {}, "Safari": {}, "Netscape Navigator": {}},
 			Blockchains: map[RelayChainID]struct{}{"0001": {}, "0056": {}, "0002": {}, "003E": {}},
