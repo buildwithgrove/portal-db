@@ -19,6 +19,9 @@ Once the V2 migration is completed this package may be removed from this repo.
 
 /* V2 Struct to Legacy Struct Adaptors */
 
+// getLegacyRedirectLoadBalancerID creates a dummy ID string used to associate the V1 Blockchain Redirects
+// with the V2 Load Balancer containing all the GigastakeApps for the Blockchain.
+// eg. will create a string like: "0001-POKT-pokt-mainnet"
 func getLegacyRedirectLoadBalancerID(c v2Types.Chain) string {
 	return fmt.Sprintf("%s-%s-%s", c.ID, c.Ticker, c.Blockchain)
 }
