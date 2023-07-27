@@ -808,10 +808,6 @@ var (
 			PublicKeys: []types.PortalAppPublicKey{
 				"test_8237c72345f12d1b1a8b64a1a7f66fa4",
 			},
-			Settings: types.SettingsLite{
-				SecretKey:         "test_9c9e3b193cfba5348f93bb2f3e3fb794",
-				SecretKeyRequired: false,
-			},
 			Whitelists: types.Whitelists{
 				Origins: map[types.Origin]struct{}{
 					"https://example.com": {},
@@ -839,10 +835,6 @@ var (
 			PublicKeys: []types.PortalAppPublicKey{
 				"test_f608500e4fe3e09014fe2411b4a560b5",
 				"test_f6a5d8690ecb669865bd752b7796a920",
-			},
-			Settings: types.SettingsLite{
-				SecretKey:         "test_9f48b13e2bc5fd31ab367841f11495c1",
-				SecretKeyRequired: false,
 			},
 		},
 	}
