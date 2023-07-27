@@ -115,11 +115,11 @@ type (
 	}
 
 	Whitelists struct {
-		Origins     map[Origin]struct{}                    `json:"origins"`
-		UserAgents  map[UserAgent]struct{}                 `json:"userAgents"`
-		Blockchains map[RelayChainID]struct{}              `json:"blockchains"`
-		Contracts   map[RelayChainID]map[Contract]struct{} `json:"contracts"`
-		Methods     map[RelayChainID]map[Method]struct{}   `json:"methods"`
+		Origins     map[Origin]struct{}                    `json:"origins,omitempty"`
+		UserAgents  map[UserAgent]struct{}                 `json:"userAgents,omitempty"`
+		Blockchains map[RelayChainID]struct{}              `json:"blockchains,omitempty"`
+		Contracts   map[RelayChainID]map[Contract]struct{} `json:"contracts,omitempty"`
+		Methods     map[RelayChainID]map[Method]struct{}   `json:"methods,omitempty"`
 	}
 
 	// AAT contains the data needed to perform relays
@@ -159,13 +159,13 @@ type (
 	PortalAppLite struct {
 		ID         PortalAppID          `json:"id"`
 		PublicKeys []PortalAppPublicKey `json:"publicKeys"`
-		Settings   SettingsLite         `json:"settings"`
-		Whitelists Whitelists           `json:"whitelists"`
+		Settings   SettingsLite         `json:"settings,omitempty"`
+		Whitelists *Whitelists          `json:"whitelists,omitempty"`
 	}
 
 	SettingsLite struct {
-		SecretKey         string `json:"secretKey"`
-		SecretKeyRequired bool   `json:"secretKeyRequired"`
+		SecretKey         string `json:"secretKey,omitempty"`
+		SecretKeyRequired bool   `json:"secretKeyRequired,omitempty"`
 	}
 
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
@@ -364,18 +364,46 @@ func (a *PortalApp) GetWhitelistsObject() *WhitelistsObject {
 	}
 }
 
+func (w *Whitelists) IsEmpty() bool {
+	if w == nil {
+		return true
+	}
+
+	if len(w.Origins) != 0 {
+		return false
+	}
+	if len(w.UserAgents) != 0 {
+		return false
+	}
+	if len(w.Blockchains) != 0 {
+		return false
+	}
+	if len(w.Contracts) != 0 {
+		return false
+	}
+	if len(w.Methods) != 0 {
+		return false
+	}
+
+	return true
+}
+
 // ConvertPortalAppToPortalAppLite converts a PortalApp to a PortalAppLite for use in the Portal Middleware
 // Returns a copy rather than a pointer as its intended be used at the point of returning the request body
 func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
-	return PortalAppLite{
+	portalAppLite := PortalAppLite{
 		ID:         a.getIDForMiddleware(),
 		PublicKeys: a.GetPublicKeys(),
 		Settings: SettingsLite{
 			SecretKey:         a.Settings.SecretKey,
 			SecretKeyRequired: a.Settings.SecretKeyRequired,
 		},
-		Whitelists: a.Whitelists,
 	}
+	if !a.Whitelists.IsEmpty() {
+		portalAppLite.Whitelists = &a.Whitelists
+	}
+
+	return portalAppLite
 }
 
 // getIDForMiddleware returns the PortalAppID for a PortalApp for use in the middleware,

@@ -781,7 +781,7 @@ var (
 				SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
 				SecretKeyRequired: true,
 			},
-			Whitelists: types.Whitelists{
+			Whitelists: &types.Whitelists{
 				Origins: map[types.Origin]struct{}{
 					"https://test.com": {},
 				},
@@ -812,7 +812,7 @@ var (
 				SecretKey:         "test_9c9e3b193cfba5348f93bb2f3e3fb794",
 				SecretKeyRequired: false,
 			},
-			Whitelists: types.Whitelists{
+			Whitelists: &types.Whitelists{
 				Origins: map[types.Origin]struct{}{
 					"https://example.com": {},
 				},
