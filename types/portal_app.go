@@ -115,11 +115,11 @@ type (
 	}
 
 	Whitelists struct {
-		Origins     map[Origin]struct{}                    `json:"origins"`
-		UserAgents  map[UserAgent]struct{}                 `json:"userAgents"`
-		Blockchains map[RelayChainID]struct{}              `json:"blockchains"`
-		Contracts   map[RelayChainID]map[Contract]struct{} `json:"contracts"`
-		Methods     map[RelayChainID]map[Method]struct{}   `json:"methods"`
+		Origins     map[Origin]struct{}                    `json:"origins,omitempty"`
+		UserAgents  map[UserAgent]struct{}                 `json:"userAgents,omitempty"`
+		Blockchains map[RelayChainID]struct{}              `json:"blockchains,omitempty"`
+		Contracts   map[RelayChainID]map[Contract]struct{} `json:"contracts,omitempty"`
+		Methods     map[RelayChainID]map[Method]struct{}   `json:"methods,omitempty"`
 	}
 
 	// AAT contains the data needed to perform relays
@@ -159,13 +159,13 @@ type (
 	PortalAppLite struct {
 		ID         PortalAppID          `json:"id"`
 		PublicKeys []PortalAppPublicKey `json:"publicKeys"`
-		Settings   SettingsLite         `json:"settings"`
-		Whitelists Whitelists           `json:"whitelists"`
+		Settings   SettingsLite         `json:"settings,omitempty"`
+		Whitelists Whitelists           `json:"whitelists,omitempty"`
 	}
 
 	SettingsLite struct {
-		SecretKey         string `json:"secretKey"`
-		SecretKeyRequired bool   `json:"secretKeyRequired"`
+		SecretKey         string `json:"secretKey,omitempty"`
+		SecretKeyRequired bool   `json:"secretKeyRequired,omitempty"`
 	}
 
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
