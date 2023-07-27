@@ -874,14 +874,13 @@ WITH new_gigastake_application AS (
             private_key,
             version,
             created_at,
-            updated_at,
-            lb_id
+            updated_at
         )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING id
 )
 INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
-SELECT unnest($12::VARCHAR []),
+SELECT unnest($11::VARCHAR []),
     (
         SELECT id
         FROM new_gigastake_application
@@ -899,7 +898,6 @@ type InsertGigastakeAppParams struct {
 	Version         string               `json:"version"`
 	CreatedAt       pgtype.Timestamptz   `json:"created_at"`
 	UpdatedAt       pgtype.Timestamptz   `json:"updated_at"`
-	LbID            string               `json:"lb_id"`
 	ChainIDs        []string             `json:"chain_ids"`
 }
 
@@ -915,7 +913,6 @@ func (q *Queries) InsertGigastakeApp(ctx context.Context, arg InsertGigastakeApp
 		arg.Version,
 		arg.CreatedAt,
 		arg.UpdatedAt,
-		arg.LbID,
 		arg.ChainIDs,
 	)
 	return err
@@ -1481,9 +1478,7 @@ SELECT ga.id,
     ga.public_key,
     ga.client_public_key,
     ga.signature,
-    ga.version,
-    -- legacy field
-    ga.lb_id
+    ga.version
 FROM gigastake_applications AS ga
     LEFT JOIN chains_gigastake_applications AS cga ON ga.id = cga.gigastake_application_id
 GROUP BY ga.id,
@@ -1495,8 +1490,7 @@ GROUP BY ga.id,
     ga.public_key,
     ga.client_public_key,
     ga.signature,
-    ga.version,
-    ga.lb_id
+    ga.version
 `
 
 type SelectGigastakeApplicationsRow struct {
@@ -1511,7 +1505,6 @@ type SelectGigastakeApplicationsRow struct {
 	ClientPublicKey string               `json:"client_public_key"`
 	Signature       string               `json:"signature"`
 	Version         string               `json:"version"`
-	LbID            string               `json:"lb_id"`
 }
 
 func (q *Queries) SelectGigastakeApplications(ctx context.Context) ([]SelectGigastakeApplicationsRow, error) {
@@ -1535,7 +1528,6 @@ func (q *Queries) SelectGigastakeApplications(ctx context.Context) ([]SelectGiga
 			&i.ClientPublicKey,
 			&i.Signature,
 			&i.Version,
-			&i.LbID,
 		); err != nil {
 			return nil, err
 		}

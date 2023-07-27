@@ -24,8 +24,6 @@ type (
 		// Only used for saving to DB
 		// TODO remove when decided to not support saving private key to DB
 		PrivateKey string `json:"privateKey,omitempty"`
-		// TODO remove legacy field when migration to V2 schema complete
-		LegacyLBID string `json:"legacyLBID"`
 	}
 
 	// UpdateGigastakeApp represents the fields that can be updated on a GigastakeApp

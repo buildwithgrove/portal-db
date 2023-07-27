@@ -24,9 +24,9 @@ test_env_down:
 	@docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans >/dev/null
 	@echo "✅ Test environment is down."
 run_driver_tests:
-	-go test ./... -run Test_RunPGDriverSuite -count=1;
+	go test ./... -run Test_RunPGDriverSuite -count=1;
 run_all_tests:
-	-go test ./... -count=1;
+	go test ./... -count=1;
 reset_test_db:
 	@echo "🧨 Starting the database reset operation..."
 	@docker exec -it test-database psql -U postgres -d postgres -f /scripts/reset_test_db.sql >/dev/null || (echo "❌ Database reset operation failed:" && docker exec -it test-database psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/reset_test_db.sql)

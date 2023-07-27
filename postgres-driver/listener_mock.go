@@ -317,7 +317,6 @@ func gigastakeAppInputs(mainTableAction types.Action, sideTablesAction types.Act
 				CreatedAt:       gigastakeApp.CreatedAt,
 				UpdatedAt:       gigastakeApp.UpdatedAt,
 				Deleted:         gigastakeApp.Deleted,
-				LegacyLBID:      gigastakeApp.LegacyLBID,
 			},
 		})
 	}

@@ -55,9 +55,6 @@ func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, 
 		CreatedAt:       g.CreatedAt.Time.UTC(),
 		UpdatedAt:       g.UpdatedAt.Time.UTC(),
 		Deleted:         g.Deleted,
-
-		// TODO remove legacy field when migration to V2 schema complete
-		LegacyLBID: g.LbID,
 	}, nil
 }
 
@@ -123,8 +120,6 @@ func (pg *PostgresDriver) insertGigastakeApp(ctx context.Context, qtx *Queries, 
 		Version:         gigastakeApp.Version,
 		CreatedAt:       newTimestamptz(gigastakeApp.CreatedAt),
 		UpdatedAt:       newTimestamptz(gigastakeApp.UpdatedAt),
-		// TODO remove legacy field when migration to V2 schema complete
-		LbID: gigastakeApp.LegacyLBID,
 	})
 	if err != nil {
 		return err
@@ -215,7 +210,6 @@ func (json dbGigastakeApp) toOutput() *types.GigastakeApp {
 		CreatedAt:       json.CreatedAt,
 		UpdatedAt:       json.UpdatedAt,
 		Deleted:         json.Deleted,
-		LegacyLBID:      json.LegacyLBID,
 	}
 }
 
@@ -237,7 +231,6 @@ type dbGigastakeApp struct {
 	CreatedAt       time.Time            `json:"created_at"`
 	UpdatedAt       time.Time            `json:"updated_at"`
 	Deleted         bool                 `json:"deleted"`
-	LegacyLBID      string               `json:"lb_id"`
 }
 
 type dbChainGigastakeApp struct {
