@@ -215,7 +215,7 @@ func ConvertGigastakeAppToLegacyApplication(a *v2Types.GigastakeApp) *v1Types.Ap
 		Name: a.Name,
 		GatewayAAT: v1Types.GatewayAAT{
 			Address:              a.Address,
-			ApplicationPublicKey: a.PublicKey,
+			ApplicationPublicKey: string(a.PublicKey),
 			ApplicationSignature: a.Signature,
 			ClientPublicKey:      a.ClientPublicKey,
 			Version:              a.Version,

@@ -12,7 +12,7 @@ type (
 		ChainIDs        map[RelayChainID]struct{} `json:"chainIDs"`
 		Name            string                    `json:"name"`
 		Address         string                    `json:"address"`
-		PublicKey       string                    `json:"publicKey"`
+		PublicKey       GigastakeAppPublicKey     `json:"publicKey"`
 		ClientPublicKey string                    `json:"clientPublicKey"`
 		Signature       string                    `json:"signature"`
 		Version         string                    `json:"version"`
@@ -39,6 +39,8 @@ type (
 		ChainID        RelayChainID   `json:"chainID"`
 		GigastakeAppID GigastakeAppID `json:"gigastakeAppID"`
 	}
+
+	GigastakeAppPublicKey string
 )
 
 func (a *GigastakeApp) Table() Table {
