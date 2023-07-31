@@ -244,7 +244,7 @@ func Test_IsEVM(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			isEVM := test.chain.IsEVM(ChainCheckTypeChain)
+			isEVM := test.chain.IsEVM()
 			assert.Equal(t, test.expected, isEVM)
 		})
 	}

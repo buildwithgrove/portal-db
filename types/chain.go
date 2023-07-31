@@ -170,7 +170,7 @@ func (c *Chain) GetChainAltruists() []Altruist {
 
 // IsEVM returns a simple bool if the Chain has a Check with type Chain
 // Only EVM chains may have a Check with type Chain
-func (c *Chain) IsEVM(checkType ChainCheckType) bool {
+func (c *Chain) IsEVM() bool {
 	_, ok := c.Checks[ChainCheckTypeChain]
 	return ok
 }
