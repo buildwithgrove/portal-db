@@ -1041,12 +1041,11 @@ WITH new_gigastake_application AS (
             public_key,
             client_public_key,
             signature,
-            private_key,
             version,
             created_at,
             updated_at
         )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id
 )
 INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)
