@@ -19,11 +19,6 @@ type (
 		CreatedAt       time.Time                 `json:"createdAt"`
 		UpdatedAt       time.Time                 `json:"updatedAt"`
 		Deleted         bool                      `json:"deleted"`
-
-		// PrivateKey used when read from the DB, will always be ""
-		// Only used for saving to DB
-		// TODO remove when decided to not support saving private key to DB
-		PrivateKey string `json:"privateKey,omitempty"`
 	}
 
 	// UpdateGigastakeApp represents the fields that can be updated on a GigastakeApp

@@ -94,9 +94,6 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 		return nil, err
 	}
 
-	// Don't return PrivateKey in response
-	gigastakeApp.PrivateKey = ""
-
 	return &gigastakeApp, nil
 }
 
@@ -116,7 +113,6 @@ func (pg *PostgresDriver) insertGigastakeApp(ctx context.Context, qtx *Queries, 
 		PublicKey:       string(gigastakeApp.PublicKey),
 		ClientPublicKey: gigastakeApp.ClientPublicKey,
 		Signature:       gigastakeApp.Signature,
-		PrivateKey:      newText(gigastakeApp.PrivateKey),
 		Version:         gigastakeApp.Version,
 		CreatedAt:       newTimestamptz(gigastakeApp.CreatedAt),
 		UpdatedAt:       newTimestamptz(gigastakeApp.UpdatedAt),
