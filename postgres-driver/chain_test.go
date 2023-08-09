@@ -327,6 +327,23 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 					ts.Equal(initialChain.Active, updatedChain.Active)
 				}
 
+				if len(*test.update.Altruists) > 0 {
+					ts.Equal(*test.update.Altruists, updatedChain.Altruists)
+				} else {
+					ts.Equal(initialChain.Altruists, updatedChain.Altruists)
+				}
+
+				if len(*test.update.Checks) > 0 {
+					ts.Equal(*test.update.Checks, updatedChain.Checks)
+				} else {
+					ts.Equal(initialChain.Checks, updatedChain.Checks)
+				}
+
+				if len(*test.update.AliasDomains) > 0 {
+					ts.Equal(*test.update.AliasDomains, updatedChain.AliasDomains)
+				} else {
+					ts.Equal(initialChain.AliasDomains, updatedChain.AliasDomains)
+				}
 			}
 		})
 	}
