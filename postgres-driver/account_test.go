@@ -3,6 +3,7 @@ package postgresdriver
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/testdata"
@@ -592,6 +593,195 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 			}
 		})
 	}
+}
+
+func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
+	// This test tests the transfer of ownership from one user to another
+	// when multiple PortalApps are present on the account.
+	// The Z is because it must run last in the suite.
+	test := struct {
+		updateAccountUser       types.UpdateAccountUserRole
+		accountUsersAfterUpdate map[types.UserID]types.AccountUserAccess
+		testCreatedTime         time.Time
+		testCreatePortalApp     types.PortalApp
+		testCreateUsers         map[types.Email]types.CreateAccountUserAccess
+		testAcceptUsers         map[types.Email]types.UpdateAcceptAccountUser
+		allAppsUsers            []types.Email
+		err                     error
+	}{
+		updateAccountUser: types.UpdateAccountUserRole{
+			UserID:      "user_8",
+			AccountID:   "account_5",
+			RoleName:    types.RoleOwner,
+			PortalAppID: "", // set dynamically in test
+		},
+		testCreatedTime: testdata.MockTimestamp,
+		testCreatePortalApp: types.PortalApp{
+			AccountID: "account_5",
+			Name:      "create_admin_role_pokt_app",
+			Settings: types.Settings{
+				Environment: types.EnvironmentProduction,
+			},
+			LegacyFields: types.LegacyFields{
+				PlanType:       types.FreetierV0,
+				DailyLimit:     250_000,
+				CustomLimit:    0,
+				RequestTimeout: 15_000,
+			},
+		},
+		testCreateUsers: map[types.Email]types.CreateAccountUserAccess{
+			"frodo.baggins123@test.com": {
+				AccountID: "account_5",
+				Email:     "frodo.baggins123@test.com",
+				RoleName:  types.RoleMember,
+			},
+			"rick.deckard456@test.com": {
+				AccountID: "account_5",
+				Email:     "rick.deckard456@test.com",
+				RoleName:  types.RoleAdmin,
+			},
+			"chrisjen.avasarala1@test.com": {
+				AccountID: "account_5",
+				Email:     "chrisjen.avasarala1@test.com",
+				RoleName:  types.RoleAdmin,
+			},
+			"tyrion.lannister789@test.com": {
+				AccountID: "account_5",
+				Email:     "tyrion.lannister789@test.com",
+				RoleName:  types.RoleMember,
+			},
+		},
+		testAcceptUsers: map[types.Email]types.UpdateAcceptAccountUser{
+			"frodo.baggins123@test.com": {
+				PortalAppID:      "", // set dynamically in test
+				UserID:           "user_7",
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|frodo_baggins",
+			},
+			"rick.deckard456@test.com": {
+				PortalAppID:      "", // set dynamically in test
+				UserID:           "user_8",
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|rick_deckard",
+			},
+			"chrisjen.avasarala1@test.com": {
+				PortalAppID:      "", // set dynamically in test
+				UserID:           "user_5",
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|chrisjen_avasarala",
+			},
+			"tyrion.lannister789@test.com": {
+				PortalAppID:      "", // set dynamically in test
+				UserID:           "user_9",
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|tyrion_lannister",
+			},
+		},
+		accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
+			"user_4": {
+				Owner:    false,
+				UserID:   "user_4",
+				Email:    "ulfric.stormcloak123@test.com",
+				Accepted: true,
+				PortalAppRoles: map[types.PortalAppID]types.RoleName{
+					"placeholder": types.RoleAdmin, // set dynamically in test
+				},
+			},
+			"user_7": {
+				Owner:    false,
+				UserID:   "user_7",
+				Email:    "frodo.baggins123@test.com",
+				Accepted: true,
+				PortalAppRoles: map[types.PortalAppID]types.RoleName{
+					"placeholder": types.RoleMember, // set dynamically in test
+				},
+			},
+			"user_8": {
+				Owner:    true,
+				UserID:   "user_8",
+				Email:    "rick.deckard456@test.com",
+				Accepted: true,
+				PortalAppRoles: map[types.PortalAppID]types.RoleName{
+					"placeholder": types.RoleOwner, // set dynamically in test
+				},
+			},
+			"user_5": {
+				Owner:    false,
+				UserID:   "user_5",
+				Email:    "chrisjen.avasarala1@test.com",
+				Accepted: true,
+				PortalAppRoles: map[types.PortalAppID]types.RoleName{
+					"placeholder": types.RoleAdmin, // set dynamically in test
+				},
+			},
+			"user_9": {
+				Owner:    false,
+				UserID:   "user_9",
+				Email:    "tyrion.lannister789@test.com",
+				Accepted: true,
+				PortalAppRoles: map[types.PortalAppID]types.RoleName{
+					"placeholder": types.RoleMember, // set dynamically in test
+				},
+			},
+		},
+		allAppsUsers: []types.Email{
+			"ulfric.stormcloak123@test.com",
+			"frodo.baggins123@test.com",
+			"rick.deckard456@test.com",
+		},
+		err: nil,
+	}
+
+	// Create portal apps and users
+	portalAppIDs := []types.PortalAppID{} // Store the created PortalAppIDs
+	for i := 0; i < 10; i++ {
+		createdPortalApp, err := ts.driver.WritePortalApp(
+			context.Background(),
+			test.testCreatePortalApp,
+			testdata.TestCreatePortalAppAAT,
+			testdata.MockTimestamp,
+		)
+		ts.NoError(err)
+
+		if i == 0 {
+			test.updateAccountUser.PortalAppID = createdPortalApp.ID
+		}
+
+		portalAppIDs = append(portalAppIDs, createdPortalApp.ID) // Capture the created PortalAppID
+
+		for email, createUser := range test.testCreateUsers {
+			if i < 3 || slices.Contains(test.allAppsUsers, email) {
+				createUser.PortalAppID = createdPortalApp.ID
+				_, err := ts.driver.WriteAccountUser(context.Background(), createUser, testdata.MockTimestamp)
+				ts.NoError(err)
+
+				acceptUser := test.testAcceptUsers[email]
+				acceptUser.PortalAppID = createdPortalApp.ID
+				test.testAcceptUsers[email] = acceptUser
+				err = ts.driver.UpdateAcceptAccountUser(context.Background(), acceptUser, testdata.MockTimestamp)
+				ts.NoError(err)
+			}
+		}
+	}
+
+	// Update the expected data with the dynamically generated PortalAppIDs
+	for userID, accountUserAccess := range test.accountUsersAfterUpdate {
+		for i, portalAppID := range portalAppIDs {
+			if i < 3 || slices.Contains(test.allAppsUsers, accountUserAccess.Email) {
+				accountUserAccess.PortalAppRoles[portalAppID] = accountUserAccess.PortalAppRoles["placeholder"]
+			}
+		}
+		delete(accountUserAccess.PortalAppRoles, "placeholder")
+		test.accountUsersAfterUpdate[userID] = accountUserAccess
+	}
+
+	// Perform the role change and assert
+	err := ts.driver.SetAccountUserRole(context.Background(), test.updateAccountUser, test.testCreatedTime)
+	ts.NoError(err)
+
+	accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+	ts.NoError(err)
+	ts.Equal(test.accountUsersAfterUpdate, accounts[test.updateAccountUser.AccountID].Users)
 }
 
 func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {

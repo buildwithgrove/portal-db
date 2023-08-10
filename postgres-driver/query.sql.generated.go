@@ -48,7 +48,10 @@ const checkAccountUserAccepted = `-- name: CheckAccountUserAccepted :one
 SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
-    AND portal_application_id = $2
+    AND (
+        portal_application_id = $2
+        OR owner = true
+    )
 `
 
 type CheckAccountUserAcceptedParams struct {
@@ -1897,7 +1900,7 @@ insert_old_owner_admin_rows AS (
         aua.created_at,
         aua.updated_at
     FROM account_user_access AS aua
-        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+        LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
         AND NOT EXISTS (
             SELECT 1
@@ -2368,7 +2371,7 @@ func (q *Queries) UpdateUpsertPortalAppNotification(ctx context.Context, arg Upd
 }
 
 const updateUserAcceptedInvite = `-- name: UpdateUserAcceptedInvite :exec
-WITH inserted_provider AS (
+WITH inserted_or_existing_provider AS (
     INSERT INTO user_auth_providers (
             user_id,
             type,
@@ -2376,7 +2379,9 @@ WITH inserted_provider AS (
             provider_user_id,
             federated
         )
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4, $5) ON CONFLICT (user_id, type) DO
+    UPDATE
+    SET user_id = EXCLUDED.user_id
     RETURNING user_id
 ),
 updated_access AS (
@@ -2384,7 +2389,7 @@ updated_access AS (
     SET accepted = true
     WHERE user_id = (
             SELECT user_id
-            FROM inserted_provider
+            FROM inserted_or_existing_provider
         )
         AND portal_application_id = $6
 )
@@ -2392,7 +2397,7 @@ UPDATE users
 SET signed_up = true
 WHERE id = (
         SELECT user_id
-        FROM inserted_provider
+        FROM inserted_or_existing_provider
     )
 `
 

@@ -35,8 +35,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Run unit tests
+        run: make test_unit_ci
+
       - name: Build the Docker test stack
         run: make test_env_up
 
       - name: Run Postgres Driver tests
-        run: make run_driver_tests
+        run: make run_driver_tests_ci
