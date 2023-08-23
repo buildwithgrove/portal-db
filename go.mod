@@ -6,8 +6,7 @@ require (
 	cloud.google.com/go/cloudsqlconn v1.3.0
 	github.com/jackc/pgx/v5 v5.4.1
 	github.com/jackc/pgxlisten v0.0.0-20230309145146-5d7f28456dce
-	github.com/pokt-foundation/portal-db v1.10.8
-	github.com/pokt-foundation/utils-go v0.8.2
+	github.com/pokt-foundation/utils-go v0.9.0
 	github.com/stretchr/testify v1.8.1
 	google.golang.org/grpc v1.55.0
 )
