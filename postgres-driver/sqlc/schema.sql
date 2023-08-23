@@ -257,7 +257,8 @@ CREATE TABLE IF NOT EXISTS gigastake_applications (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
-    deleted_at TIMESTAMPTZ NULL
+    deleted_at TIMESTAMPTZ NULL,
+    test VARCHAR(255)
 );
 -- Chains and Gigastake Applications Join Table
 CREATE TABLE chains_gigastake_applications (

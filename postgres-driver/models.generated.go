@@ -495,6 +495,7 @@ type GigastakeApplication struct {
 	UpdatedAt       pgtype.Timestamptz   `json:"updated_at"`
 	Deleted         bool                 `json:"deleted"`
 	DeletedAt       pgtype.Timestamptz   `json:"deleted_at"`
+	Test            pgtype.Text          `json:"test"`
 }
 
 type GlobalBlockedContract struct {
