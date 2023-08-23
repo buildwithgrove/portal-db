@@ -21,9 +21,9 @@ Once the V2 migration is completed this package may be removed from this repo.
 
 // getLegacyRedirectLoadBalancerID creates a dummy ID string used to associate the V1 Blockchain Redirects
 // with the V2 Load Balancer containing all the GigastakeApps for the Blockchain.
-// eg. will create a string like: "0001-POKT-pokt-mainnet"
+// eg. will create a string like: "0001-POKT"
 func getLegacyRedirectLoadBalancerID(c v2Types.Chain) string {
-	return fmt.Sprintf("%s-%s-%s", c.ID, c.Ticker, c.Blockchain)
+	return fmt.Sprintf("%s-%s", c.ID, c.Ticker)
 }
 
 func ConvertPortalAppToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.Account) v1Types.LoadBalancer {
@@ -228,14 +228,12 @@ func ConvertGigastakeAppToLegacyApplication(a *v2Types.GigastakeApp) *v1Types.Ap
 func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
 	var redirects []v1Types.Redirect
 	var aliases []string
-	for alias, domains := range c.AliasDomains {
-		for _, domain := range domains {
-			redirects = append(redirects, v1Types.Redirect{
-				Alias:          string(alias),
-				Domain:         string(domain),
-				LoadBalancerID: getLegacyRedirectLoadBalancerID(c),
-			})
-		}
+	for alias := range c.Aliases {
+		redirects = append(redirects, v1Types.Redirect{
+			Alias:          string(alias),
+			Domain:         string("canbe.whatever.com"),
+			LoadBalancerID: getLegacyRedirectLoadBalancerID(c),
+		})
 
 		aliases = append(aliases, string(alias))
 	}
@@ -258,7 +256,6 @@ func ConvertToLegacyBlockchain(c v2Types.Chain) v1Types.Blockchain {
 
 	return v1Types.Blockchain{
 		ID:                string(c.ID),
-		Blockchain:        string(c.Blockchain),
 		ChainID:           chainID,
 		ChainIDCheck:      c.Checks[v2Types.ChainCheckTypeChain].Payload,
 		Description:       c.Description,

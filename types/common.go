@@ -75,10 +75,10 @@ const (
 
 	TablePayPlans Table = "pay_plans"
 
-	TableChains            Table = "chains"
-	TableChainAltruists    Table = "chain_altruists"
-	TableChainChecks       Table = "chain_checks"
-	TableChainAliasDomains Table = "chain_alias_domains"
+	TableChains         Table = "chains"
+	TableChainAltruists Table = "chain_altruists"
+	TableChainChecks    Table = "chain_checks"
+	TableChainAliases   Table = "chain_aliases"
 
 	TableChainGigastakeApps Table = "chains_gigastake_applications"
 

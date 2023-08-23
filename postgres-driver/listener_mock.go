@@ -353,7 +353,6 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 			table:  types.TableChains,
 			input: dbChain{
 				ID:             chain.ID,
-				Blockchain:     chain.Blockchain,
 				Description:    chain.Description,
 				EnforceResult:  chain.EnforceResult,
 				Ticker:         chain.Ticker,
@@ -397,14 +396,13 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 			})
 		}
 
-		for alias, domains := range chain.AliasDomains {
+		for alias := range chain.Aliases {
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
-				table:  types.TableChainAliasDomains,
-				input: dbChainAliasDomains{
+				table:  types.TableChainAliases,
+				input: dbChainAlias{
 					ChainID: chain.ID,
 					Alias:   alias,
-					Domains: domains,
 				},
 			})
 		}

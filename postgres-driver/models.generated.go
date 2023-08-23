@@ -436,7 +436,6 @@ type AccountUserAccess struct {
 
 type Chain struct {
 	ID             types.RelayChainID `json:"id"`
-	Blockchain     pgtype.Text        `json:"blockchain"`
 	Description    pgtype.Text        `json:"description"`
 	EnforceResult  pgtype.Text        `json:"enforce_result"`
 	Ticker         pgtype.Text        `json:"ticker"`
@@ -451,11 +450,10 @@ type Chain struct {
 	DeletedAt      pgtype.Timestamptz `json:"deleted_at"`
 }
 
-type ChainAliasDomain struct {
+type ChainAlias struct {
 	ChainID   types.RelayChainID `json:"chain_id"`
 	Alias     types.ChainAlias   `json:"alias"`
-	Domains   []string           `json:"domains"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type ChainAltruist struct {

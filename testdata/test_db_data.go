@@ -881,7 +881,6 @@ var (
 	Chains = map[types.RelayChainID]*types.Chain{
 		"0001": {
 			ID:            "0001",
-			Blockchain:    "pokt-mainnet",
 			Description:   "Pocket Network Mainnet",
 			EnforceResult: "JSON",
 			Path:          "/v1/query/height",
@@ -902,15 +901,14 @@ var (
 					Allowance: 1,
 				},
 			},
-			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"pokt-mainnet": {"pokt-rpc.gateway.pokt.network"},
+			Aliases: map[types.ChainAlias]struct{}{
+				"pokt-mainnet": {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
 		"0053": {
 			ID:             "0053",
-			Blockchain:     "optimism-mainnet",
 			Description:    "Optimism Mainnet",
 			EnforceResult:  "JSON",
 			Ticker:         "OP",
@@ -932,15 +930,15 @@ var (
 					Allowance: 2,
 				},
 			},
-			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"optimism-mainnet": {"op-rpc.gateway.pokt.network"},
+			Aliases: map[types.ChainAlias]struct{}{
+				"optimism-mainnet": {},
+				"optimism-rpc":     {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
 		"0021": {
 			ID:             "0021",
-			Blockchain:     "eth-mainnet",
 			Description:    "Ethereum Mainnet",
 			EnforceResult:  "JSON",
 			Ticker:         "ETH",
@@ -967,15 +965,15 @@ var (
 					EVMChainID: 1,
 				},
 			},
-			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"eth-mainnet": {"eth-rpc.gateway.pokt.network"},
+			Aliases: map[types.ChainAlias]struct{}{
+				"eth-mainnet": {},
+				"eth-rpc":     {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
 		"0064": {
 			ID:             "0064",
-			Blockchain:     "sui-testnet",
 			Description:    "Sui Testnet",
 			EnforceResult:  "JSON",
 			Ticker:         "SUI-TESTNET",
@@ -997,12 +995,14 @@ var (
 					Allowance: 7,
 				},
 			},
+			Aliases: map[types.ChainAlias]struct{}{
+				"sui-testnet": {},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
 		"0040": {
 			ID:            "0040",
-			Blockchain:    "harmony-0",
 			Description:   "Harmony Shard 0",
 			EnforceResult: "JSON",
 			Ticker:        "HMY",
@@ -1022,8 +1022,8 @@ var (
 					Allowance: 8,
 				},
 			},
-			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"harmony-0": {"hmy-rpc.gateway.pokt.network"},
+			Aliases: map[types.ChainAlias]struct{}{
+				"harmony-0": {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -1090,7 +1090,6 @@ var (
 	// TestCreateChain used to test creation of Chains
 	TestCreateChain = &types.Chain{
 		ID:            "0006",
-		Blockchain:    "solana-mainnet",
 		Description:   "Solana",
 		EnforceResult: "JSON",
 		Ticker:        "SOL",
@@ -1120,8 +1119,9 @@ var (
 				EVMChainID: 5,
 			},
 		},
-		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-			"sol-mainnet": {"solana-rpc.gateway.pokt.network"},
+		Aliases: map[types.ChainAlias]struct{}{
+			"solana-mainnet": {},
+			"sol-mainnet":    {},
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
@@ -1130,7 +1130,6 @@ var (
 	TestCreateNewChainInput = types.NewChainInput{
 		Chain: &types.Chain{
 			ID:            "0007",
-			Blockchain:    "cardano-mainnet",
 			Description:   "Cardano",
 			EnforceResult: "JSON",
 			Ticker:        "ADA",
@@ -1160,8 +1159,9 @@ var (
 					EVMChainID: 7,
 				},
 			},
-			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"ada-mainnet": {"cardano-rpc.gateway.pokt.network"},
+			Aliases: map[types.ChainAlias]struct{}{
+				"cardano-mainnet": {},
+				"ada-mainnet":     {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -1322,9 +1322,9 @@ var (
 				ResultKey: "result.sync_info",
 			},
 		},
-		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
-			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
-			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network"},
+		Aliases: &map[types.ChainAlias]struct{}{
+			"pokt-mainnet": {},
+			"pokt-main":    {},
 		},
 	}
 	UpdateChainTwo = types.UpdateChain{
@@ -1350,9 +1350,10 @@ var (
 				Allowance: 1,
 			},
 		},
-		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
-			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
-			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network", "pokt-rpc-2.us-west-2.pokt.network"},
+		Aliases: &map[types.ChainAlias]struct{}{
+			"pokt-mainnet": {},
+			"pokt-main":    {},
+			"pokt-rpc-2":   {},
 		},
 	}
 	UpdateChainThree = types.UpdateChain{
@@ -1370,11 +1371,6 @@ var (
 	UpdateChainInvalidURL = types.UpdateChain{ID: "0073",
 		Altruists: &map[types.AltruistURL]types.Altruist{
 			"htz:/bad-domain2": {URL: "htz:/bad-domain2"},
-		},
-	}
-	UpdateChainInvalidDomain = types.UpdateChain{ID: "0073",
-		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
-			"sol-mainnet": {"im-not-a-domain"},
 		},
 	}
 
@@ -1477,7 +1473,7 @@ var (
 	LegacyBlockchain = v1Types.Blockchain{
 		ID:         "0001",
 		Altruist:   "https://test_pocket:auth123456@altruist-0001.com:1234", // pragma: allowlist secret
-		Blockchain: "pokt-mainnet",
+		Blockchain: "",
 		BlockchainAliases: []string{
 			"pokt-mainnet",
 		},
@@ -1488,9 +1484,9 @@ var (
 		Active:        true,
 		Redirects: []v1Types.Redirect{
 			{
-				LoadBalancerID: "0001-POKT-pokt-mainnet",
+				LoadBalancerID: "0001-POKT",
 				Alias:          "pokt-mainnet",
-				Domain:         "pokt-rpc.gateway.pokt.network",
+				Domain:         "canbe.whatever.com",
 			},
 		},
 		SyncCheckOptions: v1Types.SyncCheckOptions{

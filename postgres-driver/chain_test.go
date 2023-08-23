@@ -72,34 +72,18 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 			name: "Should fail if altruist URL is invalid",
 			newChainInput: types.NewChainInput{
 				Chain: &types.Chain{
-					ID:         "testID",
-					Blockchain: "testBlockchain",
-					Altruists:  map[types.AltruistURL]types.Altruist{"invalid_url": {URL: "invalid_url"}},
+					ID:        "testID",
+					Altruists: map[types.AltruistURL]types.Altruist{"invalid_url": {URL: "invalid_url"}},
 				},
 				GigastakeApps: []*types.GigastakeApp{{}},
 			},
 			err: fmt.Errorf(errInvalidAltruistURL.Error(), "invalid_url"),
 		},
 		{
-			name: "Should fail if domain is invalid",
-			newChainInput: types.NewChainInput{
-				Chain: &types.Chain{
-					ID:         "testID",
-					Blockchain: "testBlockchain",
-					AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-						"testAlias": {"invalid_domain"},
-					},
-				},
-				GigastakeApps: []*types.GigastakeApp{{}},
-			},
-			err: fmt.Errorf(errInvalidDomain.Error(), "invalid_domain", "testAlias"),
-		},
-		{
 			name: "Should fail if trying to insert an existing chain",
 			newChainInput: types.NewChainInput{
 				Chain: &types.Chain{
-					ID:         "0001",
-					Blockchain: "testBlockchain",
+					ID: "0001",
 				},
 				GigastakeApps: []*types.GigastakeApp{{}},
 			},
@@ -149,7 +133,6 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 		chain           types.Chain
 		testCreatedTime time.Time
 		altruistURL     types.AltruistURL
-		aliasDomains    map[types.ChainAlias][]types.ChainDomain
 		err             error
 	}{
 		{
@@ -171,16 +154,6 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
 		},
-		{
-			name:        "Should fail if any input alias has an invalid domain",
-			altruistURL: "http://www.good-domain.com",
-			aliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"sol-mainnet": {"im-not-a-domain"},
-			},
-			chain:           *testdata.TestCreateChain,
-			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errInvalidDomain.Error(), "im-not-a-domain", "sol-mainnet"),
-		},
 	}
 
 	for _, test := range tests {
@@ -192,9 +165,6 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 				altruist.URL = test.altruistURL
 				testChain.Altruists = make(map[types.AltruistURL]types.Altruist)
 				testChain.Altruists[test.altruistURL] = altruist
-			}
-			if len(test.aliasDomains) > 0 {
-				testChain.AliasDomains = test.aliasDomains
 			}
 
 			createdChain, err := ts.driver.WriteChain(context.Background(), testChain, test.testCreatedTime)
@@ -248,12 +218,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
 		},
-		{
-			name:            "Should fail if any input alias has an invalid domain",
-			update:          testdata.UpdateChainInvalidDomain,
-			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errInvalidDomain.Error(), "im-not-a-domain", "sol-mainnet"),
-		},
 	}
 
 	for _, test := range tests {
@@ -273,12 +237,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			if test.err == nil {
 				// Assert that the fields in the updated chain match the expected values
 				// Only check the fields present in the update struct
-				if test.update.Blockchain != nil {
-					ts.Equal(*test.update.Blockchain, updatedChain.Blockchain)
-				} else {
-					ts.Equal(initialChain.Blockchain, updatedChain.Blockchain)
-				}
-
 				if test.update.Description != nil {
 					ts.Equal(*test.update.Description, updatedChain.Description)
 				} else {
@@ -339,10 +297,10 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 					ts.Equal(initialChain.Checks, updatedChain.Checks)
 				}
 
-				if len(*test.update.AliasDomains) > 0 {
-					ts.Equal(*test.update.AliasDomains, updatedChain.AliasDomains)
+				if len(*test.update.Aliases) > 0 {
+					ts.Equal(*test.update.Aliases, updatedChain.Aliases)
 				} else {
-					ts.Equal(initialChain.AliasDomains, updatedChain.AliasDomains)
+					ts.Equal(initialChain.Aliases, updatedChain.Aliases)
 				}
 			}
 		})

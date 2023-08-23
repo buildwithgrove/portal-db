@@ -154,7 +154,6 @@ func Test_Listen(t *testing.T) {
 					Action: types.ActionInsert,
 					Data: &types.Chain{
 						ID:            "0001",
-						Blockchain:    "pokt-mainnet",
 						Description:   "Pocket Network Mainnet",
 						EnforceResult: "JSON",
 						Path:          "/v1/query/height",
@@ -185,13 +184,12 @@ func Test_Listen(t *testing.T) {
 						Allowance: 1,
 					},
 				},
-				types.TableChainAliasDomains: {
-					Table:  types.TableChainAliasDomains,
+				types.TableChainAliases: {
+					Table:  types.TableChainAliases,
 					Action: types.ActionUpdate,
-					Data: &types.AliasDomains{
+					Data: &types.Alias{
 						ChainID: "0001",
 						Alias:   "pokt-mainnet",
-						Domains: []types.ChainDomain{"pokt-rpc.gateway.pokt.network"},
 					},
 				},
 			},

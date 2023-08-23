@@ -29,23 +29,22 @@ type (
 	}
 
 	ChainRow struct {
-		ID              types.RelayChainID `json:"id"`
-		Blockchain      string             `json:"blockchain"`
-		Description     string             `json:"description"`
-		EnforceResult   string             `json:"enforce_result"`
-		Ticker          string             `json:"ticker"`
-		Path            pgtype.Text        `json:"path"`
-		RequestTimeout  pgtype.Int4        `json:"request_timeout"`
-		LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
-		AllowedMethods  []string           `json:"allowed_methods"`
-		Active          bool               `json:"active"`
-		CreatedAt       pgtype.Timestamptz `json:"created_at"`
-		UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
-		Deleted         pgtype.Bool        `json:"deleted"`
-		DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
-		ChainAltruists  []byte             `json:"chain_altruists"`
-		ChainChecks     []byte             `json:"chain_checks"`
-		AliasDomainsMap []byte             `json:"alias_domains_map"`
+		ID             types.RelayChainID `json:"id"`
+		Description    string             `json:"description"`
+		EnforceResult  string             `json:"enforce_result"`
+		Ticker         string             `json:"ticker"`
+		Path           pgtype.Text        `json:"path"`
+		RequestTimeout pgtype.Int4        `json:"request_timeout"`
+		LogLimitBlocks pgtype.Int4        `json:"log_limit_blocks"`
+		AllowedMethods []string           `json:"allowed_methods"`
+		Active         bool               `json:"active"`
+		CreatedAt      pgtype.Timestamptz `json:"created_at"`
+		UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+		Deleted        pgtype.Bool        `json:"deleted"`
+		DeletedAt      pgtype.Timestamptz `json:"deleted_at"`
+		ChainAliases   []string           `json:"chain_aliases"`
+		ChainAltruists []byte             `json:"chain_altruists"`
+		ChainChecks    []byte             `json:"chain_checks"`
 	}
 )
 
@@ -53,11 +52,9 @@ var (
 	errChainCannotBeNil           = errors.New("error chain cannot be nil")
 	errGigastakeAppsCannotBeEmpty = errors.New("error gigastakeApps slice cannot be empty")
 	errInvalidAltruistURL         = errors.New("error altruist URL '%s' is an invalid URL")
-	errInvalidDomain              = errors.New("error domain '%s' for alias '%s' is invalid")
 	errChainExists                = errors.New("error chain already exists for chain ID '%s'")
 	errChainDoesntExist           = errors.New("error chain does not exist for chain ID '%s'")
 	errPortalAppDoesntExist       = errors.New("error portal app does not exist for ID '%s'")
-	errUnmarshallingDomains       = errors.New("error unmarshalling domains: %w")
 )
 
 /* ----- postgresdriver Chain Read Methods ----- */
@@ -84,45 +81,43 @@ func (pg *PostgresDriver) ReadChains(ctx context.Context, options types.DriverOp
 
 func (c *SelectChainsRow) ToChainRow() *ChainRow {
 	return &ChainRow{
-		ID:              c.ID,
-		Blockchain:      c.Blockchain.String,
-		Description:     c.Description.String,
-		EnforceResult:   c.EnforceResult.String,
-		Ticker:          c.Ticker.String,
-		Path:            c.Path,
-		RequestTimeout:  c.RequestTimeout,
-		LogLimitBlocks:  c.LogLimitBlocks,
-		AllowedMethods:  c.AllowedMethods,
-		Active:          c.Active,
-		CreatedAt:       c.CreatedAt,
-		UpdatedAt:       c.UpdatedAt,
-		Deleted:         c.Deleted,
-		DeletedAt:       c.DeletedAt,
-		ChainAltruists:  c.ChainAltruists,
-		ChainChecks:     c.ChainChecks,
-		AliasDomainsMap: c.AliasDomainsMap,
+		ID:             c.ID,
+		Description:    c.Description.String,
+		EnforceResult:  c.EnforceResult.String,
+		Ticker:         c.Ticker.String,
+		Path:           c.Path,
+		RequestTimeout: c.RequestTimeout,
+		LogLimitBlocks: c.LogLimitBlocks,
+		AllowedMethods: c.AllowedMethods,
+		Active:         c.Active,
+		CreatedAt:      c.CreatedAt,
+		UpdatedAt:      c.UpdatedAt,
+		Deleted:        c.Deleted,
+		DeletedAt:      c.DeletedAt,
+		ChainAliases:   c.ChainAliases,
+		ChainAltruists: c.ChainAltruists,
+		ChainChecks:    c.ChainChecks,
 	}
 }
 
 func (c *SelectChainRow) ToChainRow() *ChainRow {
 	return &ChainRow{
-		ID:              c.ID,
-		Blockchain:      c.Blockchain.String,
-		Description:     c.Description.String,
-		EnforceResult:   c.EnforceResult.String,
-		Ticker:          c.Ticker.String,
-		Path:            c.Path,
-		RequestTimeout:  c.RequestTimeout,
-		LogLimitBlocks:  c.LogLimitBlocks,
-		AllowedMethods:  c.AllowedMethods,
-		Active:          c.Active,
-		CreatedAt:       c.CreatedAt,
-		UpdatedAt:       c.UpdatedAt,
-		Deleted:         c.Deleted,
-		DeletedAt:       c.DeletedAt,
-		ChainAltruists:  c.ChainAltruists,
-		ChainChecks:     c.ChainChecks,
-		AliasDomainsMap: c.AliasDomainsMap,
+		ID:             c.ID,
+		Description:    c.Description.String,
+		EnforceResult:  c.EnforceResult.String,
+		Ticker:         c.Ticker.String,
+		Path:           c.Path,
+		RequestTimeout: c.RequestTimeout,
+		LogLimitBlocks: c.LogLimitBlocks,
+		AllowedMethods: c.AllowedMethods,
+		Active:         c.Active,
+		CreatedAt:      c.CreatedAt,
+		UpdatedAt:      c.UpdatedAt,
+		Deleted:        c.Deleted,
+		DeletedAt:      c.DeletedAt,
+		ChainAliases:   c.ChainAliases,
+		ChainAltruists: c.ChainAltruists,
+		ChainChecks:    c.ChainChecks,
 	}
 }
 
@@ -136,14 +131,13 @@ func (c *ChainRow) toChain() (*types.Chain, error) {
 	if err != nil {
 		return nil, err
 	}
-	domains, err := c.toDomains()
+	aliases, err := c.toAliases()
 	if err != nil {
 		return nil, err
 	}
 
 	chain := &types.Chain{
 		ID:             types.RelayChainID(c.ID),
-		Blockchain:     types.ChainAlias(c.Blockchain),
 		Description:    c.Description,
 		EnforceResult:  c.EnforceResult,
 		Ticker:         c.Ticker,
@@ -154,7 +148,7 @@ func (c *ChainRow) toChain() (*types.Chain, error) {
 		Active:         c.Active,
 		Altruists:      altruists,
 		Checks:         checks,
-		AliasDomains:   domains,
+		Aliases:        aliases,
 		CreatedAt:      c.CreatedAt.Time.UTC(),
 		UpdatedAt:      c.UpdatedAt.Time.UTC(),
 	}
@@ -206,16 +200,15 @@ func (c *ChainRow) toChecks() (map[types.ChainCheckType]types.Check, error) {
 	return checks, nil
 }
 
-// toDomains converts chain aliases and domains from DB rows to Check structs
-func (c *ChainRow) toDomains() (map[types.ChainAlias][]types.ChainDomain, error) {
-	var domains map[types.ChainAlias][]types.ChainDomain
-	if len(string(c.AliasDomainsMap)) > 2 { // length of empty JSON array in bytes
-		if err := json.Unmarshal(c.AliasDomainsMap, &domains); err != nil {
-			return nil, fmt.Errorf("%s: %w", errUnmarshallingDomains, err)
-		}
+// toDomains converts chain aliases from DB rows to Check structs
+func (c *ChainRow) toAliases() (map[types.ChainAlias]struct{}, error) {
+	aliases := make(map[types.ChainAlias]struct{}, len(c.ChainAliases))
+
+	for _, alias := range c.ChainAliases {
+		aliases[types.ChainAlias(alias)] = struct{}{}
 	}
 
-	return domains, nil
+	return aliases, nil
 }
 
 // /* ----- postgresdriver Chain Create Methods ----- */
@@ -356,7 +349,6 @@ func (pg *PostgresDriver) insertChain(ctx context.Context, qtx *Queries, chain t
 
 	createdChainID, err := qtx.InsertChain(ctx, InsertChainParams{
 		ID:             chain.ID,
-		Blockchain:     newText(string(chain.Blockchain)),
 		Description:    newText(chain.Description),
 		EnforceResult:  newText(chain.EnforceResult),
 		Ticker:         newText(chain.Ticker),
@@ -399,16 +391,11 @@ func (pg *PostgresDriver) insertChain(ctx context.Context, qtx *Queries, chain t
 			return err
 		}
 	}
-	for alias, domains := range chain.AliasDomains {
-		domainsStrs := []string{}
-		for _, domain := range domains {
-			domainsStrs = append(domainsStrs, string(domain))
-		}
-		err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
+	for alias := range chain.Aliases {
+		err := qtx.InsertChainAlias(ctx, InsertChainAliasParams{
 			ChainID:   createdChainID,
 			Alias:     alias,
-			Domains:   domainsStrs,
-			UpdatedAt: newTimestamptz(chain.UpdatedAt),
+			CreatedAt: newTimestamptz(chain.UpdatedAt),
 		})
 		if err != nil {
 			return err
@@ -427,7 +414,6 @@ func (pg *PostgresDriver) updateChain(ctx context.Context, qtx *Queries, update 
 
 	createdChainID, err := qtx.UpdateChain(ctx, UpdateChainParams{
 		ID:             update.ID,
-		Blockchain:     newNullString((*string)(update.Blockchain)),
 		Description:    newNullString(update.Description),
 		EnforceResult:  newNullString(update.EnforceResult),
 		Ticker:         newNullString(update.Ticker),
@@ -473,17 +459,12 @@ func (pg *PostgresDriver) updateChain(ctx context.Context, qtx *Queries, update 
 			}
 		}
 	}
-	if update.AliasDomains != nil {
-		for alias, domains := range *update.AliasDomains {
-			domainsStrs := []string{}
-			for _, domain := range domains {
-				domainsStrs = append(domainsStrs, string(domain))
-			}
-			err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
+	if update.Aliases != nil {
+		for alias := range *update.Aliases {
+			err := qtx.InsertChainAlias(ctx, InsertChainAliasParams{
 				ChainID:   createdChainID,
 				Alias:     alias,
-				Domains:   domainsStrs,
-				UpdatedAt: newTimestamptz(updatedAt),
+				CreatedAt: newTimestamptz(updatedAt),
 			})
 			if err != nil {
 				return err
@@ -499,13 +480,6 @@ func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, 
 	for url := range chain.Altruists {
 		if !url.IsValid() {
 			return fmt.Errorf(errInvalidAltruistURL.Error(), url)
-		}
-	}
-	for alias, domains := range chain.AliasDomains {
-		for _, domain := range domains {
-			if !domain.IsValid() {
-				return fmt.Errorf(errInvalidDomain.Error(), domain, alias)
-			}
 		}
 	}
 
@@ -526,15 +500,6 @@ func (pg *PostgresDriver) validateChainUpdate(ctx context.Context, qtx *Queries,
 		for url := range *chain.Altruists {
 			if !url.IsValid() {
 				return fmt.Errorf(errInvalidAltruistURL.Error(), url)
-			}
-		}
-	}
-	if chain.AliasDomains != nil {
-		for alias, domains := range *chain.AliasDomains {
-			for _, domain := range domains {
-				if !domain.IsValid() {
-					return fmt.Errorf(errInvalidDomain.Error(), domain, alias)
-				}
 			}
 		}
 	}
@@ -579,12 +544,12 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 		}
 	}
 
-	if chain.AliasDomains != nil {
-		deleteAliasDomainsParams := DeleteUnusedChainAliasDomainsParams{ChainID: chain.ID}
-		for alias := range *chain.AliasDomains {
+	if chain.Aliases != nil {
+		deleteAliasDomainsParams := DeleteUnusedChainAliasParams{ChainID: chain.ID}
+		for alias := range *chain.Aliases {
 			deleteAliasDomainsParams.Aliases = append(deleteAliasDomainsParams.Aliases, string(alias))
 		}
-		err := qtx.DeleteUnusedChainAliasDomains(ctx, deleteAliasDomainsParams)
+		err := qtx.DeleteUnusedChainAlias(ctx, deleteAliasDomainsParams)
 		if err != nil {
 			return err
 		}
@@ -616,7 +581,6 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 func (json dbChain) toOutput() *types.Chain {
 	return &types.Chain{
 		ID:             json.ID,
-		Blockchain:     json.Blockchain,
 		Description:    json.Description,
 		EnforceResult:  json.EnforceResult,
 		Path:           json.Path,
@@ -650,11 +614,10 @@ func (json dbChainCheck) toOutput() *types.Check {
 	}
 }
 
-func (json dbChainAliasDomains) toOutput() *types.AliasDomains {
-	return &types.AliasDomains{
+func (json dbChainAlias) toOutput() *types.Alias {
+	return &types.Alias{
 		ChainID: json.ChainID,
 		Alias:   json.Alias,
-		Domains: json.Domains,
 	}
 }
 
@@ -699,8 +662,7 @@ type dbChainCheck struct {
 	UpdatedAt  time.Time            `json:"updated_at"`
 }
 
-type dbChainAliasDomains struct {
-	ChainID types.RelayChainID  `json:"chain_id"`
-	Alias   types.ChainAlias    `json:"alias"`
-	Domains []types.ChainDomain `json:"domains"`
+type dbChainAlias struct {
+	ChainID types.RelayChainID `json:"chain_id"`
+	Alias   types.ChainAlias   `json:"alias"`
 }

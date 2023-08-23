@@ -800,7 +800,6 @@ VALUES (
     );
 INSERT INTO chains (
         id,
-        blockchain,
         description,
         enforce_result,
         path,
@@ -813,7 +812,6 @@ INSERT INTO chains (
     )
 VALUES (
         '0001',
-        'pokt-mainnet',
         'Pocket Network Mainnet',
         'JSON',
         '/v1/query/height',
@@ -826,7 +824,6 @@ VALUES (
     ),
     (
         '0053',
-        'optimism-mainnet',
         'Optimism Mainnet',
         'JSON',
         '',
@@ -839,7 +836,6 @@ VALUES (
     ),
     (
         '0021',
-        'eth-mainnet',
         'Ethereum Mainnet',
         'JSON',
         '',
@@ -852,7 +848,6 @@ VALUES (
     ),
     (
         '0064',
-        'sui-testnet',
         'Sui Testnet',
         'JSON',
         '',
@@ -865,7 +860,6 @@ VALUES (
     ),
     (
         '0040',
-        'harmony-0',
         'Harmony Shard 0',
         'JSON',
         '',
@@ -994,30 +988,45 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
-INSERT INTO chain_alias_domains (
+INSERT INTO chain_aliases (
         chain_id,
         alias,
-        domains
+        created_at
     )
 VALUES (
         '0001',
         'pokt-mainnet',
-        ARRAY ['pokt-rpc.gateway.pokt.network']
+        '2022-11-11 11:11:11.000000'
     ),
     (
         '0053',
         'optimism-mainnet',
-        ARRAY ['op-rpc.gateway.pokt.network']
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'optimism-rpc',
+        '2022-11-11 11:11:11.000000'
     ),
     (
         '0021',
         'eth-mainnet',
-        ARRAY ['eth-rpc.gateway.pokt.network']
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'eth-rpc',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'sui-testnet',
+        '2022-11-11 11:11:11.000000'
     ),
     (
         '0040',
         'harmony-0',
-        ARRAY ['hmy-rpc.gateway.pokt.network']
+        '2022-11-11 11:11:11.000000'
     );
 -- Insert data into aats
 INSERT INTO gigastake_applications (

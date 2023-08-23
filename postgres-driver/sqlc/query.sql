@@ -501,13 +501,6 @@ SELECT EXISTS(
         WHERE id = $1
             AND deleted = false
     );
--- name: CheckAliasExists :one
-SELECT EXISTS(
-        SELECT 1
-        FROM chain_alias_domains
-        WHERE chain_id = $1
-            AND alias = $2
-    );
 -- name: CheckPlanTypeExists :one
 SELECT EXISTS(
         SELECT 1
@@ -825,16 +818,14 @@ SELECT c.*,
         ),
         '[]'
     )::json AS chain_checks,
-    COALESCE(
-        json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
-            WHERE cga.alias IS NOT NULL
-        ),
-        '{}'
-    )::json AS alias_domains_map
+    ARRAY(
+        SELECT DISTINCT alias
+        FROM chain_aliases
+        WHERE chain_id = c.id
+    )::VARCHAR [] AS chain_aliases
 FROM chains c
     LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
     LEFT JOIN chain_checks cc ON c.id = cc.chain_id
-    LEFT JOIN chain_alias_domains cga ON c.id = cga.chain_id
 WHERE (
         @include_deleted::BOOLEAN
         OR c.deleted = false
@@ -854,22 +845,19 @@ SELECT c.*,
         ),
         '[]'
     )::json AS chain_checks,
-    COALESCE(
-        json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
-            WHERE cga.alias IS NOT NULL
-        ),
-        '{}'
-    )::json AS alias_domains_map
+    ARRAY(
+        SELECT DISTINCT alias
+        FROM chain_aliases
+        WHERE chain_id = c.id
+    )::VARCHAR [] AS chain_aliases
 FROM chains c
     LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
     LEFT JOIN chain_checks cc ON c.id = cc.chain_id
-    LEFT JOIN chain_alias_domains cga ON c.id = cga.chain_id
 WHERE c.id = $1
 GROUP BY c.id;
 -- name: InsertChain :one
 INSERT INTO chains (
         id,
-        blockchain,
         description,
         enforce_result,
         path,
@@ -890,21 +878,19 @@ VALUES (
         $7,
         $8,
         $9,
-        $10,
-        $11
+        $10
     )
 RETURNING id;
 -- name: UpdateChain :one
 UPDATE chains
-SET blockchain = COALESCE($2, chains.blockchain),
-    description = COALESCE($3, chains.description),
-    enforce_result = COALESCE($4, chains.enforce_result),
-    path = COALESCE($5, chains.path),
-    ticker = COALESCE($6, chains.ticker),
-    request_timeout = COALESCE($7, chains.request_timeout),
-    log_limit_blocks = COALESCE($8, chains.log_limit_blocks),
-    allowed_methods = COALESCE($9, chains.allowed_methods),
-    updated_at = $10
+SET description = COALESCE($2, chains.description),
+    enforce_result = COALESCE($3, chains.enforce_result),
+    path = COALESCE($4, chains.path),
+    ticker = COALESCE($5, chains.ticker),
+    request_timeout = COALESCE($6, chains.request_timeout),
+    log_limit_blocks = COALESCE($7, chains.log_limit_blocks),
+    allowed_methods = COALESCE($8, chains.allowed_methods),
+    updated_at = $9
 WHERE id = $1
 RETURNING id;
 -- name: UpsertChainAltruist :exec
@@ -927,28 +913,21 @@ WHERE chain_id = $1
     AND url NOT IN (
         SELECT unnest(@urls::VARCHAR [])
     );
--- name: UpsertChainAliasDomains :exec
-INSERT INTO chain_alias_domains (
+-- name: InsertChainAlias :exec
+INSERT INTO chain_aliases (
         chain_id,
         alias,
-        domains,
-        updated_at
+        created_at
     )
-VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, alias) DO
-UPDATE
-SET domains = COALESCE(
-        EXCLUDED.domains,
-        chain_alias_domains.domains
-    ),
-    updated_at = EXCLUDED.updated_at;
--- name: DeleteUnusedChainAliasDomains :exec
-DELETE FROM chain_alias_domains
+VALUES ($1, $2, $3) ON CONFLICT (chain_id, alias) DO NOTHING;
+-- name: DeleteUnusedChainAlias :exec
+DELETE FROM chain_aliases
 WHERE chain_id = $1
     AND alias NOT IN (
         SELECT unnest(@aliases::VARCHAR [])
     );
--- name: DeleteChainAliasDomain :exec
-DELETE FROM chain_alias_domains
+-- name: DeleteChainAlias :exec
+DELETE FROM chain_aliases
 WHERE chain_id = $1
     AND alias = $2;
 -- name: UpsertChainCheck :exec

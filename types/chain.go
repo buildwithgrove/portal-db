@@ -92,22 +92,21 @@ func (d ChainDomain) GetAlias() ChainAlias {
 /* Chain Struct and Methods */
 type (
 	Chain struct {
-		ID             RelayChainID                 `json:"id"`
-		Blockchain     ChainAlias                   `json:"blockchain"`
-		Description    string                       `json:"description"`
-		EnforceResult  string                       `json:"enforceResult"`
-		Path           string                       `json:"path"`
-		Ticker         string                       `json:"ticker"`
-		AllowedMethods []string                     `json:"allowedMethods"`
-		LogLimitBlocks int32                        `json:"logLimitBlocks"`
-		RequestTimeout int32                        `json:"requestTimeout"`
-		Active         bool                         `json:"active"`
-		Altruists      map[AltruistURL]Altruist     `json:"altruists,omitempty"`
-		Checks         map[ChainCheckType]Check     `json:"chainChecks,omitempty"`
-		AliasDomains   map[ChainAlias][]ChainDomain `json:"domains,omitempty"`
-		CreatedAt      time.Time                    `json:"createdAt"`
-		UpdatedAt      time.Time                    `json:"updatedAt"`
-		Deleted        bool                         `json:"deleted"`
+		ID             RelayChainID             `json:"id"`
+		Description    string                   `json:"description"`
+		EnforceResult  string                   `json:"enforceResult"`
+		Path           string                   `json:"path"`
+		Ticker         string                   `json:"ticker"`
+		AllowedMethods []string                 `json:"allowedMethods"`
+		LogLimitBlocks int32                    `json:"logLimitBlocks"`
+		RequestTimeout int32                    `json:"requestTimeout"`
+		Active         bool                     `json:"active"`
+		Aliases        map[ChainAlias]struct{}  `json:"chainAliases,omitempty"`
+		Altruists      map[AltruistURL]Altruist `json:"altruists,omitempty"`
+		Checks         map[ChainCheckType]Check `json:"chainChecks,omitempty"`
+		CreatedAt      time.Time                `json:"createdAt"`
+		UpdatedAt      time.Time                `json:"updatedAt"`
+		Deleted        bool                     `json:"deleted"`
 
 		// GigastakeApps are set inside PHD
 		GigastakeApps map[GigastakeAppID]*GigastakeApp `json:"chainGigastakeApps,omitempty"`
@@ -128,10 +127,9 @@ type (
 	}
 
 	// Used for mapping listener notification
-	AliasDomains struct {
-		ChainID RelayChainID  `json:"chainID,omitempty"`
-		Alias   ChainAlias    `json:"alias"`
-		Domains []ChainDomain `json:"domains"`
+	Alias struct {
+		ChainID RelayChainID `json:"chainID,omitempty"`
+		Alias   ChainAlias   `json:"alias"`
 	}
 
 	// NewChainInput is used for creating a new Chain, including its Gigastake App
@@ -141,19 +139,19 @@ type (
 	}
 
 	UpdateChain struct {
-		ID             RelayChainID                  `json:"id"`
-		Blockchain     *ChainAlias                   `json:"blockchain"`
-		Description    *string                       `json:"description"`
-		EnforceResult  *string                       `json:"enforceResult"`
-		Path           *string                       `json:"path"`
-		Ticker         *string                       `json:"ticker"`
-		AllowedMethods []string                      `json:"allowedMethods"`
-		LogLimitBlocks *int32                        `json:"logLimitBlocks"`
-		RequestTimeout *int32                        `json:"requestTimeout"`
-		Active         *bool                         `json:"active"`
-		Altruists      *map[AltruistURL]Altruist     `json:"altruists,omitempty"`
-		Checks         *map[ChainCheckType]Check     `json:"chainChecks,omitempty"`
-		AliasDomains   *map[ChainAlias][]ChainDomain `json:"domains,omitempty"`
+		ID             RelayChainID              `json:"id"`
+		Blockchain     *ChainAlias               `json:"blockchain"`
+		Description    *string                   `json:"description"`
+		EnforceResult  *string                   `json:"enforceResult"`
+		Path           *string                   `json:"path"`
+		Ticker         *string                   `json:"ticker"`
+		AllowedMethods []string                  `json:"allowedMethods"`
+		LogLimitBlocks *int32                    `json:"logLimitBlocks"`
+		RequestTimeout *int32                    `json:"requestTimeout"`
+		Active         *bool                     `json:"active"`
+		Aliases        *map[ChainAlias]struct{}  `json:"chainAliases,omitempty"`
+		Altruists      *map[AltruistURL]Altruist `json:"altruists,omitempty"`
+		Checks         *map[ChainCheckType]Check `json:"chainChecks,omitempty"`
 	}
 )
 
@@ -182,24 +180,13 @@ func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
 
 // GetChainAliases returns a slice of all of a Chain's aliases
 func (c *Chain) GetChainAliases() []ChainAlias {
-	chainAliases := []ChainAlias{}
+	aliasesSlice := []ChainAlias{}
 
-	for chainAlias := range c.AliasDomains {
-		chainAliases = append(chainAliases, chainAlias)
+	for alias := range c.Aliases {
+		aliasesSlice = append(aliasesSlice, alias)
 	}
 
-	return chainAliases
-}
-
-// GetChainDomains returns a slice of all of a Chain's domains
-func (c *Chain) GetChainDomains() []ChainDomain {
-	chainDomains := []ChainDomain{}
-
-	for _, chainAliasDomains := range c.AliasDomains {
-		chainDomains = append(chainDomains, chainAliasDomains...)
-	}
-
-	return chainDomains
+	return aliasesSlice
 }
 
 // GetGigastakeAATs returns a slice of all of a Chain's GigastakeApps
@@ -232,6 +219,6 @@ func (c *Check) Table() Table {
 	return TableChainChecks
 }
 
-func (c *AliasDomains) Table() Table {
-	return TableChainAliasDomains
+func (c *Alias) Table() Table {
+	return TableChainAliases
 }
