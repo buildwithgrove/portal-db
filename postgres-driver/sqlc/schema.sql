@@ -256,14 +256,11 @@ CREATE TABLE IF NOT EXISTS gigastake_applications (
     public_key VARCHAR(64) NOT NULL,
     client_public_key VARCHAR(64) NOT NULL,
     signature VARCHAR(128) NOT NULL,
-    private_key VARCHAR(400) NULL,
     version VARCHAR(10) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,
-    deleted_at TIMESTAMPTZ NULL,
-    -- legacy field DEPRECATED - CAN BE REMOVED FROM DB
-    lb_id VARCHAR
+    deleted_at TIMESTAMPTZ NULL
 );
 -- Chains and Gigastake Applications Join Table
 CREATE TABLE chains_gigastake_applications (

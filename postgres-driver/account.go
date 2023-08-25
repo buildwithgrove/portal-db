@@ -466,7 +466,6 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 		return nil
 	}
 
-	// If transferring ownership of an account the former OWNER becomes an ADMIN for all the account's PortalApps
 	err = pg.UpdateAccountUserRole(ctx, UpdateAccountUserRoleParams{
 		PortalApplicationID: updateAccountUser.PortalAppID,
 		UserID:              updateAccountUser.UserID,
@@ -536,11 +535,11 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 	if !updateAccountUser.RoleName.IsValid() {
 		return errInvalidRoleName
 	}
-	if updateAccountUser.PortalAppID == "" {
-		return errTransferNoPortalAppID
-	}
 	if updateAccountUser.AccountID == "" {
 		return errTransferNoAccountID
+	}
+	if updateAccountUser.PortalAppID == "" {
+		return errTransferNoPortalAppID
 	}
 
 	// If transferring OWNER role
@@ -548,10 +547,7 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 		// Cannot transfer OWNER to a user who has not accepted their invite
 		acceptedParams := CheckAccountUserAcceptedParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
 		userAccepted, err := pg.CheckAccountUserAccepted(ctx, acceptedParams)
-		if err != nil {
-			return err
-		}
-		if !userAccepted {
+		if err != nil || !userAccepted {
 			return fmt.Errorf(errCannotTransferNotAccepted.Error(), updateAccountUser.UserID, updateAccountUser.AccountID)
 		}
 

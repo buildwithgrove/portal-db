@@ -9,24 +9,30 @@ gen_mocks:
 
 test: test_unit test_env_up run_driver_tests test_env_down
 test_driver: test_env_up run_driver_tests test_env_down
+
 test_unit:
-	go test ./... -count=1 -short;
+	go test ./... -count=1 -short || true
+run_driver_tests:
+	go test ./... -run Test_RunPGDriverSuite -count=1 || true
+run_all_tests:
+	go test ./... -count=1 || true
+
+test_unit_ci:
+	go test ./... -count=1 -short
+run_driver_tests_ci:
+	go test ./... -run Test_RunPGDriverSuite -count=1
 
 test_env_up:
 	@echo "🧪 Starting up Portal DB test database ..."
 	@docker-compose -f ./testdata/docker-compose.test.yml up -d --remove-orphans --build
 	@echo "⏳ Waiting for test DB to be ready ..."
-	@attempts=0; until pg_isready -h localhost -p 5432 -U postgres -d postgres >/dev/null || [[ $$attempts -eq 5 ]]; do sleep 1; ((attempts++)); done
+	@attempts=0; while ! pg_isready -h localhost -p 5432 -U postgres -d postgres >/dev/null && [[ $$attempts -lt 5 ]]; do sleep 1; attempts=$$(($$attempts + 1)); done
 	@[[ $$attempts -lt 5 ]] && echo "🐘 Test Portal DB is up ..." || (echo "❌ Test Portal DB failed to start" && make test_env_down >/dev/null && exit 1)
 	@echo "🚀 Test environment is up ..."
 test_env_down:
 	@echo "🧪 Shutting down Pocket HTTP DB test environment ..."
 	@docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans >/dev/null
 	@echo "✅ Test environment is down."
-run_driver_tests:
-	go test ./... -run Test_RunPGDriverSuite -count=1;
-run_all_tests:
-	go test ./... -count=1;
 reset_test_db:
 	@echo "🧨 Starting the database reset operation..."
 	@docker exec -it test-database psql -U postgres -d postgres -f /scripts/reset_test_db.sql >/dev/null || (echo "❌ Database reset operation failed:" && docker exec -it test-database psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/reset_test_db.sql)

@@ -12,18 +12,13 @@ type (
 		ChainIDs        map[RelayChainID]struct{} `json:"chainIDs"`
 		Name            string                    `json:"name"`
 		Address         string                    `json:"address"`
-		PublicKey       string                    `json:"publicKey"`
+		PublicKey       GigastakeAppPublicKey     `json:"publicKey"`
 		ClientPublicKey string                    `json:"clientPublicKey"`
 		Signature       string                    `json:"signature"`
 		Version         string                    `json:"version"`
 		CreatedAt       time.Time                 `json:"createdAt"`
 		UpdatedAt       time.Time                 `json:"updatedAt"`
 		Deleted         bool                      `json:"deleted"`
-
-		// PrivateKey used when read from the DB, will always be ""
-		// Only used for saving to DB
-		// TODO remove when decided to not support saving private key to DB
-		PrivateKey string `json:"privateKey,omitempty"`
 	}
 
 	// UpdateGigastakeApp represents the fields that can be updated on a GigastakeApp
@@ -39,6 +34,8 @@ type (
 		ChainID        RelayChainID   `json:"chainID"`
 		GigastakeAppID GigastakeAppID `json:"gigastakeAppID"`
 	}
+
+	GigastakeAppPublicKey string
 )
 
 func (a *GigastakeApp) Table() Table {

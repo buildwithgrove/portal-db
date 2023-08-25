@@ -48,7 +48,7 @@ func (g *SelectGigastakeApplicationsRow) toGigastakeApp() (*types.GigastakeApp, 
 		ChainIDs:        chainIDs,
 		Name:            g.Name,
 		Address:         g.Address,
-		PublicKey:       g.PublicKey,
+		PublicKey:       types.GigastakeAppPublicKey(g.PublicKey),
 		ClientPublicKey: g.ClientPublicKey,
 		Signature:       g.Signature,
 		Version:         g.Version,
@@ -94,9 +94,6 @@ func (pg *PostgresDriver) WriteGigastakeApp(ctx context.Context, gigastakeApp ty
 		return nil, err
 	}
 
-	// Don't return PrivateKey in response
-	gigastakeApp.PrivateKey = ""
-
 	return &gigastakeApp, nil
 }
 
@@ -113,10 +110,9 @@ func (pg *PostgresDriver) insertGigastakeApp(ctx context.Context, qtx *Queries, 
 		ChainIDs:        chainIDs,
 		Name:            gigastakeApp.Name,
 		Address:         gigastakeApp.Address,
-		PublicKey:       gigastakeApp.PublicKey,
+		PublicKey:       string(gigastakeApp.PublicKey),
 		ClientPublicKey: gigastakeApp.ClientPublicKey,
 		Signature:       gigastakeApp.Signature,
-		PrivateKey:      newText(gigastakeApp.PrivateKey),
 		Version:         gigastakeApp.Version,
 		CreatedAt:       newTimestamptz(gigastakeApp.CreatedAt),
 		UpdatedAt:       newTimestamptz(gigastakeApp.UpdatedAt),
@@ -203,7 +199,7 @@ func (json dbGigastakeApp) toOutput() *types.GigastakeApp {
 		ID:              json.ID,
 		Name:            json.Name,
 		Address:         json.Address,
-		PublicKey:       json.PublicKey,
+		PublicKey:       types.GigastakeAppPublicKey(json.PublicKey),
 		ClientPublicKey: json.ClientPublicKey,
 		Signature:       json.Signature,
 		Version:         json.Version,

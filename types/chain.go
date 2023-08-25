@@ -168,6 +168,13 @@ func (c *Chain) GetChainAltruists() []Altruist {
 	return altruists
 }
 
+// IsEVM returns a simple bool if the Chain has a Check with type Chain
+// Only EVM chains may have a Check with type Chain
+func (c *Chain) IsEVM() bool {
+	_, ok := c.Checks[ChainCheckTypeChain]
+	return ok
+}
+
 // Get ChainCheck returns a single Chain Check by its type
 func (c *Chain) GetChainCheck(checkType ChainCheckType) Check {
 	return c.Checks[checkType]

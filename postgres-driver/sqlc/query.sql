@@ -578,7 +578,10 @@ WHERE user_id = $1
 SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
-    AND portal_application_id = $2;
+    AND (
+        portal_application_id = $2
+        OR owner = true
+    );
 -- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users
@@ -692,7 +695,7 @@ insert_old_owner_admin_rows AS (
         aua.created_at,
         aua.updated_at
     FROM account_user_access AS aua
-        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+        LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
         AND NOT EXISTS (
             SELECT 1
@@ -700,53 +703,6 @@ insert_old_owner_admin_rows AS (
             WHERE user_id = @old_owner_id::VARCHAR(24)
                 AND portal_application_id = pa.id
         )
-),
-insert_new_owner_row AS (
-    INSERT INTO account_user_access (
-            user_id,
-            account_id,
-            role_name,
-            owner,
-            accepted,
-            created_at,
-            updated_at
-        )
-    SELECT @new_owner_id::VARCHAR(24),
-        $1,
-        'OWNER',
-        true,
-        true,
-        $2,
-        $3
-)
-SELECT 1;
-WITH updated_user AS (
-    UPDATE users
-    SET email = users.email
-    WHERE id = @new_owner_id::VARCHAR(24)
-),
-insert_old_owner_admin_rows AS (
-    INSERT INTO account_user_access (
-            user_id,
-            account_id,
-            portal_application_id,
-            role_name,
-            owner,
-            accepted,
-            created_at,
-            updated_at
-        )
-    SELECT DISTINCT @old_owner_id::VARCHAR(24),
-        aua.account_id,
-        pa.id,
-        'ADMIN',
-        false,
-        true,
-        aua.created_at,
-        aua.updated_at
-    FROM account_user_access AS aua
-        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
-    WHERE aua.account_id = $1
 ),
 insert_new_owner_row AS (
     INSERT INTO account_user_access (
@@ -801,7 +757,7 @@ VALUES (
     )
 RETURNING user_id;
 -- name: UpdateUserAcceptedInvite :exec
-WITH inserted_provider AS (
+WITH inserted_or_existing_provider AS (
     INSERT INTO user_auth_providers (
             user_id,
             type,
@@ -809,7 +765,9 @@ WITH inserted_provider AS (
             provider_user_id,
             federated
         )
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4, $5) ON CONFLICT (user_id, type) DO
+    UPDATE
+    SET user_id = EXCLUDED.user_id
     RETURNING user_id
 ),
 updated_access AS (
@@ -817,7 +775,7 @@ updated_access AS (
     SET accepted = true
     WHERE user_id = (
             SELECT user_id
-            FROM inserted_provider
+            FROM inserted_or_existing_provider
         )
         AND portal_application_id = $6
 )
@@ -825,7 +783,7 @@ UPDATE users
 SET signed_up = true
 WHERE id = (
         SELECT user_id
-        FROM inserted_provider
+        FROM inserted_or_existing_provider
     );
 -- name: DeleteAccountUser :exec
 DELETE FROM account_user_access
@@ -1041,12 +999,11 @@ WITH new_gigastake_application AS (
             public_key,
             client_public_key,
             signature,
-            private_key,
             version,
             created_at,
             updated_at
         )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id
 )
 INSERT INTO chains_gigastake_applications (chain_id, gigastake_application_id)

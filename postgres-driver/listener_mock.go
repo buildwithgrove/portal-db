@@ -310,7 +310,7 @@ func gigastakeAppInputs(mainTableAction types.Action, sideTablesAction types.Act
 				ID:              gigastakeApp.ID,
 				Name:            gigastakeApp.Name,
 				Address:         gigastakeApp.Address,
-				PublicKey:       gigastakeApp.PublicKey,
+				PublicKey:       string(gigastakeApp.PublicKey),
 				ClientPublicKey: gigastakeApp.ClientPublicKey,
 				Signature:       gigastakeApp.Signature,
 				Version:         gigastakeApp.Version,

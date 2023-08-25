@@ -12,7 +12,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
 
       - name: Run Golang ci Action
         uses: golangci/golangci-lint-action@v3
@@ -23,7 +27,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
 
       - name: Set up cache
         uses: actions/cache@v3
@@ -35,8 +43,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Run unit tests
+        run: make test_unit_ci
+
       - name: Build the Docker test stack
         run: make test_env_up
 
       - name: Run Postgres Driver tests
-        run: make run_driver_tests
+        run: make run_driver_tests_ci
