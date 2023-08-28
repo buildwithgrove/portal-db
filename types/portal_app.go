@@ -161,11 +161,18 @@ type (
 		PublicKeys []PortalAppPublicKey `json:"publicKeys"`
 		Settings   SettingsLite         `json:"settings,omitempty"`
 		Whitelists Whitelists           `json:"whitelists,omitempty"`
+		Plan       PlanLite             `json:"plan,omitempty"`
 	}
 
 	SettingsLite struct {
 		SecretKey         string `json:"secretKey,omitempty"`
 		SecretKeyRequired bool   `json:"secretKeyRequired,omitempty"`
+	}
+
+	PlanLite struct {
+		PlanType        PayPlanType               `json:"planType,omitempty"`
+		ChainIDs        map[RelayChainID]struct{} `json:"chainIDs,omitempty"`
+		ThroughputLimit int32                     `json:"throughputLimit,omitempty"`
 	}
 
 	// WhitelistsObject is a GraphQL-compatible representation of all the whitelists for a given application (used for the Portal UI)
@@ -390,7 +397,7 @@ func (w *Whitelists) IsEmpty() bool {
 
 // ConvertPortalAppToPortalAppLite converts a PortalApp to a PortalAppLite for use in the Portal Middleware
 // Returns a copy rather than a pointer as its intended be used at the point of returning the request body
-func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
+func (a *PortalApp) ConvertPortalAppToPortalAppLite(appPlan *Plan) PortalAppLite {
 	portalAppLite := PortalAppLite{
 		ID:         a.getIDForMiddleware(),
 		PublicKeys: a.GetPublicKeys(),
@@ -404,6 +411,13 @@ func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
 			SecretKeyRequired: a.Settings.SecretKeyRequired,
 		}
 	}
+	if !appPlan.IsEmpty() {
+		portalAppLite.Plan = PlanLite{
+			PlanType:        appPlan.Type,
+			ChainIDs:        appPlan.ChainIDs,
+			ThroughputLimit: appPlan.ThroughputLimit,
+		}
+	}
 
 	return portalAppLite
 }
@@ -412,11 +426,15 @@ func (a *PortalApp) ConvertPortalAppToPortalAppLite() PortalAppLite {
 // with special handling to return the AAT.ID field in the case of a direct app.
 func (a *PortalApp) getIDForMiddleware() PortalAppID {
 	// Direct apps are Applications from V1 that did not have an associated LoadBalancer.
-	if strings.Contains(string(a.ID), "direct_app") {
+	if a.IsDirectApp() {
 		return a.getDirectAppID()
 	}
 	// All other apps are V2 PortalApps.
 	return a.ID
+}
+
+func (a *PortalApp) IsDirectApp() bool {
+	return strings.Contains(string(a.ID), "direct_app")
 }
 
 // getDirectAppID returns the AAT.ID field for a direct app. This field was formerly
@@ -437,6 +455,19 @@ func (a *PortalApp) GetPublicKeys() []PortalAppPublicKey {
 	}
 
 	return publicKeys
+}
+
+func (a *PortalAppLite) PlanType() PayPlanType {
+	return a.Plan.PlanType
+}
+
+func (a *PortalAppLite) IsChainIDOnPlan(chainID RelayChainID) bool {
+	_, ok := a.Plan.ChainIDs[chainID]
+	return ok
+}
+
+func (a *PortalAppLite) ThroughputLimit() int32 {
+	return a.Plan.ThroughputLimit
 }
 
 // IsOriginWhitelisted returns a boolean indicating whether the given ORIGIN is whitelisted for an application
