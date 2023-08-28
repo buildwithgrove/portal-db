@@ -411,7 +411,7 @@ func (a *PortalApp) ConvertPortalAppToPortalAppLite(appPlan *Plan) PortalAppLite
 			SecretKeyRequired: a.Settings.SecretKeyRequired,
 		}
 	}
-	if !appPlan.IsEmpty() {
+	if appPlan != nil {
 		portalAppLite.Plan = PlanLite{
 			PlanType:        appPlan.Type,
 			ChainIDs:        appPlan.ChainIDs,
