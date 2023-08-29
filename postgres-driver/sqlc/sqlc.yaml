@@ -132,3 +132,7 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/v2/types.ChainAlias"
           - column: "global_blocked_contracts.blocked_address"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.BlockedAddress"
+          - column: "chain_aliases.chain_id"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.RelayChainID"
+          - column: "chain_aliases.alias"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.ChainAlias"

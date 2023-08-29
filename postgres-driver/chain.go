@@ -146,9 +146,9 @@ func (c *ChainRow) toChain() (*types.Chain, error) {
 		LogLimitBlocks: c.LogLimitBlocks.Int32,
 		RequestTimeout: c.RequestTimeout.Int32,
 		Active:         c.Active,
+		Aliases:        aliases,
 		Altruists:      altruists,
 		Checks:         checks,
-		Aliases:        aliases,
 		CreatedAt:      c.CreatedAt.Time.UTC(),
 		UpdatedAt:      c.UpdatedAt.Time.UTC(),
 	}

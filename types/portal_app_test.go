@@ -75,6 +75,16 @@ var (
 		},
 	}
 
+	testPlan = &Plan{
+		Type:              PayPlanType("FREETIER_V0"),
+		ChainIDs:          map[RelayChainID]struct{}{"0001": {}, "0053": {}},
+		MonthlyRelayLimit: 5_000_000,
+		ThroughputLimit:   5_000,
+		AppLimit:          5,
+		LegacyDailyLimit:  250_000,
+		CreatedAt:         time.Date(2023, time.February, 14, 11, 11, 11, 0, time.UTC),
+	}
+
 	testDirectApp = PortalApp{
 		ID:   "direct_app_0001",
 		Name: "test_direct_app",
@@ -117,6 +127,11 @@ var (
 				"003E": {"GET": {}},
 			},
 		},
+		Plan: PlanLite{
+			PlanType:        PayPlanType("FREETIER_V0"),
+			ChainIDs:        map[RelayChainID]struct{}{"0001": {}, "0053": {}},
+			ThroughputLimit: 5_000,
+		},
 	}
 
 	testMiddlewareDirectPortalApp = PortalAppLite{
@@ -147,11 +162,13 @@ func Test_ConvertPortalAppToPortalAppLite(t *testing.T) {
 	tests := []struct {
 		name           string
 		portalApp      PortalApp
+		appPlan        *Plan
 		expectedMidApp PortalAppLite
 	}{
 		{
 			name:           "Should correctly convert PortalApp to PortalAppLite",
 			portalApp:      testPortalApplication,
+			appPlan:        testPlan,
 			expectedMidApp: testPortalAppLite,
 		},
 		{
@@ -163,7 +180,7 @@ func Test_ConvertPortalAppToPortalAppLite(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			middlewarePortalApp := test.portalApp.ConvertPortalAppToPortalAppLite()
+			middlewarePortalApp := test.portalApp.ConvertPortalAppToPortalAppLite(test.appPlan)
 			c.Equal(test.expectedMidApp.ID, middlewarePortalApp.ID)
 			c.Equal(test.expectedMidApp.Settings, middlewarePortalApp.Settings)
 			c.Equal(test.expectedMidApp.Whitelists, middlewarePortalApp.Whitelists)
@@ -205,6 +222,33 @@ func Test_PortalApp_getIDForMiddleware(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			id := test.portalApp.getIDForMiddleware()
 			c.Equal(test.expectedResult, id)
+		})
+	}
+}
+
+func Test_PortalApp_IsDirectApp(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name      string
+		portalApp PortalApp
+		expected  bool
+	}{
+		{
+			name:      "Should return false for non-direct app",
+			portalApp: testPortalApplication,
+			expected:  false,
+		},
+		{
+			name:      "Should return true for direct app",
+			portalApp: testDirectApp,
+			expected:  true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c.Equal(test.expected, test.portalApp.IsDirectApp())
 		})
 	}
 }
@@ -276,6 +320,80 @@ func Test_PortalApp_GetPublicKeys(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			publicKeys := test.portalApp.GetPublicKeys()
 			c.Equal(test.expectedResult, publicKeys)
+		})
+	}
+}
+
+func Test_PortalAppLite_PlanType(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name          string
+		portalAppLite PortalAppLite
+		expectedType  PayPlanType
+	}{
+		{
+			name:          "Should correctly return PlanType",
+			portalAppLite: testPortalAppLite,
+			expectedType:  "FREETIER_V0",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c.Equal(test.expectedType, test.portalAppLite.PlanType())
+		})
+	}
+}
+
+func Test_PortalAppLite_IsChainIDOnPlan(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name           string
+		portalAppLite  PortalAppLite
+		chainID        RelayChainID
+		expectedResult bool
+	}{
+		{
+			name:           "Should correctly return IsChainIDOnPlan - existing ID",
+			portalAppLite:  testPortalAppLite,
+			chainID:        "0001",
+			expectedResult: true,
+		},
+		{
+			name:           "Should correctly return IsChainIDOnPlan - non-existing ID",
+			portalAppLite:  testPortalAppLite,
+			chainID:        "0002",
+			expectedResult: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c.Equal(test.expectedResult, test.portalAppLite.IsChainIDOnPlan(test.chainID))
+		})
+	}
+}
+
+func Test_PortalAppLite_ThroughputLimit(t *testing.T) {
+	c := require.New(t)
+
+	tests := []struct {
+		name          string
+		portalAppLite PortalAppLite
+		expectedLimit int32
+	}{
+		{
+			name:          "Should correctly return ThroughputLimit",
+			portalAppLite: testPortalAppLite,
+			expectedLimit: 5_000,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c.Equal(test.expectedLimit, test.portalAppLite.ThroughputLimit())
 		})
 	}
 }

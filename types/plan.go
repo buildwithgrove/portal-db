@@ -19,7 +19,7 @@ type (
 	Plan struct {
 		ID       string                    `json:"id"`
 		Type     PayPlanType               `json:"planType"`
-		ChainIDs map[RelayChainID]struct{} `json:"blockchainIDs"`
+		ChainIDs map[RelayChainID]struct{} `json:"chainIDs"`
 		// MonthlyRelayLimit is the number of relays-per-month for a pay plan
 		MonthlyRelayLimit int32 `json:"monthlyRelayLimit"`
 		// ThroughputLimit is the number of relays-per-second for a pay plan
@@ -33,6 +33,10 @@ type (
 		CreatedAt        time.Time `json:"createdAt"`
 	}
 )
+
+func (p *Plan) IsEmpty() bool {
+	return p == nil || (p.Type == "" && len(p.ChainIDs) == 0 && p.ThroughputLimit == 0)
+}
 
 func (p *Plan) Table() Table {
 	return TablePayPlans

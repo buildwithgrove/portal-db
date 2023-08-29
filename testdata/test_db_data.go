@@ -800,6 +800,11 @@ var (
 					},
 				},
 			},
+			Plan: types.PlanLite{
+				PlanType:        types.PayPlanType("basic_plan"),
+				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+				ThroughputLimit: 5_000,
+			},
 		},
 		"test_app_2": {
 			ID: "test_app_2",
@@ -827,12 +832,22 @@ var (
 					},
 				},
 			},
+			Plan: types.PlanLite{
+				PlanType:        types.PayPlanType("pro_plan"),
+				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
+				ThroughputLimit: 10_000,
+			},
 		},
 		"test_app_3": {
 			ID: "test_app_3",
 			PublicKeys: []types.PortalAppPublicKey{
 				"test_f608500e4fe3e09014fe2411b4a560b5",
 				"test_f6a5d8690ecb669865bd752b7796a920",
+			},
+			Plan: types.PlanLite{
+				PlanType:        types.PayPlanType("startup_plan"),
+				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
+				ThroughputLimit: 1_000,
 			},
 		},
 	}
