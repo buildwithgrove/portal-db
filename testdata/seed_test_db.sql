@@ -994,6 +994,7 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );
+-- DEPRECATED - TODO remove when move to only store aliases is complete
 INSERT INTO chain_alias_domains (
         chain_id,
         alias,
@@ -1018,6 +1019,46 @@ VALUES (
         '0040',
         'harmony-0',
         ARRAY ['hmy-rpc.gateway.pokt.network']
+    );
+INSERT INTO chain_aliases (
+        chain_id,
+        alias,
+        created_at
+    )
+VALUES (
+        '0001',
+        'pokt-mainnet',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'optimism-mainnet',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0053',
+        'optimism-rpc',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'eth-mainnet',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0021',
+        'eth-rpc',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0064',
+        'sui-testnet',
+        '2022-11-11 11:11:11.000000'
+    ),
+    (
+        '0040',
+        'harmony-0',
+        '2022-11-11 11:11:11.000000'
     );
 -- Insert data into aats
 INSERT INTO gigastake_applications (

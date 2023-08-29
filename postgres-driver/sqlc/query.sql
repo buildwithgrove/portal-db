@@ -825,12 +825,18 @@ SELECT c.*,
         ),
         '[]'
     )::json AS chain_checks,
+    -- DEPRECATED - TODO remove when move to only store aliases is complete
     COALESCE(
         json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
             WHERE cga.alias IS NOT NULL
         ),
         '{}'
-    )::json AS alias_domains_map
+    )::json AS alias_domains_map,
+    ARRAY(
+        SELECT DISTINCT alias
+        FROM chain_aliases
+        WHERE chain_id = c.id
+    )::VARCHAR [] AS chain_aliases
 FROM chains c
     LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
     LEFT JOIN chain_checks cc ON c.id = cc.chain_id
@@ -854,12 +860,18 @@ SELECT c.*,
         ),
         '[]'
     )::json AS chain_checks,
+    -- DEPRECATED - TODO remove when move to only store aliases is complete
     COALESCE(
         json_object_agg(COALESCE(cga.alias, 'null'), cga.domains) FILTER (
             WHERE cga.alias IS NOT NULL
         ),
         '{}'
-    )::json AS alias_domains_map
+    )::json AS alias_domains_map,
+    ARRAY(
+        SELECT DISTINCT alias
+        FROM chain_aliases
+        WHERE chain_id = c.id
+    )::VARCHAR [] AS chain_aliases
 FROM chains c
     LEFT JOIN chain_altruists ca ON c.id = ca.chain_id
     LEFT JOIN chain_checks cc ON c.id = cc.chain_id
@@ -927,28 +939,21 @@ WHERE chain_id = $1
     AND url NOT IN (
         SELECT unnest(@urls::VARCHAR [])
     );
--- name: UpsertChainAliasDomains :exec
-INSERT INTO chain_alias_domains (
+-- name: InsertChainAlias :exec
+INSERT INTO chain_aliases (
         chain_id,
         alias,
-        domains,
-        updated_at
+        created_at
     )
-VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, alias) DO
-UPDATE
-SET domains = COALESCE(
-        EXCLUDED.domains,
-        chain_alias_domains.domains
-    ),
-    updated_at = EXCLUDED.updated_at;
--- name: DeleteUnusedChainAliasDomains :exec
-DELETE FROM chain_alias_domains
+VALUES ($1, $2, $3) ON CONFLICT (chain_id, alias) DO NOTHING;
+-- name: DeleteUnusedChainAlias :exec
+DELETE FROM chain_aliases
 WHERE chain_id = $1
     AND alias NOT IN (
         SELECT unnest(@aliases::VARCHAR [])
     );
--- name: DeleteChainAliasDomain :exec
-DELETE FROM chain_alias_domains
+-- name: DeleteChainAlias :exec
+DELETE FROM chain_aliases
 WHERE chain_id = $1
     AND alias = $2;
 -- name: UpsertChainCheck :exec

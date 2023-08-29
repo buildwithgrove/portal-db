@@ -29,23 +29,25 @@ type (
 	}
 
 	ChainRow struct {
-		ID              types.RelayChainID `json:"id"`
-		Blockchain      string             `json:"blockchain"`
-		Description     string             `json:"description"`
-		EnforceResult   string             `json:"enforce_result"`
-		Ticker          string             `json:"ticker"`
-		Path            pgtype.Text        `json:"path"`
-		RequestTimeout  pgtype.Int4        `json:"request_timeout"`
-		LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
-		AllowedMethods  []string           `json:"allowed_methods"`
-		Active          bool               `json:"active"`
-		CreatedAt       pgtype.Timestamptz `json:"created_at"`
-		UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
-		Deleted         pgtype.Bool        `json:"deleted"`
-		DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
-		ChainAltruists  []byte             `json:"chain_altruists"`
-		ChainChecks     []byte             `json:"chain_checks"`
-		AliasDomainsMap []byte             `json:"alias_domains_map"`
+		ID             types.RelayChainID `json:"id"`
+		Blockchain     string             `json:"blockchain"`
+		Description    string             `json:"description"`
+		EnforceResult  string             `json:"enforce_result"`
+		Ticker         string             `json:"ticker"`
+		Path           pgtype.Text        `json:"path"`
+		RequestTimeout pgtype.Int4        `json:"request_timeout"`
+		LogLimitBlocks pgtype.Int4        `json:"log_limit_blocks"`
+		AllowedMethods []string           `json:"allowed_methods"`
+		Active         bool               `json:"active"`
+		CreatedAt      pgtype.Timestamptz `json:"created_at"`
+		UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+		Deleted        pgtype.Bool        `json:"deleted"`
+		DeletedAt      pgtype.Timestamptz `json:"deleted_at"`
+		ChainAltruists []byte             `json:"chain_altruists"`
+		ChainChecks    []byte             `json:"chain_checks"`
+		ChainAliases   []string           `json:"chain_aliases"`
+		// DEPRECATED - TODO remove when move to only store aliases is complete
+		AliasDomainsMap []byte `json:"alias_domains_map"`
 	}
 )
 
@@ -84,44 +86,48 @@ func (pg *PostgresDriver) ReadChains(ctx context.Context, options types.DriverOp
 
 func (c *SelectChainsRow) ToChainRow() *ChainRow {
 	return &ChainRow{
-		ID:              c.ID,
-		Blockchain:      c.Blockchain.String,
-		Description:     c.Description.String,
-		EnforceResult:   c.EnforceResult.String,
-		Ticker:          c.Ticker.String,
-		Path:            c.Path,
-		RequestTimeout:  c.RequestTimeout,
-		LogLimitBlocks:  c.LogLimitBlocks,
-		AllowedMethods:  c.AllowedMethods,
-		Active:          c.Active,
-		CreatedAt:       c.CreatedAt,
-		UpdatedAt:       c.UpdatedAt,
-		Deleted:         c.Deleted,
-		DeletedAt:       c.DeletedAt,
-		ChainAltruists:  c.ChainAltruists,
-		ChainChecks:     c.ChainChecks,
+		ID:             c.ID,
+		Blockchain:     c.Blockchain.String,
+		Description:    c.Description.String,
+		EnforceResult:  c.EnforceResult.String,
+		Ticker:         c.Ticker.String,
+		Path:           c.Path,
+		RequestTimeout: c.RequestTimeout,
+		LogLimitBlocks: c.LogLimitBlocks,
+		AllowedMethods: c.AllowedMethods,
+		Active:         c.Active,
+		CreatedAt:      c.CreatedAt,
+		UpdatedAt:      c.UpdatedAt,
+		Deleted:        c.Deleted,
+		DeletedAt:      c.DeletedAt,
+		ChainAliases:   c.ChainAliases,
+		ChainAltruists: c.ChainAltruists,
+		ChainChecks:    c.ChainChecks,
+		// DEPRECATED - TODO remove when move to only store aliases is complete
 		AliasDomainsMap: c.AliasDomainsMap,
 	}
 }
 
 func (c *SelectChainRow) ToChainRow() *ChainRow {
 	return &ChainRow{
-		ID:              c.ID,
-		Blockchain:      c.Blockchain.String,
-		Description:     c.Description.String,
-		EnforceResult:   c.EnforceResult.String,
-		Ticker:          c.Ticker.String,
-		Path:            c.Path,
-		RequestTimeout:  c.RequestTimeout,
-		LogLimitBlocks:  c.LogLimitBlocks,
-		AllowedMethods:  c.AllowedMethods,
-		Active:          c.Active,
-		CreatedAt:       c.CreatedAt,
-		UpdatedAt:       c.UpdatedAt,
-		Deleted:         c.Deleted,
-		DeletedAt:       c.DeletedAt,
-		ChainAltruists:  c.ChainAltruists,
-		ChainChecks:     c.ChainChecks,
+		ID:             c.ID,
+		Blockchain:     c.Blockchain.String,
+		Description:    c.Description.String,
+		EnforceResult:  c.EnforceResult.String,
+		Ticker:         c.Ticker.String,
+		Path:           c.Path,
+		RequestTimeout: c.RequestTimeout,
+		LogLimitBlocks: c.LogLimitBlocks,
+		AllowedMethods: c.AllowedMethods,
+		Active:         c.Active,
+		CreatedAt:      c.CreatedAt,
+		UpdatedAt:      c.UpdatedAt,
+		Deleted:        c.Deleted,
+		DeletedAt:      c.DeletedAt,
+		ChainAliases:   c.ChainAliases,
+		ChainAltruists: c.ChainAltruists,
+		ChainChecks:    c.ChainChecks,
+		// DEPRECATED - TODO remove when move to only store aliases is complete
 		AliasDomainsMap: c.AliasDomainsMap,
 	}
 }
@@ -133,6 +139,10 @@ func (c *ChainRow) toChain() (*types.Chain, error) {
 		return nil, err
 	}
 	checks, err := c.toChecks()
+	if err != nil {
+		return nil, err
+	}
+	aliases, err := c.toAliases()
 	if err != nil {
 		return nil, err
 	}
@@ -152,11 +162,13 @@ func (c *ChainRow) toChain() (*types.Chain, error) {
 		LogLimitBlocks: c.LogLimitBlocks.Int32,
 		RequestTimeout: c.RequestTimeout.Int32,
 		Active:         c.Active,
+		Aliases:        aliases,
 		Altruists:      altruists,
 		Checks:         checks,
-		AliasDomains:   domains,
-		CreatedAt:      c.CreatedAt.Time.UTC(),
-		UpdatedAt:      c.UpdatedAt.Time.UTC(),
+		// DEPRECATED - TODO remove when move to only store aliases is complete
+		AliasDomains: domains,
+		CreatedAt:    c.CreatedAt.Time.UTC(),
+		UpdatedAt:    c.UpdatedAt.Time.UTC(),
 	}
 
 	return chain, nil
@@ -206,7 +218,19 @@ func (c *ChainRow) toChecks() (map[types.ChainCheckType]types.Check, error) {
 	return checks, nil
 }
 
-// toDomains converts chain aliases and domains from DB rows to Check structs
+// toAliases converts chain aliases from DB rows to aliases map
+func (c *ChainRow) toAliases() (map[types.ChainAlias]struct{}, error) {
+	aliases := make(map[types.ChainAlias]struct{}, len(c.ChainAliases))
+
+	for _, alias := range c.ChainAliases {
+		aliases[types.ChainAlias(alias)] = struct{}{}
+	}
+
+	return aliases, nil
+}
+
+// DEPRECATED - TODO remove when move to only store aliases is complete
+// toDomains converts chain aliases and domains from DB rows to alias domains map
 func (c *ChainRow) toDomains() (map[types.ChainAlias][]types.ChainDomain, error) {
 	var domains map[types.ChainAlias][]types.ChainDomain
 	if len(string(c.AliasDomainsMap)) > 2 { // length of empty JSON array in bytes
@@ -399,16 +423,11 @@ func (pg *PostgresDriver) insertChain(ctx context.Context, qtx *Queries, chain t
 			return err
 		}
 	}
-	for alias, domains := range chain.AliasDomains {
-		domainsStrs := []string{}
-		for _, domain := range domains {
-			domainsStrs = append(domainsStrs, string(domain))
-		}
-		err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
+	for alias := range chain.Aliases {
+		err := qtx.InsertChainAlias(ctx, InsertChainAliasParams{
 			ChainID:   createdChainID,
 			Alias:     alias,
-			Domains:   domainsStrs,
-			UpdatedAt: newTimestamptz(chain.UpdatedAt),
+			CreatedAt: newTimestamptz(chain.UpdatedAt),
 		})
 		if err != nil {
 			return err
@@ -473,17 +492,12 @@ func (pg *PostgresDriver) updateChain(ctx context.Context, qtx *Queries, update 
 			}
 		}
 	}
-	if update.AliasDomains != nil {
-		for alias, domains := range *update.AliasDomains {
-			domainsStrs := []string{}
-			for _, domain := range domains {
-				domainsStrs = append(domainsStrs, string(domain))
-			}
-			err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
+	if update.Aliases != nil {
+		for alias := range *update.Aliases {
+			err := qtx.InsertChainAlias(ctx, InsertChainAliasParams{
 				ChainID:   createdChainID,
 				Alias:     alias,
-				Domains:   domainsStrs,
-				UpdatedAt: newTimestamptz(updatedAt),
+				CreatedAt: newTimestamptz(updatedAt),
 			})
 			if err != nil {
 				return err
@@ -529,15 +543,6 @@ func (pg *PostgresDriver) validateChainUpdate(ctx context.Context, qtx *Queries,
 			}
 		}
 	}
-	if chain.AliasDomains != nil {
-		for alias, domains := range *chain.AliasDomains {
-			for _, domain := range domains {
-				if !domain.IsValid() {
-					return fmt.Errorf(errInvalidDomain.Error(), domain, alias)
-				}
-			}
-		}
-	}
 
 	chainExists, err := qtx.CheckChainExists(ctx, chain.ID)
 	if err != nil {
@@ -579,12 +584,12 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 		}
 	}
 
-	if chain.AliasDomains != nil {
-		deleteAliasDomainsParams := DeleteUnusedChainAliasDomainsParams{ChainID: chain.ID}
-		for alias := range *chain.AliasDomains {
+	if chain.Aliases != nil {
+		deleteAliasDomainsParams := DeleteUnusedChainAliasParams{ChainID: chain.ID}
+		for alias := range *chain.Aliases {
 			deleteAliasDomainsParams.Aliases = append(deleteAliasDomainsParams.Aliases, string(alias))
 		}
-		err := qtx.DeleteUnusedChainAliasDomains(ctx, deleteAliasDomainsParams)
+		err := qtx.DeleteUnusedChainAlias(ctx, deleteAliasDomainsParams)
 		if err != nil {
 			return err
 		}

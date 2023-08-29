@@ -917,8 +917,12 @@ var (
 					Allowance: 1,
 				},
 			},
+			// DEPRECATED - TODO remove when move to only store aliases is complete
 			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
 				"pokt-mainnet": {"pokt-rpc.gateway.pokt.network"},
+			},
+			Aliases: map[types.ChainAlias]struct{}{
+				"pokt-mainnet": {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -947,8 +951,13 @@ var (
 					Allowance: 2,
 				},
 			},
+			// DEPRECATED - TODO remove when move to only store aliases is complete
 			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
 				"optimism-mainnet": {"op-rpc.gateway.pokt.network"},
+			},
+			Aliases: map[types.ChainAlias]struct{}{
+				"optimism-mainnet": {},
+				"optimism-rpc":     {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -982,8 +991,13 @@ var (
 					EVMChainID: 1,
 				},
 			},
+			// DEPRECATED - TODO remove when move to only store aliases is complete
 			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
 				"eth-mainnet": {"eth-rpc.gateway.pokt.network"},
+			},
+			Aliases: map[types.ChainAlias]struct{}{
+				"eth-mainnet": {},
+				"eth-rpc":     {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -1012,6 +1026,9 @@ var (
 					Allowance: 7,
 				},
 			},
+			Aliases: map[types.ChainAlias]struct{}{
+				"sui-testnet": {},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
@@ -1037,8 +1054,12 @@ var (
 					Allowance: 8,
 				},
 			},
+			// DEPRECATED - TODO remove when move to only store aliases is complete
 			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
 				"harmony-0": {"hmy-rpc.gateway.pokt.network"},
+			},
+			Aliases: map[types.ChainAlias]struct{}{
+				"harmony-0": {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -1135,8 +1156,9 @@ var (
 				EVMChainID: 5,
 			},
 		},
-		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-			"sol-mainnet": {"solana-rpc.gateway.pokt.network"},
+		Aliases: map[types.ChainAlias]struct{}{
+			"solana-mainnet": {},
+			"sol-mainnet":    {},
 		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
@@ -1175,8 +1197,9 @@ var (
 					EVMChainID: 7,
 				},
 			},
-			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"ada-mainnet": {"cardano-rpc.gateway.pokt.network"},
+			Aliases: map[types.ChainAlias]struct{}{
+				"cardano-mainnet": {},
+				"ada-mainnet":     {},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -1337,9 +1360,9 @@ var (
 				ResultKey: "result.sync_info",
 			},
 		},
-		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
-			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
-			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network"},
+		Aliases: &map[types.ChainAlias]struct{}{
+			"pokt-mainnet": {},
+			"pokt-main":    {},
 		},
 	}
 	UpdateChainTwo = types.UpdateChain{
@@ -1365,9 +1388,10 @@ var (
 				Allowance: 1,
 			},
 		},
-		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
-			"pokt-mainnet": {"pokt-rpc.gateway.pokt.network", "pokt-rpc-2.gateway.pokt.network"},
-			"pokt-main":    {"pokt-rpc.us-west-2.pokt.network", "pokt-rpc-2.us-west-2.pokt.network"},
+		Aliases: &map[types.ChainAlias]struct{}{
+			"pokt-mainnet": {},
+			"pokt-main":    {},
+			"pokt-rpc-2":   {},
 		},
 	}
 	UpdateChainThree = types.UpdateChain{
@@ -1385,11 +1409,6 @@ var (
 	UpdateChainInvalidURL = types.UpdateChain{ID: "0073",
 		Altruists: &map[types.AltruistURL]types.Altruist{
 			"htz:/bad-domain2": {URL: "htz:/bad-domain2"},
-		},
-	}
-	UpdateChainInvalidDomain = types.UpdateChain{ID: "0073",
-		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
-			"sol-mainnet": {"im-not-a-domain"},
 		},
 	}
 
