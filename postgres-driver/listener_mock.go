@@ -397,6 +397,18 @@ func chainInputs(mainTableAction, sideTablesAction types.Action, content types.S
 			})
 		}
 
+		for alias := range chain.Aliases {
+			inputs = append(inputs, inputStruct{
+				action: sideTablesAction,
+				table:  types.TableChainAliases,
+				input: dbChainAlias{
+					ChainID: chain.ID,
+					Alias:   alias,
+				},
+			})
+		}
+
+		// DEPRECATED - TODO remove when move to only store aliases is complete
 		for alias, domains := range chain.AliasDomains {
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,

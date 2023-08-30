@@ -171,16 +171,6 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
 		},
-		{
-			name:        "Should fail if any input alias has an invalid domain",
-			altruistURL: "http://www.good-domain.com",
-			aliasDomains: map[types.ChainAlias][]types.ChainDomain{
-				"sol-mainnet": {"im-not-a-domain"},
-			},
-			chain:           *testdata.TestCreateChain,
-			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errInvalidDomain.Error(), "im-not-a-domain", "sol-mainnet"),
-		},
 	}
 
 	for _, test := range tests {
@@ -247,12 +237,6 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			update:          testdata.UpdateChainInvalidURL,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
-		},
-		{
-			name:            "Should fail if any input alias has an invalid domain",
-			update:          testdata.UpdateChainInvalidDomain,
-			testCreatedTime: testdata.MockTimestamp,
-			err:             fmt.Errorf(errInvalidDomain.Error(), "im-not-a-domain", "sol-mainnet"),
 		},
 	}
 
@@ -339,10 +323,10 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 					ts.Equal(initialChain.Checks, updatedChain.Checks)
 				}
 
-				if len(*test.update.AliasDomains) > 0 {
-					ts.Equal(*test.update.AliasDomains, updatedChain.AliasDomains)
+				if len(*test.update.Aliases) > 0 {
+					ts.Equal(*test.update.Aliases, updatedChain.Aliases)
 				} else {
-					ts.Equal(initialChain.AliasDomains, updatedChain.AliasDomains)
+					ts.Equal(initialChain.Aliases, updatedChain.Aliases)
 				}
 			}
 		})

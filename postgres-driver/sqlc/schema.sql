@@ -141,12 +141,19 @@ CREATE TABLE chain_checks (
         )
     )
 );
+-- DEPRECATED - TODO remove when move to only store aliases is complete
 CREATE TABLE IF NOT EXISTS chain_alias_domains (
     chain_id VARCHAR(4) NOT NULL REFERENCES chains(id) ON DELETE CASCADE,
     alias VARCHAR(255) NOT NULL,
     domains VARCHAR(100) ARRAY NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY(chain_id, alias)
+);
+CREATE TABLE chain_aliases (
+    chain_id VARCHAR(4) REFERENCES chains(id) ON DELETE CASCADE,
+    alias VARCHAR(100) NOT NULL CHECK (alias <> ''),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (chain_id, alias)
 );
 -- Portal Application Tables
 CREATE TABLE portal_applications (
@@ -392,6 +399,13 @@ INSERT
     OR
 UPDATE
     OR DELETE ON chain_altruists FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER chain_aliases_notify_event
+AFTER
+INSERT
+    OR
+UPDATE
+    OR DELETE ON chain_aliases FOR EACH ROW EXECUTE PROCEDURE notify_event();
+-- DEPRECATED - TODO remove when move to only store aliases is complete
 CREATE TRIGGER chain_alias_domains_notify_event
 AFTER
 INSERT

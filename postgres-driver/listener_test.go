@@ -185,6 +185,14 @@ func Test_Listen(t *testing.T) {
 						Allowance: 1,
 					},
 				},
+				types.TableChainAliases: {
+					Table:  types.TableChainAliases,
+					Action: types.ActionUpdate,
+					Data: &types.Alias{
+						ChainID: "0001",
+						Alias:   "pokt-mainnet",
+					},
+				},
 				types.TableChainAliasDomains: {
 					Table:  types.TableChainAliasDomains,
 					Action: types.ActionUpdate,
