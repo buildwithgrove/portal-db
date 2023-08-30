@@ -130,6 +130,11 @@ type (
 	}
 
 	// Used for mapping listener notification
+	Alias struct {
+		ChainID RelayChainID `json:"chainID,omitempty"`
+		Alias   ChainAlias   `json:"alias"`
+	}
+	// DEPRECATED - TODO remove when move to only store aliases is complete
 	AliasDomains struct {
 		ChainID RelayChainID  `json:"chainID,omitempty"`
 		Alias   ChainAlias    `json:"alias"`
@@ -246,6 +251,11 @@ func (c *Check) Table() Table {
 	return TableChainChecks
 }
 
+func (c *Alias) Table() Table {
+	return TableChainAliases
+}
+
+// DEPRECATED - TODO remove when move to only store aliases is complete
 func (c *AliasDomains) Table() Table {
 	return TableChainAliasDomains
 }

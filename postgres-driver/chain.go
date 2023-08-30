@@ -655,6 +655,14 @@ func (json dbChainCheck) toOutput() *types.Check {
 	}
 }
 
+func (json dbChainAlias) toOutput() *types.Alias {
+	return &types.Alias{
+		ChainID: json.ChainID,
+		Alias:   json.Alias,
+	}
+}
+
+// DEPRECATED - TODO remove when move to only store aliases is complete
 func (json dbChainAliasDomains) toOutput() *types.AliasDomains {
 	return &types.AliasDomains{
 		ChainID: json.ChainID,
@@ -704,6 +712,12 @@ type dbChainCheck struct {
 	UpdatedAt  time.Time            `json:"updated_at"`
 }
 
+type dbChainAlias struct {
+	ChainID types.RelayChainID `json:"chain_id"`
+	Alias   types.ChainAlias   `json:"alias"`
+}
+
+// DEPRECATED - TODO remove when move to only store aliases is complete
 type dbChainAliasDomains struct {
 	ChainID types.RelayChainID  `json:"chain_id"`
 	Alias   types.ChainAlias    `json:"alias"`

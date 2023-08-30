@@ -75,9 +75,11 @@ const (
 
 	TablePayPlans Table = "pay_plans"
 
-	TableChains            Table = "chains"
-	TableChainAltruists    Table = "chain_altruists"
-	TableChainChecks       Table = "chain_checks"
+	TableChains         Table = "chains"
+	TableChainAltruists Table = "chain_altruists"
+	TableChainChecks    Table = "chain_checks"
+	TableChainAliases   Table = "chain_aliases"
+	// DEPRECATED - TODO remove when move to only store aliases is complete
 	TableChainAliasDomains Table = "chain_alias_domains"
 
 	TableChainGigastakeApps Table = "chains_gigastake_applications"

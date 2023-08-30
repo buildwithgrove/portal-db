@@ -399,6 +399,13 @@ INSERT
     OR
 UPDATE
     OR DELETE ON chain_altruists FOR EACH ROW EXECUTE PROCEDURE notify_event();
+CREATE TRIGGER chain_aliases_notify_event
+AFTER
+INSERT
+    OR
+UPDATE
+    OR DELETE ON chain_aliases FOR EACH ROW EXECUTE PROCEDURE notify_event();
+-- DEPRECATED - TODO remove when move to only store aliases is complete
 CREATE TRIGGER chain_alias_domains_notify_event
 AFTER
 INSERT
