@@ -451,6 +451,12 @@ type Chain struct {
 	DeletedAt      pgtype.Timestamptz `json:"deleted_at"`
 }
 
+type ChainAlias struct {
+	ChainID   types.RelayChainID `json:"chain_id"`
+	Alias     types.ChainAlias   `json:"alias"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type ChainAliasDomain struct {
 	ChainID   types.RelayChainID `json:"chain_id"`
 	Alias     types.ChainAlias   `json:"alias"`

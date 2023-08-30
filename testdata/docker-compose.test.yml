@@ -16,3 +16,7 @@ services:
       test: pg_isready -U postgres
       interval: 5s
       retries: 3
+
+networks:
+  test-network:
+    driver: bridge

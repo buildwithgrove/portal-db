@@ -259,9 +259,9 @@ func Test_GetChainAliases(t *testing.T) {
 		{
 			name: "Should return all aliases of the chain",
 			chain: Chain{
-				AliasDomains: map[ChainAlias][]ChainDomain{
-					"pokt-mainnet": {"pokt-rpc.gateway.pokt.network"},
-					"pokt-testnet": {"pokt-rpc-test.gateway.pokt.network"},
+				Aliases: map[ChainAlias]struct{}{
+					"pokt-mainnet": {},
+					"pokt-testnet": {},
 				},
 			},
 			expected: []ChainAlias{"pokt-mainnet", "pokt-testnet"},
