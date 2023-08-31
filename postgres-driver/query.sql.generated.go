@@ -988,6 +988,8 @@ INSERT INTO portal_applications (
         id,
         account_id,
         name,
+        description,
+        app_emoji,
         created_at,
         updated_at,
         request_timeout,
@@ -1009,7 +1011,9 @@ VALUES (
         $7,
         $8,
         $9,
-        $10
+        $10,
+        $11,
+        $12
     )
 RETURNING id, account_id, name, app_emoji, description, created_at, updated_at, deleted, deleted_at, request_timeout, first_date_surpassed, plan_type, daily_limit, custom_limit
 `
@@ -1018,6 +1022,8 @@ type InsertPortalApplicationParams struct {
 	ID                 types.PortalAppID  `json:"id"`
 	AccountID          pgtype.Text        `json:"account_id"`
 	Name               string             `json:"name"`
+	Description        pgtype.Text        `json:"description"`
+	AppEmoji           pgtype.Text        `json:"app_emoji"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 	RequestTimeout     pgtype.Int4        `json:"request_timeout"`
@@ -1032,6 +1038,8 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 		arg.ID,
 		arg.AccountID,
 		arg.Name,
+		arg.Description,
+		arg.AppEmoji,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.RequestTimeout,
@@ -2385,7 +2393,9 @@ func (q *Queries) UpdateInsertWhitelists(ctx context.Context, arg UpdateInsertWh
 const updatePortalAppFields = `-- name: UpdatePortalAppFields :exec
 UPDATE portal_applications
 SET name = COALESCE(NULLIF($5::VARCHAR, ''), name),
-    plan_type = COALESCE(NULLIF($6::VARCHAR, ''), plan_type),
+    description = COALESCE(NULLIF($6::VARCHAR, ''), description),
+    app_emoji = COALESCE(NULLIF($7::VARCHAR, ''), app_emoji),
+    plan_type = COALESCE(NULLIF($8::VARCHAR, ''), plan_type),
     daily_limit = COALESCE($2, daily_limit),
     custom_limit = COALESCE($3, custom_limit),
     updated_at = $4
@@ -2398,6 +2408,8 @@ type UpdatePortalAppFieldsParams struct {
 	CustomLimit pgtype.Int4        `json:"custom_limit"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	AppEmoji    string             `json:"app_emoji"`
 	PlanType    string             `json:"plan_type"`
 }
 
@@ -2408,6 +2420,8 @@ func (q *Queries) UpdatePortalAppFields(ctx context.Context, arg UpdatePortalApp
 		arg.CustomLimit,
 		arg.UpdatedAt,
 		arg.Name,
+		arg.Description,
+		arg.AppEmoji,
 		arg.PlanType,
 	)
 	return err

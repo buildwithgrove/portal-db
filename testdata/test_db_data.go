@@ -1236,10 +1236,11 @@ var (
 
 	// TestCreatePortalApp app used to test creation of PortalApps
 	TestCreatePortalApp = &types.PortalApp{
-		ID:        "test_app_create_208r23r",
-		AccountID: "account_4",
-		Name:      "create_pokt_app_1",
-
+		ID:          "test_app_create_208r23r",
+		AccountID:   "account_4",
+		Name:        "create_pokt_app_1",
+		Description: "Embark on a journey across the enchanting realm of Middle-earth.",
+		AppEmoji:    "💍",
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
@@ -1397,10 +1398,12 @@ var (
 
 	// TestUpdatePortalApp app used to test updates of PortalApps
 	TestUpdatePortalApp = &types.PortalApp{
-		ID:        "test_app_update_b03ca84c",
-		AccountID: "account_1",
-		Name:      "", // name set in test
-		AATs:      map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
+		ID:          "test_app_update_b03ca84c",
+		AccountID:   "account_1",
+		Name:        "", // name set in test
+		Description: "Embark on a journey across the solar system with Pur'n'Kleen",
+		AppEmoji:    "🪐",
+		AATs:        map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
@@ -1416,8 +1419,10 @@ var (
 		},
 	}
 
-	UpdatePortalAppName     = "portal-app-updated"
-	UpdatePortalAppSettings = &types.UpdateAppSettings{
+	UpdatePortalAppName        = "portal-app-updated"
+	UpdatePortalAppDescription = "Updating the application name like the shifting sands of Arrakis."
+	UpdatePortalAppEmoji       = types.AppEmoji("🐱‍🐉")
+	UpdatePortalAppSettings    = &types.UpdateAppSettings{
 		Environment:       types.EnvironmentProduction,
 		SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
 		SecretKeyRequired: true,

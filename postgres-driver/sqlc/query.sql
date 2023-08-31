@@ -145,6 +145,8 @@ INSERT INTO portal_applications (
         id,
         account_id,
         name,
+        description,
+        app_emoji,
         created_at,
         updated_at,
         request_timeout,
@@ -166,7 +168,9 @@ VALUES (
         $7,
         $8,
         $9,
-        $10
+        $10,
+        $11,
+        $12
     )
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
@@ -210,6 +214,8 @@ WHERE aua.account_id = $1
 -- name: UpdatePortalAppFields :exec
 UPDATE portal_applications
 SET name = COALESCE(NULLIF(@name::VARCHAR, ''), name),
+    description = COALESCE(NULLIF(@description::VARCHAR, ''), description),
+    app_emoji = COALESCE(NULLIF(@app_emoji::VARCHAR, ''), app_emoji),
     plan_type = COALESCE(NULLIF(@plan_type::VARCHAR, ''), plan_type),
     daily_limit = COALESCE($2, daily_limit),
     custom_limit = COALESCE($3, custom_limit),

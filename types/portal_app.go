@@ -1,6 +1,7 @@
 package types
 
 import (
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -15,6 +16,8 @@ type (
 
 	PortalAppPublicKey string
 	PortalAppOrigin    string
+
+	AppEmoji string
 )
 
 const (
@@ -74,6 +77,14 @@ func (w WhitelistType) IsValid() bool {
 	}
 }
 
+func (e AppEmoji) IsValid() bool {
+	// Regular expression pattern to match emojis
+	emojiPattern := `^\p{So}|\p{Sk}|\p{S}$`
+	regex := regexp.MustCompile(emojiPattern)
+
+	return regex.MatchString(string(e))
+}
+
 /* PortalApp Struct Definition and Methods */
 type (
 	// PortalApp represents a single application in the Portal
@@ -81,7 +92,7 @@ type (
 		ID                 PortalAppID                          `json:"id"`
 		Name               string                               `json:"name"`
 		Description        string                               `json:"description"`
-		AppEmoji           string                               `json:"appEmoji"`
+		AppEmoji           AppEmoji                             `json:"appEmoji"`
 		AccountID          AccountID                            `json:"accountID"`
 		Settings           Settings                             `json:"settings"`
 		Whitelists         Whitelists                           `json:"whitelists"`
@@ -200,6 +211,8 @@ type (
 	UpdatePortalApp struct {
 		AppID         PortalAppID              `json:"appID,omitempty"`
 		Name          string                   `json:"name,omitempty"`
+		Description   string                   `json:"description,omitempty"`
+		AppEmoji      AppEmoji                 `json:"appEmoji,omitempty"`
 		Settings      *UpdateAppSettings       `json:"appSettings,omitempty"`
 		Notifications []UpdateAppNotifications `json:"notificationSettings,omitempty"`
 		Whitelists    *WhitelistsObject        `json:"whitelists,omitempty"`
@@ -237,6 +250,13 @@ type (
 	Method    string
 	Contract  string
 )
+
+func (u *UpdatePortalApp) IsEmpty() bool {
+	if u.Name != "" || u.PlanType != "" || u.Description != "" || u.AppEmoji != "" || u.DailyLimit != 0 || u.CustomLimit != 0 {
+		return false
+	}
+	return true
+}
 
 // TODO For Legacy Fields Only
 // DailyLimit returns the daily relay limit for a given portal app
