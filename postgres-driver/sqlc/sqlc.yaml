@@ -16,6 +16,7 @@ overrides:
       covalent_api_key_free: "CovalentAPIKeyFree"
       covalent_api_key_paid: "CovalentAPIKeyPaid"
       aat_id: "AATID"
+      icon_url: "IconURL"
 
 sql:
   - schema: "schema.sql"
@@ -40,6 +41,28 @@ sql:
             go_type: "github.com/jackc/pgx/v5/pgtype.Text"
           - column: "chains.ticker"
             go_type: "github.com/jackc/pgx/v5/pgtype.Text"
+          - column: "pay_plans.name"
+            go_type: string
+          - column: "pay_plans.description"
+            go_type: string
+          - column: "accounts.name"
+            go_type: string
+          - column: "accounts.icon_url"
+            go_type: string
+          - column: "portal_applications.description"
+            go_type: string
+          - column: "portal_applications.app_emoji"
+            go_type: string
+          - column: "users.icon_url"
+            go_type: string
+          - column: "users.updates_product"
+            go_type: bool
+          - column: "users.updates_marketing"
+            go_type: bool
+          - column: "users.beta_tester"
+            go_type: bool
+          - column: "chains.icon_url"
+            go_type: string
           # Enum Overrides
           - db_type: "auth_provider"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.AuthProvider"

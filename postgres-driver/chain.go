@@ -30,6 +30,7 @@ type (
 
 	ChainRow struct {
 		ID             types.RelayChainID `json:"id"`
+		IconURL        string             `json:"icon_url"`
 		Blockchain     string             `json:"blockchain"`
 		Description    string             `json:"description"`
 		EnforceResult  string             `json:"enforce_result"`
@@ -87,6 +88,7 @@ func (pg *PostgresDriver) ReadChains(ctx context.Context, options types.DriverOp
 func (c *SelectChainsRow) ToChainRow() *ChainRow {
 	return &ChainRow{
 		ID:             c.ID,
+		IconURL:        c.IconURL,
 		Blockchain:     c.Blockchain.String,
 		Description:    c.Description.String,
 		EnforceResult:  c.EnforceResult.String,
@@ -111,6 +113,7 @@ func (c *SelectChainsRow) ToChainRow() *ChainRow {
 func (c *SelectChainRow) ToChainRow() *ChainRow {
 	return &ChainRow{
 		ID:             c.ID,
+		IconURL:        c.IconURL,
 		Blockchain:     c.Blockchain.String,
 		Description:    c.Description.String,
 		EnforceResult:  c.EnforceResult.String,
@@ -153,6 +156,7 @@ func (c *ChainRow) toChain() (*types.Chain, error) {
 
 	chain := &types.Chain{
 		ID:             types.RelayChainID(c.ID),
+		IconURL:        c.IconURL,
 		Blockchain:     types.ChainAlias(c.Blockchain),
 		Description:    c.Description,
 		EnforceResult:  c.EnforceResult,
@@ -621,6 +625,7 @@ func (pg *PostgresDriver) SetChainActiveStatus(ctx context.Context, chainID type
 func (json dbChain) toOutput() *types.Chain {
 	return &types.Chain{
 		ID:             json.ID,
+		IconURL:        json.IconURL,
 		Blockchain:     json.Blockchain,
 		Description:    json.Description,
 		EnforceResult:  json.EnforceResult,
@@ -673,6 +678,7 @@ func (json dbChainAliasDomains) toOutput() *types.AliasDomains {
 
 type dbChain struct {
 	ID                       types.RelayChainID  `json:"id"`
+	IconURL                  string              `json:"icon_url"`
 	Blockchain               types.ChainAlias    `json:"blockchain"`
 	Description              string              `json:"description"`
 	EnforceResult            string              `json:"enforce_result"`

@@ -24,7 +24,9 @@ SELECT EXISTS (
             ) AS id_table
     );
 -- name: SelectPlans :many
-SELECT plan_type,
+SELECT name,
+    description,
+    plan_type,
     chain_ids,
     monthly_relay_limit,
     throughput_limit,
@@ -343,6 +345,12 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
+            'updates_product',
+            u.updates_product,
+            'updates_marketing',
+            u.updates_marketing,
+            'beta_tester',
+            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',

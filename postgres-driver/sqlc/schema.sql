@@ -27,6 +27,8 @@ CREATE TYPE whitelist_type AS ENUM (
 );
 -- Plans Tables
 CREATE TABLE pay_plans (
+    name VARCHAR(255),
+    description VARCHAR,
     plan_type VARCHAR(25) PRIMARY KEY,
     chain_ids VARCHAR(4) ARRAY,
     monthly_relay_limit INT NOT NULL,
@@ -42,6 +44,10 @@ CREATE TABLE users (
     id VARCHAR(10) PRIMARY KEY,
     email VARCHAR(255) NULL UNIQUE,
     signed_up BOOLEAN NOT NULL,
+    icon_url VARCHAR,
+    updates_product BOOLEAN,
+    updates_marketing BOOLEAN,
+    beta_tester BOOLEAN,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -64,6 +70,8 @@ CREATE TABLE user_roles (
 -- Accounts Tables
 CREATE TABLE accounts (
     id VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    icon_url VARCHAR,
     plan_type VARCHAR(25) NOT NULL REFERENCES pay_plans(plan_type),
     partner_chain_ids VARCHAR(4) ARRAY,
     partner_throughput_limit INT,
@@ -90,6 +98,7 @@ CREATE TABLE chains (
     enforce_result VARCHAR(4) NOT NULL,
     ticker VARCHAR(100) NOT NULL,
     path VARCHAR(100),
+    icon_url VARCHAR,
     request_timeout INT,
     log_limit_blocks INT,
     allowed_methods VARCHAR(10) ARRAY,
@@ -160,6 +169,8 @@ CREATE TABLE portal_applications (
     id VARCHAR(24) PRIMARY KEY UNIQUE,
     account_id VARCHAR(10) REFERENCES accounts(id),
     name VARCHAR(255) NOT NULL,
+    app_emoji VARCHAR(255),
+    description VARCHAR,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT false,

@@ -80,6 +80,8 @@ type (
 	PortalApp struct {
 		ID                 PortalAppID                          `json:"id"`
 		Name               string                               `json:"name"`
+		Description        string                               `json:"description"`
+		AppEmoji           string                               `json:"appEmoji"`
 		AccountID          AccountID                            `json:"accountID"`
 		Settings           Settings                             `json:"settings"`
 		Whitelists         Whitelists                           `json:"whitelists"`

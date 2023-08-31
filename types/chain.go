@@ -95,6 +95,7 @@ type (
 		ID             RelayChainID             `json:"id"`
 		Blockchain     ChainAlias               `json:"blockchain"`
 		Description    string                   `json:"description"`
+		IconURL        string                   `json:"iconURL"`
 		EnforceResult  string                   `json:"enforceResult"`
 		Path           string                   `json:"path"`
 		Ticker         string                   `json:"ticker"`

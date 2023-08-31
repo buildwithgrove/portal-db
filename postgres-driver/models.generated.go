@@ -403,6 +403,8 @@ func (ns NullWhitelistType) Value() (driver.Value, error) {
 
 type Account struct {
 	ID                      types.AccountID    `json:"id"`
+	Name                    string             `json:"name"`
+	IconURL                 string             `json:"icon_url"`
 	PlanType                types.PayPlanType  `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
@@ -441,6 +443,7 @@ type Chain struct {
 	EnforceResult  pgtype.Text        `json:"enforce_result"`
 	Ticker         pgtype.Text        `json:"ticker"`
 	Path           pgtype.Text        `json:"path"`
+	IconURL        string             `json:"icon_url"`
 	RequestTimeout pgtype.Int4        `json:"request_timeout"`
 	LogLimitBlocks pgtype.Int4        `json:"log_limit_blocks"`
 	AllowedMethods []string           `json:"allowed_methods"`
@@ -514,6 +517,8 @@ type GlobalBlockedContract struct {
 }
 
 type PayPlan struct {
+	Name              string             `json:"name"`
+	Description       string             `json:"description"`
 	PlanType          types.PayPlanType  `json:"plan_type"`
 	ChainIDs          []string           `json:"chain_ids"`
 	MonthlyRelayLimit int32              `json:"monthly_relay_limit"`
@@ -528,6 +533,8 @@ type PortalApplication struct {
 	ID                 types.PortalAppID  `json:"id"`
 	AccountID          pgtype.Text        `json:"account_id"`
 	Name               string             `json:"name"`
+	AppEmoji           string             `json:"app_emoji"`
+	Description        string             `json:"description"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 	Deleted            bool               `json:"deleted"`
@@ -582,11 +589,15 @@ type PortalApplicationWhitelist struct {
 }
 
 type User struct {
-	ID        types.UserID       `json:"id"`
-	Email     types.Email        `json:"email"`
-	SignedUp  bool               `json:"signed_up"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ID               types.UserID       `json:"id"`
+	Email            types.Email        `json:"email"`
+	SignedUp         bool               `json:"signed_up"`
+	IconURL          string             `json:"icon_url"`
+	UpdatesProduct   bool               `json:"updates_product"`
+	UpdatesMarketing bool               `json:"updates_marketing"`
+	BetaTester       bool               `json:"beta_tester"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
 
 type UserAuthProvider struct {

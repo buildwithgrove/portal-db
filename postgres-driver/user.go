@@ -86,12 +86,16 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 	}
 
 	return &types.User{
-		ID:            u.ID,
-		Email:         u.Email,
-		SignedUp:      u.SignedUp,
-		AuthProviders: authProviders,
-		CreatedAt:     u.CreatedAt.Time.UTC(),
-		UpdatedAt:     u.UpdatedAt.Time.UTC(),
+		ID:               u.ID,
+		IconURL:          u.IconURL,
+		Email:            u.Email,
+		SignedUp:         u.SignedUp,
+		AuthProviders:    authProviders,
+		UpdatesProduct:   u.UpdatesProduct,
+		UpdatesMarketing: u.UpdatesMarketing,
+		BetaTester:       u.BetaTester,
+		CreatedAt:        u.CreatedAt.Time.UTC(),
+		UpdatedAt:        u.UpdatedAt.Time.UTC(),
 	}, nil
 }
 
@@ -291,11 +295,15 @@ func (pg *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.Us
 /* ----- Used by Listener ----- */
 func (json dbUser) toOutput() *types.User {
 	return &types.User{
-		ID:        json.ID,
-		Email:     json.Email,
-		SignedUp:  json.SignedUp,
-		CreatedAt: json.CreatedAt,
-		UpdatedAt: json.UpdatedAt,
+		ID:               json.ID,
+		IconURL:          json.IconURL,
+		Email:            json.Email,
+		SignedUp:         json.SignedUp,
+		UpdatesProduct:   json.UpdatesProduct,
+		UpdatesMarketing: json.UpdatesMarketing,
+		BetaTester:       json.BetaTester,
+		CreatedAt:        json.CreatedAt,
+		UpdatedAt:        json.UpdatedAt,
 	}
 }
 
@@ -310,11 +318,15 @@ func (json dbUserAuthProvider) toOutput() *types.UserAuthProvider {
 }
 
 type dbUser struct {
-	ID        types.UserID `json:"id"`
-	Email     types.Email  `json:"email"`
-	SignedUp  bool         `json:"signed_up"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
+	ID               types.UserID `json:"id"`
+	IconURL          string       `json:"icon_url"`
+	Email            types.Email  `json:"email"`
+	SignedUp         bool         `json:"signed_up"`
+	UpdatesProduct   bool         `json:"updates_product"`
+	UpdatesMarketing bool         `json:"updates_marketing"`
+	BetaTester       bool         `json:"beta_tester"`
+	CreatedAt        time.Time    `json:"created_at"`
+	UpdatedAt        time.Time    `json:"updated_at"`
 }
 
 type dbUserAuthProvider struct {

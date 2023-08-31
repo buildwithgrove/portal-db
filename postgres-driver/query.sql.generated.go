@@ -562,7 +562,7 @@ func (q *Queries) GetPortalUserID(ctx context.Context, providerUserID types.Prov
 }
 
 const getUserDataFromAuthProviderUserID = `-- name: GetUserDataFromAuthProviderUserID :one
-SELECT users.id, users.email, users.signed_up, users.created_at, users.updated_at,
+SELECT users.id, users.email, users.signed_up, users.icon_url, users.updates_product, users.updates_marketing, users.beta_tester, users.created_at, users.updated_at,
     json_agg(user_auth_providers.*) AS auth_providers
 FROM users
     LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
@@ -571,12 +571,16 @@ GROUP BY users.id
 `
 
 type GetUserDataFromAuthProviderUserIDRow struct {
-	ID            types.UserID       `json:"id"`
-	Email         types.Email        `json:"email"`
-	SignedUp      bool               `json:"signed_up"`
-	CreatedAt     pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
-	AuthProviders []byte             `json:"auth_providers"`
+	ID               types.UserID       `json:"id"`
+	Email            types.Email        `json:"email"`
+	SignedUp         bool               `json:"signed_up"`
+	IconURL          string             `json:"icon_url"`
+	UpdatesProduct   bool               `json:"updates_product"`
+	UpdatesMarketing bool               `json:"updates_marketing"`
+	BetaTester       bool               `json:"beta_tester"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	AuthProviders    []byte             `json:"auth_providers"`
 }
 
 func (q *Queries) GetUserDataFromAuthProviderUserID(ctx context.Context, providerUserID types.ProviderUserID) (GetUserDataFromAuthProviderUserIDRow, error) {
@@ -586,6 +590,10 @@ func (q *Queries) GetUserDataFromAuthProviderUserID(ctx context.Context, provide
 		&i.ID,
 		&i.Email,
 		&i.SignedUp,
+		&i.IconURL,
+		&i.UpdatesProduct,
+		&i.UpdatesMarketing,
+		&i.BetaTester,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.AuthProviders,
@@ -594,7 +602,7 @@ func (q *Queries) GetUserDataFromAuthProviderUserID(ctx context.Context, provide
 }
 
 const getUserDataFromPortalUserID = `-- name: GetUserDataFromPortalUserID :one
-SELECT users.id, users.email, users.signed_up, users.created_at, users.updated_at,
+SELECT users.id, users.email, users.signed_up, users.icon_url, users.updates_product, users.updates_marketing, users.beta_tester, users.created_at, users.updated_at,
     json_agg(user_auth_providers.*) AS auth_providers
 FROM users
     LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
@@ -603,12 +611,16 @@ GROUP BY users.id
 `
 
 type GetUserDataFromPortalUserIDRow struct {
-	ID            types.UserID       `json:"id"`
-	Email         types.Email        `json:"email"`
-	SignedUp      bool               `json:"signed_up"`
-	CreatedAt     pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
-	AuthProviders []byte             `json:"auth_providers"`
+	ID               types.UserID       `json:"id"`
+	Email            types.Email        `json:"email"`
+	SignedUp         bool               `json:"signed_up"`
+	IconURL          string             `json:"icon_url"`
+	UpdatesProduct   bool               `json:"updates_product"`
+	UpdatesMarketing bool               `json:"updates_marketing"`
+	BetaTester       bool               `json:"beta_tester"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	AuthProviders    []byte             `json:"auth_providers"`
 }
 
 func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.UserID) (GetUserDataFromPortalUserIDRow, error) {
@@ -618,6 +630,10 @@ func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.User
 		&i.ID,
 		&i.Email,
 		&i.SignedUp,
+		&i.IconURL,
+		&i.UpdatesProduct,
+		&i.UpdatesMarketing,
+		&i.BetaTester,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.AuthProviders,
@@ -646,7 +662,7 @@ INSERT INTO accounts (
         updated_at
     )
 VALUES ($1, $2, $3, $4)
-RETURNING id, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
+RETURNING id, name, icon_url, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
 `
 
 type InsertAccountParams struct {
@@ -666,6 +682,8 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 	var i Account
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
+		&i.IconURL,
 		&i.PlanType,
 		&i.PartnerChainIDs,
 		&i.PartnerThroughputLimit,
@@ -966,7 +984,7 @@ VALUES (
         $9,
         $10
     )
-RETURNING id, account_id, name, created_at, updated_at, deleted, deleted_at, request_timeout, first_date_surpassed, plan_type, daily_limit, custom_limit
+RETURNING id, account_id, name, app_emoji, description, created_at, updated_at, deleted, deleted_at, request_timeout, first_date_surpassed, plan_type, daily_limit, custom_limit
 `
 
 type InsertPortalApplicationParams struct {
@@ -1000,6 +1018,8 @@ func (q *Queries) InsertPortalApplication(ctx context.Context, arg InsertPortalA
 		&i.ID,
 		&i.AccountID,
 		&i.Name,
+		&i.AppEmoji,
+		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
@@ -1148,7 +1168,7 @@ app_role_agg AS (
         FULL JOIN app_role_agg_non_owner aroo ON aro.user_id = aroo.user_id
         AND aro.account_id = aroo.account_id
 )
-SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+SELECT a.id, a.name, a.icon_url, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     json_agg(
@@ -1181,6 +1201,8 @@ GROUP BY a.id,
 
 type SelectAccountRow struct {
 	ID                      types.AccountID    `json:"id"`
+	Name                    string             `json:"name"`
+	IconURL                 string             `json:"icon_url"`
 	PlanType                types.PayPlanType  `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
@@ -1199,6 +1221,8 @@ func (q *Queries) SelectAccount(ctx context.Context, id types.AccountID) (Select
 	var i SelectAccountRow
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
+		&i.IconURL,
 		&i.PlanType,
 		&i.PartnerChainIDs,
 		&i.PartnerThroughputLimit,
@@ -1243,7 +1267,7 @@ app_role_agg AS (
         FULL JOIN app_role_agg_non_owner aroo ON aro.user_id = aroo.user_id
         AND aro.account_id = aroo.account_id
 )
-SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
+SELECT a.id, a.name, a.icon_url, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.partner_application_limit, a.created_at, a.updated_at, a.deleted, a.deleted_at,
     ai.covalent_api_key_free,
     ai.covalent_api_key_paid,
     json_agg(
@@ -1252,6 +1276,12 @@ SELECT a.id, a.plan_type, a.partner_chain_ids, a.partner_throughput_limit, a.par
             u.id,
             'email',
             u.email,
+            'updates_product',
+            u.updates_product,
+            'updates_marketing',
+            u.updates_marketing,
+            'beta_tester',
+            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',
@@ -1279,6 +1309,8 @@ GROUP BY a.id,
 
 type SelectAccountsRow struct {
 	ID                      types.AccountID    `json:"id"`
+	Name                    string             `json:"name"`
+	IconURL                 string             `json:"icon_url"`
 	PlanType                types.PayPlanType  `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
@@ -1303,6 +1335,8 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 		var i SelectAccountsRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Name,
+			&i.IconURL,
 			&i.PlanType,
 			&i.PartnerChainIDs,
 			&i.PartnerThroughputLimit,
@@ -1326,7 +1360,7 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 }
 
 const selectChain = `-- name: SelectChain :one
-SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.request_timeout, c.log_limit_blocks, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
+SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.icon_url, c.request_timeout, c.log_limit_blocks, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
     COALESCE(
         json_agg(DISTINCT ca) FILTER (
             WHERE ca.id IS NOT NULL
@@ -1366,6 +1400,7 @@ type SelectChainRow struct {
 	EnforceResult   pgtype.Text        `json:"enforce_result"`
 	Ticker          pgtype.Text        `json:"ticker"`
 	Path            pgtype.Text        `json:"path"`
+	IconURL         string             `json:"icon_url"`
 	RequestTimeout  pgtype.Int4        `json:"request_timeout"`
 	LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
 	AllowedMethods  []string           `json:"allowed_methods"`
@@ -1390,6 +1425,7 @@ func (q *Queries) SelectChain(ctx context.Context, id types.RelayChainID) (Selec
 		&i.EnforceResult,
 		&i.Ticker,
 		&i.Path,
+		&i.IconURL,
 		&i.RequestTimeout,
 		&i.LogLimitBlocks,
 		&i.AllowedMethods,
@@ -1407,7 +1443,7 @@ func (q *Queries) SelectChain(ctx context.Context, id types.RelayChainID) (Selec
 }
 
 const selectChains = `-- name: SelectChains :many
-SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.request_timeout, c.log_limit_blocks, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
+SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.icon_url, c.request_timeout, c.log_limit_blocks, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
     COALESCE(
         json_agg(DISTINCT ca) FILTER (
             WHERE ca.id IS NOT NULL
@@ -1450,6 +1486,7 @@ type SelectChainsRow struct {
 	EnforceResult   pgtype.Text        `json:"enforce_result"`
 	Ticker          pgtype.Text        `json:"ticker"`
 	Path            pgtype.Text        `json:"path"`
+	IconURL         string             `json:"icon_url"`
 	RequestTimeout  pgtype.Int4        `json:"request_timeout"`
 	LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
 	AllowedMethods  []string           `json:"allowed_methods"`
@@ -1480,6 +1517,7 @@ func (q *Queries) SelectChains(ctx context.Context, includeDeleted bool) ([]Sele
 			&i.EnforceResult,
 			&i.Ticker,
 			&i.Path,
+			&i.IconURL,
 			&i.RequestTimeout,
 			&i.LogLimitBlocks,
 			&i.AllowedMethods,
@@ -1608,7 +1646,9 @@ func (q *Queries) SelectGlobalBlockedContract(ctx context.Context) ([]SelectGlob
 }
 
 const selectPlans = `-- name: SelectPlans :many
-SELECT plan_type,
+SELECT name,
+    description,
+    plan_type,
     chain_ids,
     monthly_relay_limit,
     throughput_limit,
@@ -1619,6 +1659,8 @@ FROM pay_plans
 `
 
 type SelectPlansRow struct {
+	Name              string             `json:"name"`
+	Description       string             `json:"description"`
 	PlanType          types.PayPlanType  `json:"plan_type"`
 	ChainIDs          []string           `json:"chain_ids"`
 	MonthlyRelayLimit int32              `json:"monthly_relay_limit"`
@@ -1638,6 +1680,8 @@ func (q *Queries) SelectPlans(ctx context.Context) ([]SelectPlansRow, error) {
 	for rows.Next() {
 		var i SelectPlansRow
 		if err := rows.Scan(
+			&i.Name,
+			&i.Description,
 			&i.PlanType,
 			&i.ChainIDs,
 			&i.MonthlyRelayLimit,
@@ -1721,7 +1765,7 @@ whitelists_agg AS (
     FROM portal_application_whitelists paw
     GROUP BY paw.application_id
 )
-SELECT p.id, p.account_id, p.name, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.request_timeout, p.first_date_surpassed, p.plan_type, p.daily_limit, p.custom_limit,
+SELECT p.id, p.account_id, p.name, p.app_emoji, p.description, p.created_at, p.updated_at, p.deleted, p.deleted_at, p.request_timeout, p.first_date_surpassed, p.plan_type, p.daily_limit, p.custom_limit,
     pas.secret_key,
     pas.secret_key_required,
     pas.monthly_relay_limit,
@@ -1744,6 +1788,8 @@ type SelectPortalApplicationsRow struct {
 	ID                 types.PortalAppID  `json:"id"`
 	AccountID          pgtype.Text        `json:"account_id"`
 	Name               string             `json:"name"`
+	AppEmoji           string             `json:"app_emoji"`
+	Description        string             `json:"description"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 	Deleted            bool               `json:"deleted"`
@@ -1775,6 +1821,8 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, dollar_1 bool) (
 			&i.ID,
 			&i.AccountID,
 			&i.Name,
+			&i.AppEmoji,
+			&i.Description,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
