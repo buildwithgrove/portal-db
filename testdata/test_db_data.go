@@ -1293,6 +1293,7 @@ var (
 	// TestCreateChain used to test creation of Chains
 	TestCreateChain = &types.Chain{
 		ID:            "0006",
+		IconURL:       "https://picsum.photos/200",
 		Blockchain:    "solana-mainnet",
 		Description:   "Solana",
 		EnforceResult: "JSON",
@@ -1489,6 +1490,7 @@ var (
 
 	UpdateChainOne = types.UpdateChain{
 		ID:            "0001",
+		IconURL:       newString("https://picsum.photos/246"),
 		Blockchain:    newChainAlias("mainnet-NEW"),
 		Description:   newString("Pocket Network Mainnet Update"),
 		EnforceResult: newString("JSON"),
@@ -1538,6 +1540,7 @@ var (
 	}
 	UpdateChainTwo = types.UpdateChain{
 		ID:            "0001",
+		IconURL:       newString("https://picsum.photos/200"),
 		Blockchain:    newChainAlias("mainnet-ULTRA"),
 		Description:   newString("Pocket Network Mainnet Original"),
 		EnforceResult: newString("JSON"),
@@ -1576,8 +1579,9 @@ var (
 	}
 
 	// UpdateChainNotExists used to test updating a Chain that doesn't exist
-	UpdateChainNotExists  = types.UpdateChain{ID: "0073"}
-	UpdateChainInvalidURL = types.UpdateChain{ID: "0073",
+	UpdateChainNotExists      = types.UpdateChain{ID: "0073"}
+	UpdateChainInvalidIconURL = types.UpdateChain{ID: "0001", IconURL: newString("what_is_555")}
+	UpdateChainInvalidURL     = types.UpdateChain{ID: "0073",
 		Altruists: &map[types.AltruistURL]types.Altruist{
 			"htz:/bad-domain2": {URL: "htz:/bad-domain2"},
 		},

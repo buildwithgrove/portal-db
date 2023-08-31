@@ -914,6 +914,7 @@ GROUP BY c.id;
 -- name: InsertChain :one
 INSERT INTO chains (
         id,
+        icon_url,
         blockchain,
         description,
         enforce_result,
@@ -936,20 +937,22 @@ VALUES (
         $8,
         $9,
         $10,
-        $11
+        $11,
+        $12
     )
 RETURNING id;
 -- name: UpdateChain :one
 UPDATE chains
 SET blockchain = COALESCE($2, chains.blockchain),
-    description = COALESCE($3, chains.description),
-    enforce_result = COALESCE($4, chains.enforce_result),
-    path = COALESCE($5, chains.path),
-    ticker = COALESCE($6, chains.ticker),
-    request_timeout = COALESCE($7, chains.request_timeout),
-    log_limit_blocks = COALESCE($8, chains.log_limit_blocks),
-    allowed_methods = COALESCE($9, chains.allowed_methods),
-    updated_at = $10
+    icon_url = COALESCE($3, chains.icon_url),
+    description = COALESCE($4, chains.description),
+    enforce_result = COALESCE($5, chains.enforce_result),
+    path = COALESCE($6, chains.path),
+    ticker = COALESCE($7, chains.ticker),
+    request_timeout = COALESCE($8, chains.request_timeout),
+    log_limit_blocks = COALESCE($9, chains.log_limit_blocks),
+    allowed_methods = COALESCE($10, chains.allowed_methods),
+    updated_at = $11
 WHERE id = $1
 RETURNING id;
 -- name: UpsertChainAltruist :exec

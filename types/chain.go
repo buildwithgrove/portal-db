@@ -150,6 +150,7 @@ type (
 
 	UpdateChain struct {
 		ID             RelayChainID              `json:"id"`
+		IconURL        *string                   `json:"iconURL"`
 		Blockchain     *ChainAlias               `json:"blockchain"`
 		Description    *string                   `json:"description"`
 		EnforceResult  *string                   `json:"enforceResult"`
