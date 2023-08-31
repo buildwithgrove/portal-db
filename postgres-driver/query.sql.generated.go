@@ -641,17 +641,38 @@ func (q *Queries) GetUserDataFromPortalUserID(ctx context.Context, id types.User
 	return i, err
 }
 
-const getUserEmail = `-- name: GetUserEmail :one
-SELECT email
+const getUserFields = `-- name: GetUserFields :one
+SELECT email,
+    signed_up,
+    icon_url,
+    updates_product,
+    updates_marketing,
+    beta_tester
 FROM users
 WHERE users.id = $1
 `
 
-func (q *Queries) GetUserEmail(ctx context.Context, id types.UserID) (types.Email, error) {
-	row := q.db.QueryRow(ctx, getUserEmail, id)
-	var email types.Email
-	err := row.Scan(&email)
-	return email, err
+type GetUserFieldsRow struct {
+	Email            types.Email `json:"email"`
+	SignedUp         bool        `json:"signed_up"`
+	IconURL          pgtype.Text `json:"icon_url"`
+	UpdatesProduct   pgtype.Bool `json:"updates_product"`
+	UpdatesMarketing pgtype.Bool `json:"updates_marketing"`
+	BetaTester       pgtype.Bool `json:"beta_tester"`
+}
+
+func (q *Queries) GetUserFields(ctx context.Context, id types.UserID) (GetUserFieldsRow, error) {
+	row := q.db.QueryRow(ctx, getUserFields, id)
+	var i GetUserFieldsRow
+	err := row.Scan(
+		&i.Email,
+		&i.SignedUp,
+		&i.IconURL,
+		&i.UpdatesProduct,
+		&i.UpdatesMarketing,
+		&i.BetaTester,
+	)
+	return i, err
 }
 
 const insertAccount = `-- name: InsertAccount :one
@@ -1177,6 +1198,14 @@ SELECT a.id, a.name, a.icon_url, a.plan_type, a.partner_chain_ids, a.partner_thr
             u.id,
             'email',
             u.email,
+            'icon_url',
+            u.icon_url,
+            'updates_product',
+            u.updates_product,
+            'updates_marketing',
+            u.updates_marketing,
+            'beta_tester',
+            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',
@@ -1276,6 +1305,8 @@ SELECT a.id, a.name, a.icon_url, a.plan_type, a.partner_chain_ids, a.partner_thr
             u.id,
             'email',
             u.email,
+            'icon_url',
+            u.icon_url,
             'updates_product',
             u.updates_product,
             'updates_marketing',

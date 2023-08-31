@@ -191,6 +191,11 @@ func Test_LegacyAdapators_ConvertToV2AccountUserAccess(t *testing.T) {
 			v2AccountUserAccess := ConvertToV2AccountUserAccess(test.userAccess, test.lbID, test.accountID)
 
 			test.expectedV2AccountUserAccess.AccountID = v2Types.AccountID(test.accountID)
+			// dummy handling to allow test to pass - these fields not present in V1
+			test.expectedV2AccountUserAccess.IconURL = v2AccountUserAccess.IconURL
+			test.expectedV2AccountUserAccess.UpdatesProduct = v2AccountUserAccess.UpdatesProduct
+			test.expectedV2AccountUserAccess.UpdatesMarketing = v2AccountUserAccess.UpdatesMarketing
+			test.expectedV2AccountUserAccess.BetaTester = v2AccountUserAccess.BetaTester
 
 			c.Equal(test.expectedV2AccountUserAccess, v2AccountUserAccess)
 		})

@@ -11,9 +11,10 @@ var errNoOwner error = errors.New("account does not have an owner")
 type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
-		ID                     AccountID                    `json:"id"`
-		Name                   string                       `json:"name"`
-		IconURL                string                       `json:"iconURL"`
+		ID      AccountID `json:"id"`
+		Name    string    `json:"name"`
+		IconURL string    `json:"iconURL"`
+
 		PlanType               PayPlanType                  `json:"planType"`
 		Users                  map[UserID]AccountUserAccess `json:"users"`
 		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
@@ -31,12 +32,16 @@ type (
 
 	// AccountUserAccess represents a single Portal user for a single Account
 	AccountUserAccess struct {
-		AccountID      AccountID                `json:"id,omitempty"` // used for listener
-		Owner          bool                     `json:"owner"`
-		UserID         UserID                   `json:"userID"`
-		Email          Email                    `json:"email"`
-		Accepted       bool                     `json:"accepted"`
-		PortalAppRoles map[PortalAppID]RoleName `json:"portalApplicationRoles"`
+		AccountID        AccountID                `json:"id,omitempty"` // used for listener
+		Owner            bool                     `json:"owner"`
+		UserID           UserID                   `json:"userID"`
+		Email            Email                    `json:"email"`
+		IconURL          string                   `json:"iconURL"`
+		Accepted         bool                     `json:"accepted"`
+		UpdatesProduct   bool                     `json:"updatesProduct"`
+		UpdatesMarketing bool                     `json:"updatesMarketing"`
+		BetaTester       bool                     `json:"betaTester"`
+		PortalAppRoles   map[PortalAppID]RoleName `json:"portalApplicationRoles"`
 	}
 
 	// AccountUserAccess represents fields used for integrations with other platforms
