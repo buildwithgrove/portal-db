@@ -95,8 +95,8 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		ID:          types.PortalAppID(a.ID),
 		AccountID:   types.AccountID(a.AccountID.String),
 		Name:        a.Name,
-		Description: a.Description,
-		AppEmoji:    a.AppEmoji,
+		Description: a.Description.String,
+		AppEmoji:    a.AppEmoji.String,
 		Settings: types.Settings{
 			Environment:       types.Environment(a.Environment.Environment),
 			SecretKey:         a.SecretKey.String,

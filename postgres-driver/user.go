@@ -87,13 +87,13 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 
 	return &types.User{
 		ID:               u.ID,
-		IconURL:          u.IconURL,
+		IconURL:          u.IconURL.String,
 		Email:            u.Email,
 		SignedUp:         u.SignedUp,
 		AuthProviders:    authProviders,
-		UpdatesProduct:   u.UpdatesProduct,
-		UpdatesMarketing: u.UpdatesMarketing,
-		BetaTester:       u.BetaTester,
+		UpdatesProduct:   u.UpdatesProduct.Bool,
+		UpdatesMarketing: u.UpdatesMarketing.Bool,
+		BetaTester:       u.BetaTester.Bool,
 		CreatedAt:        u.CreatedAt.Time.UTC(),
 		UpdatedAt:        u.UpdatedAt.Time.UTC(),
 	}, nil
