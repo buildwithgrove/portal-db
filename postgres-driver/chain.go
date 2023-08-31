@@ -88,7 +88,7 @@ func (pg *PostgresDriver) ReadChains(ctx context.Context, options types.DriverOp
 func (c *SelectChainsRow) ToChainRow() *ChainRow {
 	return &ChainRow{
 		ID:             c.ID,
-		IconURL:        c.IconURL,
+		IconURL:        c.IconURL.String,
 		Blockchain:     c.Blockchain.String,
 		Description:    c.Description.String,
 		EnforceResult:  c.EnforceResult.String,
@@ -113,7 +113,7 @@ func (c *SelectChainsRow) ToChainRow() *ChainRow {
 func (c *SelectChainRow) ToChainRow() *ChainRow {
 	return &ChainRow{
 		ID:             c.ID,
-		IconURL:        c.IconURL,
+		IconURL:        c.IconURL.String,
 		Blockchain:     c.Blockchain.String,
 		Description:    c.Description.String,
 		EnforceResult:  c.EnforceResult.String,

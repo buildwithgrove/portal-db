@@ -83,8 +83,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	return &types.Account{
 		ID:                     a.ID,
-		Name:                   a.Name,
-		IconURL:                a.IconURL,
+		Name:                   a.Name.String,
+		IconURL:                a.IconURL.String,
 		PlanType:               a.PlanType,
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
@@ -126,7 +126,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	return users, nil
 }
 
-// /* ----- postgresdriver Account Create Methods ----- */
+/* ----- postgresdriver Account Create Methods ----- */
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
@@ -267,6 +267,8 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 
 	accountData := &SelectAccountsRow{
 		ID:                      accountResult.ID,
+		Name:                    accountResult.Name,
+		IconURL:                 accountResult.IconURL,
 		PlanType:                accountResult.PlanType,
 		PartnerChainIDs:         accountResult.PartnerChainIDs,
 		PartnerThroughputLimit:  accountResult.PartnerThroughputLimit,

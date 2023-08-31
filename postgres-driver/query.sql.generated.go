@@ -574,10 +574,10 @@ type GetUserDataFromAuthProviderUserIDRow struct {
 	ID               types.UserID       `json:"id"`
 	Email            types.Email        `json:"email"`
 	SignedUp         bool               `json:"signed_up"`
-	IconURL          string             `json:"icon_url"`
-	UpdatesProduct   bool               `json:"updates_product"`
-	UpdatesMarketing bool               `json:"updates_marketing"`
-	BetaTester       bool               `json:"beta_tester"`
+	IconURL          pgtype.Text        `json:"icon_url"`
+	UpdatesProduct   pgtype.Bool        `json:"updates_product"`
+	UpdatesMarketing pgtype.Bool        `json:"updates_marketing"`
+	BetaTester       pgtype.Bool        `json:"beta_tester"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	AuthProviders    []byte             `json:"auth_providers"`
@@ -614,10 +614,10 @@ type GetUserDataFromPortalUserIDRow struct {
 	ID               types.UserID       `json:"id"`
 	Email            types.Email        `json:"email"`
 	SignedUp         bool               `json:"signed_up"`
-	IconURL          string             `json:"icon_url"`
-	UpdatesProduct   bool               `json:"updates_product"`
-	UpdatesMarketing bool               `json:"updates_marketing"`
-	BetaTester       bool               `json:"beta_tester"`
+	IconURL          pgtype.Text        `json:"icon_url"`
+	UpdatesProduct   pgtype.Bool        `json:"updates_product"`
+	UpdatesMarketing pgtype.Bool        `json:"updates_marketing"`
+	BetaTester       pgtype.Bool        `json:"beta_tester"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	AuthProviders    []byte             `json:"auth_providers"`
@@ -1201,8 +1201,8 @@ GROUP BY a.id,
 
 type SelectAccountRow struct {
 	ID                      types.AccountID    `json:"id"`
-	Name                    string             `json:"name"`
-	IconURL                 string             `json:"icon_url"`
+	Name                    pgtype.Text        `json:"name"`
+	IconURL                 pgtype.Text        `json:"icon_url"`
 	PlanType                types.PayPlanType  `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
@@ -1309,8 +1309,8 @@ GROUP BY a.id,
 
 type SelectAccountsRow struct {
 	ID                      types.AccountID    `json:"id"`
-	Name                    string             `json:"name"`
-	IconURL                 string             `json:"icon_url"`
+	Name                    pgtype.Text        `json:"name"`
+	IconURL                 pgtype.Text        `json:"icon_url"`
 	PlanType                types.PayPlanType  `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
@@ -1400,7 +1400,7 @@ type SelectChainRow struct {
 	EnforceResult   pgtype.Text        `json:"enforce_result"`
 	Ticker          pgtype.Text        `json:"ticker"`
 	Path            pgtype.Text        `json:"path"`
-	IconURL         string             `json:"icon_url"`
+	IconURL         pgtype.Text        `json:"icon_url"`
 	RequestTimeout  pgtype.Int4        `json:"request_timeout"`
 	LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
 	AllowedMethods  []string           `json:"allowed_methods"`
@@ -1486,7 +1486,7 @@ type SelectChainsRow struct {
 	EnforceResult   pgtype.Text        `json:"enforce_result"`
 	Ticker          pgtype.Text        `json:"ticker"`
 	Path            pgtype.Text        `json:"path"`
-	IconURL         string             `json:"icon_url"`
+	IconURL         pgtype.Text        `json:"icon_url"`
 	RequestTimeout  pgtype.Int4        `json:"request_timeout"`
 	LogLimitBlocks  pgtype.Int4        `json:"log_limit_blocks"`
 	AllowedMethods  []string           `json:"allowed_methods"`
@@ -1659,8 +1659,8 @@ FROM pay_plans
 `
 
 type SelectPlansRow struct {
-	Name              string             `json:"name"`
-	Description       string             `json:"description"`
+	Name              pgtype.Text        `json:"name"`
+	Description       pgtype.Text        `json:"description"`
 	PlanType          types.PayPlanType  `json:"plan_type"`
 	ChainIDs          []string           `json:"chain_ids"`
 	MonthlyRelayLimit int32              `json:"monthly_relay_limit"`
@@ -1788,8 +1788,8 @@ type SelectPortalApplicationsRow struct {
 	ID                 types.PortalAppID  `json:"id"`
 	AccountID          pgtype.Text        `json:"account_id"`
 	Name               string             `json:"name"`
-	AppEmoji           string             `json:"app_emoji"`
-	Description        string             `json:"description"`
+	AppEmoji           pgtype.Text        `json:"app_emoji"`
+	Description        pgtype.Text        `json:"description"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 	Deleted            bool               `json:"deleted"`

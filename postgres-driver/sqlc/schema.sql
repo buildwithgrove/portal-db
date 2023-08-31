@@ -70,7 +70,7 @@ CREATE TABLE user_roles (
 -- Accounts Tables
 CREATE TABLE accounts (
     id VARCHAR(10) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     icon_url VARCHAR,
     plan_type VARCHAR(25) NOT NULL REFERENCES pay_plans(plan_type),
     partner_chain_ids VARCHAR(4) ARRAY,
