@@ -11,10 +11,9 @@ var errNoOwner error = errors.New("account does not have an owner")
 type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
-		ID      AccountID `json:"id"`
-		Name    string    `json:"name"`
-		IconURL string    `json:"iconURL"`
-
+		ID                     AccountID                    `json:"id"`
+		Name                   string                       `json:"name"`
+		IconURL                string                       `json:"iconURL"`
 		PlanType               PayPlanType                  `json:"planType"`
 		Users                  map[UserID]AccountUserAccess `json:"users"`
 		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
@@ -62,6 +61,8 @@ type (
 	// UpdateAccount contains all fields required to update an Account
 	UpdateAccount struct {
 		AccountID AccountID   `json:"accountID"`
+		Name      string      `json:"name"`
+		IconURL   string      `json:"iconURL"`
 		PlanType  PayPlanType `json:"planType"`
 	}
 

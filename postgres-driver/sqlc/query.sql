@@ -449,12 +449,14 @@ GROUP BY a.id,
     ai.covalent_api_key_paid;
 -- name: UpdateAccountFields :exec
 UPDATE accounts
-SET plan_type = COALESCE($1, plan_type),
-    partner_chain_ids = COALESCE($2, partner_chain_ids),
-    partner_throughput_limit = COALESCE($3, partner_throughput_limit),
-    partner_application_limit = COALESCE($4, partner_application_limit),
-    updated_at = $5
-WHERE id = $6;
+SET name = COALESCE($1, name),
+    icon_url = COALESCE($2, icon_url),
+    plan_type = COALESCE($3, plan_type),
+    partner_chain_ids = COALESCE($4, partner_chain_ids),
+    partner_throughput_limit = COALESCE($5, partner_throughput_limit),
+    partner_application_limit = COALESCE($6, partner_application_limit),
+    updated_at = $7
+WHERE id = $8;
 -- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
         account_id,
@@ -507,10 +509,12 @@ FROM user_auth_providers;
 INSERT INTO accounts (
         id,
         plan_type,
+        name,
+        icon_url,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 -- name: DeleteAccount :exec
 UPDATE accounts

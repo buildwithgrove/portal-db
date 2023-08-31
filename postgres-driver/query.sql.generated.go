@@ -679,16 +679,20 @@ const insertAccount = `-- name: InsertAccount :one
 INSERT INTO accounts (
         id,
         plan_type,
+        name,
+        icon_url,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id, name, icon_url, plan_type, partner_chain_ids, partner_throughput_limit, partner_application_limit, created_at, updated_at, deleted, deleted_at
 `
 
 type InsertAccountParams struct {
 	ID        types.AccountID    `json:"id"`
-	PlanType  types.PayPlanType  `json:"plan_type"`
+	PlanType  pgtype.Text        `json:"plan_type"`
+	Name      pgtype.Text        `json:"name"`
+	IconURL   pgtype.Text        `json:"icon_url"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
@@ -697,6 +701,8 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) (A
 	row := q.db.QueryRow(ctx, insertAccount,
 		arg.ID,
 		arg.PlanType,
+		arg.Name,
+		arg.IconURL,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -1232,7 +1238,7 @@ type SelectAccountRow struct {
 	ID                      types.AccountID    `json:"id"`
 	Name                    pgtype.Text        `json:"name"`
 	IconURL                 pgtype.Text        `json:"icon_url"`
-	PlanType                types.PayPlanType  `json:"plan_type"`
+	PlanType                pgtype.Text        `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
 	PartnerApplicationLimit pgtype.Int4        `json:"partner_application_limit"`
@@ -1342,7 +1348,7 @@ type SelectAccountsRow struct {
 	ID                      types.AccountID    `json:"id"`
 	Name                    pgtype.Text        `json:"name"`
 	IconURL                 pgtype.Text        `json:"icon_url"`
-	PlanType                types.PayPlanType  `json:"plan_type"`
+	PlanType                pgtype.Text        `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
 	PartnerApplicationLimit pgtype.Int4        `json:"partner_application_limit"`
@@ -2095,16 +2101,20 @@ func (q *Queries) TransferOwnerDeleteOldRows(ctx context.Context, arg TransferOw
 
 const updateAccountFields = `-- name: UpdateAccountFields :exec
 UPDATE accounts
-SET plan_type = COALESCE($1, plan_type),
-    partner_chain_ids = COALESCE($2, partner_chain_ids),
-    partner_throughput_limit = COALESCE($3, partner_throughput_limit),
-    partner_application_limit = COALESCE($4, partner_application_limit),
-    updated_at = $5
-WHERE id = $6
+SET name = COALESCE($1, name),
+    icon_url = COALESCE($2, icon_url),
+    plan_type = COALESCE($3, plan_type),
+    partner_chain_ids = COALESCE($4, partner_chain_ids),
+    partner_throughput_limit = COALESCE($5, partner_throughput_limit),
+    partner_application_limit = COALESCE($6, partner_application_limit),
+    updated_at = $7
+WHERE id = $8
 `
 
 type UpdateAccountFieldsParams struct {
-	PlanType                types.PayPlanType  `json:"plan_type"`
+	Name                    pgtype.Text        `json:"name"`
+	IconURL                 pgtype.Text        `json:"icon_url"`
+	PlanType                pgtype.Text        `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
 	PartnerApplicationLimit pgtype.Int4        `json:"partner_application_limit"`
@@ -2114,6 +2124,8 @@ type UpdateAccountFieldsParams struct {
 
 func (q *Queries) UpdateAccountFields(ctx context.Context, arg UpdateAccountFieldsParams) error {
 	_, err := q.db.Exec(ctx, updateAccountFields,
+		arg.Name,
+		arg.IconURL,
 		arg.PlanType,
 		arg.PartnerChainIDs,
 		arg.PartnerThroughputLimit,

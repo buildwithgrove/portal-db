@@ -241,6 +241,8 @@ var (
 
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
+		Name:      "Protogen Corp",
+		IconURL:   "https://picsum.photos/200",
 		PlanType:  types.PayPlanType("developer_plan"),
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,

@@ -69,6 +69,13 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 			err: nil,
 		},
 		{
+			name:            "Should fail if input Account has an invalid icon URL set",
+			ownerID:         "user_1",
+			account:         types.Account{IconURL: "what-even~am_I"},
+			testCreatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errInvalidIconURL.Error(), "what-even~am_I"),
+		},
+		{
 			name:            "Should fail if input Account does not have a PayPlanType set",
 			ownerID:         "user_1",
 			account:         types.Account{PlanType: ""},
@@ -176,12 +183,58 @@ func (ts *PGDriverTestSuite) Test_UpdateAccount() {
 			err:     nil,
 		},
 		{
-			name: "Should fail if an invalid account ID is provided",
+			name: "Should update the account's Name field",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				Name:      "I Can Show You the World",
+			},
+			account: testdata.Accounts["account_1"],
+			err:     nil,
+		},
+		{
+			name: "Should update the account's IconURL field",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				IconURL:   "https://picsum.photos/222",
+			},
+			account: testdata.Accounts["account_1"],
+			err:     nil,
+		},
+		{
+			name: "Should update all fields",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				PlanType:  types.TestPlan10K,
+				Name:      "Willy Wonka",
+				IconURL:   "https://picsum.photos/444",
+			},
+			account: testdata.Accounts["account_1"],
+			err:     nil,
+		},
+		{
+			name: "Should fail if update Account has an invalid icon URL set",
+			update: types.UpdateAccount{
+				AccountID: "account_8823",
+				PlanType:  types.Enterprise,
+				IconURL:   "who_did(this)",
+			},
+			err: fmt.Errorf(errInvalidIconURL.Error(), "who_did(this)"),
+		},
+		{
+			name: "Should fail if update Account does not exist in the db",
 			update: types.UpdateAccount{
 				AccountID: "account_8823",
 				PlanType:  types.Enterprise,
 			},
 			err: fmt.Errorf(errAccountDoesntExist.Error(), "account_8823"),
+		},
+		{
+			name: "Should fail if update Account has an invalid plan type",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				PlanType:  "turbo_ultra_mega_plan",
+			},
+			err: fmt.Errorf(errPayPlanDoesntExist.Error(), types.PayPlanType("turbo_ultra_mega_plan")),
 		},
 	}
 
@@ -191,8 +244,15 @@ func (ts *PGDriverTestSuite) Test_UpdateAccount() {
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				test.account.PlanType = test.update.PlanType
-				ts.Equal(test.account, account)
+				if test.update.PlanType != "" {
+					ts.Equal(test.update.PlanType, account.PlanType)
+				}
+				if test.update.Name != "" {
+					ts.Equal(test.update.Name, account.Name)
+				}
+				if test.update.IconURL != "" {
+					ts.Equal(test.update.IconURL, account.IconURL)
+				}
 			}
 		})
 	}
