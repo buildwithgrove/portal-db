@@ -805,9 +805,13 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				ProviderUserID:   "auth0|daenerys_targaryen",
 			},
 			user: &types.User{
-				ID:       "user_10",
-				Email:    "daenerys.targaryen123@test.com",
-				SignedUp: true,
+				ID:               "user_10",
+				Email:            "daenerys.targaryen123@test.com",
+				SignedUp:         true,
+				IconURL:          "https://picsum.photos/200",
+				UpdatesProduct:   false,
+				UpdatesMarketing: false,
+				BetaTester:       true,
 				AuthProviders: map[types.AuthType]types.UserAuthProvider{
 					types.AuthTypeAuth0Username: {
 						ProviderUserID: "auth0|daenerys_targaryen", Provider: types.AuthProviderAuth0,

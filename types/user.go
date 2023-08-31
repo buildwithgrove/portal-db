@@ -107,12 +107,16 @@ func (r RoleName) IsValid() bool {
 type (
 	// User represents a single Portal user
 	User struct {
-		ID            UserID                        `json:"id"`
-		Email         Email                         `json:"email"`
-		SignedUp      bool                          `json:"signedUp"`
-		AuthProviders map[AuthType]UserAuthProvider `json:"authProviders"`
-		CreatedAt     time.Time                     `json:"createdAt"`
-		UpdatedAt     time.Time                     `json:"updatedAt"`
+		ID               UserID                        `json:"id"`
+		Email            Email                         `json:"email"`
+		IconURL          string                        `json:"iconURL"`
+		SignedUp         bool                          `json:"signedUp"`
+		UpdatesProduct   bool                          `json:"updatesProduct"`
+		UpdatesMarketing bool                          `json:"updatesMarketing"`
+		BetaTester       bool                          `json:"betaTester"`
+		AuthProviders    map[AuthType]UserAuthProvider `json:"authProviders"`
+		CreatedAt        time.Time                     `json:"createdAt"`
+		UpdatedAt        time.Time                     `json:"updatedAt"`
 	}
 	// UserAuthProvider represents a single auth provider for a user (eg. Auth0)
 	UserAuthProvider struct {

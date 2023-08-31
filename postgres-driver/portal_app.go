@@ -92,9 +92,11 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 	}
 
 	return &types.PortalApp{
-		ID:        types.PortalAppID(a.ID),
-		AccountID: types.AccountID(a.AccountID.String),
-		Name:      a.Name,
+		ID:          types.PortalAppID(a.ID),
+		AccountID:   types.AccountID(a.AccountID.String),
+		Name:        a.Name,
+		Description: a.Description.String,
+		AppEmoji:    a.AppEmoji.String,
 		Settings: types.Settings{
 			Environment:       types.Environment(a.Environment.Environment),
 			SecretKey:         a.SecretKey.String,
@@ -554,6 +556,8 @@ func (json dbPortalApplication) toOutput() *types.PortalApp {
 		ID:                 json.ID,
 		AccountID:          types.AccountID(json.AccountID),
 		Name:               json.Name,
+		Description:        json.Description,
+		AppEmoji:           json.AppEmoji,
 		FirstDateSurpassed: json.FirstDateSurpassed,
 		CreatedAt:          json.CreatedAt,
 		UpdatedAt:          json.UpdatedAt,
@@ -631,6 +635,8 @@ type dbPortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
 	AccountID          string            `json:"account_id"`
 	Name               string            `json:"name"`
+	Description        string            `json:"description"`
+	AppEmoji           string            `json:"app_emoji"`
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 	Deleted            bool              `json:"deleted"`

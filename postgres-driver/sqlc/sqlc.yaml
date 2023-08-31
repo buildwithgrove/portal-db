@@ -16,6 +16,7 @@ overrides:
       covalent_api_key_free: "CovalentAPIKeyFree"
       covalent_api_key_paid: "CovalentAPIKeyPaid"
       aat_id: "AATID"
+      icon_url: "IconURL"
 
 sql:
   - schema: "schema.sql"

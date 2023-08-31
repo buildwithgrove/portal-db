@@ -83,6 +83,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	return &types.Account{
 		ID:                     a.ID,
+		Name:                   a.Name.String,
+		IconURL:                a.IconURL.String,
 		PlanType:               a.PlanType,
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
@@ -124,7 +126,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	return users, nil
 }
 
-// /* ----- postgresdriver Account Create Methods ----- */
+/* ----- postgresdriver Account Create Methods ----- */
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
@@ -265,6 +267,8 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 
 	accountData := &SelectAccountsRow{
 		ID:                      accountResult.ID,
+		Name:                    accountResult.Name,
+		IconURL:                 accountResult.IconURL,
 		PlanType:                accountResult.PlanType,
 		PartnerChainIDs:         accountResult.PartnerChainIDs,
 		PartnerThroughputLimit:  accountResult.PartnerThroughputLimit,
@@ -688,6 +692,8 @@ func (json dbAccount) toOutput() *types.Account {
 
 	return &types.Account{
 		ID:                     json.ID,
+		Name:                   json.Name,
+		IconURL:                json.IconURL,
 		PlanType:               json.PlanType,
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: json.PartnerThroughputLimit,
@@ -723,6 +729,8 @@ func (j dbAccountIntegration) toOutput() *types.AccountIntegrations {
 
 type dbAccount struct {
 	ID                      types.AccountID   `json:"id"`
+	Name                    string            `json:"name"`
+	IconURL                 string            `json:"icon_url"`
 	PlanType                types.PayPlanType `json:"plan_type"`
 	PartnerChainIDs         []string          `json:"partner_chain_ids"`
 	PartnerThroughputLimit  int32             `json:"partner_throughput_limit"`
