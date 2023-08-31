@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -384,6 +385,7 @@ func (pg *PostgresDriver) insertChain(ctx context.Context, qtx *Queries, chain t
 
 	createdChainID, err := qtx.InsertChain(ctx, InsertChainParams{
 		ID:             chain.ID,
+		IconURL:        newText(chain.IconURL),
 		Blockchain:     newText(string(chain.Blockchain)),
 		Description:    newText(chain.Description),
 		EnforceResult:  newText(chain.EnforceResult),
@@ -450,6 +452,7 @@ func (pg *PostgresDriver) updateChain(ctx context.Context, qtx *Queries, update 
 
 	createdChainID, err := qtx.UpdateChain(ctx, UpdateChainParams{
 		ID:             update.ID,
+		IconURL:        newNullString(update.IconURL),
 		Blockchain:     newNullString((*string)(update.Blockchain)),
 		Description:    newNullString(update.Description),
 		EnforceResult:  newNullString(update.EnforceResult),
@@ -514,6 +517,13 @@ func (pg *PostgresDriver) updateChain(ctx context.Context, qtx *Queries, update 
 
 // validateChainInput performs all necessary data validation checks on incoming Chain data for insert
 func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, chain types.Chain) error {
+	if chain.IconURL != "" {
+		_, err := url.ParseRequestURI(chain.IconURL)
+		if err != nil {
+			return fmt.Errorf(errInvalidIconURL.Error(), chain.IconURL)
+		}
+	}
+
 	for url := range chain.Altruists {
 		if !url.IsValid() {
 			return fmt.Errorf(errInvalidAltruistURL.Error(), url)
@@ -540,6 +550,13 @@ func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, 
 
 // validateChainUpdate performs all necessary data validation checks on incoming Chain data for update
 func (pg *PostgresDriver) validateChainUpdate(ctx context.Context, qtx *Queries, chain types.UpdateChain) error {
+	if chain.IconURL != nil && *chain.IconURL != "" {
+		_, err := url.ParseRequestURI(*chain.IconURL)
+		if err != nil {
+			return fmt.Errorf(errInvalidIconURL.Error(), *chain.IconURL)
+		}
+	}
+
 	if chain.Altruists != nil {
 		for url := range *chain.Altruists {
 			if !url.IsValid() {

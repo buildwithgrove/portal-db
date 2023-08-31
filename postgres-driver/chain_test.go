@@ -148,6 +148,7 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 		name            string
 		chain           types.Chain
 		testCreatedTime time.Time
+		iconURL         string
 		altruistURL     types.AltruistURL
 		aliasDomains    map[types.ChainAlias][]types.ChainDomain
 		err             error
@@ -165,6 +166,13 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			err:             fmt.Errorf(errChainExists.Error(), "0064"),
 		},
 		{
+			name:            "Should fail if input Chain has an invalid icon URL set",
+			iconURL:         "what-is+this*wow",
+			chain:           *testdata.TestCreateChain,
+			testCreatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errInvalidIconURL.Error(), "what-is+this*wow"),
+		},
+		{
 			name:            "Should fail if any input Altruist has an invalid URL",
 			altruistURL:     "htz:/bad-domain2",
 			chain:           *testdata.TestCreateChain,
@@ -177,6 +185,9 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 		ts.Run(test.name, func() {
 			testChain := test.chain
 
+			if test.iconURL != "" {
+				testChain.IconURL = test.iconURL
+			}
 			if test.altruistURL != "" {
 				altruist := testChain.Altruists[test.altruistURL]
 				altruist.URL = test.altruistURL
@@ -227,6 +238,12 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			err:             nil,
 		},
 		{
+			name:            "Should fail if input Chain has an invalid icon URL set",
+			update:          testdata.UpdateChainInvalidIconURL,
+			testCreatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errInvalidIconURL.Error(), "what_is_555"),
+		},
+		{
 			name:            "Should fail if chain doesn't exist in the database",
 			update:          testdata.UpdateChainNotExists,
 			testCreatedTime: testdata.MockTimestamp,
@@ -261,6 +278,12 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 					ts.Equal(*test.update.Blockchain, updatedChain.Blockchain)
 				} else {
 					ts.Equal(initialChain.Blockchain, updatedChain.Blockchain)
+				}
+
+				if test.update.IconURL != nil {
+					ts.Equal(*test.update.IconURL, updatedChain.IconURL)
+				} else {
+					ts.Equal(initialChain.IconURL, updatedChain.IconURL)
 				}
 
 				if test.update.Description != nil {

@@ -241,6 +241,8 @@ var (
 
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
+		Name:      "Protogen Corp",
+		IconURL:   "https://picsum.photos/200",
 		PlanType:  types.PayPlanType("developer_plan"),
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
@@ -1234,10 +1236,11 @@ var (
 
 	// TestCreatePortalApp app used to test creation of PortalApps
 	TestCreatePortalApp = &types.PortalApp{
-		ID:        "test_app_create_208r23r",
-		AccountID: "account_4",
-		Name:      "create_pokt_app_1",
-
+		ID:          "test_app_create_208r23r",
+		AccountID:   "account_4",
+		Name:        "create_pokt_app_1",
+		Description: "Embark on a journey across the enchanting realm of Middle-earth.",
+		AppEmoji:    "💍",
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
@@ -1290,6 +1293,7 @@ var (
 	// TestCreateChain used to test creation of Chains
 	TestCreateChain = &types.Chain{
 		ID:            "0006",
+		IconURL:       "https://picsum.photos/200",
 		Blockchain:    "solana-mainnet",
 		Description:   "Solana",
 		EnforceResult: "JSON",
@@ -1395,10 +1399,12 @@ var (
 
 	// TestUpdatePortalApp app used to test updates of PortalApps
 	TestUpdatePortalApp = &types.PortalApp{
-		ID:        "test_app_update_b03ca84c",
-		AccountID: "account_1",
-		Name:      "", // name set in test
-		AATs:      map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
+		ID:          "test_app_update_b03ca84c",
+		AccountID:   "account_1",
+		Name:        "", // name set in test
+		Description: "Embark on a journey across the solar system with Pur'n'Kleen",
+		AppEmoji:    "🪐",
+		AATs:        map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
@@ -1414,8 +1420,10 @@ var (
 		},
 	}
 
-	UpdatePortalAppName     = "portal-app-updated"
-	UpdatePortalAppSettings = &types.UpdateAppSettings{
+	UpdatePortalAppName        = "portal-app-updated"
+	UpdatePortalAppDescription = "Updating the application name like the shifting sands of Arrakis."
+	UpdatePortalAppEmoji       = types.AppEmoji("🐱‍🐉")
+	UpdatePortalAppSettings    = &types.UpdateAppSettings{
 		Environment:       types.EnvironmentProduction,
 		SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
 		SecretKeyRequired: true,
@@ -1482,6 +1490,7 @@ var (
 
 	UpdateChainOne = types.UpdateChain{
 		ID:            "0001",
+		IconURL:       newString("https://picsum.photos/246"),
 		Blockchain:    newChainAlias("mainnet-NEW"),
 		Description:   newString("Pocket Network Mainnet Update"),
 		EnforceResult: newString("JSON"),
@@ -1531,6 +1540,7 @@ var (
 	}
 	UpdateChainTwo = types.UpdateChain{
 		ID:            "0001",
+		IconURL:       newString("https://picsum.photos/200"),
 		Blockchain:    newChainAlias("mainnet-ULTRA"),
 		Description:   newString("Pocket Network Mainnet Original"),
 		EnforceResult: newString("JSON"),
@@ -1569,8 +1579,9 @@ var (
 	}
 
 	// UpdateChainNotExists used to test updating a Chain that doesn't exist
-	UpdateChainNotExists  = types.UpdateChain{ID: "0073"}
-	UpdateChainInvalidURL = types.UpdateChain{ID: "0073",
+	UpdateChainNotExists      = types.UpdateChain{ID: "0073"}
+	UpdateChainInvalidIconURL = types.UpdateChain{ID: "0001", IconURL: newString("what_is_555")}
+	UpdateChainInvalidURL     = types.UpdateChain{ID: "0073",
 		Altruists: &map[types.AltruistURL]types.Altruist{
 			"htz:/bad-domain2": {URL: "htz:/bad-domain2"},
 		},

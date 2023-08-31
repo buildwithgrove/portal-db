@@ -105,9 +105,19 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			err:             nil,
 		},
 		{
+			name: "Should fail when invalid emoji provided",
+			portalApp: types.PortalApp{
+				AppEmoji: "moon_cheese",
+				Name:     "",
+			},
+			aat: testdata.TestCreatePortalAppAAT,
+			err: errInvalidAppEmoji,
+		},
+		{
 			name: "Should fail when name not provided",
 			portalApp: types.PortalApp{
-				Name: "",
+				AppEmoji: "🌛",
+				Name:     "",
 			},
 			aat: testdata.TestCreatePortalAppAAT,
 			err: errEmptyPortalAppName,
@@ -115,6 +125,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when invalid environment provided",
 			portalApp: types.PortalApp{
+				AppEmoji: "🌛",
 				Name:     "sebastian",
 				Settings: types.Settings{Environment: types.Environment("under da sea")},
 			},
@@ -124,7 +135,8 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when plan does not exist",
 			portalApp: types.PortalApp{
-				Name: "whatever",
+				AppEmoji: "🧛",
+				Name:     "whatever",
 				LegacyFields: types.LegacyFields{
 					PlanType: "nonexistent-plan",
 				},
@@ -136,7 +148,8 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when account does not exist",
 			portalApp: types.PortalApp{
-				Name: "whatever",
+				AppEmoji: "🗡️",
+				Name:     "whatever",
 				LegacyFields: types.LegacyFields{
 					PlanType: types.FreetierV0,
 				},
@@ -176,6 +189,8 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 		updatePortalApp          types.UpdatePortalApp
 		testUpdateTime           time.Time
 		testUpdatedName          string
+		testUpdatedDescription   string
+		testUpdatedAppEmoji      types.AppEmoji
 		testUpdatedSettings      types.Settings
 		testUpdatedNotifications map[types.NotificationType]types.AppNotification
 		testUpdatedWhitelists    types.Whitelists
@@ -186,14 +201,18 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			name: "Should update a new PortalApp in the database with all fields",
 			updatePortalApp: types.UpdatePortalApp{
 				Name:          testdata.UpdatePortalAppName,
+				Description:   testdata.UpdatePortalAppDescription,
+				AppEmoji:      testdata.UpdatePortalAppEmoji,
 				Settings:      testdata.UpdatePortalAppSettings,
 				Notifications: testdata.UpdatePortalAppNotifications,
 				Whitelists:    testdata.UpdatePortalAppWhitelists,
 				PlanType:      testdata.UpdatePortalAppPlan.PlanType,
 				DailyLimit:    testdata.UpdatePortalAppPlan.DailyLimit,
 			},
-			testUpdateTime:  testdata.MockTimestamp,
-			testUpdatedName: "portal-app-updated",
+			testUpdateTime:         testdata.MockTimestamp,
+			testUpdatedName:        "portal-app-updated",
+			testUpdatedDescription: testdata.UpdatePortalAppDescription,
+			testUpdatedAppEmoji:    testdata.UpdatePortalAppEmoji,
 			testUpdatedSettings: types.Settings{
 				Environment:       types.EnvironmentProduction,
 				SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
@@ -257,6 +276,24 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			testUpdateTime:  testdata.MockTimestamp,
 			testUpdatedName: "portal-app-updated",
 			err:             nil,
+		},
+		{
+			name: "Should update a new PortalApp in the database with only a new Description",
+			updatePortalApp: types.UpdatePortalApp{
+				Description: "Updating the application name like altering memories in the neon-lit streets of futuristic Los Angeles.",
+			},
+			testUpdateTime:         testdata.MockTimestamp,
+			testUpdatedDescription: "Updating the application name like altering memories in the neon-lit streets of futuristic Los Angeles.",
+			err:                    nil,
+		},
+		{
+			name: "Should update a new PortalApp in the database with only a new App Emoji",
+			updatePortalApp: types.UpdatePortalApp{
+				AppEmoji: "🦖",
+			},
+			testUpdateTime:      testdata.MockTimestamp,
+			testUpdatedAppEmoji: "🦖",
+			err:                 nil,
 		},
 		{
 			name: "Should update a new PortalApp in the database with only new Settings",
@@ -384,6 +421,18 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				ts.Equal(test.testUpdatedName, updatedPortalApp.Name)
 			} else {
 				ts.Equal(createdPortalApp.Name, updatedPortalApp.Name)
+			}
+
+			if test.testUpdatedDescription != "" {
+				ts.Equal(test.testUpdatedDescription, updatedPortalApp.Description)
+			} else {
+				ts.Equal(createdPortalApp.Description, updatedPortalApp.Description)
+			}
+
+			if test.testUpdatedAppEmoji != "" {
+				ts.Equal(test.testUpdatedAppEmoji, updatedPortalApp.AppEmoji)
+			} else {
+				ts.Equal(createdPortalApp.AppEmoji, updatedPortalApp.AppEmoji)
 			}
 
 			if test.testUpdatedSettings.Environment != "" {

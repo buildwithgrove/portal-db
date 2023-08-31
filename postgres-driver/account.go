@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -28,6 +28,7 @@ type (
 var (
 	errNoRoleName                = errors.New("error no role name set")
 	errInvalidRoleName           = errors.New("error invalid role name set")
+	errInvalidIconURL            = errors.New("error icon URL '%s' is not a valid URL")
 	errPayPlanDoesntExist        = errors.New("error pay plan '%s' does not exist")
 	errAccountDoesntExist        = errors.New("error account does not exist for account ID '%s'")
 	errAccountUserDoesntExist    = errors.New("error user ID '%s' does not exist for portal app ID '%s'")
@@ -89,7 +90,7 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		ID:                     a.ID,
 		Name:                   a.Name.String,
 		IconURL:                a.IconURL.String,
-		PlanType:               a.PlanType,
+		PlanType:               types.PayPlanType(a.PlanType.String),
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: a.PartnerThroughputLimit.Int32,
@@ -159,7 +160,9 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        account.ID,
-		PlanType:  account.PlanType,
+		Name:      newText(account.Name),
+		IconURL:   newText(account.IconURL),
+		PlanType:  newText(string(account.PlanType)),
 		CreatedAt: newTimestamptz(createdAt),
 		UpdatedAt: newTimestamptz(createdAt),
 	})
@@ -215,6 +218,13 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 // validateWriteAccountInput validates the input to create a new Account
 func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, creatorID types.UserID, account types.Account) error {
+	if account.IconURL != "" {
+		_, err := url.ParseRequestURI(account.IconURL)
+		if err != nil {
+			return fmt.Errorf(errInvalidIconURL.Error(), account.IconURL)
+		}
+	}
+
 	planExists, err := pg.CheckPlanTypeExists(ctx, account.PlanType)
 	if err != nil {
 		return err
@@ -260,9 +270,16 @@ func (pg *PostgresDriver) UpsertAccountIntegration(ctx context.Context, integrat
 
 // UpdateAccount updates a single Account in the database's PlanType field
 func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) (*types.Account, error) {
-	err := pg.UpdateAccountFields(ctx, UpdateAccountFieldsParams{
+	err := pg.validateUpdateAccountInput(ctx, update)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pg.UpdateAccountFields(ctx, UpdateAccountFieldsParams{
 		ID:        update.AccountID,
-		PlanType:  update.PlanType,
+		Name:      newText(update.Name),
+		IconURL:   newText(update.IconURL),
+		PlanType:  newText(string(update.PlanType)),
 		UpdatedAt: newTimestamptz(updatedAt),
 	})
 	if err != nil {
@@ -271,9 +288,6 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 
 	accountResult, err := pg.SelectAccount(ctx, update.AccountID)
 	if err != nil {
-		if strings.Contains(err.Error(), "no rows in result set") {
-			return nil, fmt.Errorf(errAccountDoesntExist.Error(), update.AccountID)
-		}
 		return nil, err
 	}
 
@@ -299,6 +313,36 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 	}
 
 	return account, nil
+}
+
+// validateUpdateAccountInput validates the input to udapte an Account
+func (pg *PostgresDriver) validateUpdateAccountInput(ctx context.Context, update types.UpdateAccount) error {
+	if update.IconURL != "" {
+		_, err := url.ParseRequestURI(update.IconURL)
+		if err != nil {
+			return fmt.Errorf(errInvalidIconURL.Error(), update.IconURL)
+		}
+	}
+
+	accountExists, err := pg.CheckAccountExists(ctx, update.AccountID)
+	if err != nil {
+		return err
+	}
+	if !accountExists {
+		return fmt.Errorf(errAccountDoesntExist.Error(), update.AccountID)
+	}
+
+	if update.PlanType != "" {
+		planExists, err := pg.CheckPlanTypeExists(ctx, update.PlanType)
+		if err != nil {
+			return err
+		}
+		if !planExists {
+			return fmt.Errorf(errPayPlanDoesntExist.Error(), update.PlanType)
+		}
+	}
+
+	return nil
 }
 
 /* ----- postgresdriver Account Delete Methods ----- */

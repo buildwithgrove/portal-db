@@ -405,7 +405,7 @@ type Account struct {
 	ID                      types.AccountID    `json:"id"`
 	Name                    pgtype.Text        `json:"name"`
 	IconURL                 pgtype.Text        `json:"icon_url"`
-	PlanType                types.PayPlanType  `json:"plan_type"`
+	PlanType                pgtype.Text        `json:"plan_type"`
 	PartnerChainIDs         []string           `json:"partner_chain_ids"`
 	PartnerThroughputLimit  pgtype.Int4        `json:"partner_throughput_limit"`
 	PartnerApplicationLimit pgtype.Int4        `json:"partner_application_limit"`
