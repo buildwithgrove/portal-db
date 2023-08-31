@@ -239,8 +239,8 @@ VALUES (
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000',
         'https://picsum.photos/200',
-        false,
-        false,
+        true,
+        true,
         false
     ),
     (
@@ -274,7 +274,7 @@ VALUES (
         'https://picsum.photos/200',
         true,
         true,
-        true
+        false
     ),
     (
         'user_12',

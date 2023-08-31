@@ -192,8 +192,13 @@ INSERT INTO portal_application_settings (
     )
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
--- name: GetUserEmail :one
-SELECT email
+-- name: GetUserFields :one
+SELECT email,
+    signed_up,
+    icon_url,
+    updates_product,
+    updates_marketing,
+    beta_tester
 FROM users
 WHERE users.id = $1;
 -- name: GetAccountOwnerEmail :one
@@ -345,6 +350,8 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
+            'icon_url',
+            u.icon_url,
             'updates_product',
             u.updates_product,
             'updates_marketing',
@@ -412,6 +419,14 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
+            'icon_url',
+            u.icon_url,
+            'updates_product',
+            u.updates_product,
+            'updates_marketing',
+            u.updates_marketing,
+            'beta_tester',
+            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',
