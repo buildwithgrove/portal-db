@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/pokt-foundation/portal-db/v2/types"
 )
 
@@ -17,6 +19,19 @@ type (
 		Provider       types.AuthProvider   `json:"provider"`
 		ProviderUserID types.ProviderUserID `json:"provider_user_id"`
 		Federated      bool                 `json:"federated"`
+	}
+
+	UserRow struct {
+		ID               types.UserID       `json:"id"`
+		Email            types.Email        `json:"email"`
+		SignedUp         bool               `json:"signed_up"`
+		IconURL          pgtype.Text        `json:"icon_url"`
+		UpdatesProduct   pgtype.Bool        `json:"updates_product"`
+		UpdatesMarketing pgtype.Bool        `json:"updates_marketing"`
+		BetaTester       pgtype.Bool        `json:"beta_tester"`
+		CreatedAt        pgtype.Timestamptz `json:"created_at"`
+		UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+		AuthProviders    []byte             `json:"auth_providers"`
 	}
 )
 
@@ -60,7 +75,7 @@ func (pg *PostgresDriver) ReadUserByUserID(ctx context.Context, userID types.Use
 		}
 	}
 
-	user, err := userData.toUser()
+	user, err := userData.toUserRow().toUser()
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +83,59 @@ func (pg *PostgresDriver) ReadUserByUserID(ctx context.Context, userID types.Use
 	return user, nil
 }
 
+// ReadAllUsers returns all users in the database as a map of User structs by UserID
+func (pg *PostgresDriver) ReadAllUsers(ctx context.Context) (map[types.UserID]*types.User, error) {
+	userData, err := pg.SelectAllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	usersMap := make(map[types.UserID]*types.User, len(userData))
+
+	for _, userRow := range userData {
+		user, err := userRow.toUserRow().toUser()
+		if err != nil {
+			return nil, err
+		}
+
+		usersMap[user.ID] = user
+	}
+
+	return usersMap, nil
+}
+
+func (u *GetUserDataFromPortalUserIDRow) toUserRow() *UserRow {
+	return &UserRow{
+		ID:               u.ID,
+		Email:            u.Email,
+		SignedUp:         u.SignedUp,
+		IconURL:          u.IconURL,
+		UpdatesProduct:   u.UpdatesProduct,
+		UpdatesMarketing: u.UpdatesMarketing,
+		BetaTester:       u.BetaTester,
+		CreatedAt:        u.CreatedAt,
+		UpdatedAt:        u.UpdatedAt,
+		AuthProviders:    u.AuthProviders,
+	}
+}
+
+func (u *SelectAllUsersRow) toUserRow() *UserRow {
+	return &UserRow{
+		ID:               u.ID,
+		Email:            u.Email,
+		SignedUp:         u.SignedUp,
+		IconURL:          u.IconURL,
+		UpdatesProduct:   u.UpdatesProduct,
+		UpdatesMarketing: u.UpdatesMarketing,
+		BetaTester:       u.BetaTester,
+		CreatedAt:        u.CreatedAt,
+		UpdatedAt:        u.UpdatedAt,
+		AuthProviders:    u.AuthProviders,
+	}
+}
+
 // toUser converts User SELECT output to User struct
-func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
+func (u *UserRow) toUser() (*types.User, error) {
 	var providerRows []authProviderDBRow
 	if err := json.Unmarshal(u.AuthProviders, &providerRows); err != nil {
 		return nil, err
@@ -77,11 +143,13 @@ func (u *GetUserDataFromPortalUserIDRow) toUser() (*types.User, error) {
 
 	authProviders := make(map[types.AuthType]types.UserAuthProvider, len(providerRows))
 	for _, provider := range providerRows {
-		authProviders[provider.Type] = types.UserAuthProvider{
-			ProviderUserID: provider.ProviderUserID,
-			Type:           provider.Type,
-			Provider:       provider.Provider,
-			Federated:      provider.Federated,
+		if provider.Type != "" {
+			authProviders[provider.Type] = types.UserAuthProvider{
+				ProviderUserID: provider.ProviderUserID,
+				Type:           provider.Type,
+				Provider:       provider.Provider,
+				Federated:      provider.Federated,
+			}
 		}
 	}
 
@@ -206,6 +274,47 @@ func (pg *PostgresDriver) validateWriteUserNewSignUpInput(ctx context.Context, u
 	}
 	if userExists {
 		return fmt.Errorf(errUserAlreadyExists.Error(), user.Email, user.ProviderUserID.AuthType())
+	}
+
+	return nil
+}
+
+// UpdateUser updates a User's fields in the DB.
+func (pg *PostgresDriver) UpdateUser(ctx context.Context, update types.UpdateUser, updatedAt time.Time) (*types.User, error) {
+	err := pg.validateUpdateUserInput(ctx, update)
+	if err != nil {
+		return nil, err
+	}
+
+	params := UpdateUserFieldsParams{
+		ID:               update.ID,
+		IconURL:          newNullString(update.IconURL),
+		UpdatesProduct:   newBool(update.UpdatesProduct),
+		UpdatesMarketing: newBool(update.UpdatesMarketing),
+		BetaTester:       newBool(update.BetaTester),
+		UpdatedAt:        newTimestamptz(update.UpdatedAt),
+	}
+
+	err = pg.UpdateUserFields(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := pg.ReadUserByUserID(ctx, update.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// validateUpdateUserInput validates the input to update a User
+func (pg *PostgresDriver) validateUpdateUserInput(ctx context.Context, update types.UpdateUser) error {
+	if update.IconURL != nil && *update.IconURL != "" {
+		_, err := url.ParseRequestURI(*update.IconURL)
+		if err != nil {
+			return fmt.Errorf(errInvalidIconURL.Error(), *update.IconURL)
+		}
 	}
 
 	return nil
