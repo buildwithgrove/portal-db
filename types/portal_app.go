@@ -251,7 +251,7 @@ type (
 )
 
 func (u *UpdatePortalApp) IsEmpty() bool {
-	if u.Name != "" || u.PlanType != "" || u.Description != "" || u.AppEmoji != "" || u.DailyLimit != 0 || u.CustomLimit != 0 {
+	if u.Name != "" || u.PlanType != "" || u.Description != "" || u.AppEmoji != "" || u.CustomLimit != 0 {
 		return false
 	}
 	return true

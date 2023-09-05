@@ -440,23 +440,23 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 					ts.Equal(createdPortalApp.Name, updatedPortalApp.Name)
 				}
 
-			if test.testUpdatedDescription != "" {
-				ts.Equal(test.testUpdatedDescription, updatedPortalApp.Description)
-			} else {
-				ts.Equal(createdPortalApp.Description, updatedPortalApp.Description)
-			}
+				if test.testUpdatedDescription != "" {
+					ts.Equal(test.testUpdatedDescription, updatedPortalApp.Description)
+				} else {
+					ts.Equal(createdPortalApp.Description, updatedPortalApp.Description)
+				}
 
-			if test.testUpdatedAppEmoji != "" {
-				ts.Equal(test.testUpdatedAppEmoji, updatedPortalApp.AppEmoji)
-			} else {
-				ts.Equal(createdPortalApp.AppEmoji, updatedPortalApp.AppEmoji)
-			}
+				if test.testUpdatedAppEmoji != "" {
+					ts.Equal(test.testUpdatedAppEmoji, updatedPortalApp.AppEmoji)
+				} else {
+					ts.Equal(createdPortalApp.AppEmoji, updatedPortalApp.AppEmoji)
+				}
 
-			if test.testUpdatedSettings.Environment != "" {
-				ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
-			} else {
-				ts.Equal(createdPortalApp.Settings, updatedPortalApp.Settings)
-			}
+				if test.testUpdatedSettings.Environment != "" {
+					ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
+				} else {
+					ts.Equal(createdPortalApp.Settings, updatedPortalApp.Settings)
+				}
 
 				if len(test.testUpdatedNotifications) != 0 {
 					ts.Equal(test.testUpdatedNotifications, updatedPortalApp.Notifications)

@@ -368,7 +368,7 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 
 	qtx := pg.WithTx(tx)
 
-	if update.Name != "" || update.PlanType != "" || update.CustomLimit != 0 {
+	if !update.IsEmpty() {
 		updateApp := UpdatePortalAppFieldsParams{ID: update.AppID, UpdatedAt: newTimestamptz(updatedAt)}
 
 		if update.Name != "" {
@@ -378,7 +378,7 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 		if update.Description != "" {
 			updateApp.Description = update.Description
 		}
-    
+
 		if update.AppEmoji != "" {
 			updateApp.AppEmoji = string(update.AppEmoji)
 		}
