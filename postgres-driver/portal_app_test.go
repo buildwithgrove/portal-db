@@ -190,7 +190,6 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				Notifications: testdata.UpdatePortalAppNotifications,
 				Whitelists:    testdata.UpdatePortalAppWhitelists,
 				PlanType:      testdata.UpdatePortalAppPlan.PlanType,
-				DailyLimit:    testdata.UpdatePortalAppPlan.DailyLimit,
 			},
 			testUpdateTime:  testdata.MockTimestamp,
 			testUpdatedName: "portal-app-updated",
@@ -244,8 +243,8 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				},
 			},
 			testUpdatedLegacyFields: types.LegacyFields{
-				PlanType:   types.PayAsYouGoV0,
-				DailyLimit: 0,
+				PlanType:   types.FreetierV0,
+				DailyLimit: 250_000,
 			},
 			err: nil,
 		},
@@ -334,21 +333,31 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 		{
 			name: "Should update a new PortalApp in the database with a new plan",
 			updatePortalApp: types.UpdatePortalApp{
-				PlanType:   testdata.UpdatePortalAppPlan.PlanType,
-				DailyLimit: testdata.UpdatePortalAppPlan.DailyLimit,
+				PlanType: testdata.UpdatePortalAppPlan.PlanType,
 			},
 			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedLegacyFields: types.LegacyFields{
-				PlanType:   types.PayAsYouGoV0,
-				DailyLimit: 0,
+				PlanType:   types.FreetierV0,
+				DailyLimit: 250_000,
+			},
+			err: nil,
+		},
+		{
+			name: "Should update a new PortalApp in the database with another new plan",
+			updatePortalApp: types.UpdatePortalApp{
+				PlanType: testdata.UpdatePortalAppPlanTwo.PlanType,
+			},
+			testUpdateTime: testdata.MockTimestamp,
+			testUpdatedLegacyFields: types.LegacyFields{
+				PlanType:   types.TestPlan90k,
+				DailyLimit: 90_000,
 			},
 			err: nil,
 		},
 		{
 			name: "Should update a new PortalApp in the database with an Enterprise plan",
 			updatePortalApp: types.UpdatePortalApp{
-				PlanType:   testdata.UpdatePortalAppEnterprisePlan.PlanType,
-				DailyLimit: testdata.UpdatePortalAppEnterprisePlan.DailyLimit,
+				PlanType: testdata.UpdatePortalAppEnterprisePlan.PlanType,
 			},
 			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedLegacyFields: types.LegacyFields{
@@ -356,6 +365,13 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				CustomLimit: 5_600_000,
 			},
 			err: nil,
+		},
+		{
+			name: "Should fail if an invalid plan type provided",
+			updatePortalApp: types.UpdatePortalApp{
+				PlanType: types.PayPlanType("what_am_i_doing"),
+			},
+			err: fmt.Errorf(errPayPlanDoesntExist.Error(), "what_am_i_doing"),
 		},
 	}
 
@@ -373,45 +389,49 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			err = ts.driver.UpdatePortalApp(context.Background(), updateApp, test.testUpdateTime)
 			ts.Equal(test.err, err)
 
-			// Get all portal apps from DB
-			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
-			ts.Equal(test.err, err)
-			updatedPortalApp, ok := portalApps[createdPortalApp.ID]
-			ts.True(ok)
+			if test.err == nil {
+				// Get all portal apps from DB
+				portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
+				ts.NoError(err)
+				updatedPortalApp, ok := portalApps[createdPortalApp.ID]
+				ts.True(ok)
 
-			// Check update changes
-			if test.testUpdatedName != "" {
-				ts.Equal(test.testUpdatedName, updatedPortalApp.Name)
-			} else {
-				ts.Equal(createdPortalApp.Name, updatedPortalApp.Name)
-			}
+				// Check update changes
+				if test.testUpdatedName != "" {
+					ts.Equal(test.testUpdatedName, updatedPortalApp.Name)
+				} else {
+					ts.Equal(createdPortalApp.Name, updatedPortalApp.Name)
+				}
 
-			if test.testUpdatedSettings.Environment != "" {
-				ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
-			} else {
-				ts.Equal(createdPortalApp.Settings, updatedPortalApp.Settings)
-			}
+				if test.testUpdatedSettings.Environment != "" {
+					ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
+				} else {
+					ts.Equal(createdPortalApp.Settings, updatedPortalApp.Settings)
+				}
 
-			if len(test.testUpdatedNotifications) != 0 {
-				ts.Equal(test.testUpdatedNotifications, updatedPortalApp.Notifications)
-			} else {
-				ts.Equal(createdPortalApp.Notifications, updatedPortalApp.Notifications)
-			}
+				if len(test.testUpdatedNotifications) != 0 {
+					ts.Equal(test.testUpdatedNotifications, updatedPortalApp.Notifications)
+				} else {
+					ts.Equal(createdPortalApp.Notifications, updatedPortalApp.Notifications)
+				}
 
-			if len(test.testUpdatedWhitelists.Origins) != 0 {
-				ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
-			} else {
-				ts.Equal(createdPortalApp.Whitelists, updatedPortalApp.Whitelists)
-			}
+				if len(test.testUpdatedWhitelists.Origins) != 0 {
+					ts.Equal(test.testUpdatedWhitelists, updatedPortalApp.Whitelists)
+				} else {
+					ts.Equal(createdPortalApp.Whitelists, updatedPortalApp.Whitelists)
+				}
 
-			if test.updatePortalApp.PlanType != "" {
-				ts.Equal(test.testUpdatedLegacyFields.PlanType, updatedPortalApp.LegacyFields.PlanType)
-			}
-			if test.updatePortalApp.DailyLimit != 0 {
-				ts.Equal(test.testUpdatedLegacyFields.DailyLimit, updatedPortalApp.LegacyFields.DailyLimit)
-			}
-			if test.updatePortalApp.CustomLimit != 0 {
-				ts.Equal(test.testUpdatedLegacyFields.CustomLimit, updatedPortalApp.LegacyFields.CustomLimit)
+				if test.updatePortalApp.PlanType != "" {
+					ts.Equal(test.testUpdatedLegacyFields.PlanType, updatedPortalApp.LegacyFields.PlanType)
+					if test.updatePortalApp.PlanType != types.Enterprise {
+						dailyLimit, err := ts.driver.GetPlanDailyLimit(context.Background(), test.testUpdatedLegacyFields.PlanType)
+						ts.NoError(err)
+						ts.Equal(test.testUpdatedLegacyFields.DailyLimit, dailyLimit.Int32)
+					}
+				}
+				if test.updatePortalApp.CustomLimit != 0 {
+					ts.Equal(test.testUpdatedLegacyFields.CustomLimit, updatedPortalApp.LegacyFields.CustomLimit)
+				}
 			}
 		})
 	}

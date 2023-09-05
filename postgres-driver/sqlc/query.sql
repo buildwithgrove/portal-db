@@ -208,6 +208,10 @@ SET name = COALESCE(NULLIF(@name::VARCHAR, ''), name),
     custom_limit = COALESCE($3, custom_limit),
     updated_at = $4
 WHERE id = $1;
+-- name: GetPlanDailyLimit :one
+SELECT daily_limit
+FROM pay_plans
+WHERE plan_type = $1;
 -- name: UpdatePortalAppSettings :exec
 UPDATE portal_application_settings
 SET secret_key = COALESCE($2, secret_key),
