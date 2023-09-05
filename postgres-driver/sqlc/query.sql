@@ -789,6 +789,14 @@ VALUES (
         $8
     )
 RETURNING user_id;
+-- name: UpdateUserFields :exec
+UPDATE users
+SET icon_url = COALESCE($1, icon_url),
+    updates_product = COALESCE($2, updates_product),
+    updates_marketing = COALESCE($3, updates_marketing),
+    beta_tester = COALESCE($4, beta_tester),
+    updated_at = $5
+WHERE id = $6;
 -- name: UpdateUserAcceptedInvite :exec
 WITH inserted_or_existing_provider AS (
     INSERT INTO user_auth_providers (
@@ -826,6 +834,12 @@ WHERE portal_application_id = $1
 SELECT user_id
 FROM user_auth_providers
 WHERE provider_user_id = $1;
+-- name: SelectAllUsers :many
+SELECT users.*,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+GROUP BY users.id;
 -- name: GetUserDataFromPortalUserID :one
 SELECT users.*,
     json_agg(user_auth_providers.*) AS auth_providers

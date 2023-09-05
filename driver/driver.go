@@ -37,6 +37,8 @@ type (
 		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
 		ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error)
 
+		/* ReadAllUsers returns all users as a map that takes the form map[types.UserID]*types.User */
+		ReadAllUsers(ctx context.Context) (map[types.UserID]*types.User, error)
 		/* ReadUserByUserID returns a single user from a portal UserID */
 		ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error)
 
@@ -80,6 +82,9 @@ type (
 		UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error
 		/* RemoveAccountUser deletes a AccountUserAccess row for a given user and account ID. */
 		RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error
+
+		/* UpdateUser updates a user's updatable fields in the database. */
+		UpdateUser(ctx context.Context, update types.UpdateUser, updatedAt time.Time) (*types.User, error)
 
 		/* WriteChainAndGigastakeApps saves input Chain and one or more GigastakeApp structs to the database as one transaction. */
 		WriteChainAndGigastakeApps(ctx context.Context, input types.NewChainInput, createdAt time.Time) (*types.NewChainInput, error)

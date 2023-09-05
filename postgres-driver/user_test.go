@@ -3,6 +3,7 @@ package postgresdriver
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/testdata"
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -60,7 +61,35 @@ func (ts *PGDriverTestSuite) Test_ReadUserByUserID() {
 		ts.Run(test.name, func() {
 			user, err := ts.driver.ReadUserByUserID(context.Background(), test.userID)
 			ts.Equal(test.err, err)
-			ts.Equal(test.user, user)
+
+			if test.err == nil {
+				ts.Equal(test.user, user)
+			}
+		})
+	}
+}
+
+func (ts *PGDriverTestSuite) Test_ReadAllUsers() {
+	tests := []struct {
+		name          string
+		expectedUsers map[types.UserID]*types.User
+		err           error
+	}{
+		{
+			name:          "Should return all users from the database",
+			expectedUsers: testdata.Users,
+			err:           nil,
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			usersMap, err := ts.driver.ReadAllUsers(context.Background())
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				ts.Equal(test.expectedUsers, usersMap)
+			}
 		})
 	}
 }
@@ -144,6 +173,76 @@ func (ts *PGDriverTestSuite) Test_WriteNewUser() {
 					}
 				}
 				ts.True(exists)
+			}
+		})
+	}
+}
+
+func (ts *PGDriverTestSuite) Test_UpdateUser() {
+	tests := []struct {
+		name            string
+		update          types.UpdateUser
+		testUpdatedTime time.Time
+		err             error
+	}{
+		{
+			name:            "Should update an existing user in the database",
+			update:          testdata.UpdateUserOne,
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name:            "Should update an existing user again in the database",
+			update:          testdata.UpdateUserTwo,
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name:            "Should fail if input user has an invalid icon URL set",
+			update:          testdata.UpdateUserInvalidURL,
+			testUpdatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errInvalidIconURL.Error(), "i-am-not-a-url"),
+		},
+	}
+
+	for _, test := range tests {
+		ts.Run(test.name, func() {
+			var initialUser *types.User
+			if test.err == nil {
+				user, err := ts.driver.ReadUserByUserID(context.Background(), test.update.ID)
+				ts.NoError(err)
+				initialUser = user
+			}
+
+			updatedUser, err := ts.driver.UpdateUser(context.Background(), test.update, test.testUpdatedTime)
+			ts.Equal(test.err, err)
+
+			if test.err == nil {
+				// Assert that the fields in the updated user match the expected values
+				// Only check the fields present in the update struct
+				if test.update.IconURL != nil && *test.update.IconURL != "" {
+					ts.Equal(*test.update.IconURL, updatedUser.IconURL)
+				} else {
+					ts.Equal(initialUser.IconURL, updatedUser.IconURL)
+				}
+
+				if test.update.UpdatesProduct != nil {
+					ts.Equal(*test.update.UpdatesProduct, updatedUser.UpdatesProduct)
+				} else {
+					ts.Equal(initialUser.UpdatesProduct, updatedUser.UpdatesProduct)
+				}
+
+				if test.update.UpdatesMarketing != nil {
+					ts.Equal(*test.update.UpdatesMarketing, updatedUser.UpdatesMarketing)
+				} else {
+					ts.Equal(initialUser.UpdatesMarketing, updatedUser.UpdatesMarketing)
+				}
+
+				if test.update.BetaTester != nil {
+					ts.Equal(*test.update.BetaTester, updatedUser.BetaTester)
+				} else {
+					ts.Equal(initialUser.BetaTester, updatedUser.BetaTester)
+				}
 			}
 		})
 	}

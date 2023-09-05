@@ -1408,6 +1408,58 @@ func (q *Queries) SelectAccounts(ctx context.Context, dollar_1 bool) ([]SelectAc
 	return items, nil
 }
 
+const selectAllUsers = `-- name: SelectAllUsers :many
+SELECT users.id, users.email, users.signed_up, users.icon_url, users.updates_product, users.updates_marketing, users.beta_tester, users.created_at, users.updated_at,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+GROUP BY users.id
+`
+
+type SelectAllUsersRow struct {
+	ID               types.UserID       `json:"id"`
+	Email            types.Email        `json:"email"`
+	SignedUp         bool               `json:"signed_up"`
+	IconURL          pgtype.Text        `json:"icon_url"`
+	UpdatesProduct   pgtype.Bool        `json:"updates_product"`
+	UpdatesMarketing pgtype.Bool        `json:"updates_marketing"`
+	BetaTester       pgtype.Bool        `json:"beta_tester"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	AuthProviders    []byte             `json:"auth_providers"`
+}
+
+func (q *Queries) SelectAllUsers(ctx context.Context) ([]SelectAllUsersRow, error) {
+	rows, err := q.db.Query(ctx, selectAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectAllUsersRow
+	for rows.Next() {
+		var i SelectAllUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.SignedUp,
+			&i.IconURL,
+			&i.UpdatesProduct,
+			&i.UpdatesMarketing,
+			&i.BetaTester,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.AuthProviders,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectChain = `-- name: SelectChain :one
 SELECT c.id, c.blockchain, c.description, c.enforce_result, c.ticker, c.path, c.icon_url, c.request_timeout, c.log_limit_blocks, c.allowed_methods, c.active, c.created_at, c.updated_at, c.deleted, c.deleted_at,
     COALESCE(
@@ -2566,6 +2618,37 @@ func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAc
 		arg.ProviderUserID,
 		arg.Federated,
 		arg.PortalApplicationID,
+	)
+	return err
+}
+
+const updateUserFields = `-- name: UpdateUserFields :exec
+UPDATE users
+SET icon_url = COALESCE($1, icon_url),
+    updates_product = COALESCE($2, updates_product),
+    updates_marketing = COALESCE($3, updates_marketing),
+    beta_tester = COALESCE($4, beta_tester),
+    updated_at = $5
+WHERE id = $6
+`
+
+type UpdateUserFieldsParams struct {
+	IconURL          pgtype.Text        `json:"icon_url"`
+	UpdatesProduct   pgtype.Bool        `json:"updates_product"`
+	UpdatesMarketing pgtype.Bool        `json:"updates_marketing"`
+	BetaTester       pgtype.Bool        `json:"beta_tester"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ID               types.UserID       `json:"id"`
+}
+
+func (q *Queries) UpdateUserFields(ctx context.Context, arg UpdateUserFieldsParams) error {
+	_, err := q.db.Exec(ctx, updateUserFields,
+		arg.IconURL,
+		arg.UpdatesProduct,
+		arg.UpdatesMarketing,
+		arg.BetaTester,
+		arg.UpdatedAt,
+		arg.ID,
 	)
 	return err
 }
