@@ -368,24 +368,40 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 
 	qtx := pg.WithTx(tx)
 
-	if !update.IsEmpty() {
+	if update.Name != "" || update.PlanType != "" || update.CustomLimit != 0 {
 		updateApp := UpdatePortalAppFieldsParams{ID: update.AppID, UpdatedAt: newTimestamptz(updatedAt)}
 
 		if update.Name != "" {
 			updateApp.Name = update.Name
 		}
+
 		if update.Description != "" {
 			updateApp.Description = update.Description
 		}
+    
 		if update.AppEmoji != "" {
 			updateApp.AppEmoji = string(update.AppEmoji)
 		}
+
 		if update.PlanType != "" {
 			updateApp.PlanType = string(update.PlanType)
+			// If changing plan, pull the plan daily limit from the DB for non-enterprise plans
+			// TODO remove when change to account-based plan limits completed
+			if update.PlanType != types.Enterprise {
+				dailyLimit, err := qtx.GetPlanDailyLimit(ctx, update.PlanType)
+				if err != nil {
+					switch {
+					case errNoRows(err):
+						return fmt.Errorf(errPayPlanDoesntExist.Error(), update.PlanType)
+					default:
+						return err
+					}
+				}
+
+				updateApp.DailyLimit = newInt4(dailyLimit.Int32, false)
+			}
 		}
-		if update.DailyLimit != 0 {
-			updateApp.DailyLimit = newInt4(update.DailyLimit, false)
-		}
+
 		if update.CustomLimit != 0 {
 			updateApp.CustomLimit = newInt4(update.CustomLimit, false)
 		}

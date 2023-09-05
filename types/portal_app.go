@@ -218,7 +218,6 @@ type (
 		Whitelists    *WhitelistsObject        `json:"whitelists,omitempty"`
 		// TODO - remove when v2 migration finished
 		PlanType    PayPlanType `json:"planType,omitempty"`
-		DailyLimit  int32       `json:"dailyLimit,omitempty"`
 		CustomLimit int32       `json:"customLimit,omitempty"`
 	}
 

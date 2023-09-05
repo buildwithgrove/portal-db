@@ -548,6 +548,19 @@ func (q *Queries) GetLastCreatedUserID(ctx context.Context) (types.UserID, error
 	return id, err
 }
 
+const getPlanDailyLimit = `-- name: GetPlanDailyLimit :one
+SELECT daily_limit
+FROM pay_plans
+WHERE plan_type = $1
+`
+
+func (q *Queries) GetPlanDailyLimit(ctx context.Context, planType types.PayPlanType) (pgtype.Int4, error) {
+	row := q.db.QueryRow(ctx, getPlanDailyLimit, planType)
+	var daily_limit pgtype.Int4
+	err := row.Scan(&daily_limit)
+	return daily_limit, err
+}
+
 const getPortalUserID = `-- name: GetPortalUserID :one
 SELECT user_id
 FROM user_auth_providers
