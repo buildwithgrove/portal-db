@@ -1308,8 +1308,10 @@ var (
 		},
 	}
 	UpdatePortalAppPlan = &types.LegacyFields{
-		PlanType:   types.PayAsYouGoV0,
-		DailyLimit: 0,
+		PlanType: types.FreetierV0,
+	}
+	UpdatePortalAppPlanTwo = &types.LegacyFields{
+		PlanType: types.TestPlan90k,
 	}
 	UpdatePortalAppEnterprisePlan = &types.LegacyFields{
 		PlanType:    types.Enterprise,
@@ -1644,8 +1646,7 @@ var (
 				},
 			},
 		},
-		PlanType:   "FREETIER_V0",
-		DailyLimit: 250_000,
+		PlanType: "FREETIER_V0",
 	}
 
 	LegacyUpdateBlockchain = v1Types.UpdateBlockchain{
