@@ -964,7 +964,7 @@ var (
 				},
 			},
 			Plan: types.PlanLite{
-				PlanType:        types.PayPlanType("basic_plan"),
+				PlanType:        types.FreetierV0,
 				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 				ThroughputLimit: 5_000,
 			},
@@ -996,8 +996,8 @@ var (
 				},
 			},
 			Plan: types.PlanLite{
-				PlanType:        types.PayPlanType("pro_plan"),
-				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
+				PlanType:        types.PayAsYouGoV0,
+				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 				ThroughputLimit: 10_000,
 			},
 		},
@@ -1008,9 +1008,9 @@ var (
 				"test_f6a5d8690ecb669865bd752b7796a920",
 			},
 			Plan: types.PlanLite{
-				PlanType:        types.PayPlanType("startup_plan"),
-				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
-				ThroughputLimit: 1_000,
+				PlanType:        types.Enterprise,
+				ChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
+				ThroughputLimit: 10_000,
 			},
 		},
 	}
