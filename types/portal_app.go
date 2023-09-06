@@ -434,7 +434,7 @@ func (a *PortalApp) ConvertPortalAppToPortalAppLite(appPlan *Plan) PortalAppLite
 	}
 	if appPlan != nil {
 		portalAppLite.Plan = PlanLite{
-			PlanType:        appPlan.Type,
+			PlanType:        a.LegacyFields.PlanType,
 			ChainIDs:        appPlan.ChainIDs,
 			ThroughputLimit: appPlan.ThroughputLimit,
 		}
