@@ -56,13 +56,24 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 			testCreatedTime: testdata.MockTimestamp,
 			users: map[types.UserID]types.AccountUserAccess{
 				"user_1": {
-					UserID:   testdata.Users["user_1"].ID,
-					Email:    testdata.Users["user_1"].Email,
-					Owner:    true,
-					Accepted: true,
+					UserID:           testdata.Users["user_1"].ID,
+					Email:            testdata.Users["user_1"].Email,
+					IconURL:          testdata.Users["user_1"].IconURL,
+					UpdatesProduct:   testdata.Users["user_1"].UpdatesProduct,
+					UpdatesMarketing: testdata.Users["user_1"].UpdatesMarketing,
+					BetaTester:       testdata.Users["user_1"].BetaTester,
+					Owner:            true,
+					Accepted:         true,
 				},
 			},
 			err: nil,
+		},
+		{
+			name:            "Should fail if input Account has an invalid icon URL set",
+			ownerID:         "user_1",
+			account:         types.Account{IconURL: "what-even~am_I"},
+			testCreatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errInvalidIconURL.Error(), "what-even~am_I"),
 		},
 		{
 			name:            "Should fail if input Account does not have a PayPlanType set",
@@ -172,12 +183,58 @@ func (ts *PGDriverTestSuite) Test_UpdateAccount() {
 			err:     nil,
 		},
 		{
-			name: "Should fail if an invalid account ID is provided",
+			name: "Should update the account's Name field",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				Name:      "I Can Show You the World",
+			},
+			account: testdata.Accounts["account_1"],
+			err:     nil,
+		},
+		{
+			name: "Should update the account's IconURL field",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				IconURL:   "https://picsum.photos/222",
+			},
+			account: testdata.Accounts["account_1"],
+			err:     nil,
+		},
+		{
+			name: "Should update all fields",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				PlanType:  types.TestPlan10K,
+				Name:      "Willy Wonka",
+				IconURL:   "https://picsum.photos/444",
+			},
+			account: testdata.Accounts["account_1"],
+			err:     nil,
+		},
+		{
+			name: "Should fail if update Account has an invalid icon URL set",
+			update: types.UpdateAccount{
+				AccountID: "account_8823",
+				PlanType:  types.Enterprise,
+				IconURL:   "who_did(this)",
+			},
+			err: fmt.Errorf(errInvalidIconURL.Error(), "who_did(this)"),
+		},
+		{
+			name: "Should fail if update Account does not exist in the db",
 			update: types.UpdateAccount{
 				AccountID: "account_8823",
 				PlanType:  types.Enterprise,
 			},
 			err: fmt.Errorf(errAccountDoesntExist.Error(), "account_8823"),
+		},
+		{
+			name: "Should fail if update Account has an invalid plan type",
+			update: types.UpdateAccount{
+				AccountID: "account_1",
+				PlanType:  "turbo_ultra_mega_plan",
+			},
+			err: fmt.Errorf(errPayPlanDoesntExist.Error(), types.PayPlanType("turbo_ultra_mega_plan")),
 		},
 	}
 
@@ -187,8 +244,15 @@ func (ts *PGDriverTestSuite) Test_UpdateAccount() {
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				test.account.PlanType = test.update.PlanType
-				ts.Equal(test.account, account)
+				if test.update.PlanType != "" {
+					ts.Equal(test.update.PlanType, account.PlanType)
+				}
+				if test.update.Name != "" {
+					ts.Equal(test.update.Name, account.Name)
+				}
+				if test.update.IconURL != "" {
+					ts.Equal(test.update.IconURL, account.IconURL)
+				}
 			}
 		})
 	}
@@ -209,14 +273,19 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 				AccountID:   "account_1",
 				PortalAppID: "test_app_1",
 				Email:       "bernard.marx@test.com",
-				RoleName:    types.RoleMember,
+
+				RoleName: types.RoleMember,
 			},
 			accountUser: testdata.AccountUserAccess[13],
 			accountUserAfterCreate: types.AccountUserAccess{
-				UserID:         "user_11",
-				Email:          "bernard.marx@test.com",
-				Accepted:       false,
-				PortalAppRoles: map[types.PortalAppID]types.RoleName{"test_app_1": types.RoleMember},
+				UserID:           "user_11",
+				Email:            "bernard.marx@test.com",
+				IconURL:          "https://picsum.photos/200",
+				Accepted:         false,
+				UpdatesProduct:   true,
+				UpdatesMarketing: true,
+				BetaTester:       false,
+				PortalAppRoles:   map[types.PortalAppID]types.RoleName{"test_app_1": types.RoleMember},
 			},
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
@@ -368,9 +437,13 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				"user_6":  testdata.AccountUserAccess[6],
 				"user_10": testdata.AccountUserAccess[12],
 				"user_7": {
-					UserID:   "user_7",
-					Email:    "frodo.baggins123@test.com",
-					Accepted: true,
+					UserID:           "user_7",
+					Email:            "frodo.baggins123@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Accepted:         true,
+					UpdatesProduct:   true,
+					UpdatesMarketing: true,
+					BetaTester:       true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_3": types.RoleAdmin,
 					},
@@ -392,9 +465,13 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				"user_6":  testdata.AccountUserAccess[6],
 				"user_10": testdata.AccountUserAccess[12],
 				"user_7": {
-					UserID:   "user_7",
-					Email:    "frodo.baggins123@test.com",
-					Accepted: true,
+					UserID:           "user_7",
+					Email:            "frodo.baggins123@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Accepted:         true,
+					UpdatesProduct:   true,
+					UpdatesMarketing: true,
+					BetaTester:       true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_3": types.RoleMember,
 					},
@@ -415,18 +492,26 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				"user_9": testdata.AccountUserAccess[9],
 				"user_2": testdata.AccountUserAccess[10],
 				"user_3": {
-					UserID:   "user_3",
-					Email:    "ellen.ripley789@test.com",
-					Accepted: true,
+					UserID:           "user_3",
+					Email:            "ellen.ripley789@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Accepted:         true,
+					UpdatesProduct:   true,
+					UpdatesMarketing: true,
+					BetaTester:       false,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_2": types.RoleAdmin,
 					},
 				},
 				"user_4": {
-					UserID:   "user_4",
-					Email:    "ulfric.stormcloak123@test.com",
-					Owner:    true,
-					Accepted: true,
+					UserID:           "user_4",
+					Email:            "ulfric.stormcloak123@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Owner:            true,
+					Accepted:         true,
+					UpdatesProduct:   false,
+					UpdatesMarketing: false,
+					BetaTester:       true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_2": types.RoleOwner,
 					},
@@ -447,18 +532,26 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				"user_9": testdata.AccountUserAccess[9],
 				"user_2": testdata.AccountUserAccess[10],
 				"user_3": {
-					UserID:   "user_3",
-					Email:    "ellen.ripley789@test.com",
-					Accepted: true,
-					Owner:    true,
+					UserID:           "user_3",
+					Email:            "ellen.ripley789@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Accepted:         true,
+					Owner:            true,
+					UpdatesProduct:   true,
+					UpdatesMarketing: true,
+					BetaTester:       false,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_2": types.RoleOwner,
 					},
 				},
 				"user_4": {
-					UserID:   "user_4",
-					Email:    "ulfric.stormcloak123@test.com",
-					Accepted: true,
+					UserID:           "user_4",
+					Email:            "ulfric.stormcloak123@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Accepted:         true,
+					UpdatesProduct:   false,
+					UpdatesMarketing: false,
+					BetaTester:       true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_2": types.RoleAdmin,
 					},
@@ -480,9 +573,13 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				"user_6": testdata.AccountUserAccess[6],
 				"user_7": testdata.AccountUserAccess[7],
 				"user_10": {
-					UserID:   "user_10",
-					Email:    "daenerys.targaryen123@test.com",
-					Accepted: false,
+					UserID:           "user_10",
+					Email:            "daenerys.targaryen123@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Accepted:         false,
+					UpdatesProduct:   false,
+					UpdatesMarketing: false,
+					BetaTester:       true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_3": types.RoleMember,
 					},
@@ -618,6 +715,7 @@ func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
 		testCreatedTime: testdata.MockTimestamp,
 		testCreatePortalApp: types.PortalApp{
 			AccountID: "account_5",
+			AppEmoji:  "🥷",
 			Name:      "create_admin_role_pokt_app",
 			Settings: types.Settings{
 				Environment: types.EnvironmentProduction,
@@ -679,46 +777,66 @@ func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
 		},
 		accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
 			"user_4": {
-				Owner:    false,
-				UserID:   "user_4",
-				Email:    "ulfric.stormcloak123@test.com",
-				Accepted: true,
+				Owner:            false,
+				UserID:           "user_4",
+				Email:            "ulfric.stormcloak123@test.com",
+				IconURL:          "https://picsum.photos/200",
+				Accepted:         true,
+				UpdatesProduct:   false,
+				UpdatesMarketing: false,
+				BetaTester:       true,
 				PortalAppRoles: map[types.PortalAppID]types.RoleName{
 					"placeholder": types.RoleAdmin, // set dynamically in test
 				},
 			},
 			"user_7": {
-				Owner:    false,
-				UserID:   "user_7",
-				Email:    "frodo.baggins123@test.com",
-				Accepted: true,
+				Owner:            false,
+				UserID:           "user_7",
+				Email:            "frodo.baggins123@test.com",
+				IconURL:          "https://picsum.photos/200",
+				Accepted:         true,
+				UpdatesProduct:   true,
+				UpdatesMarketing: true,
+				BetaTester:       true,
 				PortalAppRoles: map[types.PortalAppID]types.RoleName{
 					"placeholder": types.RoleMember, // set dynamically in test
 				},
 			},
 			"user_8": {
-				Owner:    true,
-				UserID:   "user_8",
-				Email:    "rick.deckard456@test.com",
-				Accepted: true,
+				Owner:            true,
+				UserID:           "user_8",
+				Email:            "rick.deckard456@test.com",
+				IconURL:          "https://picsum.photos/200",
+				Accepted:         true,
+				UpdatesProduct:   true,
+				UpdatesMarketing: true,
+				BetaTester:       false,
 				PortalAppRoles: map[types.PortalAppID]types.RoleName{
 					"placeholder": types.RoleOwner, // set dynamically in test
 				},
 			},
 			"user_5": {
-				Owner:    false,
-				UserID:   "user_5",
-				Email:    "chrisjen.avasarala1@test.com",
-				Accepted: true,
+				Owner:            false,
+				UserID:           "user_5",
+				Email:            "chrisjen.avasarala1@test.com",
+				IconURL:          "https://picsum.photos/200",
+				Accepted:         true,
+				UpdatesProduct:   true,
+				UpdatesMarketing: false,
+				BetaTester:       false,
 				PortalAppRoles: map[types.PortalAppID]types.RoleName{
 					"placeholder": types.RoleAdmin, // set dynamically in test
 				},
 			},
 			"user_9": {
-				Owner:    false,
-				UserID:   "user_9",
-				Email:    "tyrion.lannister789@test.com",
-				Accepted: true,
+				Owner:            false,
+				UserID:           "user_9",
+				Email:            "tyrion.lannister789@test.com",
+				IconURL:          "https://picsum.photos/200",
+				Accepted:         true,
+				UpdatesProduct:   true,
+				UpdatesMarketing: true,
+				BetaTester:       false,
 				PortalAppRoles: map[types.PortalAppID]types.RoleName{
 					"placeholder": types.RoleMember, // set dynamically in test
 				},
@@ -805,9 +923,13 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				ProviderUserID:   "auth0|daenerys_targaryen",
 			},
 			user: &types.User{
-				ID:       "user_10",
-				Email:    "daenerys.targaryen123@test.com",
-				SignedUp: true,
+				ID:               "user_10",
+				Email:            "daenerys.targaryen123@test.com",
+				SignedUp:         true,
+				IconURL:          "https://picsum.photos/200",
+				UpdatesProduct:   false,
+				UpdatesMarketing: false,
+				BetaTester:       true,
 				AuthProviders: map[types.AuthType]types.UserAuthProvider{
 					types.AuthTypeAuth0Username: {
 						ProviderUserID: "auth0|daenerys_targaryen", Provider: types.AuthProviderAuth0,
@@ -822,8 +944,13 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				"user_6": testdata.AccountUserAccess[6],
 				"user_7": testdata.AccountUserAccess[7],
 				"user_10": {
-					UserID: "user_10", Email: "daenerys.targaryen123@test.com",
-					Accepted: true,
+					UserID:           "user_10",
+					Email:            "daenerys.targaryen123@test.com",
+					IconURL:          "https://picsum.photos/200",
+					Accepted:         true,
+					UpdatesProduct:   false,
+					UpdatesMarketing: false,
+					BetaTester:       true,
 					PortalAppRoles: map[types.PortalAppID]types.RoleName{
 						"test_app_3": types.RoleMember,
 					},

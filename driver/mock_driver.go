@@ -96,6 +96,32 @@ func (_m *MockDriver) ReadAccounts(ctx context.Context, options types.DriverOpti
 	return r0, r1
 }
 
+// ReadAllUsers provides a mock function with given fields: ctx
+func (_m *MockDriver) ReadAllUsers(ctx context.Context) (map[types.UserID]*types.User, error) {
+	ret := _m.Called(ctx)
+
+	var r0 map[types.UserID]*types.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (map[types.UserID]*types.User, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) map[types.UserID]*types.User); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[types.UserID]*types.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ReadBlockedContracts provides a mock function with given fields: ctx
 func (_m *MockDriver) ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error) {
 	ret := _m.Called(ctx)
@@ -516,6 +542,32 @@ func (_m *MockDriver) UpdatePortalAppsFirstDateSurpassed(ctx context.Context, up
 	}
 
 	return r0
+}
+
+// UpdateUser provides a mock function with given fields: ctx, update, updatedAt
+func (_m *MockDriver) UpdateUser(ctx context.Context, update types.UpdateUser, updatedAt time.Time) (*types.User, error) {
+	ret := _m.Called(ctx, update, updatedAt)
+
+	var r0 *types.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateUser, time.Time) (*types.User, error)); ok {
+		return rf(ctx, update, updatedAt)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, types.UpdateUser, time.Time) *types.User); ok {
+		r0 = rf(ctx, update, updatedAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, types.UpdateUser, time.Time) error); ok {
+		r1 = rf(ctx, update, updatedAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpsertAccountIntegration provides a mock function with given fields: ctx, integrations

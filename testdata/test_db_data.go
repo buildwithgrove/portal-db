@@ -23,9 +23,10 @@ var (
 	/* ----- Read Data ----- */
 
 	PayPlans = map[types.PayPlanType]*types.Plan{
-		// Actual plan types
 		types.PayPlanType("FREETIER_V0"): {
 			Type:              types.PayPlanType("FREETIER_V0"),
+			Name:              "Free Tier",
+			Description:       "Ideal for small projects and testing",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 5_000_000,
 			ThroughputLimit:   5_000,
@@ -35,6 +36,8 @@ var (
 		},
 		types.PayPlanType("PAY_AS_YOU_GO_V0"): {
 			Type:              types.PayPlanType("PAY_AS_YOU_GO_V0"),
+			Name:              "Pay As You Go",
+			Description:       "Pay only for what you use",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
@@ -44,6 +47,8 @@ var (
 		},
 		types.PayPlanType("ENTERPRISE"): {
 			Type:              types.PayPlanType("ENTERPRISE"),
+			Name:              "Enterprise",
+			Description:       "Premium plan for large businesses",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
@@ -53,6 +58,8 @@ var (
 		},
 		types.PayPlanType("TEST_PLAN_V0"): {
 			Type:              types.PayPlanType("TEST_PLAN_V0"),
+			Name:              "Test Plan",
+			Description:       "For testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
@@ -62,6 +69,8 @@ var (
 		},
 		types.PayPlanType("TEST_PLAN_10K"): {
 			Type:              types.PayPlanType("TEST_PLAN_10K"),
+			Name:              "Test Plan 10K",
+			Description:       "Test plan with 10K daily limit for testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
@@ -71,6 +80,8 @@ var (
 		},
 		types.PayPlanType("TEST_PLAN_90K"): {
 			Type:              types.PayPlanType("TEST_PLAN_90K"),
+			Name:              "Test Plan 90K",
+			Description:       "Test plan with 90K daily limit for testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 90_000_000,
 			ThroughputLimit:   10_000,
@@ -78,9 +89,10 @@ var (
 			LegacyDailyLimit:  90_000,
 			CreatedAt:         MockTimestamp,
 		},
-		// These plans just for testing purpose; they are not actual plans.
 		types.PayPlanType("basic_plan"): {
 			Type:              types.PayPlanType("basic_plan"),
+			Name:              "Basic Plan",
+			Description:       "Basic plan for testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			MonthlyRelayLimit: 5_000_000,
 			ThroughputLimit:   5_000,
@@ -90,6 +102,8 @@ var (
 		},
 		types.PayPlanType("pro_plan"): {
 			Type:              types.PayPlanType("pro_plan"),
+			Name:              "Pro Plan",
+			Description:       "Pro plan for testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			MonthlyRelayLimit: 10_000_000,
 			ThroughputLimit:   10_000,
@@ -99,6 +113,8 @@ var (
 		},
 		types.PayPlanType("enterprise_plan"): {
 			Type:              types.PayPlanType("enterprise_plan"),
+			Name:              "Enterprise Plan",
+			Description:       "Enterprise plan for testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}, "0034": {}},
 			MonthlyRelayLimit: 20_000_000,
 			ThroughputLimit:   20_000,
@@ -108,6 +124,8 @@ var (
 		},
 		types.PayPlanType("developer_plan"): {
 			Type:              types.PayPlanType("developer_plan"),
+			Name:              "Developer Plan",
+			Description:       "Developer plan for testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0034": {}},
 			MonthlyRelayLimit: 500_000,
 			ThroughputLimit:   500,
@@ -117,6 +135,8 @@ var (
 		},
 		types.PayPlanType("startup_plan"): {
 			Type:              types.PayPlanType("startup_plan"),
+			Name:              "Startup Plan",
+			Description:       "Startup plan for testing purposes",
 			ChainIDs:          map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			MonthlyRelayLimit: 1_000_000,
 			ThroughputLimit:   1_000,
@@ -129,6 +149,8 @@ var (
 	Accounts = map[types.AccountID]*types.Account{
 		"account_1": {
 			ID:       "account_1",
+			Name:     "The Brave Voyager",
+			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_1": AccountUserAccess[1],
@@ -146,6 +168,8 @@ var (
 		},
 		"account_2": {
 			ID:       "account_2",
+			Name:     "Dragonborn Explorer",
+			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("pro_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_3": AccountUserAccess[3],
@@ -164,6 +188,8 @@ var (
 		},
 		"account_3": {
 			ID:       "account_3",
+			Name:     "Fellowship Startup",
+			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("startup_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_5":  AccountUserAccess[5],
@@ -182,6 +208,8 @@ var (
 		},
 		"account_4": {
 			ID:       "account_4",
+			Name:     "Iron Throne Enterprise",
+			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("enterprise_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -197,6 +225,8 @@ var (
 		},
 		"account_5": {
 			ID:       "account_5",
+			Name:     "Nomad Wanderer",
+			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("basic_plan"),
 			Users: map[types.UserID]types.AccountUserAccess{
 				"user_4": AccountUserAccess[11],
@@ -211,6 +241,8 @@ var (
 
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
+		Name:      "Protogen Corp",
+		IconURL:   "https://picsum.photos/200",
 		PlanType:  types.PayPlanType("developer_plan"),
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
@@ -218,122 +250,174 @@ var (
 
 	AccountUserAccess = map[int]types.AccountUserAccess{
 		1: {
-			AccountID: "",
-			UserID:    "user_1",
-			Email:     "james.holden123@test.com",
-			Owner:     true,
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_1",
+			Email:            "james.holden123@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Owner:            true,
+			Accepted:         true,
+			UpdatesProduct:   true,
+			UpdatesMarketing: false,
+			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleOwner,
 			},
 		},
 		2: {
-			AccountID: "",
-			UserID:    "user_2",
-			Email:     "paul.atreides456@test.com",
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_2",
+			Email:            "paul.atreides456@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         true,
+			UpdatesProduct:   false,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
 		},
 		3: {
-			AccountID: "",
-			UserID:    "user_3",
-			Email:     "ellen.ripley789@test.com",
-			Owner:     true,
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_3",
+			Email:            "ellen.ripley789@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Owner:            true,
+			Accepted:         true,
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleOwner,
 			},
 		},
 		4: {
-			AccountID: "",
-			UserID:    "user_4",
-			Email:     "ulfric.stormcloak123@test.com",
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_4",
+			Email:            "ulfric.stormcloak123@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         true,
+			UpdatesProduct:   false,
+			UpdatesMarketing: false,
+			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		5: {
-			AccountID: "",
-			UserID:    "user_5",
-			Email:     "chrisjen.avasarala1@test.com",
-			Owner:     true,
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_5",
+			Email:            "chrisjen.avasarala1@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Owner:            true,
+			Accepted:         true,
+			UpdatesProduct:   true,
+			UpdatesMarketing: false,
+			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleOwner,
 			},
 		},
 		6: {
-			AccountID: "",
-			UserID:    "user_6",
-			Email:     "amos.burton789@test.com",
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_6",
+			Email:            "amos.burton789@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         true,
+			UpdatesProduct:   false,
+			UpdatesMarketing: true,
+			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleAdmin,
 			},
 		},
 		7: {
-			AccountID: "",
-			UserID:    "user_7",
-			Email:     "frodo.baggins123@test.com",
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_7",
+			Email:            "frodo.baggins123@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         true,
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},
 		},
 		8: {
-			AccountID: "",
-			UserID:    "user_8",
-			Email:     "rick.deckard456@test.com",
-			Accepted:  false,
+			AccountID:        "",
+			UserID:           "user_8",
+			Email:            "rick.deckard456@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         false,
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
 		},
 		9: {
-			AccountID: "",
-			UserID:    "user_9",
-			Email:     "tyrion.lannister789@test.com",
-			Accepted:  false,
+			AccountID:        "",
+			UserID:           "user_9",
+			Email:            "tyrion.lannister789@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         false,
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		// Paul is an admin of Account 1 as well as a member of Account 2
 		10: {
-			AccountID: "",
-			UserID:    "user_2",
-			Email:     "paul.atreides456@test.com",
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_2",
+			Email:            "paul.atreides456@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         true,
+			UpdatesProduct:   false,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
 		},
 		// Ulfric is an admin of Account 2 as well as the owner of Accounts 4 and 5
 		11: {
-			AccountID: "",
-			UserID:    "user_4",
-			Email:     "ulfric.stormcloak123@test.com",
-			Owner:     true,
-			Accepted:  true,
+			AccountID:        "",
+			UserID:           "user_4",
+			Email:            "ulfric.stormcloak123@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Owner:            true,
+			Accepted:         true,
+			UpdatesProduct:   false,
+			UpdatesMarketing: false,
+			BetaTester:       true,
 		},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
 		12: {
-			AccountID: "",
-			UserID:    "user_10",
-			Email:     "daenerys.targaryen123@test.com",
-			Accepted:  false,
+			AccountID:        "",
+			UserID:           "user_10",
+			Email:            "daenerys.targaryen123@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         false,
+			UpdatesProduct:   false,
+			UpdatesMarketing: false,
+			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},
 		},
 		// Bernard is an existing user and is used to create a new AccountUserAccess row
 		13: {
-			UserID:   "user_11",
-			Email:    "bernard.marx@test.com",
-			Accepted: false,
+			UserID:           "user_11",
+			Email:            "bernard.marx@test.com",
+			IconURL:          "https://picsum.photos/200",
+			Accepted:         false,
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 		},
 		// Winston has not signed up yet and is used to create a new AccountUserAccess row
 		14: {
@@ -344,9 +428,13 @@ var (
 
 	Users = map[types.UserID]*types.User{
 		"user_1": {
-			ID:       "user_1",
-			Email:    "james.holden123@test.com",
-			SignedUp: true,
+			ID:               "user_1",
+			Email:            "james.holden123@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   true,
+			UpdatesMarketing: false,
+			BetaTester:       true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|james_holden",
@@ -365,9 +453,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_2": {
-			ID:       "user_2",
-			Email:    "paul.atreides456@test.com",
-			SignedUp: true,
+			ID:               "user_2",
+			Email:            "paul.atreides456@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   false,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|paul_atreides",
@@ -386,9 +478,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_3": {
-			ID:       "user_3",
-			Email:    "ellen.ripley789@test.com",
-			SignedUp: true,
+			ID:               "user_3",
+			Email:            "ellen.ripley789@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|ellen_ripley",
@@ -401,9 +497,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_4": {
-			ID:       "user_4",
-			Email:    "ulfric.stormcloak123@test.com",
-			SignedUp: true,
+			ID:               "user_4",
+			Email:            "ulfric.stormcloak123@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   false,
+			UpdatesMarketing: false,
+			BetaTester:       true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|ulfric_stormcloak",
@@ -416,9 +516,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_5": {
-			ID:       "user_5",
-			Email:    "chrisjen.avasarala1@test.com",
-			SignedUp: true,
+			ID:               "user_5",
+			Email:            "chrisjen.avasarala1@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   true,
+			UpdatesMarketing: false,
+			BetaTester:       false,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|chrisjen_avasarala",
@@ -431,9 +535,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_6": {
-			ID:       "user_6",
-			Email:    "amos.burton789@test.com",
-			SignedUp: true,
+			ID:               "user_6",
+			Email:            "amos.burton789@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   false,
+			UpdatesMarketing: true,
+			BetaTester:       true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|amos_burton",
@@ -446,9 +554,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_7": {
-			ID:       "user_7",
-			Email:    "frodo.baggins123@test.com",
-			SignedUp: true,
+			ID:               "user_7",
+			Email:            "frodo.baggins123@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       true,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|frodo_baggins",
@@ -461,9 +573,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_8": {
-			ID:       "user_8",
-			Email:    "rick.deckard456@test.com",
-			SignedUp: true,
+			ID:               "user_8",
+			Email:            "rick.deckard456@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|rick_deckard",
@@ -476,9 +592,13 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_9": {
-			ID:       "user_9",
-			Email:    "tyrion.lannister789@test.com",
-			SignedUp: true,
+			ID:               "user_9",
+			Email:            "tyrion.lannister789@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
 			AuthProviders: map[types.AuthType]types.UserAuthProvider{
 				types.AuthTypeAuth0Username: {
 					ProviderUserID: "auth0|tyrion_lannister",
@@ -491,12 +611,47 @@ var (
 			UpdatedAt: MockTimestamp,
 		},
 		"user_10": {
-			ID:            "user_10",
-			Email:         "daenerys.targaryen123@test.com",
-			SignedUp:      false,
-			AuthProviders: map[types.AuthType]types.UserAuthProvider{},
-			CreatedAt:     MockTimestamp,
-			UpdatedAt:     MockTimestamp,
+			ID:               "user_10",
+			Email:            "daenerys.targaryen123@test.com",
+			SignedUp:         false,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   false,
+			UpdatesMarketing: false,
+			BetaTester:       true,
+			AuthProviders:    map[types.AuthType]types.UserAuthProvider{},
+			CreatedAt:        MockTimestamp,
+			UpdatedAt:        MockTimestamp,
+		},
+		"user_11": {
+			ID:               "user_11",
+			Email:            "bernard.marx@test.com",
+			SignedUp:         true,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   true,
+			UpdatesMarketing: true,
+			BetaTester:       false,
+			AuthProviders: map[types.AuthType]types.UserAuthProvider{
+				types.AuthTypeAuth0Username: {
+					ProviderUserID: "auth0|bernard_marx",
+					Type:           types.AuthTypeAuth0Username,
+					Provider:       "auth0",
+					Federated:      false,
+				},
+			},
+			CreatedAt: MockTimestamp,
+			UpdatedAt: MockTimestamp,
+		},
+		"user_12": {
+			ID:               "user_12",
+			Email:            "george.foreman@test.com",
+			SignedUp:         false,
+			IconURL:          "https://picsum.photos/200",
+			UpdatesProduct:   false,
+			UpdatesMarketing: true,
+			BetaTester:       false,
+			AuthProviders:    map[types.AuthType]types.UserAuthProvider{},
+			CreatedAt:        MockTimestamp,
+			UpdatedAt:        MockTimestamp,
 		},
 	}
 
@@ -619,9 +774,11 @@ var (
 
 	PortalApps = map[types.PortalAppID]*types.PortalApp{
 		"test_app_1": {
-			ID:        "test_app_1",
-			AccountID: "account_1",
-			Name:      "pokt_app_123",
+			ID:          "test_app_1",
+			AccountID:   "account_1",
+			Name:        "pokt_app_123",
+			AppEmoji:    "🚀",
+			Description: "Embark on an interstellar journey with our powerful application.",
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_1": {
 					ID:              "test_protocol_app_1",
@@ -674,9 +831,11 @@ var (
 			},
 		},
 		"test_app_2": {
-			ID:        "test_app_2",
-			AccountID: "account_2",
-			Name:      "pokt_app_456",
+			ID:          "test_app_2",
+			AccountID:   "account_2",
+			Name:        "pokt_app_456",
+			AppEmoji:    "🔮",
+			Description: "Unveil the mysteries of the multiverse with our enchanting application.",
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_2": {
 					ID:              "test_protocol_app_2",
@@ -728,9 +887,11 @@ var (
 			},
 		},
 		"test_app_3": {
-			ID:        "test_app_3",
-			AccountID: "account_3",
-			Name:      "pokt_app_789",
+			ID:          "test_app_3",
+			AccountID:   "account_3",
+			Name:        "pokt_app_789",
+			AppEmoji:    "🌐",
+			Description: "Harness the power of a connected world with our revolutionary application.",
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_3": {
 					ID:              "test_protocol_app_3",
@@ -896,6 +1057,7 @@ var (
 	Chains = map[types.RelayChainID]*types.Chain{
 		"0001": {
 			ID:            "0001",
+			IconURL:       "https://picsum.photos/200",
 			Blockchain:    "pokt-mainnet",
 			Description:   "Pocket Network Mainnet",
 			EnforceResult: "JSON",
@@ -929,6 +1091,7 @@ var (
 		},
 		"0053": {
 			ID:             "0053",
+			IconURL:        "https://picsum.photos/200",
 			Blockchain:     "optimism-mainnet",
 			Description:    "Optimism Mainnet",
 			EnforceResult:  "JSON",
@@ -964,6 +1127,7 @@ var (
 		},
 		"0021": {
 			ID:             "0021",
+			IconURL:        "https://picsum.photos/200",
 			Blockchain:     "eth-mainnet",
 			Description:    "Ethereum Mainnet",
 			EnforceResult:  "JSON",
@@ -1004,6 +1168,7 @@ var (
 		},
 		"0064": {
 			ID:             "0064",
+			IconURL:        "https://picsum.photos/200",
 			Blockchain:     "sui-testnet",
 			Description:    "Sui Testnet",
 			EnforceResult:  "JSON",
@@ -1034,6 +1199,7 @@ var (
 		},
 		"0040": {
 			ID:            "0040",
+			IconURL:       "https://picsum.photos/200",
 			Blockchain:    "harmony-0",
 			Description:   "Harmony Shard 0",
 			EnforceResult: "JSON",
@@ -1070,10 +1236,11 @@ var (
 
 	// TestCreatePortalApp app used to test creation of PortalApps
 	TestCreatePortalApp = &types.PortalApp{
-		ID:        "test_app_create_208r23r",
-		AccountID: "account_4",
-		Name:      "create_pokt_app_1",
-
+		ID:          "test_app_create_208r23r",
+		AccountID:   "account_4",
+		Name:        "create_pokt_app_1",
+		Description: "Embark on a journey across the enchanting realm of Middle-earth.",
+		AppEmoji:    "💍",
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
@@ -1126,6 +1293,7 @@ var (
 	// TestCreateChain used to test creation of Chains
 	TestCreateChain = &types.Chain{
 		ID:            "0006",
+		IconURL:       "https://picsum.photos/200",
 		Blockchain:    "solana-mainnet",
 		Description:   "Solana",
 		EnforceResult: "JSON",
@@ -1231,10 +1399,12 @@ var (
 
 	// TestUpdatePortalApp app used to test updates of PortalApps
 	TestUpdatePortalApp = &types.PortalApp{
-		ID:        "test_app_update_b03ca84c",
-		AccountID: "account_1",
-		Name:      "", // name set in test
-		AATs:      map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
+		ID:          "test_app_update_b03ca84c",
+		AccountID:   "account_1",
+		Name:        "", // name set in test
+		Description: "Embark on a journey across the solar system with Pur'n'Kleen",
+		AppEmoji:    "🪐",
+		AATs:        map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_849c1397586f9fb6f902576120d0d10f",
@@ -1250,8 +1420,10 @@ var (
 		},
 	}
 
-	UpdatePortalAppName     = "portal-app-updated"
-	UpdatePortalAppSettings = &types.UpdateAppSettings{
+	UpdatePortalAppName        = "portal-app-updated"
+	UpdatePortalAppDescription = "Updating the application name like the shifting sands of Arrakis."
+	UpdatePortalAppEmoji       = types.AppEmoji("🐱‍🐉")
+	UpdatePortalAppSettings    = &types.UpdateAppSettings{
 		Environment:       types.EnvironmentProduction,
 		SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
 		SecretKeyRequired: true,
@@ -1320,6 +1492,7 @@ var (
 
 	UpdateChainOne = types.UpdateChain{
 		ID:            "0001",
+		IconURL:       newString("https://picsum.photos/246"),
 		Blockchain:    newChainAlias("mainnet-NEW"),
 		Description:   newString("Pocket Network Mainnet Update"),
 		EnforceResult: newString("JSON"),
@@ -1369,6 +1542,7 @@ var (
 	}
 	UpdateChainTwo = types.UpdateChain{
 		ID:            "0001",
+		IconURL:       newString("https://picsum.photos/200"),
 		Blockchain:    newChainAlias("mainnet-ULTRA"),
 		Description:   newString("Pocket Network Mainnet Original"),
 		EnforceResult: newString("JSON"),
@@ -1407,11 +1581,34 @@ var (
 	}
 
 	// UpdateChainNotExists used to test updating a Chain that doesn't exist
-	UpdateChainNotExists  = types.UpdateChain{ID: "0073"}
-	UpdateChainInvalidURL = types.UpdateChain{ID: "0073",
+	UpdateChainNotExists      = types.UpdateChain{ID: "0073"}
+	UpdateChainInvalidIconURL = types.UpdateChain{ID: "0001", IconURL: newString("what_is_555")}
+	UpdateChainInvalidURL     = types.UpdateChain{ID: "0073",
 		Altruists: &map[types.AltruistURL]types.Altruist{
 			"htz:/bad-domain2": {URL: "htz:/bad-domain2"},
 		},
+	}
+
+	UpdateUserOne = types.UpdateUser{
+		ID:               "user_5",
+		IconURL:          newString("https://picsum.photos/227"),
+		UpdatesProduct:   newBool(false),
+		UpdatesMarketing: newBool(false),
+		BetaTester:       newBool(true),
+		UpdatedAt:        MockTimestamp,
+	}
+	UpdateUserTwo = types.UpdateUser{
+		ID:               "user_5",
+		IconURL:          newString("https://picsum.photos/200"),
+		UpdatesProduct:   newBool(true),
+		UpdatesMarketing: newBool(false),
+		BetaTester:       newBool(false),
+		UpdatedAt:        MockTimestamp,
+	}
+	UpdateUserInvalidURL = types.UpdateUser{
+		ID:        "user_5",
+		IconURL:   newString("i-am-not-a-url"),
+		UpdatedAt: MockTimestamp,
 	}
 
 	/* ----- Legacy Data ----- */

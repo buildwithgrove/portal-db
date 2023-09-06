@@ -1,5 +1,7 @@
 -- Insert pay_plans
 INSERT INTO pay_plans (
+        name,
+        description,
         plan_type,
         chain_ids,
         monthly_relay_limit,
@@ -10,6 +12,8 @@ INSERT INTO pay_plans (
         daily_limit
     )
 VALUES (
+        'Free Tier',
+        'Ideal for small projects and testing',
         'FREETIER_V0',
         ARRAY ['0001', '0053'],
         5000000,
@@ -20,6 +24,8 @@ VALUES (
         250000
     ),
     (
+        'Pay As You Go',
+        'Pay only for what you use',
         'PAY_AS_YOU_GO_V0',
         ARRAY ['0001', '0053'],
         10000000,
@@ -30,6 +36,8 @@ VALUES (
         0
     ),
     (
+        'Enterprise',
+        'Premium plan for large businesses',
         'ENTERPRISE',
         ARRAY ['0001', '0053'],
         10000000,
@@ -40,6 +48,8 @@ VALUES (
         0
     ),
     (
+        'Test Plan',
+        'For testing purposes',
         'TEST_PLAN_V0',
         ARRAY ['0001', '0053'],
         10000000,
@@ -50,6 +60,8 @@ VALUES (
         0
     ),
     (
+        'Test Plan 10K',
+        'Test plan with 10K daily limit for testing purposes',
         'TEST_PLAN_10K',
         ARRAY ['0001', '0053'],
         10000000,
@@ -60,6 +72,8 @@ VALUES (
         10000
     ),
     (
+        'Test Plan 90K',
+        'Test plan with 90K daily limit for testing purposes',
         'TEST_PLAN_90K',
         ARRAY ['0001', '0053'],
         90000000,
@@ -70,6 +84,8 @@ VALUES (
         90000
     ),
     (
+        'Basic Plan',
+        'Basic plan for testing purposes',
         'basic_plan',
         ARRAY ['0001', '0053'],
         5000000,
@@ -80,8 +96,10 @@ VALUES (
         1000
     ),
     (
+        'Pro Plan',
+        'Pro plan for testing purposes',
         'pro_plan',
-        ARRAY ['0001', '0053','0021', '0064'],
+        ARRAY ['0001', '0053', '0021', '0064'],
         10000000,
         10000,
         5,
@@ -90,8 +108,10 @@ VALUES (
         5000
     ),
     (
+        'Enterprise Plan',
+        'Enterprise plan for testing purposes',
         'enterprise_plan',
-        ARRAY ['0001', '0053','0021', '0064', '0034'],
+        ARRAY ['0001', '0053', '0021', '0064', '0034'],
         20000000,
         20000,
         10,
@@ -100,8 +120,10 @@ VALUES (
         10000
     ),
     (
+        'Developer Plan',
+        'Developer plan for testing purposes',
         'developer_plan',
-        ARRAY ['0001', '0053','0021', '0034'],
+        ARRAY ['0001', '0053', '0021', '0034'],
         500000,
         500,
         1,
@@ -110,6 +132,8 @@ VALUES (
         100
     ),
     (
+        'Startup Plan',
+        'Startup plan for testing purposes',
         'startup_plan',
         ARRAY ['0001', '0053', '0064', '0034'],
         1000000,
@@ -120,90 +144,148 @@ VALUES (
         500
     );
 -- Insert users
-INSERT INTO users (id, email, signed_up, created_at, updated_at)
+INSERT INTO users (
+        id,
+        email,
+        signed_up,
+        created_at,
+        updated_at,
+        icon_url,
+        updates_product,
+        updates_marketing,
+        beta_tester
+    )
 VALUES (
         'user_1',
         'james.holden123@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        true,
+        false,
+        true
     ),
     (
         'user_2',
         'paul.atreides456@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        false,
+        true,
+        false
     ),
     (
         'user_3',
         'ellen.ripley789@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        true,
+        true,
+        false
     ),
     (
         'user_4',
         'ulfric.stormcloak123@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        false,
+        false,
+        true
     ),
     (
         'user_5',
         'chrisjen.avasarala1@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        true,
+        false,
+        false
     ),
     (
         'user_6',
         'amos.burton789@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        false,
+        true,
+        true
     ),
     (
         'user_7',
         'frodo.baggins123@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        true,
+        true,
+        true
     ),
     (
         'user_8',
         'rick.deckard456@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        true,
+        true,
+        false
     ),
     (
         'user_9',
         'tyrion.lannister789@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        true,
+        true,
+        false
     ),
     (
         'user_10',
         'daenerys.targaryen123@test.com',
         false,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        false,
+        false,
+        true
     ),
     (
         'user_11',
         'bernard.marx@test.com',
         true,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        true,
+        true,
+        false
     ),
     (
         'user_12',
         'george.foreman@test.com',
         false,
         '2022-11-11 11:11:11.000000',
-        '2022-11-11 11:11:11.000000'
+        '2022-11-11 11:11:11.000000',
+        'https://picsum.photos/200',
+        false,
+        true,
+        false
     );
 INSERT INTO user_auth_providers (
         user_id,
@@ -312,6 +394,8 @@ VALUES (
 -- Insert accounts
 INSERT INTO accounts (
         id,
+        name,
+        icon_url,
         plan_type,
         partner_chain_ids,
         partner_throughput_limit,
@@ -321,6 +405,8 @@ INSERT INTO accounts (
     )
 VALUES (
         'account_1',
+        'The Brave Voyager',
+        'https://picsum.photos/200',
         'basic_plan',
         ARRAY ['0001', '0053'],
         2000,
@@ -330,6 +416,8 @@ VALUES (
     ),
     (
         'account_2',
+        'Dragonborn Explorer',
+        'https://picsum.photos/200',
         'pro_plan',
         ARRAY ['0001', '0053','0021', '0064'],
         5000,
@@ -339,6 +427,8 @@ VALUES (
     ),
     (
         'account_3',
+        'Fellowship Startup',
+        'https://picsum.photos/200',
         'startup_plan',
         ARRAY ['0001', '0053', '0064', '0034'],
         1000,
@@ -348,6 +438,8 @@ VALUES (
     ),
     (
         'account_4',
+        'Iron Throne Enterprise',
+        'https://picsum.photos/200',
         'enterprise_plan',
         ARRAY ['0001'],
         1000,
@@ -357,6 +449,8 @@ VALUES (
     ),
     (
         'account_5',
+        'Nomad Wanderer',
+        'https://picsum.photos/200',
         'basic_plan',
         ARRAY ['0006', '0040'],
         6000,
@@ -423,6 +517,8 @@ INSERT INTO portal_applications (
         id,
         account_id,
         name,
+        app_emoji,
+        description,
         request_timeout,
         first_date_surpassed,
         plan_type,
@@ -435,6 +531,8 @@ VALUES (
         'test_app_1',
         'account_1',
         'pokt_app_123',
+        '🚀',
+        'Embark on an interstellar journey with our powerful application.',
         5000,
         '2022-11-11 11:11:11.000000',
         'FREETIER_V0',
@@ -447,6 +545,8 @@ VALUES (
         'test_app_2',
         'account_2',
         'pokt_app_456',
+        '🔮',
+        'Unveil the mysteries of the multiverse with our enchanting application.',
         10000,
         '2022-11-11 11:11:11.000000',
         'PAY_AS_YOU_GO_V0',
@@ -459,6 +559,8 @@ VALUES (
         'test_app_3',
         'account_3',
         'pokt_app_789',
+        '🌐',
+        'Harness the power of a connected world with our revolutionary application.',
         10000,
         '2022-11-11 11:11:11.000000',
         'ENTERPRISE',
@@ -800,6 +902,7 @@ VALUES (
     );
 INSERT INTO chains (
         id,
+        icon_url,
         blockchain,
         description,
         enforce_result,
@@ -813,6 +916,7 @@ INSERT INTO chains (
     )
 VALUES (
         '0001',
+        'https://picsum.photos/200',
         'pokt-mainnet',
         'Pocket Network Mainnet',
         'JSON',
@@ -826,6 +930,7 @@ VALUES (
     ),
     (
         '0053',
+        'https://picsum.photos/200',
         'optimism-mainnet',
         'Optimism Mainnet',
         'JSON',
@@ -839,6 +944,7 @@ VALUES (
     ),
     (
         '0021',
+        'https://picsum.photos/200',
         'eth-mainnet',
         'Ethereum Mainnet',
         'JSON',
@@ -852,6 +958,7 @@ VALUES (
     ),
     (
         '0064',
+        'https://picsum.photos/200',
         'sui-testnet',
         'Sui Testnet',
         'JSON',
@@ -865,6 +972,7 @@ VALUES (
     ),
     (
         '0040',
+        'https://picsum.photos/200',
         'harmony-0',
         'Harmony Shard 0',
         'JSON',

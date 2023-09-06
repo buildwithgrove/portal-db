@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/pokt-foundation/portal-db/v2/types"
@@ -13,17 +13,22 @@ import (
 
 type (
 	userAccessDBRow struct {
-		UserID         string                               `json:"user_id"`
-		Email          string                               `json:"email"`
-		Owner          bool                                 `json:"owner"`
-		Accepted       bool                                 `json:"accepted"`
-		PortalAppRoles map[types.PortalAppID]types.RoleName `json:"portal_application_roles"`
+		UserID           string                               `json:"user_id"`
+		Email            string                               `json:"email"`
+		IconURL          string                               `json:"icon_url"`
+		Owner            bool                                 `json:"owner"`
+		Accepted         bool                                 `json:"accepted"`
+		UpdatesMarketing bool                                 `json:"updates_marketing"`
+		UpdatesProduct   bool                                 `json:"updates_product"`
+		BetaTester       bool                                 `json:"beta_tester"`
+		PortalAppRoles   map[types.PortalAppID]types.RoleName `json:"portal_application_roles"`
 	}
 )
 
 var (
 	errNoRoleName                = errors.New("error no role name set")
 	errInvalidRoleName           = errors.New("error invalid role name set")
+	errInvalidIconURL            = errors.New("error icon URL '%s' is not a valid URL")
 	errPayPlanDoesntExist        = errors.New("error pay plan '%s' does not exist")
 	errAccountDoesntExist        = errors.New("error account does not exist for account ID '%s'")
 	errAccountUserDoesntExist    = errors.New("error user ID '%s' does not exist for portal app ID '%s'")
@@ -83,7 +88,9 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 
 	return &types.Account{
 		ID:                     a.ID,
-		PlanType:               a.PlanType,
+		Name:                   a.Name.String,
+		IconURL:                a.IconURL.String,
+		PlanType:               types.PayPlanType(a.PlanType.String),
 		Users:                  accountUsers,
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: a.PartnerThroughputLimit.Int32,
@@ -112,11 +119,15 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	for _, user := range userRows {
 		if user.UserID != "" {
 			users[types.UserID(user.UserID)] = types.AccountUserAccess{
-				UserID:         types.UserID(user.UserID),
-				Email:          types.Email(user.Email),
-				Owner:          user.Owner,
-				Accepted:       user.Accepted,
-				PortalAppRoles: user.PortalAppRoles,
+				UserID:           types.UserID(user.UserID),
+				Email:            types.Email(user.Email),
+				IconURL:          user.IconURL,
+				Owner:            user.Owner,
+				Accepted:         user.Accepted,
+				UpdatesMarketing: user.UpdatesMarketing,
+				UpdatesProduct:   user.UpdatesProduct,
+				BetaTester:       user.BetaTester,
+				PortalAppRoles:   user.PortalAppRoles,
 			}
 		}
 	}
@@ -124,7 +135,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	return users, nil
 }
 
-// /* ----- postgresdriver Account Create Methods ----- */
+/* ----- postgresdriver Account Create Methods ----- */
 
 // WriteAccount creates a single Account in the database, including its OWNER's AccountUserAccess row
 func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.UserID, account types.Account, createdAt time.Time) (*types.Account, error) {
@@ -149,7 +160,9 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 	createdAccount, err := qtx.InsertAccount(ctx, InsertAccountParams{
 		ID:        account.ID,
-		PlanType:  account.PlanType,
+		Name:      newText(account.Name),
+		IconURL:   newText(account.IconURL),
+		PlanType:  newText(string(account.PlanType)),
 		CreatedAt: newTimestamptz(createdAt),
 		UpdatedAt: newTimestamptz(createdAt),
 	})
@@ -161,7 +174,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	account.CreatedAt = createdAt
 	account.UpdatedAt = createdAt
 
-	userEmail, err := qtx.GetUserEmail(ctx, creatorID)
+	user, err := qtx.GetUserFields(ctx, creatorID)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +183,7 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	_, err = qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
 		AccountID: createdAccount.ID,
 		UserID:    creatorID,
-		Email:     userEmail,
+		Email:     user.Email,
 		RoleName:  types.RoleOwner,
 		Owner:     true,
 		Accepted:  true,
@@ -189,10 +202,14 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	// Assign OWNER to returned Account struct
 	account.Users = map[types.UserID]types.AccountUserAccess{
 		types.UserID(creatorID): {
-			UserID:   types.UserID(creatorID),
-			Email:    types.Email(userEmail),
-			Owner:    true,
-			Accepted: true,
+			UserID:           types.UserID(creatorID),
+			Email:            types.Email(user.Email),
+			IconURL:          user.IconURL.String,
+			UpdatesProduct:   user.UpdatesProduct.Bool,
+			UpdatesMarketing: user.UpdatesMarketing.Bool,
+			BetaTester:       user.BetaTester.Bool,
+			Owner:            true,
+			Accepted:         true,
 		},
 	}
 
@@ -201,6 +218,13 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 
 // validateWriteAccountInput validates the input to create a new Account
 func (pg *PostgresDriver) validateWriteAccountInput(ctx context.Context, creatorID types.UserID, account types.Account) error {
+	if account.IconURL != "" {
+		_, err := url.ParseRequestURI(account.IconURL)
+		if err != nil {
+			return fmt.Errorf(errInvalidIconURL.Error(), account.IconURL)
+		}
+	}
+
 	planExists, err := pg.CheckPlanTypeExists(ctx, account.PlanType)
 	if err != nil {
 		return err
@@ -246,9 +270,16 @@ func (pg *PostgresDriver) UpsertAccountIntegration(ctx context.Context, integrat
 
 // UpdateAccount updates a single Account in the database's PlanType field
 func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.UpdateAccount, updatedAt time.Time) (*types.Account, error) {
-	err := pg.UpdateAccountFields(ctx, UpdateAccountFieldsParams{
+	err := pg.validateUpdateAccountInput(ctx, update)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pg.UpdateAccountFields(ctx, UpdateAccountFieldsParams{
 		ID:        update.AccountID,
-		PlanType:  update.PlanType,
+		Name:      newText(update.Name),
+		IconURL:   newText(update.IconURL),
+		PlanType:  newText(string(update.PlanType)),
 		UpdatedAt: newTimestamptz(updatedAt),
 	})
 	if err != nil {
@@ -257,14 +288,13 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 
 	accountResult, err := pg.SelectAccount(ctx, update.AccountID)
 	if err != nil {
-		if strings.Contains(err.Error(), "no rows in result set") {
-			return nil, fmt.Errorf(errAccountDoesntExist.Error(), update.AccountID)
-		}
 		return nil, err
 	}
 
 	accountData := &SelectAccountsRow{
 		ID:                      accountResult.ID,
+		Name:                    accountResult.Name,
+		IconURL:                 accountResult.IconURL,
 		PlanType:                accountResult.PlanType,
 		PartnerChainIDs:         accountResult.PartnerChainIDs,
 		PartnerThroughputLimit:  accountResult.PartnerThroughputLimit,
@@ -283,6 +313,36 @@ func (pg *PostgresDriver) UpdateAccount(ctx context.Context, update types.Update
 	}
 
 	return account, nil
+}
+
+// validateUpdateAccountInput validates the input to udapte an Account
+func (pg *PostgresDriver) validateUpdateAccountInput(ctx context.Context, update types.UpdateAccount) error {
+	if update.IconURL != "" {
+		_, err := url.ParseRequestURI(update.IconURL)
+		if err != nil {
+			return fmt.Errorf(errInvalidIconURL.Error(), update.IconURL)
+		}
+	}
+
+	accountExists, err := pg.CheckAccountExists(ctx, update.AccountID)
+	if err != nil {
+		return err
+	}
+	if !accountExists {
+		return fmt.Errorf(errAccountDoesntExist.Error(), update.AccountID)
+	}
+
+	if update.PlanType != "" {
+		planExists, err := pg.CheckPlanTypeExists(ctx, update.PlanType)
+		if err != nil {
+			return err
+		}
+		if !planExists {
+			return fmt.Errorf(errPayPlanDoesntExist.Error(), update.PlanType)
+		}
+	}
+
+	return nil
 }
 
 /* ----- postgresdriver Account Delete Methods ----- */
@@ -688,6 +748,8 @@ func (json dbAccount) toOutput() *types.Account {
 
 	return &types.Account{
 		ID:                     json.ID,
+		Name:                   json.Name,
+		IconURL:                json.IconURL,
 		PlanType:               json.PlanType,
 		PartnerChainIDs:        partnerChainIDs,
 		PartnerThroughputLimit: json.PartnerThroughputLimit,
@@ -723,6 +785,8 @@ func (j dbAccountIntegration) toOutput() *types.AccountIntegrations {
 
 type dbAccount struct {
 	ID                      types.AccountID   `json:"id"`
+	Name                    string            `json:"name"`
+	IconURL                 string            `json:"icon_url"`
 	PlanType                types.PayPlanType `json:"plan_type"`
 	PartnerChainIDs         []string          `json:"partner_chain_ids"`
 	PartnerThroughputLimit  int32             `json:"partner_throughput_limit"`

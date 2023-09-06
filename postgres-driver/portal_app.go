@@ -27,6 +27,7 @@ type (
 )
 
 var (
+	errInvalidAppEmoji            = errors.New("provided app emoji field is not an emoji")
 	errEmptyPortalAppName         = errors.New("portal app name cannot be empty")
 	errInvalidEnvironment         = errors.New("invalid portal app environment provided: %s")
 	errUnmarshallingWhitelists    = errors.New("error unmarshalling whitelists")
@@ -92,9 +93,11 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 	}
 
 	return &types.PortalApp{
-		ID:        types.PortalAppID(a.ID),
-		AccountID: types.AccountID(a.AccountID.String),
-		Name:      a.Name,
+		ID:          types.PortalAppID(a.ID),
+		AccountID:   types.AccountID(a.AccountID.String),
+		Name:        a.Name,
+		Description: a.Description.String,
+		AppEmoji:    types.AppEmoji(a.AppEmoji.String),
 		Settings: types.Settings{
 			Environment:       types.Environment(a.Environment.Environment),
 			SecretKey:         a.SecretKey.String,
@@ -208,11 +211,13 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	qtx := pg.WithTx(tx)
 
 	_, err = qtx.InsertPortalApplication(ctx, InsertPortalApplicationParams{
-		ID:        portalApp.ID,
-		AccountID: newText(string(portalApp.AccountID)),
-		Name:      portalApp.Name,
-		CreatedAt: newTimestamptz(portalApp.CreatedAt),
-		UpdatedAt: newTimestamptz(portalApp.UpdatedAt),
+		ID:          portalApp.ID,
+		AccountID:   newText(string(portalApp.AccountID)),
+		Name:        portalApp.Name,
+		Description: newText(portalApp.Description),
+		AppEmoji:    newText(string(portalApp.AppEmoji)),
+		CreatedAt:   newTimestamptz(portalApp.CreatedAt),
+		UpdatedAt:   newTimestamptz(portalApp.UpdatedAt),
 		// TODO remove legacy fields when migration to V2 schema complete
 		PlanType:           portalApp.LegacyFields.PlanType,
 		DailyLimit:         newInt4(portalApp.LegacyFields.DailyLimit, true),
@@ -323,6 +328,9 @@ func (pg *PostgresDriver) generatePortalAppIDs(ctx context.Context) (types.Porta
 
 // validatePortalAppInput performs all necessary data validation checks on incoming PortalApp data
 func (pg *PostgresDriver) validatePortalAppInput(ctx context.Context, portalApp types.PortalApp, aat types.AAT) error {
+	if !portalApp.AppEmoji.IsValid() {
+		return errInvalidAppEmoji
+	}
 	if portalApp.Name == "" {
 		return errEmptyPortalAppName
 	}
@@ -360,10 +368,19 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 
 	qtx := pg.WithTx(tx)
 
-	if update.Name != "" || update.PlanType != "" || update.CustomLimit != 0 {
+	if !update.IsEmpty() {
 		updateApp := UpdatePortalAppFieldsParams{ID: update.AppID, UpdatedAt: newTimestamptz(updatedAt)}
+
 		if update.Name != "" {
 			updateApp.Name = update.Name
+		}
+
+		if update.Description != "" {
+			updateApp.Description = update.Description
+		}
+
+		if update.AppEmoji != "" {
+			updateApp.AppEmoji = string(update.AppEmoji)
 		}
 
 		if update.PlanType != "" {
@@ -569,6 +586,8 @@ func (json dbPortalApplication) toOutput() *types.PortalApp {
 		ID:                 json.ID,
 		AccountID:          types.AccountID(json.AccountID),
 		Name:               json.Name,
+		Description:        json.Description,
+		AppEmoji:           types.AppEmoji(json.AppEmoji),
 		FirstDateSurpassed: json.FirstDateSurpassed,
 		CreatedAt:          json.CreatedAt,
 		UpdatedAt:          json.UpdatedAt,
@@ -646,6 +665,8 @@ type dbPortalApplication struct {
 	ID                 types.PortalAppID `json:"id"`
 	AccountID          string            `json:"account_id"`
 	Name               string            `json:"name"`
+	Description        string            `json:"description"`
+	AppEmoji           string            `json:"app_emoji"`
 	CreatedAt          time.Time         `json:"created_at"`
 	UpdatedAt          time.Time         `json:"updated_at"`
 	Deleted            bool              `json:"deleted"`

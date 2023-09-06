@@ -32,6 +32,8 @@ func (pg *PostgresDriver) ReadPlans(ctx context.Context) (map[types.PayPlanType]
 // toPlan converts PayPlan to Plan struct
 func (p *SelectPlansRow) toPlan() (*types.Plan, error) {
 	plan := &types.Plan{
+		Name:              p.Name.String,
+		Description:       p.Description.String,
 		Type:              p.PlanType,
 		ChainIDs:          make(map[types.RelayChainID]struct{}, len(p.ChainIDs)),
 		MonthlyRelayLimit: p.MonthlyRelayLimit,
@@ -56,6 +58,8 @@ func (json dbPayPlan) toOutput() *types.Plan {
 	}
 
 	return &types.Plan{
+		Name:              json.Name,
+		Description:       json.Description,
 		Type:              json.PlanType,
 		ChainIDs:          chainIDs,
 		MonthlyRelayLimit: json.MonthlyRelayLimit,
@@ -66,6 +70,8 @@ func (json dbPayPlan) toOutput() *types.Plan {
 }
 
 type dbPayPlan struct {
+	Name              string            `json:"name"`
+	Description       string            `json:"description"`
 	PlanType          types.PayPlanType `json:"plan_type"`
 	ChainIDs          []string          `json:"chain_ids"`
 	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`

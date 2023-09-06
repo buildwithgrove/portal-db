@@ -24,7 +24,9 @@ SELECT EXISTS (
             ) AS id_table
     );
 -- name: SelectPlans :many
-SELECT plan_type,
+SELECT name,
+    description,
+    plan_type,
     chain_ids,
     monthly_relay_limit,
     throughput_limit,
@@ -143,6 +145,8 @@ INSERT INTO portal_applications (
         id,
         account_id,
         name,
+        description,
+        app_emoji,
         created_at,
         updated_at,
         request_timeout,
@@ -164,7 +168,9 @@ VALUES (
         $7,
         $8,
         $9,
-        $10
+        $10,
+        $11,
+        $12
     )
 RETURNING *;
 -- name: InsertPortalApplicationAAT :one
@@ -190,8 +196,13 @@ INSERT INTO portal_application_settings (
     )
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
--- name: GetUserEmail :one
-SELECT email
+-- name: GetUserFields :one
+SELECT email,
+    signed_up,
+    icon_url,
+    updates_product,
+    updates_marketing,
+    beta_tester
 FROM users
 WHERE users.id = $1;
 -- name: GetAccountOwnerEmail :one
@@ -203,6 +214,8 @@ WHERE aua.account_id = $1
 -- name: UpdatePortalAppFields :exec
 UPDATE portal_applications
 SET name = COALESCE(NULLIF(@name::VARCHAR, ''), name),
+    description = COALESCE(NULLIF(@description::VARCHAR, ''), description),
+    app_emoji = COALESCE(NULLIF(@app_emoji::VARCHAR, ''), app_emoji),
     plan_type = COALESCE(NULLIF(@plan_type::VARCHAR, ''), plan_type),
     daily_limit = COALESCE($2, daily_limit),
     custom_limit = COALESCE($3, custom_limit),
@@ -347,6 +360,14 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
+            'icon_url',
+            u.icon_url,
+            'updates_product',
+            u.updates_product,
+            'updates_marketing',
+            u.updates_marketing,
+            'beta_tester',
+            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',
@@ -408,6 +429,14 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
+            'icon_url',
+            u.icon_url,
+            'updates_product',
+            u.updates_product,
+            'updates_marketing',
+            u.updates_marketing,
+            'beta_tester',
+            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',
@@ -430,12 +459,14 @@ GROUP BY a.id,
     ai.covalent_api_key_paid;
 -- name: UpdateAccountFields :exec
 UPDATE accounts
-SET plan_type = COALESCE($1, plan_type),
-    partner_chain_ids = COALESCE($2, partner_chain_ids),
-    partner_throughput_limit = COALESCE($3, partner_throughput_limit),
-    partner_application_limit = COALESCE($4, partner_application_limit),
-    updated_at = $5
-WHERE id = $6;
+SET name = COALESCE($1, name),
+    icon_url = COALESCE($2, icon_url),
+    plan_type = COALESCE($3, plan_type),
+    partner_chain_ids = COALESCE($4, partner_chain_ids),
+    partner_throughput_limit = COALESCE($5, partner_throughput_limit),
+    partner_application_limit = COALESCE($6, partner_application_limit),
+    updated_at = $7
+WHERE id = $8;
 -- name: UpsertAccountIntegrations :one
 INSERT INTO account_integrations (
         account_id,
@@ -488,10 +519,12 @@ FROM user_auth_providers;
 INSERT INTO accounts (
         id,
         plan_type,
+        name,
+        icon_url,
         created_at,
         updated_at
     )
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 -- name: DeleteAccount :exec
 UPDATE accounts
@@ -760,6 +793,14 @@ VALUES (
         $8
     )
 RETURNING user_id;
+-- name: UpdateUserFields :exec
+UPDATE users
+SET icon_url = COALESCE($1, icon_url),
+    updates_product = COALESCE($2, updates_product),
+    updates_marketing = COALESCE($3, updates_marketing),
+    beta_tester = COALESCE($4, beta_tester),
+    updated_at = $5
+WHERE id = $6;
 -- name: UpdateUserAcceptedInvite :exec
 WITH inserted_or_existing_provider AS (
     INSERT INTO user_auth_providers (
@@ -797,6 +838,12 @@ WHERE portal_application_id = $1
 SELECT user_id
 FROM user_auth_providers
 WHERE provider_user_id = $1;
+-- name: SelectAllUsers :many
+SELECT users.*,
+    json_agg(user_auth_providers.*) AS auth_providers
+FROM users
+    LEFT JOIN user_auth_providers ON users.id = user_auth_providers.user_id
+GROUP BY users.id;
 -- name: GetUserDataFromPortalUserID :one
 SELECT users.*,
     json_agg(user_auth_providers.*) AS auth_providers
@@ -885,6 +932,7 @@ GROUP BY c.id;
 -- name: InsertChain :one
 INSERT INTO chains (
         id,
+        icon_url,
         blockchain,
         description,
         enforce_result,
@@ -907,20 +955,22 @@ VALUES (
         $8,
         $9,
         $10,
-        $11
+        $11,
+        $12
     )
 RETURNING id;
 -- name: UpdateChain :one
 UPDATE chains
 SET blockchain = COALESCE($2, chains.blockchain),
-    description = COALESCE($3, chains.description),
-    enforce_result = COALESCE($4, chains.enforce_result),
-    path = COALESCE($5, chains.path),
-    ticker = COALESCE($6, chains.ticker),
-    request_timeout = COALESCE($7, chains.request_timeout),
-    log_limit_blocks = COALESCE($8, chains.log_limit_blocks),
-    allowed_methods = COALESCE($9, chains.allowed_methods),
-    updated_at = $10
+    icon_url = COALESCE($3, chains.icon_url),
+    description = COALESCE($4, chains.description),
+    enforce_result = COALESCE($5, chains.enforce_result),
+    path = COALESCE($6, chains.path),
+    ticker = COALESCE($7, chains.ticker),
+    request_timeout = COALESCE($8, chains.request_timeout),
+    log_limit_blocks = COALESCE($9, chains.log_limit_blocks),
+    allowed_methods = COALESCE($10, chains.allowed_methods),
+    updated_at = $11
 WHERE id = $1
 RETURNING id;
 -- name: UpsertChainAltruist :exec
