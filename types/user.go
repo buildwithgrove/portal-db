@@ -107,19 +107,24 @@ func (r RoleName) IsValid() bool {
 type (
 	// User represents a single Portal user
 	User struct {
-		ID               UserID                        `json:"id"`
-		Email            Email                         `json:"email"`
-		IconURL          string                        `json:"iconURL"`
-		SignedUp         bool                          `json:"signedUp"`
-		UpdatesProduct   bool                          `json:"updatesProduct"`
-		UpdatesMarketing bool                          `json:"updatesMarketing"`
-		BetaTester       bool                          `json:"betaTester"`
-		AuthProviders    map[AuthType]UserAuthProvider `json:"authProviders"`
-		CreatedAt        time.Time                     `json:"createdAt"`
-		UpdatedAt        time.Time                     `json:"updatedAt"`
-		// Permissions set in PHD cache
-		Permissions *UserPermissions `json:"permissions"`
+		ID               UserID                               `json:"id"`
+		Email            Email                                `json:"email"`
+		IconURL          string                               `json:"iconURL"`
+		SignedUp         bool                                 `json:"signedUp"`
+		UpdatesProduct   bool                                 `json:"updatesProduct"`
+		UpdatesMarketing bool                                 `json:"updatesMarketing"`
+		BetaTester       bool                                 `json:"betaTester"`
+		Permissions      map[PortalAppID]PortalAppPermissions `json:"permissions"`
+		AuthProviders    map[AuthType]UserAuthProvider        `json:"authProviders"`
+		CreatedAt        time.Time                            `json:"createdAt"`
+		UpdatedAt        time.Time                            `json:"updatedAt"`
 	}
+	// PortalAppPermissions stores user role and permissions for a given PortalApp
+	PortalAppPermissions struct {
+		RoleName    RoleName      `json:"roleName"`
+		Permissions []Permissions `json:"permissions"`
+	}
+
 	// UserAuthProvider represents a single auth provider for a user (eg. Auth0)
 	UserAuthProvider struct {
 		UserID         UserID         `json:"userID,omitempty"`
@@ -151,35 +156,21 @@ type (
 )
 
 /* UserPermissions Struct Definition and Methods */
-
-type (
-	// UserPermissions stores all roles and read/write permissions for all PortalApps for a given user
-	UserPermissions struct {
-		UserID     UserID                               `json:"userID"`
-		PortalApps map[PortalAppID]PortalAppPermissions `json:"portalApps"`
-	}
-	// PortalAppPermissions stores user role and permissions for a given PortalApp
-	PortalAppPermissions struct {
-		RoleName    RoleName      `json:"roleName"`
-		Permissions []Permissions `json:"permissions"`
-	}
-)
-
 var permissionsList = map[RoleName][]Permissions{
 	RoleOwner:  {PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 	RoleAdmin:  {PermReadEndpoint, PermWriteEndpoint},
 	RoleMember: {PermReadEndpoint},
 }
 
-func (u *UserPermissions) IsEmpty() bool {
-	if u == nil || u.UserID == UserID("") || len(u.PortalApps) == 0 {
+func (u *User) ArePermissionsEmpty() bool {
+	if u == nil || u.Permissions == nil || len(u.Permissions) == 0 {
 		return true
 	}
 	return false
 }
 
-func (u *UserPermissions) GetRole(portalAppID PortalAppID) RoleName {
-	app, ok := u.PortalApps[portalAppID]
+func (u *User) GetPortalAppRole(portalAppID PortalAppID) RoleName {
+	app, ok := u.Permissions[portalAppID]
 	if !ok {
 		return RoleName("")
 	}
@@ -187,7 +178,7 @@ func (u *UserPermissions) GetRole(portalAppID PortalAppID) RoleName {
 	return app.RoleName
 }
 
-func (u *UserPermissions) UpsertPermissions(portalAppID PortalAppID, role RoleName) (*UserPermissions, error) {
+func (u *User) UpsertPermissions(portalAppID PortalAppID, role RoleName) (map[PortalAppID]PortalAppPermissions, error) {
 	if portalAppID == "" {
 		return nil, errAccountIDIsEmpty
 	}
@@ -195,22 +186,22 @@ func (u *UserPermissions) UpsertPermissions(portalAppID PortalAppID, role RoleNa
 		return nil, errInvalidRole
 	}
 
-	u.PortalApps[portalAppID] = PortalAppPermissions{
+	u.Permissions[portalAppID] = PortalAppPermissions{
 		RoleName:    role,
 		Permissions: permissionsList[role],
 	}
 
-	return u, nil
+	return u.Permissions, nil
 }
 
-func (u *UserPermissions) DeletePermissions(portalAppID PortalAppID) *UserPermissions {
-	delete(u.PortalApps, portalAppID)
+func (u *User) DeletePermissions(portalAppID PortalAppID) map[PortalAppID]PortalAppPermissions {
+	delete(u.Permissions, portalAppID)
 
-	return u
+	return u.Permissions
 }
 
-func (u *UserPermissions) HasPermission(portalAppID PortalAppID, permission Permissions) bool {
-	app, ok := u.PortalApps[portalAppID]
+func (u *User) HasPermission(portalAppID PortalAppID, permission Permissions) bool {
+	app, ok := u.Permissions[portalAppID]
 	if !ok {
 		return false
 	}

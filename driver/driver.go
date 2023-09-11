@@ -32,15 +32,8 @@ type (
 		/* ReadPlans returns all Plans in the database */
 		ReadPlans(ctx context.Context) (map[types.PayPlanType]*types.Plan, error)
 
-		/* ReadUserIDsMap returns all Portal User IDs in the database as a map that takes the form map[types.ProviderUserID]types.UserID */
-		ReadUserIDsMap(ctx context.Context) (map[types.ProviderUserID]types.UserID, error)
-		/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
-		ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error)
-
 		/* ReadAllUsers returns all users as a map that takes the form map[types.UserID]*types.User */
 		ReadAllUsers(ctx context.Context) (map[types.UserID]*types.User, error)
-		/* ReadUserByUserID returns a single user from a portal UserID */
-		ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error)
 
 		/* ReadBlockedContracts returns all GlobalBlockedContracts in the DB */
 		ReadBlockedContracts(ctx context.Context) (types.GlobalBlockedContracts, error)

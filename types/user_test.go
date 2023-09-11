@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testUserPermissions = map[UserID]UserPermissions{
+var testUserPermissions = map[UserID]User{
 	"user_1": {
-		UserID: "user_1",
-		PortalApps: map[PortalAppID]PortalAppPermissions{
+		ID: "user_1",
+		Permissions: map[PortalAppID]PortalAppPermissions{
 			"test_app_1": {
 				RoleName:    RoleOwner,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
@@ -17,8 +17,8 @@ var testUserPermissions = map[UserID]UserPermissions{
 		},
 	},
 	"user_2": {
-		UserID: "user_2",
-		PortalApps: map[PortalAppID]PortalAppPermissions{
+		ID: "user_2",
+		Permissions: map[PortalAppID]PortalAppPermissions{
 			"test_app_1": {
 				RoleName:    RoleAdmin,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
@@ -30,8 +30,8 @@ var testUserPermissions = map[UserID]UserPermissions{
 		},
 	},
 	"user_3": {
-		UserID: "user_3",
-		PortalApps: map[PortalAppID]PortalAppPermissions{
+		ID: "user_3",
+		Permissions: map[PortalAppID]PortalAppPermissions{
 			"test_app_3": {
 				RoleName:    RoleOwner,
 				Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
@@ -40,7 +40,7 @@ var testUserPermissions = map[UserID]UserPermissions{
 	},
 }
 
-func Test_UserPermissions_GetRole(t *testing.T) {
+func Test_UserPermissions_GetPortalAppRole(t *testing.T) {
 	c := require.New(t)
 
 	tests := []struct {
@@ -73,7 +73,7 @@ func Test_UserPermissions_GetRole(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			userPermissions := testUserPermissions[test.userID]
 
-			roleName := userPermissions.GetRole(test.portalAppID)
+			roleName := userPermissions.GetPortalAppRole(test.portalAppID)
 			c.Equal(test.roleName, roleName)
 		})
 	}
@@ -87,7 +87,7 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 		userID              UserID
 		portalAppID         PortalAppID
 		roleName            RoleName
-		expectedPermissions *UserPermissions
+		expectedPermissions map[PortalAppID]PortalAppPermissions
 		err                 error
 	}{
 		{
@@ -95,17 +95,14 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 			userID:      "user_1",
 			portalAppID: "test_app_4",
 			roleName:    RoleAdmin,
-			expectedPermissions: &UserPermissions{
-				UserID: "user_1",
-				PortalApps: map[PortalAppID]PortalAppPermissions{
-					"test_app_1": {
-						RoleName:    RoleOwner,
-						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
-					},
-					"test_app_4": {
-						RoleName:    RoleAdmin,
-						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
-					},
+			expectedPermissions: map[PortalAppID]PortalAppPermissions{
+				"test_app_1": {
+					RoleName:    RoleOwner,
+					Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+				},
+				"test_app_4": {
+					RoleName:    RoleAdmin,
+					Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint},
 				},
 			},
 		},
@@ -114,17 +111,14 @@ func Test_UserPermissions_UpsertPermissions(t *testing.T) {
 			userID:      "user_1",
 			portalAppID: "test_app_4",
 			roleName:    RoleMember,
-			expectedPermissions: &UserPermissions{
-				UserID: "user_1",
-				PortalApps: map[PortalAppID]PortalAppPermissions{
-					"test_app_1": {
-						RoleName:    RoleOwner,
-						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
-					},
-					"test_app_4": {
-						RoleName:    RoleMember,
-						Permissions: []Permissions{PermReadEndpoint},
-					},
+			expectedPermissions: map[PortalAppID]PortalAppPermissions{
+				"test_app_1": {
+					RoleName:    RoleOwner,
+					Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
+				},
+				"test_app_4": {
+					RoleName:    RoleMember,
+					Permissions: []Permissions{PermReadEndpoint},
 				},
 			},
 		},
@@ -162,7 +156,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 		userID              UserID
 		portalAppID         PortalAppID
 		roleName            RoleName
-		expectedPermissions *UserPermissions
+		expectedPermissions map[PortalAppID]PortalAppPermissions
 		err                 error
 	}{
 		{
@@ -170,13 +164,10 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 			userID:      "user_3",
 			portalAppID: "test_app_5",
 			roleName:    RoleMember,
-			expectedPermissions: &UserPermissions{
-				UserID: "user_3",
-				PortalApps: map[PortalAppID]PortalAppPermissions{
-					"test_app_3": {
-						RoleName:    RoleOwner,
-						Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
-					},
+			expectedPermissions: map[PortalAppID]PortalAppPermissions{
+				"test_app_3": {
+					RoleName:    RoleOwner,
+					Permissions: []Permissions{PermReadEndpoint, PermWriteEndpoint, PermDeleteEndpoint, PermTransferEndpoint},
 				},
 			},
 		},
@@ -188,7 +179,7 @@ func Test_UserPermissions_DeletePermissions(t *testing.T) {
 
 			updatedUserPermissions, err := userPermissions.UpsertPermissions(test.portalAppID, test.roleName)
 			c.Equal(test.err, err)
-			c.Len(updatedUserPermissions.PortalApps, 2)
+			c.Len(updatedUserPermissions, 2)
 
 			deletedUserPermissions := userPermissions.DeletePermissions(test.portalAppID)
 			c.Equal(test.expectedPermissions, deletedUserPermissions)

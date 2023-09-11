@@ -449,6 +449,17 @@ var (
 					Federated:      true,
 				},
 			},
+			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_1": types.PortalAppPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
+				},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
@@ -474,6 +485,21 @@ var (
 					Federated:      true,
 				},
 			},
+			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_1": types.PortalAppPermissions{
+					RoleName: types.RoleAdmin,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+					},
+				},
+				"test_app_2": types.PortalAppPermissions{
+					RoleName: types.RoleMember,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+					},
+				},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
@@ -491,6 +517,17 @@ var (
 					Type:           types.AuthTypeAuth0Username,
 					Provider:       "auth0",
 					Federated:      false,
+				},
+			},
+			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_2": types.PortalAppPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
 				},
 			},
 			CreatedAt: MockTimestamp,
@@ -512,6 +549,14 @@ var (
 					Federated:      false,
 				},
 			},
+			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_2": types.PortalAppPermissions{
+					RoleName: types.RoleMember,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+					},
+				},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
@@ -529,6 +574,17 @@ var (
 					Type:           types.AuthTypeAuth0Username,
 					Provider:       "auth0",
 					Federated:      false,
+				},
+			},
+			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_3": types.PortalAppPermissions{
+					RoleName: types.RoleOwner,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+						types.PermDeleteEndpoint,
+						types.PermTransferEndpoint,
+					},
 				},
 			},
 			CreatedAt: MockTimestamp,
@@ -550,6 +606,15 @@ var (
 					Federated:      false,
 				},
 			},
+			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_3": types.PortalAppPermissions{
+					RoleName: types.RoleAdmin,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+						types.PermWriteEndpoint,
+					},
+				},
+			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
 		},
@@ -567,6 +632,14 @@ var (
 					Type:           types.AuthTypeAuth0Username,
 					Provider:       "auth0",
 					Federated:      false,
+				},
+			},
+			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
+				"test_app_3": types.PortalAppPermissions{
+					RoleName: types.RoleMember,
+					Permissions: []types.Permissions{
+						types.PermReadEndpoint,
+					},
 				},
 			},
 			CreatedAt: MockTimestamp,
@@ -658,103 +731,6 @@ var (
 	TestCreateUser = types.CreateUser{
 		Email:          "commander.data@example.com",
 		ProviderUserID: "auth0|commander_data",
-	}
-
-	UserPermissions = map[types.UserID]*types.UserPermissions{
-		"user_1": {
-			UserID: "user_1",
-			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
-				"test_app_1": types.PortalAppPermissions{
-					RoleName: types.RoleOwner,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-						types.PermDeleteEndpoint,
-						types.PermTransferEndpoint,
-					},
-				},
-			},
-		},
-		"user_2": {
-			UserID: "user_2",
-			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
-				"test_app_1": types.PortalAppPermissions{
-					RoleName: types.RoleAdmin,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-					},
-				},
-				"test_app_2": types.PortalAppPermissions{
-					RoleName: types.RoleMember,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-					},
-				},
-			},
-		},
-		"user_3": {
-			UserID: "user_3",
-			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
-				"test_app_2": types.PortalAppPermissions{
-					RoleName: types.RoleOwner,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-						types.PermDeleteEndpoint,
-						types.PermTransferEndpoint,
-					},
-				},
-			},
-		},
-		"user_4": {
-			UserID: "user_4",
-			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
-				"test_app_2": types.PortalAppPermissions{
-					RoleName: types.RoleMember,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-					},
-				},
-			},
-		},
-		"user_5": {
-			UserID: "user_5",
-			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
-				"test_app_3": types.PortalAppPermissions{
-					RoleName: types.RoleOwner,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-						types.PermDeleteEndpoint,
-						types.PermTransferEndpoint,
-					},
-				},
-			},
-		},
-		"user_6": {
-			UserID: "user_6",
-			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
-				"test_app_3": types.PortalAppPermissions{
-					RoleName: types.RoleAdmin,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-						types.PermWriteEndpoint,
-					},
-				},
-			},
-		},
-		"user_7": {
-			UserID: "user_7",
-			PortalApps: map[types.PortalAppID]types.PortalAppPermissions{
-				"test_app_3": types.PortalAppPermissions{
-					RoleName: types.RoleMember,
-					Permissions: []types.Permissions{
-						types.PermReadEndpoint,
-					},
-				},
-			},
-		},
 	}
 
 	UserIDs = map[types.ProviderUserID]types.UserID{

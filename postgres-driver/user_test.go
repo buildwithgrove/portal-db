@@ -31,7 +31,7 @@ func (ts *PGDriverTestSuite) Test_ReadUserIDsMap() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_ReadUserByUserID() {
+func (ts *PGDriverTestSuite) Test_readUserByUserID() {
 	tests := []struct {
 		name   string
 		userID types.UserID
@@ -59,11 +59,14 @@ func (ts *PGDriverTestSuite) Test_ReadUserByUserID() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			user, err := ts.driver.ReadUserByUserID(context.Background(), test.userID)
+			user, err := ts.driver.readUserByUserID(context.Background(), test.userID)
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				ts.Equal(test.user, user)
+				// Method is only used internally, so we can safely set the permissions to nil
+				testUser := test.user
+				testUser.Permissions = nil
+				ts.Equal(testUser, user)
 			}
 		})
 	}
@@ -209,7 +212,7 @@ func (ts *PGDriverTestSuite) Test_UpdateUser() {
 		ts.Run(test.name, func() {
 			var initialUser *types.User
 			if test.err == nil {
-				user, err := ts.driver.ReadUserByUserID(context.Background(), test.update.ID)
+				user, err := ts.driver.readUserByUserID(context.Background(), test.update.ID)
 				ts.NoError(err)
 				initialUser = user
 			}
@@ -280,33 +283,8 @@ func (ts *PGDriverTestSuite) Test_Z_DeletePortalUser() {
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				_, err := ts.driver.ReadUserByUserID(context.Background(), userID)
+				_, err := ts.driver.readUserByUserID(context.Background(), userID)
 				ts.Equal(fmt.Errorf(test.expectedErr.Error(), userID), err)
-			}
-		})
-	}
-}
-
-func (ts *PGDriverTestSuite) Test_AllReadUserPermissions() {
-	tests := []struct {
-		name                    string
-		expectedUserPermissions map[types.UserID]*types.UserPermissions
-		err                     error
-	}{
-		{
-			name:                    "Should read all UserPermissions for the DB as a map[types.UserID]*types.UserPermissions",
-			expectedUserPermissions: testdata.UserPermissions,
-			err:                     nil,
-		},
-	}
-
-	for _, test := range tests {
-		ts.Run(test.name, func() {
-			userPermissions, err := ts.driver.ReadUserPermissions(context.Background())
-			ts.Equal(test.err, err)
-
-			if test.err == nil {
-				ts.Equal(test.expectedUserPermissions, userPermissions)
 			}
 		})
 	}

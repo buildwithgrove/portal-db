@@ -1002,7 +1002,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
-				user, err := ts.driver.ReadUserByUserID(context.Background(), test.userID)
+				user, err := ts.driver.readUserByUserID(context.Background(), test.userID)
 				ts.NoError(err)
 				ts.Equal(test.user, user)
 

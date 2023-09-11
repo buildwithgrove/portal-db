@@ -63,8 +63,8 @@ func (pg *PostgresDriver) ReadUserIDsMap(ctx context.Context) (map[types.Provide
 	return userIDsMap, nil
 }
 
-// ReadUserByUserID takes a portal UserID and returns a single user in the database as a User struct
-func (pg *PostgresDriver) ReadUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error) {
+// readUserByUserID takes a portal UserID and returns a single user in the database as a User struct
+func (pg *PostgresDriver) readUserByUserID(ctx context.Context, userID types.UserID) (*types.User, error) {
 	userData, err := pg.GetUserDataFromPortalUserID(ctx, userID)
 	if err != nil {
 		switch {
@@ -90,6 +90,11 @@ func (pg *PostgresDriver) ReadAllUsers(ctx context.Context) (map[types.UserID]*t
 		return nil, err
 	}
 
+	userRoles, err := pg.SelectUserPermissions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	usersMap := make(map[types.UserID]*types.User, len(userData))
 
 	for _, userRow := range userData {
@@ -99,6 +104,25 @@ func (pg *PostgresDriver) ReadAllUsers(ctx context.Context) (map[types.UserID]*t
 		}
 
 		usersMap[user.ID] = user
+	}
+
+	for _, userRoleRow := range userRoles {
+		if user, ok := usersMap[userRoleRow.UserID]; ok {
+			if user.Permissions == nil {
+				user.Permissions = make(map[types.PortalAppID]types.PortalAppPermissions)
+			}
+
+			for _, appID := range userRoleRow.PortalApplicationIDs {
+				portalAppID := types.PortalAppID(appID)
+
+				_, err := user.UpsertPermissions(portalAppID, userRoleRow.RoleName)
+				if err != nil {
+					return nil, err
+				}
+
+			}
+		}
+
 	}
 
 	return usersMap, nil
@@ -245,7 +269,7 @@ func (pg *PostgresDriver) WriteUserNewSignUp(ctx context.Context, user types.Cre
 		return nil, types.AccountID(""), err
 	}
 
-	createdUser, err := pg.ReadUserByUserID(ctx, createdUserID)
+	createdUser, err := pg.readUserByUserID(ctx, createdUserID)
 	if err != nil {
 		return nil, types.AccountID(""), err
 	}
@@ -300,7 +324,7 @@ func (pg *PostgresDriver) UpdateUser(ctx context.Context, update types.UpdateUse
 		return nil, err
 	}
 
-	user, err := pg.ReadUserByUserID(ctx, update.ID)
+	user, err := pg.readUserByUserID(ctx, update.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -358,47 +382,6 @@ func (pg *PostgresDriver) validateDeletePortalUserInput(ctx context.Context, use
 	}
 
 	return nil
-}
-
-/* ----- postgresdriver UserPermissions Read Methods ----- */
-
-/* ReadUserPermissions returns all UserPermissions in the database as a map that takes the form map[types.UserID]*types.UserPermissions */
-func (pg *PostgresDriver) ReadUserPermissions(ctx context.Context) (map[types.UserID]*types.UserPermissions, error) {
-	userRoles, err := pg.SelectUserPermissions(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	userPermissionsMap := make(map[types.UserID]*types.UserPermissions)
-
-	for _, userRoleRow := range userRoles {
-		userID := userRoleRow.UserID
-
-		for _, appID := range userRoleRow.PortalApplicationIDs {
-			portalAppID := types.PortalAppID(appID)
-
-			if userPermissions, ok := userPermissionsMap[userID]; ok {
-				_, err := userPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				emptyPermissions := types.UserPermissions{
-					UserID:     userID,
-					PortalApps: map[types.PortalAppID]types.PortalAppPermissions{},
-				}
-
-				permissions, err := emptyPermissions.UpsertPermissions(portalAppID, userRoleRow.RoleName)
-				if err != nil {
-					return nil, err
-				}
-
-				userPermissionsMap[userID] = permissions
-			}
-		}
-	}
-
-	return userPermissionsMap, nil
 }
 
 /* ----- Used by Listener ----- */
