@@ -117,6 +117,8 @@ type (
 		AuthProviders    map[AuthType]UserAuthProvider `json:"authProviders"`
 		CreatedAt        time.Time                     `json:"createdAt"`
 		UpdatedAt        time.Time                     `json:"updatedAt"`
+		// Permissions set in PHD cache
+		Permissions *UserPermissions `json:"permissions"`
 	}
 	// UserAuthProvider represents a single auth provider for a user (eg. Auth0)
 	UserAuthProvider struct {
@@ -154,7 +156,7 @@ type (
 	// UserPermissions stores all roles and read/write permissions for all PortalApps for a given user
 	UserPermissions struct {
 		UserID     UserID                               `json:"userID"`
-		PortalApps map[PortalAppID]PortalAppPermissions `json:"accounts"`
+		PortalApps map[PortalAppID]PortalAppPermissions `json:"portalApps"`
 	}
 	// PortalAppPermissions stores user role and permissions for a given PortalApp
 	PortalAppPermissions struct {
@@ -170,7 +172,7 @@ var permissionsList = map[RoleName][]Permissions{
 }
 
 func (u *UserPermissions) IsEmpty() bool {
-	if u.UserID == UserID("") || len(u.PortalApps) == 0 {
+	if u == nil || u.UserID == UserID("") || len(u.PortalApps) == 0 {
 		return true
 	}
 	return false
