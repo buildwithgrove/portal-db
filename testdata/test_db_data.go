@@ -753,7 +753,7 @@ var (
 			ID:          "test_app_1",
 			AccountID:   "account_1",
 			Name:        "pokt_app_123",
-			AppEmoji:    "🚀",
+			AppEmoji:    "1F336",
 			Description: "Embark on an interstellar journey with our powerful application.",
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_1": {
@@ -810,7 +810,7 @@ var (
 			ID:          "test_app_2",
 			AccountID:   "account_2",
 			Name:        "pokt_app_456",
-			AppEmoji:    "🔮",
+			AppEmoji:    "1F336",
 			Description: "Unveil the mysteries of the multiverse with our enchanting application.",
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_2": {
@@ -866,7 +866,7 @@ var (
 			ID:          "test_app_3",
 			AccountID:   "account_3",
 			Name:        "pokt_app_789",
-			AppEmoji:    "🌐",
+			AppEmoji:    "1F336",
 			Description: "Harness the power of a connected world with our revolutionary application.",
 			AATs: map[types.ProtocolAppID]types.AAT{
 				"test_protocol_app_3": {
@@ -1216,7 +1216,7 @@ var (
 		AccountID:   "account_4",
 		Name:        "create_pokt_app_1",
 		Description: "Embark on a journey across the enchanting realm of Middle-earth.",
-		AppEmoji:    "💍",
+		AppEmoji:    "1F336",
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
 			SecretKey:         "test_3e3fb7949c9e3b193cfba5348f93bb2f",
@@ -1379,7 +1379,7 @@ var (
 		AccountID:   "account_1",
 		Name:        "", // name set in test
 		Description: "Embark on a journey across the solar system with Pur'n'Kleen",
-		AppEmoji:    "🪐",
+		AppEmoji:    "1F336",
 		AATs:        map[types.ProtocolAppID]types.AAT{"test_protocol_app_1": {}},
 		Settings: types.Settings{
 			Environment:       types.EnvironmentProduction,
@@ -1398,7 +1398,7 @@ var (
 
 	UpdatePortalAppName        = "portal-app-updated"
 	UpdatePortalAppDescription = "Updating the application name like the shifting sands of Arrakis."
-	UpdatePortalAppEmoji       = types.AppEmoji("🐱‍🐉")
+	UpdatePortalAppEmoji       = types.AppEmoji("1F336")
 	UpdatePortalAppSettings    = &types.UpdateAppSettings{
 		Environment:       types.EnvironmentProduction,
 		SecretKey:         "test_9d07c8a96ad53e7c288b0e86f37c5680",
