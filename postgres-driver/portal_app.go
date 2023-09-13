@@ -27,7 +27,6 @@ type (
 )
 
 var (
-	errInvalidAppEmoji            = errors.New("provided app emoji field is not an emoji")
 	errEmptyPortalAppName         = errors.New("portal app name cannot be empty")
 	errInvalidEnvironment         = errors.New("invalid portal app environment provided: %s")
 	errUnmarshallingWhitelists    = errors.New("error unmarshalling whitelists")
@@ -328,9 +327,6 @@ func (pg *PostgresDriver) generatePortalAppIDs(ctx context.Context) (types.Porta
 
 // validatePortalAppInput performs all necessary data validation checks on incoming PortalApp data
 func (pg *PostgresDriver) validatePortalAppInput(ctx context.Context, portalApp types.PortalApp, aat types.AAT) error {
-	if !portalApp.AppEmoji.IsValid() {
-		return errInvalidAppEmoji
-	}
 	if portalApp.Name == "" {
 		return errEmptyPortalAppName
 	}

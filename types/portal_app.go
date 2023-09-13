@@ -1,7 +1,6 @@
 package types
 
 import (
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -75,14 +74,6 @@ func (w WhitelistType) IsValid() bool {
 	default:
 		return false
 	}
-}
-
-func (e AppEmoji) IsValid() bool {
-	// Regular expression pattern to match emojis
-	emojiPattern := `^\p{So}|\p{Sk}|\p{S}$`
-	regex := regexp.MustCompile(emojiPattern)
-
-	return regex.MatchString(string(e))
 }
 
 /* PortalApp Struct Definition and Methods */

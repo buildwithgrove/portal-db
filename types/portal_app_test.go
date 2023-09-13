@@ -156,47 +156,6 @@ var (
 	}
 )
 
-func Test_AppEmoji_IsValid(t *testing.T) {
-	c := require.New(t)
-
-	tests := []struct {
-		emoji    AppEmoji
-		expected bool
-	}{
-		{
-			emoji:    "😀",
-			expected: true,
-		},
-		{
-			emoji:    "🚀",
-			expected: true,
-		},
-		{
-			emoji:    "💍",
-			expected: true,
-		},
-		{
-			emoji:    "🗡️",
-			expected: true,
-		},
-		{
-			emoji:    "123", // Not an emoji
-			expected: false,
-		},
-		{
-			emoji:    "",
-			expected: false, // Empty input
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(string(test.emoji), func(t *testing.T) {
-			result := test.emoji.IsValid()
-			c.Equal(test.expected, result)
-		})
-	}
-}
-
 func Test_ConvertPortalAppToPortalAppLite(t *testing.T) {
 	c := require.New(t)
 

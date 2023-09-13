@@ -105,15 +105,6 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			err:             nil,
 		},
 		{
-			name: "Should fail when invalid emoji provided",
-			portalApp: types.PortalApp{
-				AppEmoji: "moon_cheese",
-				Name:     "",
-			},
-			aat: testdata.TestCreatePortalAppAAT,
-			err: errInvalidAppEmoji,
-		},
-		{
 			name: "Should fail when name not provided",
 			portalApp: types.PortalApp{
 				AppEmoji: "🌛",
