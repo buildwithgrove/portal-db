@@ -1571,7 +1571,6 @@ var (
 		UpdatesProduct:   newBool(false),
 		UpdatesMarketing: newBool(false),
 		BetaTester:       newBool(true),
-		UpdatedAt:        MockTimestamp,
 	}
 	UpdateUserTwo = types.UpdateUser{
 		ID:               "user_5",
@@ -1579,12 +1578,10 @@ var (
 		UpdatesProduct:   newBool(true),
 		UpdatesMarketing: newBool(false),
 		BetaTester:       newBool(false),
-		UpdatedAt:        MockTimestamp,
 	}
 	UpdateUserInvalidURL = types.UpdateUser{
-		ID:        "user_5",
-		IconURL:   newString("i-am-not-a-url"),
-		UpdatedAt: MockTimestamp,
+		ID:      "user_5",
+		IconURL: newString("i-am-not-a-url"),
 	}
 
 	/* ----- Legacy Data ----- */

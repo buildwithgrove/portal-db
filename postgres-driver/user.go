@@ -316,7 +316,7 @@ func (pg *PostgresDriver) UpdateUser(ctx context.Context, update types.UpdateUse
 		UpdatesProduct:   newBool(update.UpdatesProduct),
 		UpdatesMarketing: newBool(update.UpdatesMarketing),
 		BetaTester:       newBool(update.BetaTester),
-		UpdatedAt:        newTimestamptz(update.UpdatedAt),
+		UpdatedAt:        newTimestamptz(updatedAt),
 	}
 
 	err = pg.UpdateUserFields(ctx, params)

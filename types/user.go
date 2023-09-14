@@ -146,12 +146,11 @@ type (
 
 	// UpdateUser contains all fields required to update a User
 	UpdateUser struct {
-		ID               UserID    `json:"id"`
-		IconURL          *string   `json:"iconURL"`
-		UpdatesProduct   *bool     `json:"updatesProduct"`
-		UpdatesMarketing *bool     `json:"updatesMarketing"`
-		BetaTester       *bool     `json:"betaTester"`
-		UpdatedAt        time.Time `json:"updatedAt"`
+		ID               UserID  `json:"id"`
+		IconURL          *string `json:"iconURL"`
+		UpdatesProduct   *bool   `json:"updatesProduct"`
+		UpdatesMarketing *bool   `json:"updatesMarketing"`
+		BetaTester       *bool   `json:"betaTester"`
 	}
 )
 

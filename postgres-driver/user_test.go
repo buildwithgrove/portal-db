@@ -221,6 +221,8 @@ func (ts *PGDriverTestSuite) Test_UpdateUser() {
 			ts.Equal(test.err, err)
 
 			if test.err == nil {
+				ts.Equal(updatedUser.UpdatedAt, test.testUpdatedTime)
+
 				// Assert that the fields in the updated user match the expected values
 				// Only check the fields present in the update struct
 				if test.update.IconURL != nil && *test.update.IconURL != "" {
