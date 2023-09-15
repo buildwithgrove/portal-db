@@ -1015,6 +1015,30 @@ WHERE chain_id = $1
 DELETE FROM chain_aliases
 WHERE chain_id = $1
     AND alias = $2;
+-- name: UpsertChainAliasDomains :exec
+INSERT INTO chain_alias_domains (
+        chain_id,
+        alias,
+        domains,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, alias) DO
+UPDATE
+SET domains = COALESCE(
+        EXCLUDED.domains,
+        chain_alias_domains.domains
+    ),
+    updated_at = EXCLUDED.updated_at;
+-- name: DeleteUnusedChainAliasDomains :exec
+DELETE FROM chain_alias_domains
+WHERE chain_id = $1
+    AND alias NOT IN (
+        SELECT unnest(@aliases::VARCHAR [])
+    );
+-- name: DeleteChainAliasDomain :exec
+DELETE FROM chain_alias_domains
+WHERE chain_id = $1
+    AND alias = $2;
 -- name: UpsertChainCheck :exec
 INSERT INTO chain_checks (
         chain_id,

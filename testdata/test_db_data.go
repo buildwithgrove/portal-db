@@ -1313,6 +1313,10 @@ var (
 			"solana-mainnet": {},
 			"sol-mainnet":    {},
 		},
+		// DEPRECATED - TODO remove when move to only store aliases is complete
+		AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+			"sol-mainnet": {"solana-rpc.gateway.pokt.network"},
+		},
 		CreatedAt: MockTimestamp,
 		UpdatedAt: MockTimestamp,
 	}
@@ -1353,6 +1357,10 @@ var (
 			Aliases: map[types.ChainAlias]struct{}{
 				"cardano-mainnet": {},
 				"ada-mainnet":     {},
+			},
+			// DEPRECATED - TODO remove when move to only store aliases is complete
+			AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"ada-mainnet": {"cardano-rpc.gateway.pokt.network"},
 			},
 			CreatedAt: MockTimestamp,
 			UpdatedAt: MockTimestamp,
@@ -1575,6 +1583,11 @@ var (
 	UpdateChainInvalidURL     = types.UpdateChain{ID: "0073",
 		Altruists: &map[types.AltruistURL]types.Altruist{
 			"htz:/bad-domain2": {URL: "htz:/bad-domain2"},
+		},
+	}
+	UpdateChainInvalidDomain = types.UpdateChain{ID: "0073",
+		AliasDomains: &map[types.ChainAlias][]types.ChainDomain{
+			"sol-mainnet": {"im-not-a-domain"},
 		},
 	}
 

@@ -436,6 +436,22 @@ func (q *Queries) DeleteChainAlias(ctx context.Context, arg DeleteChainAliasPara
 	return err
 }
 
+const deleteChainAliasDomain = `-- name: DeleteChainAliasDomain :exec
+DELETE FROM chain_alias_domains
+WHERE chain_id = $1
+    AND alias = $2
+`
+
+type DeleteChainAliasDomainParams struct {
+	ChainID types.RelayChainID `json:"chain_id"`
+	Alias   types.ChainAlias   `json:"alias"`
+}
+
+func (q *Queries) DeleteChainAliasDomain(ctx context.Context, arg DeleteChainAliasDomainParams) error {
+	_, err := q.db.Exec(ctx, deleteChainAliasDomain, arg.ChainID, arg.Alias)
+	return err
+}
+
 const deletePortalApp = `-- name: DeletePortalApp :exec
 UPDATE portal_applications
 SET deleted = true,
@@ -468,6 +484,24 @@ type DeleteUnusedChainAliasParams struct {
 
 func (q *Queries) DeleteUnusedChainAlias(ctx context.Context, arg DeleteUnusedChainAliasParams) error {
 	_, err := q.db.Exec(ctx, deleteUnusedChainAlias, arg.ChainID, arg.Aliases)
+	return err
+}
+
+const deleteUnusedChainAliasDomains = `-- name: DeleteUnusedChainAliasDomains :exec
+DELETE FROM chain_alias_domains
+WHERE chain_id = $1
+    AND alias NOT IN (
+        SELECT unnest($2::VARCHAR [])
+    )
+`
+
+type DeleteUnusedChainAliasDomainsParams struct {
+	ChainID types.RelayChainID `json:"chain_id"`
+	Aliases []string           `json:"aliases"`
+}
+
+func (q *Queries) DeleteUnusedChainAliasDomains(ctx context.Context, arg DeleteUnusedChainAliasDomainsParams) error {
+	_, err := q.db.Exec(ctx, deleteUnusedChainAliasDomains, arg.ChainID, arg.Aliases)
 	return err
 }
 
@@ -2730,6 +2764,39 @@ func (q *Queries) UpsertAccountIntegrations(ctx context.Context, arg UpsertAccou
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const upsertChainAliasDomains = `-- name: UpsertChainAliasDomains :exec
+INSERT INTO chain_alias_domains (
+        chain_id,
+        alias,
+        domains,
+        updated_at
+    )
+VALUES ($1, $2, $3, $4) ON CONFLICT (chain_id, alias) DO
+UPDATE
+SET domains = COALESCE(
+        EXCLUDED.domains,
+        chain_alias_domains.domains
+    ),
+    updated_at = EXCLUDED.updated_at
+`
+
+type UpsertChainAliasDomainsParams struct {
+	ChainID   types.RelayChainID `json:"chain_id"`
+	Alias     types.ChainAlias   `json:"alias"`
+	Domains   []string           `json:"domains"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) UpsertChainAliasDomains(ctx context.Context, arg UpsertChainAliasDomainsParams) error {
+	_, err := q.db.Exec(ctx, upsertChainAliasDomains,
+		arg.ChainID,
+		arg.Alias,
+		arg.Domains,
+		arg.UpdatedAt,
+	)
+	return err
 }
 
 const upsertChainAltruist = `-- name: UpsertChainAltruist :exec
