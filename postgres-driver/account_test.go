@@ -715,7 +715,7 @@ func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
 		testCreatedTime: testdata.MockTimestamp,
 		testCreatePortalApp: types.PortalApp{
 			AccountID: "account_5",
-			AppEmoji:  "🥷",
+			AppEmoji:  "1F336",
 			Name:      "create_admin_role_pokt_app",
 			Settings: types.Settings{
 				Environment: types.EnvironmentProduction,

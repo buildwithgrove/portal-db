@@ -1459,6 +1459,9 @@ var (
 			},
 		},
 	}
+	UpdatePortalAppStripeSubscriptionID = &types.LegacyFields{
+		StripeSubscriptionID: "update_stripe_subscription_id",
+	}
 	UpdatePortalAppPlan = &types.LegacyFields{
 		PlanType: types.FreetierV0,
 	}

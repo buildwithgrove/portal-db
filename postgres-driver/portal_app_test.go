@@ -191,13 +191,14 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 		{
 			name: "Should update a new PortalApp in the database with all fields",
 			updatePortalApp: types.UpdatePortalApp{
-				Name:          testdata.UpdatePortalAppName,
-				Description:   testdata.UpdatePortalAppDescription,
-				AppEmoji:      testdata.UpdatePortalAppEmoji,
-				Settings:      testdata.UpdatePortalAppSettings,
-				Notifications: testdata.UpdatePortalAppNotifications,
-				Whitelists:    testdata.UpdatePortalAppWhitelists,
-				PlanType:      testdata.UpdatePortalAppPlan.PlanType,
+				Name:                 testdata.UpdatePortalAppName,
+				Description:          testdata.UpdatePortalAppDescription,
+				AppEmoji:             testdata.UpdatePortalAppEmoji,
+				Settings:             testdata.UpdatePortalAppSettings,
+				Notifications:        testdata.UpdatePortalAppNotifications,
+				Whitelists:           testdata.UpdatePortalAppWhitelists,
+				PlanType:             testdata.UpdatePortalAppPlan.PlanType,
+				StripeSubscriptionID: testdata.UpdatePortalAppStripeSubscriptionID.StripeSubscriptionID,
 			},
 			testUpdateTime:         testdata.MockTimestamp,
 			testUpdatedName:        "portal-app-updated",
@@ -253,8 +254,9 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 				},
 			},
 			testUpdatedLegacyFields: types.LegacyFields{
-				PlanType:   types.FreetierV0,
-				DailyLimit: 250_000,
+				PlanType:             types.FreetierV0,
+				DailyLimit:           250_000,
+				StripeSubscriptionID: "update_stripe_subscription_id",
 			},
 			err: nil,
 		},
@@ -279,10 +281,10 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 		{
 			name: "Should update a new PortalApp in the database with only a new App Emoji",
 			updatePortalApp: types.UpdatePortalApp{
-				AppEmoji: "🦖",
+				AppEmoji: "1F336",
 			},
 			testUpdateTime:      testdata.MockTimestamp,
-			testUpdatedAppEmoji: "🦖",
+			testUpdatedAppEmoji: "1F336",
 			err:                 nil,
 		},
 		{
@@ -359,14 +361,28 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			err: nil,
 		},
 		{
+			name: "Should update a new PortalApp in the database with a new stripe subscription ID",
+			updatePortalApp: types.UpdatePortalApp{
+				StripeSubscriptionID: testdata.UpdatePortalAppStripeSubscriptionID.StripeSubscriptionID,
+			},
+			testUpdateTime: testdata.MockTimestamp,
+			testUpdatedLegacyFields: types.LegacyFields{
+				PlanType:             types.FreetierV0,
+				DailyLimit:           250_000,
+				StripeSubscriptionID: "update_stripe_subscription_id",
+			},
+			err: nil,
+		},
+		{
 			name: "Should update a new PortalApp in the database with a new plan",
 			updatePortalApp: types.UpdatePortalApp{
 				PlanType: testdata.UpdatePortalAppPlan.PlanType,
 			},
 			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedLegacyFields: types.LegacyFields{
-				PlanType:   types.FreetierV0,
-				DailyLimit: 250_000,
+				PlanType:             types.FreetierV0,
+				DailyLimit:           250_000,
+				StripeSubscriptionID: "update_stripe_subscription_id",
 			},
 			err: nil,
 		},
@@ -377,8 +393,9 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			},
 			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedLegacyFields: types.LegacyFields{
-				PlanType:   types.TestPlan90k,
-				DailyLimit: 90_000,
+				PlanType:             types.TestPlan90k,
+				DailyLimit:           90_000,
+				StripeSubscriptionID: "update_stripe_subscription_id",
 			},
 			err: nil,
 		},
@@ -389,8 +406,9 @@ func (ts *PGDriverTestSuite) Test_UpdatePortalApp() {
 			},
 			testUpdateTime: testdata.MockTimestamp,
 			testUpdatedLegacyFields: types.LegacyFields{
-				PlanType:    types.Enterprise,
-				CustomLimit: 5_600_000,
+				PlanType:             types.Enterprise,
+				CustomLimit:          5_600_000,
+				StripeSubscriptionID: "update_stripe_subscription_id",
 			},
 			err: nil,
 		},
