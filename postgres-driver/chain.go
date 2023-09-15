@@ -54,14 +54,13 @@ type (
 )
 
 var (
-	errChainCannotBeNil           = errors.New("error chain cannot be nil")
-	errGigastakeAppsCannotBeEmpty = errors.New("error gigastakeApps slice cannot be empty")
-	errInvalidAltruistURL         = errors.New("error altruist URL '%s' is an invalid URL")
-	errInvalidDomain              = errors.New("error domain '%s' for alias '%s' is invalid")
-	errChainExists                = errors.New("error chain already exists for chain ID '%s'")
-	errChainDoesntExist           = errors.New("error chain does not exist for chain ID '%s'")
-	errPortalAppDoesntExist       = errors.New("error portal app does not exist for ID '%s'")
-	errUnmarshallingDomains       = errors.New("error unmarshalling domains: %w")
+	errChainCannotBeNil     = errors.New("error chain cannot be nil")
+	errInvalidAltruistURL   = errors.New("error altruist URL '%s' is an invalid URL")
+	errInvalidDomain        = errors.New("error domain '%s' for alias '%s' is invalid")
+	errChainExists          = errors.New("error chain already exists for chain ID '%s'")
+	errChainDoesntExist     = errors.New("error chain does not exist for chain ID '%s'")
+	errPortalAppDoesntExist = errors.New("error portal app does not exist for ID '%s'")
+	errUnmarshallingDomains = errors.New("error unmarshalling domains: %w")
 )
 
 /* ----- postgresdriver Chain Read Methods ----- */
@@ -305,10 +304,6 @@ func validateWriteChainAndGigastakeApps(input types.NewChainInput) error {
 		return errChainCannotBeNil
 	}
 
-	if len(input.GigastakeApps) < 1 {
-		return errGigastakeAppsCannotBeEmpty
-	}
-
 	return nil
 }
 
@@ -439,6 +434,22 @@ func (pg *PostgresDriver) insertChain(ctx context.Context, qtx *Queries, chain t
 			return err
 		}
 	}
+	// DEPRECATED - TODO remove when move to only store aliases is complete
+	for alias, domains := range chain.AliasDomains {
+		domainsStrs := []string{}
+		for _, domain := range domains {
+			domainsStrs = append(domainsStrs, string(domain))
+		}
+		err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
+			ChainID:   createdChainID,
+			Alias:     alias,
+			Domains:   domainsStrs,
+			UpdatedAt: newTimestamptz(chain.UpdatedAt),
+		})
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -511,6 +522,24 @@ func (pg *PostgresDriver) updateChain(ctx context.Context, qtx *Queries, update 
 			}
 		}
 	}
+	// DEPRECATED - TODO remove when move to only store aliases is complete
+	if update.AliasDomains != nil {
+		for alias, domains := range *update.AliasDomains {
+			domainsStrs := []string{}
+			for _, domain := range domains {
+				domainsStrs = append(domainsStrs, string(domain))
+			}
+			err := qtx.UpsertChainAliasDomains(ctx, UpsertChainAliasDomainsParams{
+				ChainID:   createdChainID,
+				Alias:     alias,
+				Domains:   domainsStrs,
+				UpdatedAt: newTimestamptz(updatedAt),
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return nil
 }
@@ -529,6 +558,7 @@ func (pg *PostgresDriver) validateChainInput(ctx context.Context, qtx *Queries, 
 			return fmt.Errorf(errInvalidAltruistURL.Error(), url)
 		}
 	}
+
 	for alias, domains := range chain.AliasDomains {
 		for _, domain := range domains {
 			if !domain.IsValid() {
@@ -561,6 +591,16 @@ func (pg *PostgresDriver) validateChainUpdate(ctx context.Context, qtx *Queries,
 		for url := range *chain.Altruists {
 			if !url.IsValid() {
 				return fmt.Errorf(errInvalidAltruistURL.Error(), url)
+			}
+		}
+	}
+
+	if chain.AliasDomains != nil {
+		for alias, domains := range *chain.AliasDomains {
+			for _, domain := range domains {
+				if !domain.IsValid() {
+					return fmt.Errorf(errInvalidDomain.Error(), domain, alias)
+				}
 			}
 		}
 	}
@@ -611,6 +651,18 @@ func (pg *PostgresDriver) removeUnusedChainRows(ctx context.Context, qtx *Querie
 			deleteAliasDomainsParams.Aliases = append(deleteAliasDomainsParams.Aliases, string(alias))
 		}
 		err := qtx.DeleteUnusedChainAlias(ctx, deleteAliasDomainsParams)
+		if err != nil {
+			return err
+		}
+	}
+
+	// DEPRECATED - TODO remove when move to only store aliases is complete
+	if chain.AliasDomains != nil {
+		deleteAliasDomainsParams := DeleteUnusedChainAliasDomainsParams{ChainID: chain.ID}
+		for alias := range *chain.AliasDomains {
+			deleteAliasDomainsParams.Aliases = append(deleteAliasDomainsParams.Aliases, string(alias))
+		}
+		err := qtx.DeleteUnusedChainAliasDomains(ctx, deleteAliasDomainsParams)
 		if err != nil {
 			return err
 		}

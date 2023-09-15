@@ -61,14 +61,6 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 			err: errChainCannotBeNil,
 		},
 		{
-			name: "Should fail if GigastakeApps is empty",
-			newChainInput: types.NewChainInput{
-				Chain:         &types.Chain{},
-				GigastakeApps: []*types.GigastakeApp{},
-			},
-			err: errGigastakeAppsCannotBeEmpty,
-		},
-		{
 			name: "Should fail if altruist URL is invalid",
 			newChainInput: types.NewChainInput{
 				Chain: &types.Chain{
@@ -79,6 +71,20 @@ func (ts *PGDriverTestSuite) Test_WriteChainAndGigastakeApps() {
 				GigastakeApps: []*types.GigastakeApp{{}},
 			},
 			err: fmt.Errorf(errInvalidAltruistURL.Error(), "invalid_url"),
+		},
+		{
+			name: "Should fail if domain is invalid",
+			newChainInput: types.NewChainInput{
+				Chain: &types.Chain{
+					ID:         "testID",
+					Blockchain: "testBlockchain",
+					AliasDomains: map[types.ChainAlias][]types.ChainDomain{
+						"testAlias": {"invalid_domain"},
+					},
+				},
+				GigastakeApps: []*types.GigastakeApp{{}},
+			},
+			err: fmt.Errorf(errInvalidDomain.Error(), "invalid_domain", "testAlias"),
 		},
 		{
 			name: "Should fail if domain is invalid",
@@ -179,6 +185,16 @@ func (ts *PGDriverTestSuite) Test_WriteChain() {
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
 		},
+		{
+			name:        "Should fail if any input alias has an invalid domain",
+			altruistURL: "http://www.good-domain.com",
+			aliasDomains: map[types.ChainAlias][]types.ChainDomain{
+				"sol-mainnet": {"im-not-a-domain"},
+			},
+			chain:           *testdata.TestCreateChain,
+			testCreatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errInvalidDomain.Error(), "im-not-a-domain", "sol-mainnet"),
+		},
 	}
 
 	for _, test := range tests {
@@ -254,6 +270,12 @@ func (ts *PGDriverTestSuite) Test_UpdateChain() {
 			update:          testdata.UpdateChainInvalidURL,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             fmt.Errorf(errInvalidAltruistURL.Error(), "htz:/bad-domain2"),
+		},
+		{
+			name:            "Should fail if any input alias has an invalid domain",
+			update:          testdata.UpdateChainInvalidDomain,
+			testCreatedTime: testdata.MockTimestamp,
+			err:             fmt.Errorf(errInvalidDomain.Error(), "im-not-a-domain", "sol-mainnet"),
 		},
 	}
 

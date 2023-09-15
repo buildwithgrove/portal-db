@@ -163,6 +163,8 @@ type (
 		Aliases        *map[ChainAlias]struct{}  `json:"chainAliases,omitempty"`
 		Altruists      *map[AltruistURL]Altruist `json:"altruists,omitempty"`
 		Checks         *map[ChainCheckType]Check `json:"chainChecks,omitempty"`
+		// DEPRECATED - TODO remove when move to only store aliases is complete
+		AliasDomains *map[ChainAlias][]ChainDomain `json:"domains,omitempty"`
 	}
 )
 
