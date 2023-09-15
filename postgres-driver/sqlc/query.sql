@@ -128,6 +128,7 @@ SELECT p.*,
     pas.secret_key_required,
     pas.monthly_relay_limit,
     pas.environment,
+    pas.favorited_chain_ids,
     COALESCE(aats_agg.aats, '[]'::json) AS aats,
     COALESCE(notifications_agg.notifications, '[]'::json) AS notifications,
     COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists

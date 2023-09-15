@@ -83,6 +83,14 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 		}
 	}
 
+	var favoritedChainIDs map[types.RelayChainID]struct{}
+	if len(a.FavoritedChainIDs) != 0 {
+		favoritedChainIDs = make(map[types.RelayChainID]struct{})
+		for _, chainID := range a.FavoritedChainIDs {
+			favoritedChainIDs[types.RelayChainID(chainID)] = struct{}{}
+		}
+	}
+
 	// TODO remove legacy fields when migration to V2 schema complete
 	legacyFields := types.LegacyFields{
 		PlanType:             a.PlanType,
@@ -102,6 +110,8 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 			Environment:       types.Environment(a.Environment.Environment),
 			SecretKey:         a.SecretKey.String,
 			SecretKeyRequired: a.SecretKeyRequired.Bool,
+			MonthlyRelayLimit: a.MonthlyRelayLimit.Int32,
+			FavoritedChainIDs: favoritedChainIDs,
 		},
 		AATs:               appAATs,
 		Whitelists:         appWhitelists,

@@ -90,7 +90,8 @@ func Test_Listen(t *testing.T) {
 						Environment:       "production",
 						SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
 						SecretKeyRequired: true,
-						MonthlyRelayLimit: 0,
+						MonthlyRelayLimit: 2_500_000,
+						FavoritedChainIDs: map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 					},
 				},
 				types.TableAppWhitelists: {

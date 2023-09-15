@@ -770,6 +770,8 @@ var (
 				Environment:       types.EnvironmentProduction,
 				SecretKey:         "test_40f482d91a5ef2300ebb4e2308c",
 				SecretKeyRequired: true,
+				MonthlyRelayLimit: 2_500_000,
+				FavoritedChainIDs: map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			},
 			Whitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://test.com": {}},
@@ -828,6 +830,8 @@ var (
 				Environment:       types.EnvironmentProduction,
 				SecretKey:         "test_9c9e3b193cfba5348f93bb2f3e3fb794",
 				SecretKeyRequired: false,
+				MonthlyRelayLimit: 1_500_000,
+				FavoritedChainIDs: map[types.RelayChainID]struct{}{"0021": {}, "0064": {}},
 			},
 			Whitelists: types.Whitelists{
 				Origins:     map[types.Origin]struct{}{"https://example.com": {}},
@@ -894,6 +898,8 @@ var (
 				Environment:       types.EnvironmentProduction,
 				SecretKey:         "test_9f48b13e2bc5fd31ab367841f11495c1",
 				SecretKeyRequired: false,
+				MonthlyRelayLimit: 4_500_000,
+				FavoritedChainIDs: map[types.RelayChainID]struct{}{"0001": {}, "0034": {}},
 			},
 			FirstDateSurpassed: MockTimestamp,
 			CreatedAt:          MockTimestamp,

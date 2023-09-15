@@ -1885,6 +1885,7 @@ SELECT p.id, p.account_id, p.name, p.app_emoji, p.description, p.created_at, p.u
     pas.secret_key_required,
     pas.monthly_relay_limit,
     pas.environment,
+    pas.favorited_chain_ids,
     COALESCE(aats_agg.aats, '[]'::json) AS aats,
     COALESCE(notifications_agg.notifications, '[]'::json) AS notifications,
     COALESCE(whitelists_agg.whitelists, '[]'::json) AS whitelists
@@ -1919,6 +1920,7 @@ type SelectPortalApplicationsRow struct {
 	SecretKeyRequired    pgtype.Bool        `json:"secret_key_required"`
 	MonthlyRelayLimit    pgtype.Int4        `json:"monthly_relay_limit"`
 	Environment          NullEnvironment    `json:"environment"`
+	FavoritedChainIDs    []string           `json:"favorited_chain_ids"`
 	AATs                 []byte             `json:"aats"`
 	Notifications        []byte             `json:"notifications"`
 	Whitelists           []byte             `json:"whitelists"`
@@ -1953,6 +1955,7 @@ func (q *Queries) SelectPortalApplications(ctx context.Context, dollar_1 bool) (
 			&i.SecretKeyRequired,
 			&i.MonthlyRelayLimit,
 			&i.Environment,
+			&i.FavoritedChainIDs,
 			&i.AATs,
 			&i.Notifications,
 			&i.Whitelists,
