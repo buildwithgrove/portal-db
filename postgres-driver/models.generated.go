@@ -530,20 +530,21 @@ type PayPlan struct {
 }
 
 type PortalApplication struct {
-	ID                 types.PortalAppID  `json:"id"`
-	AccountID          pgtype.Text        `json:"account_id"`
-	Name               string             `json:"name"`
-	AppEmoji           pgtype.Text        `json:"app_emoji"`
-	Description        pgtype.Text        `json:"description"`
-	CreatedAt          pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
-	Deleted            bool               `json:"deleted"`
-	DeletedAt          pgtype.Timestamptz `json:"deleted_at"`
-	RequestTimeout     pgtype.Int4        `json:"request_timeout"`
-	FirstDateSurpassed pgtype.Timestamptz `json:"first_date_surpassed"`
-	PlanType           types.PayPlanType  `json:"plan_type"`
-	DailyLimit         pgtype.Int4        `json:"daily_limit"`
-	CustomLimit        pgtype.Int4        `json:"custom_limit"`
+	ID                   types.PortalAppID  `json:"id"`
+	AccountID            pgtype.Text        `json:"account_id"`
+	Name                 string             `json:"name"`
+	AppEmoji             pgtype.Text        `json:"app_emoji"`
+	Description          pgtype.Text        `json:"description"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+	Deleted              bool               `json:"deleted"`
+	DeletedAt            pgtype.Timestamptz `json:"deleted_at"`
+	RequestTimeout       pgtype.Int4        `json:"request_timeout"`
+	FirstDateSurpassed   pgtype.Timestamptz `json:"first_date_surpassed"`
+	PlanType             types.PayPlanType  `json:"plan_type"`
+	DailyLimit           pgtype.Int4        `json:"daily_limit"`
+	CustomLimit          pgtype.Int4        `json:"custom_limit"`
+	StripeSubscriptionID pgtype.Text        `json:"stripe_subscription_id"`
 }
 
 type PortalApplicationAat struct {

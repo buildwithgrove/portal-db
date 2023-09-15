@@ -524,6 +524,7 @@ INSERT INTO portal_applications (
         plan_type,
         daily_limit,
         custom_limit,
+        stripe_subscription_id,
         created_at,
         updated_at
     )
@@ -538,6 +539,7 @@ VALUES (
         'FREETIER_V0',
         250000,
         NULL,
+        'stripe_id_1',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -552,6 +554,7 @@ VALUES (
         'PAY_AS_YOU_GO_V0',
         0,
         NULL,
+        'stripe_id_2',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     ),
@@ -566,6 +569,7 @@ VALUES (
         'ENTERPRISE',
         NULL,
         '4200000',
+        'stripe_id_3',
         '2022-11-11 11:11:11.000000',
         '2022-11-11 11:11:11.000000'
     );

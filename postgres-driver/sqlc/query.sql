@@ -219,7 +219,8 @@ SET name = COALESCE(NULLIF(@name::VARCHAR, ''), name),
     plan_type = COALESCE(NULLIF(@plan_type::VARCHAR, ''), plan_type),
     daily_limit = COALESCE($2, daily_limit),
     custom_limit = COALESCE($3, custom_limit),
-    updated_at = $4
+    stripe_subscription_id = COALESCE($4, stripe_subscription_id),
+    updated_at = $5
 WHERE id = $1;
 -- name: GetPlanDailyLimit :one
 SELECT daily_limit

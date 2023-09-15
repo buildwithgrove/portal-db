@@ -85,10 +85,11 @@ func (a *SelectPortalApplicationsRow) toPortalApp() (*types.PortalApp, error) {
 
 	// TODO remove legacy fields when migration to V2 schema complete
 	legacyFields := types.LegacyFields{
-		PlanType:       a.PlanType,
-		DailyLimit:     a.DailyLimit.Int32,
-		CustomLimit:    a.CustomLimit.Int32,
-		RequestTimeout: a.RequestTimeout.Int32,
+		PlanType:             a.PlanType,
+		DailyLimit:           a.DailyLimit.Int32,
+		CustomLimit:          a.CustomLimit.Int32,
+		RequestTimeout:       a.RequestTimeout.Int32,
+		StripeSubscriptionID: a.StripeSubscriptionID.String,
 	}
 
 	return &types.PortalApp{
@@ -402,6 +403,10 @@ func (pg *PostgresDriver) UpdatePortalApp(ctx context.Context, update types.Upda
 			updateApp.CustomLimit = newInt4(update.CustomLimit, false)
 		}
 
+		if update.StripeSubscriptionID != "" {
+			updateApp.StripeSubscriptionID = newText(update.StripeSubscriptionID)
+		}
+
 		err := qtx.UpdatePortalAppFields(ctx, updateApp)
 		if err != nil {
 			return err
@@ -589,10 +594,11 @@ func (json dbPortalApplication) toOutput() *types.PortalApp {
 		UpdatedAt:          json.UpdatedAt,
 		Deleted:            json.Deleted,
 		LegacyFields: types.LegacyFields{
-			PlanType:       types.PayPlanType(json.PlanType),
-			DailyLimit:     json.DailyLimit,
-			CustomLimit:    json.CustomLimit,
-			RequestTimeout: json.RequestTimeout,
+			PlanType:             types.PayPlanType(json.PlanType),
+			DailyLimit:           json.DailyLimit,
+			CustomLimit:          json.CustomLimit,
+			RequestTimeout:       json.RequestTimeout,
+			StripeSubscriptionID: json.StripeSubscriptionID,
 		},
 	}
 }
@@ -658,20 +664,21 @@ func (json dbPortalApplicationAAT) toOutput() *types.AAT {
 }
 
 type dbPortalApplication struct {
-	ID                 types.PortalAppID `json:"id"`
-	AccountID          string            `json:"account_id"`
-	Name               string            `json:"name"`
-	Description        string            `json:"description"`
-	AppEmoji           string            `json:"app_emoji"`
-	CreatedAt          time.Time         `json:"created_at"`
-	UpdatedAt          time.Time         `json:"updated_at"`
-	Deleted            bool              `json:"deleted"`
-	DeletedAt          time.Time         `json:"deleted_at"`
-	RequestTimeout     int32             `json:"request_timeout"`
-	FirstDateSurpassed time.Time         `json:"first_date_surpassed"`
-	PlanType           string            `json:"plan_type"`
-	DailyLimit         int32             `json:"daily_limit"`
-	CustomLimit        int32             `json:"custom_limit"`
+	ID                   types.PortalAppID `json:"id"`
+	AccountID            string            `json:"account_id"`
+	Name                 string            `json:"name"`
+	Description          string            `json:"description"`
+	AppEmoji             string            `json:"app_emoji"`
+	CreatedAt            time.Time         `json:"created_at"`
+	UpdatedAt            time.Time         `json:"updated_at"`
+	Deleted              bool              `json:"deleted"`
+	DeletedAt            time.Time         `json:"deleted_at"`
+	RequestTimeout       int32             `json:"request_timeout"`
+	FirstDateSurpassed   time.Time         `json:"first_date_surpassed"`
+	PlanType             string            `json:"plan_type"`
+	DailyLimit           int32             `json:"daily_limit"`
+	CustomLimit          int32             `json:"custom_limit"`
+	StripeSubscriptionID string            `json:"stripe_subscription_id"`
 }
 
 type dbPortalApplicationNotification struct {

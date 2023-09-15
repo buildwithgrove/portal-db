@@ -107,7 +107,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when name not provided",
 			portalApp: types.PortalApp{
-				AppEmoji: "🌛",
+				AppEmoji: "1F31B",
 				Name:     "",
 			},
 			aat: testdata.TestCreatePortalAppAAT,
@@ -116,7 +116,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when invalid environment provided",
 			portalApp: types.PortalApp{
-				AppEmoji: "🌛",
+				AppEmoji: "1F31B",
 				Name:     "sebastian",
 				Settings: types.Settings{Environment: types.Environment("under da sea")},
 			},
@@ -126,7 +126,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when plan does not exist",
 			portalApp: types.PortalApp{
-				AppEmoji: "🧛",
+				AppEmoji: "1F31B",
 				Name:     "whatever",
 				LegacyFields: types.LegacyFields{
 					PlanType: "nonexistent-plan",
@@ -139,7 +139,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		{
 			name: "Should fail when account does not exist",
 			portalApp: types.PortalApp{
-				AppEmoji: "🗡️",
+				AppEmoji: "1F31B",
 				Name:     "whatever",
 				LegacyFields: types.LegacyFields{
 					PlanType: types.FreetierV0,

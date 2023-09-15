@@ -184,7 +184,9 @@ CREATE TABLE portal_applications (
     -- legacy field
     daily_limit INT,
     -- legacy field
-    custom_limit INT
+    custom_limit INT,
+    -- legacy field
+    stripe_subscription_id VARCHAR(255)
 );
 CREATE TABLE portal_application_settings (
     id SERIAL PRIMARY KEY,

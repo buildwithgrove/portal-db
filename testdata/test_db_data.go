@@ -800,10 +800,11 @@ var (
 			UpdatedAt:          MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				PlanType:       types.FreetierV0,
-				DailyLimit:     250_000,
-				CustomLimit:    0,
-				RequestTimeout: 5_000,
+				PlanType:             types.FreetierV0,
+				DailyLimit:           250_000,
+				CustomLimit:          0,
+				RequestTimeout:       5_000,
+				StripeSubscriptionID: "stripe_id_1",
 			},
 		},
 		"test_app_2": {
@@ -856,10 +857,11 @@ var (
 			UpdatedAt:          MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				PlanType:       types.PayAsYouGoV0,
-				DailyLimit:     0,
-				CustomLimit:    0,
-				RequestTimeout: 10_000,
+				PlanType:             types.PayAsYouGoV0,
+				DailyLimit:           0,
+				CustomLimit:          0,
+				RequestTimeout:       10_000,
+				StripeSubscriptionID: "stripe_id_2",
 			},
 		},
 		"test_app_3": {
@@ -898,10 +900,11 @@ var (
 			UpdatedAt:          MockTimestamp,
 			// TODO remove legacy fields when migration to V2 schema complete
 			LegacyFields: types.LegacyFields{
-				PlanType:       types.Enterprise,
-				DailyLimit:     0,
-				CustomLimit:    4_200_000,
-				RequestTimeout: 10_000,
+				PlanType:             types.Enterprise,
+				DailyLimit:           0,
+				CustomLimit:          4_200_000,
+				RequestTimeout:       10_000,
+				StripeSubscriptionID: "stripe_id_3",
 			},
 		},
 	}
@@ -1390,9 +1393,10 @@ var (
 		CreatedAt:          MockTimestamp,
 		UpdatedAt:          MockTimestamp,
 		LegacyFields: types.LegacyFields{
-			PlanType:       types.FreetierV0,
-			CustomLimit:    0,
-			RequestTimeout: 5_000,
+			PlanType:             types.FreetierV0,
+			CustomLimit:          0,
+			RequestTimeout:       5_000,
+			StripeSubscriptionID: "stripe_id_123",
 		},
 	}
 

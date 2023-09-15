@@ -101,10 +101,11 @@ type (
 	// TODO - remove when v2 migration finished
 	// Fields required for compatibility with the old Portal API and Services (temporary)
 	LegacyFields struct {
-		PlanType       PayPlanType `json:"planType"`
-		DailyLimit     int32       `json:"dailyLimit"`
-		CustomLimit    int32       `json:"customLimit"`
-		RequestTimeout int32       `json:"requestTimeout"`
+		PlanType             PayPlanType `json:"planType"`
+		DailyLimit           int32       `json:"dailyLimit"`
+		CustomLimit          int32       `json:"customLimit"`
+		RequestTimeout       int32       `json:"requestTimeout"`
+		StripeSubscriptionID string      `json:"stripeSubscriptionID"`
 	}
 
 	Settings struct {
@@ -208,8 +209,9 @@ type (
 		Notifications []UpdateAppNotifications `json:"notificationSettings,omitempty"`
 		Whitelists    *WhitelistsObject        `json:"whitelists,omitempty"`
 		// TODO - remove when v2 migration finished
-		PlanType    PayPlanType `json:"planType,omitempty"`
-		CustomLimit int32       `json:"customLimit,omitempty"`
+		PlanType             PayPlanType `json:"planType,omitempty"`
+		CustomLimit          int32       `json:"customLimit,omitempty"`
+		StripeSubscriptionID string      `json:"stripeSubscriptionID,omitempty"`
 	}
 
 	UpdateAppSettings struct {
@@ -255,6 +257,12 @@ func (a *PortalApp) DailyLimit() int32 {
 		return a.LegacyFields.CustomLimit
 	}
 	return a.LegacyFields.DailyLimit
+}
+
+// TODO For Legacy Fields Only
+// SubscriptionID returns the stripe subscription ID
+func (a *PortalApp) SubscriptionID() string {
+	return a.LegacyFields.StripeSubscriptionID
 }
 
 // MonthlyLimit returns the monthly relay limit for a given portal app

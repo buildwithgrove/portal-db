@@ -17,6 +17,7 @@ overrides:
       covalent_api_key_paid: "CovalentAPIKeyPaid"
       aat_id: "AATID"
       icon_url: "IconURL"
+      stripe_subscription_id: "StripeSubscriptionID"
 
 sql:
   - schema: "schema.sql"
