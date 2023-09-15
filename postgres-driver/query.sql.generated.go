@@ -1154,7 +1154,7 @@ type InsertPortalApplicationSettingParams struct {
 	SecretKey         pgtype.Text       `json:"secret_key"`
 	SecretKeyRequired pgtype.Bool       `json:"secret_key_required"`
 	MonthlyRelayLimit int32             `json:"monthly_relay_limit"`
-	Environment       types.Environment `json:"environment"`
+	Environment       pgtype.Text       `json:"environment"`
 }
 
 func (q *Queries) InsertPortalApplicationSetting(ctx context.Context, arg InsertPortalApplicationSettingParams) (PortalApplicationSetting, error) {
@@ -2510,9 +2510,12 @@ UPDATE portal_application_settings
 SET secret_key = COALESCE($2, secret_key),
     secret_key_required = COALESCE($3, secret_key_required),
     monthly_relay_limit = COALESCE($4, monthly_relay_limit),
-    environment = COALESCE($5, environment),
-    favorited_chain_ids = COALESCE($6, favorited_chain_ids),
-    updated_at = COALESCE($7, updated_at)
+    environment = CASE
+        WHEN $7::environment IS NOT NULL THEN COALESCE($7::environment, environment)
+        ELSE environment
+    END::environment,
+    favorited_chain_ids = COALESCE($5, favorited_chain_ids),
+    updated_at = COALESCE($6, updated_at)
 WHERE application_id = $1
 `
 
@@ -2521,9 +2524,9 @@ type UpdatePortalAppSettingsParams struct {
 	SecretKey         pgtype.Text        `json:"secret_key"`
 	SecretKeyRequired pgtype.Bool        `json:"secret_key_required"`
 	MonthlyRelayLimit int32              `json:"monthly_relay_limit"`
-	Environment       types.Environment  `json:"environment"`
 	FavoritedChainIDs []string           `json:"favorited_chain_ids"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	Environment       pgtype.Text        `json:"environment"`
 }
 
 func (q *Queries) UpdatePortalAppSettings(ctx context.Context, arg UpdatePortalAppSettingsParams) error {
@@ -2532,9 +2535,9 @@ func (q *Queries) UpdatePortalAppSettings(ctx context.Context, arg UpdatePortalA
 		arg.SecretKey,
 		arg.SecretKeyRequired,
 		arg.MonthlyRelayLimit,
-		arg.Environment,
 		arg.FavoritedChainIDs,
 		arg.UpdatedAt,
+		arg.Environment,
 	)
 	return err
 }

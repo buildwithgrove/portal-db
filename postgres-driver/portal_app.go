@@ -243,7 +243,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	}
 	_, err = qtx.InsertPortalApplicationSetting(ctx, InsertPortalApplicationSettingParams{
 		ApplicationID:     portalApp.ID,
-		Environment:       portalApp.Settings.Environment,
+		Environment:       newText(string(portalApp.Settings.Environment)),
 		SecretKey:         newText(portalApp.Settings.SecretKey),
 		SecretKeyRequired: newBool(&portalApp.Settings.SecretKeyRequired),
 		MonthlyRelayLimit: portalApp.Settings.MonthlyRelayLimit,
@@ -446,7 +446,7 @@ func (pg *PostgresDriver) updateSettings(ctx context.Context, qtx *Queries, upda
 		SecretKey:         newText(update.Settings.SecretKey),
 		SecretKeyRequired: newBool(&update.Settings.SecretKeyRequired),
 		MonthlyRelayLimit: update.Settings.MonthlyRelayLimit,
-		Environment:       update.Settings.Environment,
+		Environment:       newText(string(update.Settings.Environment)),
 		FavoritedChainIDs: update.Settings.FavoritedChainIDs,
 		UpdatedAt:         newTimestamptz(updatedAt),
 	}

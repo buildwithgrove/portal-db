@@ -231,9 +231,12 @@ UPDATE portal_application_settings
 SET secret_key = COALESCE($2, secret_key),
     secret_key_required = COALESCE($3, secret_key_required),
     monthly_relay_limit = COALESCE($4, monthly_relay_limit),
-    environment = COALESCE($5, environment),
-    favorited_chain_ids = COALESCE($6, favorited_chain_ids),
-    updated_at = COALESCE($7, updated_at)
+    environment = CASE
+        WHEN @environment::environment IS NOT NULL THEN COALESCE(@environment::environment, environment)
+        ELSE environment
+    END::environment,
+    favorited_chain_ids = COALESCE($5, favorited_chain_ids),
+    updated_at = COALESCE($6, updated_at)
 WHERE application_id = $1;
 -- name: UpdateUpsertPortalAppNotification :exec
 INSERT INTO portal_application_notifications (

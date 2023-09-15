@@ -573,7 +573,7 @@ type PortalApplicationSetting struct {
 	ID                int32              `json:"id"`
 	ApplicationID     types.PortalAppID  `json:"application_id"`
 	MonthlyRelayLimit int32              `json:"monthly_relay_limit"`
-	Environment       types.Environment  `json:"environment"`
+	Environment       pgtype.Text        `json:"environment"`
 	FavoritedChainIDs []string           `json:"favorited_chain_ids"`
 	SecretKey         pgtype.Text        `json:"secret_key"`
 	SecretKeyRequired pgtype.Bool        `json:"secret_key_required"`

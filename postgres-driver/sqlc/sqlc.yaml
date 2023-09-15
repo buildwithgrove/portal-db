@@ -44,6 +44,8 @@ sql:
             go_type: "github.com/jackc/pgx/v5/pgtype.Text"
           - column: "accounts.plan_type"
             go_type: "github.com/jackc/pgx/v5/pgtype.Text"
+          - db_type: "environment"
+            go_type: "github.com/jackc/pgx/v5/pgtype.Text"
           # Enum Overrides
           - db_type: "auth_provider"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.AuthProvider"
@@ -53,8 +55,6 @@ sql:
             go_type: "github.com/pokt-foundation/portal-db/v2/types.ChainAuthType"
           - db_type: "chain_check_type"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.ChainCheckType"
-          - db_type: "environment"
-            go_type: "github.com/pokt-foundation/portal-db/v2/types.Environment"
           - db_type: "notification_event"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.NotificationEvent"
           - db_type: "notification_type"
