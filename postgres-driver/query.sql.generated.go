@@ -2037,6 +2037,7 @@ func (q *Queries) SelectUserIDs(ctx context.Context) ([]SelectUserIDsRow, error)
 
 const selectUserPermissions = `-- name: SelectUserPermissions :many
 SELECT aua.user_id,
+aua.account_id,
     aua.role_name,
     aua.owner,
     ur.permissions::permissions [] AS permissions,
@@ -2051,6 +2052,7 @@ WHERE aua.accepted = true
     AND aua.user_id IS NOT NULL
     AND pa.id IS NOT NULL
 GROUP BY aua.user_id,
+aua.account_id,
     aua.role_name,
     aua.owner,
     ur.permissions,
@@ -2059,6 +2061,7 @@ GROUP BY aua.user_id,
 
 type SelectUserPermissionsRow struct {
 	UserID               types.UserID        `json:"user_id"`
+	AccountID            types.AccountID     `json:"account_id"`
 	RoleName             types.RoleName      `json:"role_name"`
 	Owner                bool                `json:"owner"`
 	Permissions          []types.Permissions `json:"permissions"`
@@ -2076,6 +2079,7 @@ func (q *Queries) SelectUserPermissions(ctx context.Context) ([]SelectUserPermis
 		var i SelectUserPermissionsRow
 		if err := rows.Scan(
 			&i.UserID,
+			&i.AccountID,
 			&i.RoleName,
 			&i.Owner,
 			&i.Permissions,

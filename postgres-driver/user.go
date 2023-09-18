@@ -112,17 +112,18 @@ func (pg *PostgresDriver) ReadAllUsers(ctx context.Context) (map[types.UserID]*t
 				user.Permissions = make(map[types.PortalAppID]types.PortalAppPermissions)
 			}
 
+			// The PortalApplicationIDs slice will be every portal app ID in the account in the case
+			// of an account OWNER or just a single portal app ID in the case of an account user.
 			for _, appID := range userRoleRow.PortalApplicationIDs {
 				portalAppID := types.PortalAppID(appID)
 
-				_, err := user.UpsertPermissions(portalAppID, userRoleRow.RoleName)
+				_, err := user.UpsertPermissions(portalAppID, userRoleRow.AccountID, userRoleRow.RoleName)
 				if err != nil {
 					return nil, err
 				}
 
 			}
 		}
-
 	}
 
 	return usersMap, nil

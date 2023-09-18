@@ -451,7 +451,8 @@ var (
 			},
 			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
 				"test_app_1": types.PortalAppPermissions{
-					RoleName: types.RoleOwner,
+					AccountID: "account_1",
+					RoleName:  types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 						types.PermWriteEndpoint,
@@ -487,14 +488,16 @@ var (
 			},
 			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
 				"test_app_1": types.PortalAppPermissions{
-					RoleName: types.RoleAdmin,
+					AccountID: "account_1",
+					RoleName:  types.RoleAdmin,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 						types.PermWriteEndpoint,
 					},
 				},
 				"test_app_2": types.PortalAppPermissions{
-					RoleName: types.RoleMember,
+					AccountID: "account_2",
+					RoleName:  types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 					},
@@ -521,7 +524,8 @@ var (
 			},
 			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
 				"test_app_2": types.PortalAppPermissions{
-					RoleName: types.RoleOwner,
+					AccountID: "account_2",
+					RoleName:  types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 						types.PermWriteEndpoint,
@@ -551,7 +555,8 @@ var (
 			},
 			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
 				"test_app_2": types.PortalAppPermissions{
-					RoleName: types.RoleMember,
+					AccountID: "account_2",
+					RoleName:  types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 					},
@@ -578,7 +583,8 @@ var (
 			},
 			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
 				"test_app_3": types.PortalAppPermissions{
-					RoleName: types.RoleOwner,
+					AccountID: "account_3",
+					RoleName:  types.RoleOwner,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 						types.PermWriteEndpoint,
@@ -608,7 +614,8 @@ var (
 			},
 			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
 				"test_app_3": types.PortalAppPermissions{
-					RoleName: types.RoleAdmin,
+					AccountID: "account_3",
+					RoleName:  types.RoleAdmin,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 						types.PermWriteEndpoint,
@@ -636,7 +643,8 @@ var (
 			},
 			Permissions: map[types.PortalAppID]types.PortalAppPermissions{
 				"test_app_3": types.PortalAppPermissions{
-					RoleName: types.RoleMember,
+					AccountID: "account_3",
+					RoleName:  types.RoleMember,
 					Permissions: []types.Permissions{
 						types.PermReadEndpoint,
 					},
