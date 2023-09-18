@@ -1024,7 +1024,7 @@ var (
 			"user_5":  getPtrFromMap(AccountUserAccess, 5),
 			"user_6":  getPtrFromMap(AccountUserAccess, 6),
 			"user_7":  getPtrFromMap(AccountUserAccess, 7),
-			"user_10": getPtrFromMap(AccountUserAccess, 2),
+			"user_10": getPtrFromMap(AccountUserAccess, 12),
 		},
 	}
 
