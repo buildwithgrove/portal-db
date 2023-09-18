@@ -220,7 +220,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 	qtx := pg.WithTx(tx)
 
-	_, err = qtx.InsertPortalApplication(ctx, InsertPortalApplicationParams{
+	insert := InsertPortalApplicationParams{
 		ID:          portalApp.ID,
 		AccountID:   newText(string(portalApp.AccountID)),
 		Name:        portalApp.Name,
@@ -230,11 +230,26 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		UpdatedAt:   newTimestamptz(portalApp.UpdatedAt),
 		// TODO remove legacy fields when migration to V2 schema complete
 		PlanType:           portalApp.LegacyFields.PlanType,
-		DailyLimit:         newInt4(portalApp.LegacyFields.DailyLimit, true),
 		CustomLimit:        newInt4(portalApp.LegacyFields.CustomLimit, true),
 		RequestTimeout:     newInt4(portalApp.LegacyFields.RequestTimeout, true),
 		FirstDateSurpassed: newTimestamptz(portalApp.FirstDateSurpassed),
-	})
+	}
+
+	if portalApp.LegacyFields.PlanType != types.Enterprise {
+		dailyLimit, err := qtx.GetPlanDailyLimit(ctx, portalApp.LegacyFields.PlanType)
+		if err != nil {
+			switch {
+			case errNoRows(err):
+				return nil, fmt.Errorf(errPayPlanDoesntExist.Error(), portalApp.LegacyFields.PlanType)
+			default:
+				return nil, err
+			}
+		}
+
+		insert.DailyLimit = newInt4(dailyLimit.Int32, false)
+	}
+
+	_, err = qtx.InsertPortalApplication(ctx, insert)
 	if err != nil {
 		return nil, err
 	}

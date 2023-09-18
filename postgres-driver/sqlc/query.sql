@@ -498,7 +498,7 @@ SET covalent_api_key_free = CASE
 RETURNING *;
 -- name: SelectUserPermissions :many
 SELECT aua.user_id,
-aua.account_id,
+    aua.account_id,
     aua.role_name,
     aua.owner,
     ur.permissions::permissions [] AS permissions,
@@ -513,7 +513,7 @@ WHERE aua.accepted = true
     AND aua.user_id IS NOT NULL
     AND pa.id IS NOT NULL
 GROUP BY aua.user_id,
-aua.account_id,
+    aua.account_id,
     aua.role_name,
     aua.owner,
     ur.permissions,
