@@ -96,6 +96,8 @@ type (
 		// TODO - remove when v2 migration finished
 		// Fields required for compatibility with the old Portal API and Services (temporary)
 		LegacyFields LegacyFields `json:"legacyFields"`
+		// User Pointers set in the PHD cache
+		Users map[UserID]*AccountUserAccess `json:"users"`
 	}
 
 	// TODO - remove when v2 migration finished
@@ -268,6 +270,34 @@ func (a *PortalApp) SubscriptionID() string {
 // MonthlyLimit returns the monthly relay limit for a given portal app
 func (a *PortalApp) MonthlyLimit() int32 {
 	return a.Settings.MonthlyRelayLimit
+}
+
+// GetUsers returns all the PortalApp's Users as a slice
+func (a *PortalApp) GetUsers() []AccountUserAccess {
+	users := []AccountUserAccess{}
+	for _, user := range a.Users {
+		users = append(users, *user)
+	}
+	return users
+}
+
+// GetUserIDs returns all the PortalApp's Users' IDs as a slice
+func (a *PortalApp) GetUserIDs() []UserID {
+	users := []UserID{}
+	for _, user := range a.Users {
+		users = append(users, user.UserID)
+	}
+	return users
+}
+
+// Owner ID returns the UserID of the PortalApp's owner
+func (a *PortalApp) OwnerID() UserID {
+	for _, user := range a.Users {
+		if user.Owner {
+			return user.UserID
+		}
+	}
+	return ""
 }
 
 // AddWhitelist adds a whitelist to the PortalApp pointer's Whitelists field
