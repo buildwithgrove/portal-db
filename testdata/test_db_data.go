@@ -1018,7 +1018,7 @@ var (
 			"user_3": getPtrFromMap(AccountUserAccess, 3),
 			"user_4": getPtrFromMap(AccountUserAccess, 4),
 			"user_9": getPtrFromMap(AccountUserAccess, 9),
-			"user_2": getPtrFromMap(AccountUserAccess, 0),
+			"user_2": getPtrFromMap(AccountUserAccess, 10),
 		},
 		"test_app_3": {
 			"user_5":  getPtrFromMap(AccountUserAccess, 5),
