@@ -1008,6 +1008,26 @@ var (
 		},
 	}
 
+	PortalAppUsers = map[types.PortalAppID]map[types.UserID]*types.AccountUserAccess{
+		"test_app_1": {
+			"user_1": getPtrFromMap(AccountUserAccess, 1),
+			"user_2": getPtrFromMap(AccountUserAccess, 2),
+			"user_8": getPtrFromMap(AccountUserAccess, 8),
+		},
+		"test_app_2": {
+			"user_3": getPtrFromMap(AccountUserAccess, 3),
+			"user_4": getPtrFromMap(AccountUserAccess, 4),
+			"user_9": getPtrFromMap(AccountUserAccess, 9),
+			"user_2": getPtrFromMap(AccountUserAccess, 0),
+		},
+		"test_app_3": {
+			"user_5":  getPtrFromMap(AccountUserAccess, 5),
+			"user_6":  getPtrFromMap(AccountUserAccess, 6),
+			"user_7":  getPtrFromMap(AccountUserAccess, 7),
+			"user_10": getPtrFromMap(AccountUserAccess, 2),
+		},
+	}
+
 	GigastakeApps = map[types.GigastakeAppID]*types.GigastakeApp{
 		"test_gigastake_app_1": {
 			ID:              "test_gigastake_app_1",
@@ -1905,4 +1925,9 @@ func newChainAlias(a types.ChainAlias) *types.ChainAlias {
 
 func newBool(b bool) *bool {
 	return &b
+}
+
+func getPtrFromMap(m map[int]types.AccountUserAccess, key int) *types.AccountUserAccess {
+	value := m[key]
+	return &value
 }
