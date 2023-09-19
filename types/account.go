@@ -31,16 +31,16 @@ type (
 
 	// AccountUserAccess represents a single Portal user for a single Account
 	AccountUserAccess struct {
-		AccountID        AccountID                `json:"id,omitempty"` // used for listener
-		Owner            bool                     `json:"owner"`
-		UserID           UserID                   `json:"userID"`
-		Email            Email                    `json:"email"`
-		IconURL          string                   `json:"iconURL"`
-		Accepted         bool                     `json:"accepted"`
-		UpdatesProduct   bool                     `json:"updatesProduct"`
-		UpdatesMarketing bool                     `json:"updatesMarketing"`
-		BetaTester       bool                     `json:"betaTester"`
-		PortalAppRoles   map[PortalAppID]RoleName `json:"portalApplicationRoles"`
+		AccountID          AccountID                `json:"id,omitempty"` // used for listener
+		Owner              bool                     `json:"owner"`
+		UserID             UserID                   `json:"userID"`
+		Email              Email                    `json:"email"`
+		IconURL            string                   `json:"iconURL"`
+		UpdatesProduct     bool                     `json:"updatesProduct"`
+		UpdatesMarketing   bool                     `json:"updatesMarketing"`
+		BetaTester         bool                     `json:"betaTester"`
+		PortalAppRoles     map[PortalAppID]RoleName `json:"portalApplicationRoles"`
+		PortalAppsAccepted map[PortalAppID]bool     `json:"portalApplicationsAccepted"`
 	}
 
 	// AccountUserAccess represents fields used for integrations with other platforms
@@ -108,6 +108,43 @@ func (a *Account) GetOwnerID() (UserID, error) {
 		}
 	}
 	return UserID(""), errNoOwner
+}
+
+// GetPortalApps returns all of the Account's PortalApps as a slice
+func (a *Account) GetPortalApps() []PortalApp {
+	portalApps := make([]PortalApp, 0, len(a.PortalApps))
+	for _, portalApp := range a.PortalApps {
+		portalApps = append(portalApps, *portalApp)
+	}
+	return portalApps
+}
+
+// GetAcceptedPortalApps returns the Account's PortalApps as a slice containing
+// only the PortalApps that the user has accepted or not accepted
+func (a *Account) GetAcceptedPortalApps(userID UserID, accepted bool) []PortalApp {
+	portalApps := make([]PortalApp, 0, len(a.PortalApps))
+
+	for _, portalApp := range a.PortalApps {
+		hasUserAccepted, ok := a.HasUserAcceptedInvite(userID, portalApp.ID)
+
+		if ok && hasUserAccepted == accepted {
+			portalApps = append(portalApps, *portalApp)
+		}
+	}
+
+	return portalApps
+}
+
+// HasAcceptedPortalApp returns true if the user has accepted the PortalApp
+func (a *Account) HasUserAcceptedInvite(userID UserID, portalAppID PortalAppID) (bool, bool) {
+	user, ok := a.Users[userID]
+	if !ok {
+		return false, false
+	}
+
+	accepted, ok := user.PortalAppsAccepted[portalAppID]
+
+	return accepted, ok
 }
 
 func (a *Account) Table() Table {

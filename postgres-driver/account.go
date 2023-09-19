@@ -1,6 +1,7 @@
 package postgresdriver
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,15 +14,16 @@ import (
 
 type (
 	userAccessDBRow struct {
-		UserID           string                               `json:"user_id"`
-		Email            string                               `json:"email"`
-		IconURL          string                               `json:"icon_url"`
-		Owner            bool                                 `json:"owner"`
-		Accepted         bool                                 `json:"accepted"`
-		UpdatesMarketing bool                                 `json:"updates_marketing"`
-		UpdatesProduct   bool                                 `json:"updates_product"`
-		BetaTester       bool                                 `json:"beta_tester"`
-		PortalAppRoles   map[types.PortalAppID]types.RoleName `json:"portal_application_roles"`
+		UserID             string                               `json:"user_id"`
+		Email              string                               `json:"email"`
+		IconURL            string                               `json:"icon_url"`
+		Owner              bool                                 `json:"owner"`
+		Accepted           bool                                 `json:"accepted"`
+		UpdatesMarketing   bool                                 `json:"updates_marketing"`
+		UpdatesProduct     bool                                 `json:"updates_product"`
+		BetaTester         bool                                 `json:"beta_tester"`
+		PortalAppRoles     map[types.PortalAppID]types.RoleName `json:"portal_application_roles"`
+		PortalAppsAccepted map[types.PortalAppID]bool           `json:"portal_applications_accepted"`
 	}
 )
 
@@ -86,6 +88,8 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		return nil, fmt.Errorf("%s: %w", errUnmarshallingWhitelists, err)
 	}
 
+	Plog("ACCOUNT USERS", accountUsers)
+
 	return &types.Account{
 		ID:                     a.ID,
 		Name:                   a.Name.String,
@@ -119,20 +123,32 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	for _, user := range userRows {
 		if user.UserID != "" {
 			users[types.UserID(user.UserID)] = types.AccountUserAccess{
-				UserID:           types.UserID(user.UserID),
-				Email:            types.Email(user.Email),
-				IconURL:          user.IconURL,
-				Owner:            user.Owner,
-				Accepted:         user.Accepted,
-				UpdatesMarketing: user.UpdatesMarketing,
-				UpdatesProduct:   user.UpdatesProduct,
-				BetaTester:       user.BetaTester,
-				PortalAppRoles:   user.PortalAppRoles,
+				UserID:             types.UserID(user.UserID),
+				Email:              types.Email(user.Email),
+				IconURL:            user.IconURL,
+				Owner:              user.Owner,
+				UpdatesMarketing:   user.UpdatesMarketing,
+				UpdatesProduct:     user.UpdatesProduct,
+				BetaTester:         user.BetaTester,
+				PortalAppRoles:     user.PortalAppRoles,
+				PortalAppsAccepted: user.PortalAppsAccepted,
 			}
 		}
 	}
 
 	return users, nil
+}
+
+func Plog(args ...interface{}) {
+	for _, arg := range args {
+		var prettyJSON bytes.Buffer
+		jsonArg, _ := json.Marshal(arg)
+		str := string(jsonArg)
+		_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
+		output := prettyJSON.String()
+
+		fmt.Println(output)
+	}
 }
 
 /* ----- postgresdriver Account Create Methods ----- */
@@ -209,7 +225,6 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 			UpdatesMarketing: user.UpdatesMarketing.Bool,
 			BetaTester:       user.BetaTester.Bool,
 			Owner:            true,
-			Accepted:         true,
 		},
 	}
 
@@ -765,13 +780,17 @@ func (json dbAccountUserAccess) toOutput() *types.AccountUserAccess {
 	if json.PortalApplicationID != "" && json.RoleName != "" {
 		portalAppRoles[json.PortalApplicationID] = json.RoleName
 	}
+	portalAppsAccepted := make(map[types.PortalAppID]bool)
+	if json.PortalApplicationID != "" {
+		portalAppsAccepted[json.PortalApplicationID] = json.Accepted
+	}
 
 	return &types.AccountUserAccess{
-		AccountID:      json.AccountID,
-		UserID:         json.UserID,
-		Owner:          json.Owner,
-		Accepted:       json.Accepted,
-		PortalAppRoles: portalAppRoles,
+		AccountID:          json.AccountID,
+		UserID:             json.UserID,
+		Owner:              json.Owner,
+		PortalAppRoles:     portalAppRoles,
+		PortalAppsAccepted: portalAppsAccepted,
 	}
 }
 

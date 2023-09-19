@@ -255,12 +255,14 @@ var (
 			Email:            "james.holden123@test.com",
 			IconURL:          "https://picsum.photos/200",
 			Owner:            true,
-			Accepted:         true,
 			UpdatesProduct:   true,
 			UpdatesMarketing: false,
 			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleOwner,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_1": true,
 			},
 		},
 		2: {
@@ -268,12 +270,14 @@ var (
 			UserID:           "user_2",
 			Email:            "paul.atreides456@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         true,
 			UpdatesProduct:   false,
 			UpdatesMarketing: true,
 			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_1": true,
 			},
 		},
 		3: {
@@ -282,12 +286,14 @@ var (
 			Email:            "ellen.ripley789@test.com",
 			IconURL:          "https://picsum.photos/200",
 			Owner:            true,
-			Accepted:         true,
 			UpdatesProduct:   true,
 			UpdatesMarketing: true,
 			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleOwner,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_2": true,
 			},
 		},
 		4: {
@@ -295,12 +301,14 @@ var (
 			UserID:           "user_4",
 			Email:            "ulfric.stormcloak123@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         true,
 			UpdatesProduct:   false,
 			UpdatesMarketing: false,
 			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_2": true,
 			},
 		},
 		5: {
@@ -309,12 +317,14 @@ var (
 			Email:            "chrisjen.avasarala1@test.com",
 			IconURL:          "https://picsum.photos/200",
 			Owner:            true,
-			Accepted:         true,
 			UpdatesProduct:   true,
 			UpdatesMarketing: false,
 			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleOwner,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_3": true,
 			},
 		},
 		6: {
@@ -322,12 +332,14 @@ var (
 			UserID:           "user_6",
 			Email:            "amos.burton789@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         true,
 			UpdatesProduct:   false,
 			UpdatesMarketing: true,
 			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleAdmin,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_3": true,
 			},
 		},
 		7: {
@@ -335,12 +347,14 @@ var (
 			UserID:           "user_7",
 			Email:            "frodo.baggins123@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         true,
 			UpdatesProduct:   true,
 			UpdatesMarketing: true,
 			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_3": true,
 			},
 		},
 		8: {
@@ -348,12 +362,14 @@ var (
 			UserID:           "user_8",
 			Email:            "rick.deckard456@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         false,
 			UpdatesProduct:   true,
 			UpdatesMarketing: true,
 			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_1": false,
 			},
 		},
 		9: {
@@ -361,12 +377,14 @@ var (
 			UserID:           "user_9",
 			Email:            "tyrion.lannister789@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         false,
 			UpdatesProduct:   true,
 			UpdatesMarketing: true,
 			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_2": false,
 			},
 		},
 		// Paul is an admin of Account 1 as well as a member of Account 2
@@ -375,12 +393,14 @@ var (
 			UserID:           "user_2",
 			Email:            "paul.atreides456@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         true,
 			UpdatesProduct:   false,
 			UpdatesMarketing: true,
 			BetaTester:       false,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_2": true,
 			},
 		},
 		// Ulfric is an admin of Account 2 as well as the owner of Accounts 4 and 5
@@ -390,7 +410,6 @@ var (
 			Email:            "ulfric.stormcloak123@test.com",
 			IconURL:          "https://picsum.photos/200",
 			Owner:            true,
-			Accepted:         true,
 			UpdatesProduct:   false,
 			UpdatesMarketing: false,
 			BetaTester:       true,
@@ -401,12 +420,14 @@ var (
 			UserID:           "user_10",
 			Email:            "daenerys.targaryen123@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         false,
 			UpdatesProduct:   false,
 			UpdatesMarketing: false,
 			BetaTester:       true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
+			},
+			PortalAppsAccepted: map[types.PortalAppID]bool{
+				"test_app_3": false,
 			},
 		},
 		// Bernard is an existing user and is used to create a new AccountUserAccess row
@@ -414,15 +435,13 @@ var (
 			UserID:           "user_11",
 			Email:            "bernard.marx@test.com",
 			IconURL:          "https://picsum.photos/200",
-			Accepted:         false,
 			UpdatesProduct:   true,
 			UpdatesMarketing: true,
 			BetaTester:       false,
 		},
 		// Winston has not signed up yet and is used to create a new AccountUserAccess row
 		14: {
-			Email:    "winston.smith@test.com",
-			Accepted: false,
+			Email: "winston.smith@test.com",
 		},
 	}
 

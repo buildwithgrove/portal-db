@@ -162,6 +162,11 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 				roleName = role
 				break
 			}
+			var accepted bool
+			for _, appAccepted := range userAccess.PortalAppsAccepted {
+				accepted = appAccepted
+				break
+			}
 			inputs = append(inputs, inputStruct{
 				action: sideTablesAction,
 				table:  types.TableAccountUserAccess,
@@ -170,7 +175,7 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 					UserID:              userAccess.UserID,
 					PortalApplicationID: portalAppID,
 					RoleName:            roleName,
-					Accepted:            userAccess.Accepted,
+					Accepted:            accepted,
 				},
 			})
 		}

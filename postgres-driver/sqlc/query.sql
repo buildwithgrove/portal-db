@@ -331,7 +331,8 @@ WHERE id = $1;
 WITH app_role_agg_owner AS (
     SELECT aua.user_id,
         aua.account_id,
-        jsonb_object_agg(pa.id, 'OWNER') AS portal_application_roles
+        jsonb_object_agg(pa.id, 'OWNER') AS portal_application_roles,
+        jsonb_object_agg(pa.id, aua.accepted) AS portal_applications_accepted
     FROM account_user_access AS aua
         JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.owner = true
@@ -341,7 +342,8 @@ WITH app_role_agg_owner AS (
 app_role_agg_non_owner AS (
     SELECT aua.user_id,
         aua.account_id,
-        jsonb_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles
+        jsonb_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles,
+        jsonb_object_agg(aua.portal_application_id, aua.accepted) AS portal_applications_accepted
     FROM account_user_access AS aua
         JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
     WHERE aua.owner = false
@@ -351,7 +353,8 @@ app_role_agg_non_owner AS (
 app_role_agg AS (
     SELECT COALESCE(aro.user_id, aroo.user_id) as user_id,
         COALESCE(aro.account_id, aroo.account_id) as account_id,
-        COALESCE(aro.portal_application_roles, '{}'::jsonb) || COALESCE(aroo.portal_application_roles, '{}'::jsonb) as portal_application_roles
+        COALESCE(aro.portal_application_roles, '{}'::jsonb) || COALESCE(aroo.portal_application_roles, '{}'::jsonb) as portal_application_roles,
+        COALESCE(aro.portal_applications_accepted, '{}'::jsonb) || COALESCE(aroo.portal_applications_accepted, '{}'::jsonb) as portal_applications_accepted
     FROM app_role_agg_owner aro
         FULL JOIN app_role_agg_non_owner aroo ON aro.user_id = aroo.user_id
         AND aro.account_id = aroo.account_id
@@ -373,12 +376,12 @@ SELECT a.*,
             u.updates_marketing,
             'beta_tester',
             u.beta_tester,
-            'accepted',
-            aua.accepted,
             'owner',
             aua.owner,
             'portal_application_roles',
-            ara.portal_application_roles
+            ara.portal_application_roles,
+            'portal_applications_accepted',
+            ara.portal_applications_accepted
         )
     ) AS users
 FROM accounts AS a

@@ -37,7 +37,7 @@ func ConvertPortalAppToLegacyLoadBalancer(a v2Types.PortalApp, account v2Types.A
 					UserID:   string(accountUser.UserID),
 					Email:    string(accountUser.Email),
 					RoleName: v1Types.RoleName(roleName),
-					Accepted: accountUser.Accepted,
+					Accepted: accountUser.PortalAppsAccepted[a.ID],
 				})
 
 				if roleName == v2Types.RoleOwner {
@@ -447,9 +447,11 @@ func ConvertToV2AccountUserAccess(u v1Types.UserAccess, lbID, accountID string) 
 		UserID:    v2Types.UserID(u.UserID),
 		Email:     v2Types.Email(u.Email),
 		Owner:     u.RoleName == v1Types.RoleOwner,
-		Accepted:  u.Accepted,
 		PortalAppRoles: map[v2Types.PortalAppID]v2Types.RoleName{
 			portalAppID: v2Types.RoleName(u.RoleName),
+		},
+		PortalAppsAccepted: map[v2Types.PortalAppID]bool{
+			portalAppID: u.Accepted,
 		},
 	}
 
