@@ -405,14 +405,16 @@ var (
 		},
 		// Ulfric is an admin of Account 2 as well as the owner of Accounts 4 and 5
 		11: {
-			AccountID:        "",
-			UserID:           "user_4",
-			Email:            "ulfric.stormcloak123@test.com",
-			IconURL:          "https://picsum.photos/200",
-			Owner:            true,
-			UpdatesProduct:   false,
-			UpdatesMarketing: false,
-			BetaTester:       true,
+			AccountID:          "",
+			UserID:             "user_4",
+			Email:              "ulfric.stormcloak123@test.com",
+			IconURL:            "https://picsum.photos/200",
+			Owner:              true,
+			UpdatesProduct:     false,
+			UpdatesMarketing:   false,
+			BetaTester:         true,
+			PortalAppRoles:     map[types.PortalAppID]types.RoleName{},
+			PortalAppsAccepted: map[types.PortalAppID]bool{},
 		},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
 		12: {
@@ -432,12 +434,14 @@ var (
 		},
 		// Bernard is an existing user and is used to create a new AccountUserAccess row
 		13: {
-			UserID:           "user_11",
-			Email:            "bernard.marx@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   true,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			UserID:             "user_11",
+			Email:              "bernard.marx@test.com",
+			IconURL:            "https://picsum.photos/200",
+			UpdatesProduct:     true,
+			UpdatesMarketing:   true,
+			BetaTester:         false,
+			PortalAppRoles:     map[types.PortalAppID]types.RoleName{},
+			PortalAppsAccepted: map[types.PortalAppID]bool{},
 		},
 		// Winston has not signed up yet and is used to create a new AccountUserAccess row
 		14: {

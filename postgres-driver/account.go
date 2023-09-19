@@ -1,7 +1,6 @@
 package postgresdriver
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -88,8 +87,6 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 		return nil, fmt.Errorf("%s: %w", errUnmarshallingWhitelists, err)
 	}
 
-	Plog("ACCOUNT USERS", accountUsers)
-
 	return &types.Account{
 		ID:                     a.ID,
 		Name:                   a.Name.String,
@@ -122,6 +119,12 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 
 	for _, user := range userRows {
 		if user.UserID != "" {
+			if user.PortalAppRoles == nil {
+				user.PortalAppRoles = make(map[types.PortalAppID]types.RoleName)
+			}
+			if user.PortalAppsAccepted == nil {
+				user.PortalAppsAccepted = make(map[types.PortalAppID]bool)
+			}
 			users[types.UserID(user.UserID)] = types.AccountUserAccess{
 				UserID:             types.UserID(user.UserID),
 				Email:              types.Email(user.Email),
@@ -137,18 +140,6 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 	}
 
 	return users, nil
-}
-
-func Plog(args ...interface{}) {
-	for _, arg := range args {
-		var prettyJSON bytes.Buffer
-		jsonArg, _ := json.Marshal(arg)
-		str := string(jsonArg)
-		_ = json.Indent(&prettyJSON, []byte(str), "", "    ")
-		output := prettyJSON.String()
-
-		fmt.Println(output)
-	}
 }
 
 /* ----- postgresdriver Account Create Methods ----- */
@@ -218,13 +209,15 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 	// Assign OWNER to returned Account struct
 	account.Users = map[types.UserID]types.AccountUserAccess{
 		types.UserID(creatorID): {
-			UserID:           types.UserID(creatorID),
-			Email:            types.Email(user.Email),
-			IconURL:          user.IconURL.String,
-			UpdatesProduct:   user.UpdatesProduct.Bool,
-			UpdatesMarketing: user.UpdatesMarketing.Bool,
-			BetaTester:       user.BetaTester.Bool,
-			Owner:            true,
+			UserID:             types.UserID(creatorID),
+			Email:              types.Email(user.Email),
+			IconURL:            user.IconURL.String,
+			UpdatesProduct:     user.UpdatesProduct.Bool,
+			UpdatesMarketing:   user.UpdatesMarketing.Bool,
+			BetaTester:         user.BetaTester.Bool,
+			Owner:              true,
+			PortalAppRoles:     map[types.PortalAppID]types.RoleName{},
+			PortalAppsAccepted: map[types.PortalAppID]bool{},
 		},
 	}
 
