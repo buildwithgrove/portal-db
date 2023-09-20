@@ -328,13 +328,18 @@ SET deleted = true,
     deleted_at = $2
 WHERE id = $1;
 -- name: SelectAccounts :many
-WITH app_role_agg_owner AS (
+WITH filtered_portal_applications AS (
+    SELECT *
+    FROM portal_applications
+    WHERE deleted = false
+),
+app_role_agg_owner AS (
     SELECT aua.user_id,
         aua.account_id,
-        jsonb_object_agg(pa.id, 'OWNER') AS portal_application_roles,
-        jsonb_object_agg(pa.id, aua.accepted) AS portal_applications_accepted
+        jsonb_object_agg(fpa.id, 'OWNER') AS portal_application_roles,
+        jsonb_object_agg(fpa.id, aua.accepted) AS portal_applications_accepted
     FROM account_user_access AS aua
-        JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+        JOIN filtered_portal_applications AS fpa ON aua.account_id = fpa.account_id
     WHERE aua.owner = true
     GROUP BY aua.user_id,
         aua.account_id
@@ -345,7 +350,7 @@ app_role_agg_non_owner AS (
         jsonb_object_agg(aua.portal_application_id, aua.role_name) AS portal_application_roles,
         jsonb_object_agg(aua.portal_application_id, aua.accepted) AS portal_applications_accepted
     FROM account_user_access AS aua
-        JOIN portal_applications AS pa ON aua.portal_application_id = pa.id
+        JOIN filtered_portal_applications AS fpa ON aua.portal_application_id = fpa.id
     WHERE aua.owner = false
     GROUP BY aua.user_id,
         aua.account_id
@@ -500,21 +505,26 @@ SET covalent_api_key_free = CASE
     updated_at = EXCLUDED.updated_at
 RETURNING *;
 -- name: SelectUserPermissions :many
+WITH filtered_portal_applications AS (
+    SELECT *
+    FROM portal_applications
+    WHERE deleted = false
+)
 SELECT aua.user_id,
     aua.account_id,
     aua.role_name,
     aua.owner,
     ur.permissions::permissions [] AS permissions,
     CASE
-        WHEN aua.owner THEN array_agg(pa.id)::VARCHAR []
+        WHEN aua.owner THEN array_agg(fpa.id)::VARCHAR []
         ELSE ARRAY [aua.portal_application_id]::VARCHAR []
     END AS portal_application_ids
 FROM account_user_access AS aua
     LEFT JOIN user_roles AS ur ON aua.role_name = ur.role_name
-    LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
+    LEFT JOIN filtered_portal_applications AS fpa ON aua.account_id = fpa.account_id
 WHERE aua.accepted = true
     AND aua.user_id IS NOT NULL
-    AND pa.id IS NOT NULL
+    AND fpa.id IS NOT NULL
 GROUP BY aua.user_id,
     aua.account_id,
     aua.role_name,
