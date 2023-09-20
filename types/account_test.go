@@ -53,45 +53,21 @@ func Test_GetOwnerID(t *testing.T) {
 	}
 }
 
-func Test_GetPortalApps(t *testing.T) {
-	tests := []struct {
-		name     string
-		account  Account
-		expected []PortalApp
-	}{
-		{
-			name:    "Should return all portal apps in account",
-			account: testAccount,
-			expected: []PortalApp{
-				*testAccount.PortalApps["test_app_1"],
-				*testAccount.PortalApps["test_app_2"],
-			},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			portalApps := test.account.GetPortalApps()
-			assert.Equal(t, test.expected, portalApps)
-		})
-	}
-}
-
 func Test_GetAcceptedPortalApps(t *testing.T) {
 	tests := []struct {
 		name     string
 		account  Account
 		userID   UserID
 		accepted bool
-		expected []PortalApp
+		expected map[PortalAppID]*PortalApp
 	}{
 		{
 			name:     "Should return accepted apps when accepted is true",
 			account:  testAccount,
 			userID:   "user_1",
 			accepted: true,
-			expected: []PortalApp{
-				*testAccount.PortalApps["test_app_1"],
+			expected: map[PortalAppID]*PortalApp{
+				"test_app_1": testAccount.PortalApps["test_app_1"],
 			},
 		},
 		{
@@ -99,30 +75,30 @@ func Test_GetAcceptedPortalApps(t *testing.T) {
 			account:  testAccount,
 			userID:   "user_8",
 			accepted: false,
-			expected: []PortalApp{
-				*testAccount.PortalApps["test_app_1"],
+			expected: map[PortalAppID]*PortalApp{
+				"test_app_1": testAccount.PortalApps["test_app_1"],
 			},
 		},
 		{
-			name:     "Should return empty slice when no apps are accepted",
+			name:     "Should return empty map when no apps are accepted",
 			account:  testAccount,
 			userID:   "user_9",
 			accepted: true,
-			expected: []PortalApp{},
+			expected: map[PortalAppID]*PortalApp{},
 		},
 		{
-			name:     "Should return empty slice when all apps are accepted",
+			name:     "Should return empty map when all apps are accepted",
 			account:  testAccount,
 			userID:   "user_2",
 			accepted: false,
-			expected: []PortalApp{},
+			expected: map[PortalAppID]*PortalApp{},
 		},
 		{
-			name:     "Should return empty slice when userID does not exist",
+			name:     "Should return empty map when userID does not exist",
 			account:  testAccount,
 			userID:   "user_nonexistent",
 			accepted: true,
-			expected: []PortalApp{},
+			expected: map[PortalAppID]*PortalApp{},
 		},
 	}
 

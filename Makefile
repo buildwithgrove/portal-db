@@ -30,7 +30,7 @@ test_env_up:
 	@[[ $$attempts -lt 5 ]] && echo "🐘 Test Portal DB is up ..." || (echo "❌ Test Portal DB failed to start" && make test_env_down >/dev/null && exit 1)
 	@echo "🚀 Test environment is up ..."
 test_env_down:
-	@echo "🧪 Shutting down Pocket HTTP DB test environment ..."
+	@echo "🧪 Shutting down Portal HTTP DB test environment ..."
 	@docker-compose -f ./testdata/docker-compose.test.yml down --remove-orphans >/dev/null
 	@echo "✅ Test environment is down."
 reset_test_db:

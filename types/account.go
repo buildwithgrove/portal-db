@@ -110,25 +110,16 @@ func (a *Account) GetOwnerID() (UserID, error) {
 	return UserID(""), errNoOwner
 }
 
-// GetPortalApps returns all of the Account's PortalApps as a slice
-func (a *Account) GetPortalApps() []PortalApp {
-	portalApps := make([]PortalApp, 0, len(a.PortalApps))
-	for _, portalApp := range a.PortalApps {
-		portalApps = append(portalApps, *portalApp)
-	}
-	return portalApps
-}
-
-// GetAcceptedPortalApps returns the Account's PortalApps as a slice containing
+// GetAcceptedPortalApps returns the Account's PortalApps as a map containing
 // only the PortalApps that the user has accepted or not accepted
-func (a *Account) GetAcceptedPortalApps(userID UserID, accepted bool) []PortalApp {
-	portalApps := make([]PortalApp, 0, len(a.PortalApps))
+func (a *Account) GetAcceptedPortalApps(userID UserID, accepted bool) map[PortalAppID]*PortalApp {
+	portalApps := make(map[PortalAppID]*PortalApp)
 
 	for _, portalApp := range a.PortalApps {
 		hasUserAccepted, ok := a.HasUserAcceptedInvite(userID, portalApp.ID)
 
 		if ok && hasUserAccepted == accepted {
-			portalApps = append(portalApps, *portalApp)
+			portalApps[portalApp.ID] = portalApp
 		}
 	}
 
