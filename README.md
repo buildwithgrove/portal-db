@@ -1,5 +1,5 @@
 <div align="center">
-    <img src=".github/banner.png" alt="Pocket Network logo" width="600"/>
+    <img src=".github/grove_logo.png" alt="Grove logo" width="600"/>
     <h1>Portal API Database Driver</h1>
     <big>Database driver and struct definitions for use with the Portal API</big>
     <div>

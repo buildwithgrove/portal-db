@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	// The Driver interface represents all database operations required by the Pocket HTTP DB
+	// The Driver interface represents all database operations required by the Portal HTTP DB
 	Driver interface {
 		Reader
 		Writer
