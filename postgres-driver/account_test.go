@@ -67,7 +67,6 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 					PortalAppsAccepted: map[types.PortalAppID]bool{},
 				},
 			},
-			err: nil,
 		},
 		{
 			name:            "Should fail if input Account has an invalid icon URL set",
@@ -274,8 +273,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 				AccountID:   "account_1",
 				PortalAppID: "test_app_1",
 				Email:       "bernard.marx@test.com",
-
-				RoleName: types.RoleMember,
+				RoleName:    types.RoleMember,
 			},
 			accountUser: testdata.AccountUserAccess[13],
 			accountUserAfterCreate: types.AccountUserAccess{
@@ -824,7 +822,6 @@ func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
 			"frodo.baggins123@test.com",
 			"rick.deckard456@test.com",
 		},
-		err: nil,
 	}
 
 	// Create portal apps and users
@@ -888,11 +885,13 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 		userID            types.UserID
 		acceptAccountUser types.UpdateAcceptAccountUser
 		user              *types.User
+		newUser           bool
+		newUserEmail      types.Email
 		accountUsers      map[types.UserID]types.AccountUserAccess
 		err               error
 	}{
 		{
-			name:      "Should create a new UserAuthProvider for an existing user in the DB",
+			name:      "Should update a user to Accepted if they accept their invite",
 			accountID: "account_3",
 			userID:    "user_10",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
@@ -933,12 +932,71 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 					PortalAppsAccepted: map[types.PortalAppID]bool{"test_app_3": true},
 				},
 			},
-			err: nil,
+		},
+		{
+			name:         "Should delete an existing user's account_user_access row if they decline their invite",
+			accountID:    "account_1",
+			userID:       "user_3",
+			newUserEmail: "ellen.ripley789@test.com",
+			acceptAccountUser: types.UpdateAcceptAccountUser{
+				DeclinedInvite:   true,
+				PortalAppID:      "test_app_3",
+				UserID:           "user_3",
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|ellen_ripley",
+			},
+			user: &types.User{
+				ID:               "user_3",
+				Email:            "ellen.ripley789@test.com",
+				IconURL:          "https://picsum.photos/200",
+				SignedUp:         true,
+				UpdatesProduct:   true,
+				UpdatesMarketing: true,
+				AuthProviders: map[types.AuthType]types.UserAuthProvider{
+					"auth0_username": {ProviderUserID: "auth0|ellen_ripley", Type: "auth0_username", Provider: "auth0"},
+				},
+				CreatedAt: testdata.MockTimestamp,
+				UpdatedAt: testdata.MockTimestamp,
+			},
+			accountUsers: map[types.UserID]types.AccountUserAccess{
+				"user_1": testdata.AccountUserAccess[1],
+				"user_2": testdata.AccountUserAccess[2],
+				"user_8": testdata.AccountUserAccess[8],
+			},
+		},
+		{
+			name:         "Should delete a new user's account_user_access row if they decline their invite",
+			accountID:    "account_1",
+			userID:       "user_3", // set in test case
+			newUser:      true,
+			newUserEmail: "red.rackham@test.com",
+			acceptAccountUser: types.UpdateAcceptAccountUser{
+				DeclinedInvite:   true,
+				PortalAppID:      "test_app_3",
+				UserID:           "", // set in test case
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|red_rackham",
+			},
+			user: &types.User{
+				ID:       "e2bb5de8",
+				Email:    "red.rackham@test.com",
+				SignedUp: true,
+				AuthProviders: map[types.AuthType]types.UserAuthProvider{
+					"auth0_username": {ProviderUserID: "auth0|red_rackham", Type: "auth0_username", Provider: "auth0"},
+				},
+				CreatedAt: testdata.MockTimestamp,
+				UpdatedAt: testdata.MockTimestamp,
+			},
+			accountUsers: map[types.UserID]types.AccountUserAccess{
+				"user_1": testdata.AccountUserAccess[1],
+				"user_2": testdata.AccountUserAccess[2],
+				"user_8": testdata.AccountUserAccess[8],
+			},
 		},
 		{
 			name: "Should fail if an invalid auth provider type provided",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
-				PortalAppID:      "account_3",
+				PortalAppID:      "test_app_3",
 				UserID:           "user_10",
 				AuthProviderType: types.AuthType("ask_jeeves"),
 			},
@@ -947,7 +1005,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 		{
 			name: "Should fail if AuthProviderType is not provided",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
-				PortalAppID:      "account_3",
+				PortalAppID:      "test_app_3",
 				UserID:           "user_10",
 				AuthProviderType: "",
 			},
@@ -965,16 +1023,48 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 		{
 			name: "Should fail if user does not exist",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
-				PortalAppID:      "account_3",
+				PortalAppID:      "test_app_3",
 				UserID:           "user_123",
 				AuthProviderType: types.AuthTypeAuth0Username,
 			},
-			err: fmt.Errorf(errAccountUserDoesntExist.Error(), "user_123", "account_3"),
+			err: fmt.Errorf(errAccountUserDoesntExist.Error(), "user_123", "test_app_3"),
 		},
 	}
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
+			if test.acceptAccountUser.DeclinedInvite {
+				if test.newUser {
+					newUser, _, err := ts.driver.WriteUserNewSignUp(context.Background(), types.CreateUser{
+						Email:          test.newUserEmail,
+						ProviderUserID: test.acceptAccountUser.ProviderUserID,
+					}, testdata.MockTimestamp)
+					ts.NoError(err)
+					test.user.ID = newUser.ID
+					test.userID = newUser.ID
+					test.acceptAccountUser.UserID = newUser.ID
+				}
+
+				userID, err := ts.driver.WriteAccountUser(context.Background(), types.CreateAccountUserAccess{
+					AccountID:   test.accountID,
+					PortalAppID: test.acceptAccountUser.PortalAppID,
+					Email:       test.newUserEmail,
+					RoleName:    types.RoleMember,
+				}, testdata.MockTimestamp)
+				ts.NoError(err)
+				ts.Equal(test.acceptAccountUser.UserID, userID)
+
+				// Verify declined user is present in account before update
+				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+				ts.NoError(err)
+				userAccount := accounts[test.accountID]
+				ts.NotEmpty(userAccount)
+				ts.Equal(test.acceptAccountUser.UserID, accounts[test.accountID].Users[test.acceptAccountUser.UserID].UserID)
+				ts.NotEmpty(accounts[test.accountID].Users[test.acceptAccountUser.UserID].PortalAppRoles[test.acceptAccountUser.PortalAppID])
+				ts.NotEmpty(accounts[test.accountID].Users[test.acceptAccountUser.UserID].PortalAppsAccepted)
+				ts.False(accounts[test.accountID].Users[test.acceptAccountUser.UserID].PortalAppsAccepted[test.acceptAccountUser.PortalAppID])
+			}
+
 			err := ts.driver.UpdateAcceptAccountUser(context.Background(), test.acceptAccountUser, testdata.MockTimestamp)
 			ts.Equal(test.err, err)
 
@@ -1009,7 +1099,6 @@ func (ts *PGDriverTestSuite) Test_DeleteAccount() {
 				types.AccountID("account_4"): testdata.Accounts[types.AccountID("account_4")],
 				types.AccountID("account_5"): testdata.Accounts[types.AccountID("account_5")],
 			},
-			err: nil,
 		},
 		{
 			name:                    "Should fail if account does not exist",
@@ -1081,7 +1170,6 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 				"user_2": testdata.AccountUserAccess[2],
 				"user_8": testdata.AccountUserAccess[8],
 			},
-			err: nil,
 		},
 		{
 			name:                    "Should fail if provided a UserID that doesn't exist for the Account",

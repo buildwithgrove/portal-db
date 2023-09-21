@@ -76,6 +76,7 @@ type (
 
 	// UpdateAccountUserRole contains all fields required to accept an Account User
 	UpdateAcceptAccountUser struct {
+		DeclinedInvite   bool           `json:"declined"`
 		PortalAppID      PortalAppID    `json:"portalAppID"`
 		UserID           UserID         `json:"userID"`
 		AuthProviderType AuthType       `json:"type"`

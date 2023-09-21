@@ -850,6 +850,28 @@ WHERE id = (
         SELECT user_id
         FROM inserted_or_existing_provider
     );
+-- name: UpdateUserDeclinedInvite :exec
+WITH user_check AS (
+    SELECT user_id
+    FROM user_auth_providers uap
+    WHERE uap.user_id = $1
+    UNION ALL
+    SELECT user_id
+    FROM account_user_access aua
+    WHERE aua.user_id = $1
+        AND aua.portal_application_id != $2
+),
+delete_aua AS (
+    DELETE FROM account_user_access aua
+    WHERE aua.user_id = $1
+        AND aua.portal_application_id = $2
+)
+DELETE FROM users u
+WHERE u.id = $1
+    AND NOT EXISTS (
+        SELECT user_id
+        FROM user_check
+    );
 -- name: DeleteAccountUser :exec
 DELETE FROM account_user_access
 WHERE portal_application_id = $1
