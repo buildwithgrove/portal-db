@@ -537,12 +537,14 @@ func (pg *PostgresDriver) SetAccountUserRole(ctx context.Context, updateAccountU
 		return nil
 	}
 
-	err = pg.UpdateAccountUserRole(ctx, UpdateAccountUserRoleParams{
+	updateAccountUserRole := UpdateAccountUserRoleParams{
 		PortalApplicationID: updateAccountUser.PortalAppID,
 		UserID:              updateAccountUser.UserID,
 		RoleName:            updateAccountUser.RoleName,
 		UpdatedAt:           newTimestamptz(updatedAt),
-	})
+	}
+
+	err = pg.UpdateAccountUserRole(ctx, updateAccountUserRole)
 	if err != nil {
 		return err
 	}
@@ -634,7 +636,11 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 		return fmt.Errorf(errPortalAppDoesntExist.Error(), updateAccountUser.PortalAppID)
 	}
 
-	existsParams := CheckAccountUserExistsParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
+	existsParams := CheckAccountUserExistsParams{
+		UserID:              updateAccountUser.UserID,
+		PortalApplicationID: updateAccountUser.PortalAppID,
+		AccountID:           updateAccountUser.AccountID,
+	}
 	accountUserExists, err := pg.CheckAccountUserExists(ctx, existsParams)
 	if err != nil {
 		return err

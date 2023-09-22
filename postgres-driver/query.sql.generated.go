@@ -89,18 +89,26 @@ const checkAccountUserExists = `-- name: CheckAccountUserExists :one
 SELECT EXISTS (
         SELECT 1
         FROM account_user_access
-        WHERE user_id = $1
-            AND portal_application_id = $2
+        WHERE (
+                user_id = $1
+                AND portal_application_id = $2
+            )
+            OR (
+                user_id = $1
+                AND role_name = 'OWNER'
+                AND account_id = $3
+            )
     )
 `
 
 type CheckAccountUserExistsParams struct {
 	UserID              types.UserID      `json:"user_id"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
+	AccountID           types.AccountID   `json:"account_id"`
 }
 
 func (q *Queries) CheckAccountUserExists(ctx context.Context, arg CheckAccountUserExistsParams) (bool, error) {
-	row := q.db.QueryRow(ctx, checkAccountUserExists, arg.UserID, arg.PortalApplicationID)
+	row := q.db.QueryRow(ctx, checkAccountUserExists, arg.UserID, arg.PortalApplicationID, arg.AccountID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -2176,6 +2184,7 @@ insert_old_owner_admin_rows AS (
     FROM account_user_access AS aua
         LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
+        AND pa.deleted = false -- Only include non-deleted portal applications
         AND NOT EXISTS (
             SELECT 1
             FROM account_user_access

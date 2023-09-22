@@ -615,8 +615,15 @@ SELECT EXISTS (
 SELECT EXISTS (
         SELECT 1
         FROM account_user_access
-        WHERE user_id = $1
-            AND portal_application_id = $2
+        WHERE (
+                user_id = $1
+                AND portal_application_id = $2
+            )
+            OR (
+                user_id = $1
+                AND role_name = 'OWNER'
+                AND account_id = $3
+            )
     );
 -- name: CheckUserProviderExists :one
 SELECT EXISTS (
@@ -759,6 +766,7 @@ insert_old_owner_admin_rows AS (
     FROM account_user_access AS aua
         LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
+        AND pa.deleted = false -- Only include non-deleted portal applications
         AND NOT EXISTS (
             SELECT 1
             FROM account_user_access
