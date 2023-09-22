@@ -277,12 +277,16 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		return nil, err
 	}
 
-	accountOwnerEmail, _ := qtx.GetAccountOwnerEmail(ctx, portalApp.AccountID) // If email fetch fails email is empty string
+	accountOwner, err := qtx.GetAccountOwner(ctx, portalApp.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
 	err = qtx.UpdateUpsertPortalAppNotification(ctx, UpdateUpsertPortalAppNotificationParams{
 		ApplicationID: portalApp.ID,
 		Active:        true,
 		Type:          types.NotificationTypeEmail,
-		Destination:   string(accountOwnerEmail),
+		Destination:   string(accountOwner.Email),
 		Events: []types.NotificationEvent{
 			types.NotificationEventSignedUp,
 			types.NotificationEventThreeQuarters,
@@ -293,18 +297,68 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	if err != nil {
 		return nil, err
 	}
-
 	portalApp.Notifications = map[types.NotificationType]types.AppNotification{
 		types.NotificationTypeEmail: {
 			Type:        types.NotificationTypeEmail,
 			Active:      true,
-			Destination: string(accountOwnerEmail),
+			Destination: string(accountOwner.Email),
 			Events: map[types.NotificationEvent]bool{
 				types.NotificationEventSignedUp:      true,
 				types.NotificationEventThreeQuarters: true,
 				types.NotificationEventFull:          true,
 			},
 		},
+	}
+
+	// assign owner to portal app
+	// if portalApp.Users == nil {
+	// 	portalApp.Users = make(map[types.UserID]types.AccountUserAccess)
+	// }
+	// owner := types.AccountUserAccess{
+	// 	UserID:             accountOwner.UserID,
+	// 	Email:              accountOwner.Email,
+	// 	Owner:              true,
+	// 	AccountID:          portalApp.AccountID,
+	// 	PortalAppRoles:     map[types.PortalAppID]types.RoleName{portalApp.ID: types.RoleOwner},
+	// 	PortalAppsAccepted: map[types.PortalAppID]bool{portalApp.ID: true},
+	// }
+	// portalApp.Users[owner.UserID] = owner
+
+	// if user who created app is not account owner then create an `account_user_access` row for them
+	var createUser types.AccountUserAccess
+	for _, user := range portalApp.Users {
+		createUser = user
+		break
+	}
+	accountUserIsOwner, err := qtx.CheckAccountUserIsOwner(ctx, CheckAccountUserIsOwnerParams{
+		AccountID: portalApp.AccountID,
+		UserID:    createUser.UserID,
+	})
+	if err == nil && !accountUserIsOwner {
+		_, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
+			UserID:              createUser.UserID,
+			Email:               createUser.Email,
+			AccountID:           portalApp.AccountID,
+			PortalApplicationID: string(portalApp.ID),
+			RoleName:            types.RoleAdmin, // Only admins and owners can create portal apps for an account
+			Owner:               false,
+			Accepted:            true,
+			CreatedAt:           newTimestamptz(createdAt),
+			UpdatedAt:           newTimestamptz(createdAt),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// nonOwnerUser := types.AccountUserAccess{
+		// 	UserID:             createUser.UserID,
+		// 	Email:              createUser.Email,
+		// 	Owner:              false,
+		// 	AccountID:          portalApp.AccountID,
+		// 	PortalAppRoles:     map[types.PortalAppID]types.RoleName{portalApp.ID: types.RoleAdmin},
+		// 	PortalAppsAccepted: map[types.PortalAppID]bool{portalApp.ID: true},
+		// }
+		// portalApp.Users[nonOwnerUser.UserID] = nonOwnerUser
 	}
 
 	err = tx.Commit(ctx)

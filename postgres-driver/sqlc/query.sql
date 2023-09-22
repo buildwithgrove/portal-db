@@ -206,10 +206,17 @@ SELECT email,
     beta_tester
 FROM users
 WHERE users.id = $1;
--- name: GetAccountOwnerEmail :one
-SELECT users.email
-FROM users
-    JOIN account_user_access AS aua ON users.id = aua.user_id
+-- name: GetAccountOwner :one
+SELECT aua.account_id,
+    aua.owner,
+    aua.user_id,
+    users.email,
+    users.icon_url,
+    users.updates_product,
+    users.updates_marketing,
+    users.beta_tester
+FROM account_user_access AS aua
+    JOIN users ON aua.user_id = users.id
 WHERE aua.account_id = $1
     AND aua.owner = true;
 -- name: UpdatePortalAppFields :exec
@@ -373,14 +380,6 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
-            'icon_url',
-            u.icon_url,
-            'updates_product',
-            u.updates_product,
-            'updates_marketing',
-            u.updates_marketing,
-            'beta_tester',
-            u.beta_tester,
             'owner',
             aua.owner,
             'portal_application_roles',
@@ -442,14 +441,6 @@ SELECT a.*,
             u.id,
             'email',
             u.email,
-            'icon_url',
-            u.icon_url,
-            'updates_product',
-            u.updates_product,
-            'updates_marketing',
-            u.updates_marketing,
-            'beta_tester',
-            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',
@@ -615,8 +606,15 @@ SELECT EXISTS (
 SELECT EXISTS (
         SELECT 1
         FROM account_user_access
-        WHERE user_id = $1
-            AND portal_application_id = $2
+        WHERE (
+                user_id = $1
+                AND portal_application_id = $2
+            )
+            OR (
+                user_id = $1
+                AND role_name = 'OWNER'
+                AND account_id = $3
+            )
     );
 -- name: CheckUserProviderExists :one
 SELECT EXISTS (
@@ -639,6 +637,11 @@ WHERE user_id = $1
         portal_application_id = $2
         OR owner = true
     );
+-- name: CheckAccountUserIsOwner :one
+SELECT owner
+FROM account_user_access
+WHERE user_id = $1
+    AND account_id = $2;
 -- name: CheckAccountUserAccepted :one
 SELECT accepted
 FROM account_user_access
@@ -759,6 +762,7 @@ insert_old_owner_admin_rows AS (
     FROM account_user_access AS aua
         LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
+        AND pa.deleted = false -- Only include non-deleted portal applications
         AND NOT EXISTS (
             SELECT 1
             FROM account_user_access

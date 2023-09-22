@@ -89,21 +89,48 @@ const checkAccountUserExists = `-- name: CheckAccountUserExists :one
 SELECT EXISTS (
         SELECT 1
         FROM account_user_access
-        WHERE user_id = $1
-            AND portal_application_id = $2
+        WHERE (
+                user_id = $1
+                AND portal_application_id = $2
+            )
+            OR (
+                user_id = $1
+                AND role_name = 'OWNER'
+                AND account_id = $3
+            )
     )
 `
 
 type CheckAccountUserExistsParams struct {
 	UserID              types.UserID      `json:"user_id"`
 	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
+	AccountID           types.AccountID   `json:"account_id"`
 }
 
 func (q *Queries) CheckAccountUserExists(ctx context.Context, arg CheckAccountUserExistsParams) (bool, error) {
-	row := q.db.QueryRow(ctx, checkAccountUserExists, arg.UserID, arg.PortalApplicationID)
+	row := q.db.QueryRow(ctx, checkAccountUserExists, arg.UserID, arg.PortalApplicationID, arg.AccountID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const checkAccountUserIsOwner = `-- name: CheckAccountUserIsOwner :one
+SELECT owner
+FROM account_user_access
+WHERE user_id = $1
+    AND account_id = $2
+`
+
+type CheckAccountUserIsOwnerParams struct {
+	UserID    types.UserID    `json:"user_id"`
+	AccountID types.AccountID `json:"account_id"`
+}
+
+func (q *Queries) CheckAccountUserIsOwner(ctx context.Context, arg CheckAccountUserIsOwnerParams) (bool, error) {
+	row := q.db.QueryRow(ctx, checkAccountUserIsOwner, arg.UserID, arg.AccountID)
+	var owner bool
+	err := row.Scan(&owner)
+	return owner, err
 }
 
 const checkAccountUserRole = `-- name: CheckAccountUserRole :one
@@ -572,19 +599,46 @@ func (q *Queries) DeleteUser(ctx context.Context, id types.UserID) (types.UserID
 	return id, err
 }
 
-const getAccountOwnerEmail = `-- name: GetAccountOwnerEmail :one
-SELECT users.email
-FROM users
-    JOIN account_user_access AS aua ON users.id = aua.user_id
+const getAccountOwner = `-- name: GetAccountOwner :one
+SELECT aua.account_id,
+    aua.owner,
+    aua.user_id,
+    users.email,
+    users.icon_url,
+    users.updates_product,
+    users.updates_marketing,
+    users.beta_tester
+FROM account_user_access AS aua
+    JOIN users ON aua.user_id = users.id
 WHERE aua.account_id = $1
     AND aua.owner = true
 `
 
-func (q *Queries) GetAccountOwnerEmail(ctx context.Context, accountID types.AccountID) (types.Email, error) {
-	row := q.db.QueryRow(ctx, getAccountOwnerEmail, accountID)
-	var email types.Email
-	err := row.Scan(&email)
-	return email, err
+type GetAccountOwnerRow struct {
+	AccountID        types.AccountID `json:"account_id"`
+	Owner            bool            `json:"owner"`
+	UserID           types.UserID    `json:"user_id"`
+	Email            types.Email     `json:"email"`
+	IconURL          pgtype.Text     `json:"icon_url"`
+	UpdatesProduct   pgtype.Bool     `json:"updates_product"`
+	UpdatesMarketing pgtype.Bool     `json:"updates_marketing"`
+	BetaTester       pgtype.Bool     `json:"beta_tester"`
+}
+
+func (q *Queries) GetAccountOwner(ctx context.Context, accountID types.AccountID) (GetAccountOwnerRow, error) {
+	row := q.db.QueryRow(ctx, getAccountOwner, accountID)
+	var i GetAccountOwnerRow
+	err := row.Scan(
+		&i.AccountID,
+		&i.Owner,
+		&i.UserID,
+		&i.Email,
+		&i.IconURL,
+		&i.UpdatesProduct,
+		&i.UpdatesMarketing,
+		&i.BetaTester,
+	)
+	return i, err
 }
 
 const getLastCreatedUserID = `-- name: GetLastCreatedUserID :one
@@ -1283,14 +1337,6 @@ SELECT a.id, a.name, a.icon_url, a.plan_type, a.partner_chain_ids, a.partner_thr
             u.id,
             'email',
             u.email,
-            'icon_url',
-            u.icon_url,
-            'updates_product',
-            u.updates_product,
-            'updates_marketing',
-            u.updates_marketing,
-            'beta_tester',
-            u.beta_tester,
             'accepted',
             aua.accepted,
             'owner',
@@ -1398,14 +1444,6 @@ SELECT a.id, a.name, a.icon_url, a.plan_type, a.partner_chain_ids, a.partner_thr
             u.id,
             'email',
             u.email,
-            'icon_url',
-            u.icon_url,
-            'updates_product',
-            u.updates_product,
-            'updates_marketing',
-            u.updates_marketing,
-            'beta_tester',
-            u.beta_tester,
             'owner',
             aua.owner,
             'portal_application_roles',
@@ -2176,6 +2214,7 @@ insert_old_owner_admin_rows AS (
     FROM account_user_access AS aua
         LEFT JOIN portal_applications AS pa ON aua.account_id = pa.account_id
     WHERE aua.account_id = $1
+        AND pa.deleted = false -- Only include non-deleted portal applications
         AND NOT EXISTS (
             SELECT 1
             FROM account_user_access

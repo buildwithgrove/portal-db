@@ -256,14 +256,10 @@ var (
 
 	AccountUserAccess = map[int]types.AccountUserAccess{
 		1: {
-			AccountID:        "",
-			UserID:           "user_1",
-			Email:            "james.holden123@test.com",
-			IconURL:          "https://picsum.photos/200",
-			Owner:            true,
-			UpdatesProduct:   true,
-			UpdatesMarketing: false,
-			BetaTester:       true,
+			AccountID: "",
+			UserID:    "user_1",
+			Email:     "james.holden123@test.com",
+			Owner:     true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleOwner,
 			},
@@ -272,13 +268,9 @@ var (
 			},
 		},
 		2: {
-			AccountID:        "",
-			UserID:           "user_2",
-			Email:            "paul.atreides456@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   false,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_2",
+			Email:     "paul.atreides456@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
@@ -287,14 +279,10 @@ var (
 			},
 		},
 		3: {
-			AccountID:        "",
-			UserID:           "user_3",
-			Email:            "ellen.ripley789@test.com",
-			IconURL:          "https://picsum.photos/200",
-			Owner:            true,
-			UpdatesProduct:   true,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_3",
+			Email:     "ellen.ripley789@test.com",
+			Owner:     true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleOwner,
 			},
@@ -303,13 +291,9 @@ var (
 			},
 		},
 		4: {
-			AccountID:        "",
-			UserID:           "user_4",
-			Email:            "ulfric.stormcloak123@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   false,
-			UpdatesMarketing: false,
-			BetaTester:       true,
+			AccountID: "",
+			UserID:    "user_4",
+			Email:     "ulfric.stormcloak123@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
@@ -318,14 +302,10 @@ var (
 			},
 		},
 		5: {
-			AccountID:        "",
-			UserID:           "user_5",
-			Email:            "chrisjen.avasarala1@test.com",
-			IconURL:          "https://picsum.photos/200",
-			Owner:            true,
-			UpdatesProduct:   true,
-			UpdatesMarketing: false,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_5",
+			Email:     "chrisjen.avasarala1@test.com",
+			Owner:     true,
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleOwner,
 			},
@@ -334,13 +314,9 @@ var (
 			},
 		},
 		6: {
-			AccountID:        "",
-			UserID:           "user_6",
-			Email:            "amos.burton789@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   false,
-			UpdatesMarketing: true,
-			BetaTester:       true,
+			AccountID: "",
+			UserID:    "user_6",
+			Email:     "amos.burton789@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleAdmin,
 			},
@@ -349,13 +325,9 @@ var (
 			},
 		},
 		7: {
-			AccountID:        "",
-			UserID:           "user_7",
-			Email:            "frodo.baggins123@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   true,
-			UpdatesMarketing: true,
-			BetaTester:       true,
+			AccountID: "",
+			UserID:    "user_7",
+			Email:     "frodo.baggins123@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},
@@ -364,13 +336,9 @@ var (
 			},
 		},
 		8: {
-			AccountID:        "",
-			UserID:           "user_8",
-			Email:            "rick.deckard456@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   true,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_8",
+			Email:     "rick.deckard456@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_1": types.RoleAdmin,
 			},
@@ -379,13 +347,9 @@ var (
 			},
 		},
 		9: {
-			AccountID:        "",
-			UserID:           "user_9",
-			Email:            "tyrion.lannister789@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   true,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_9",
+			Email:     "tyrion.lannister789@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
@@ -395,13 +359,9 @@ var (
 		},
 		// Paul is an admin of Account 1 as well as a member of Account 2
 		10: {
-			AccountID:        "",
-			UserID:           "user_2",
-			Email:            "paul.atreides456@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   false,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_2",
+			Email:     "paul.atreides456@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_2": types.RoleMember,
 			},
@@ -414,23 +374,15 @@ var (
 			AccountID:          "",
 			UserID:             "user_4",
 			Email:              "ulfric.stormcloak123@test.com",
-			IconURL:            "https://picsum.photos/200",
 			Owner:              true,
-			UpdatesProduct:     false,
-			UpdatesMarketing:   false,
-			BetaTester:         true,
 			PortalAppRoles:     map[types.PortalAppID]types.RoleName{},
 			PortalAppsAccepted: map[types.PortalAppID]bool{},
 		},
 		// Daenerys has not signed up with an auth provider yet and is a member of Account 3
 		12: {
-			AccountID:        "",
-			UserID:           "user_10",
-			Email:            "daenerys.targaryen123@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   false,
-			UpdatesMarketing: false,
-			BetaTester:       true,
+			AccountID: "",
+			UserID:    "user_10",
+			Email:     "daenerys.targaryen123@test.com",
 			PortalAppRoles: map[types.PortalAppID]types.RoleName{
 				"test_app_3": types.RoleMember,
 			},
@@ -442,10 +394,6 @@ var (
 		13: {
 			UserID:             "user_11",
 			Email:              "bernard.marx@test.com",
-			IconURL:            "https://picsum.photos/200",
-			UpdatesProduct:     true,
-			UpdatesMarketing:   true,
-			BetaTester:         false,
 			PortalAppRoles:     map[types.PortalAppID]types.RoleName{},
 			PortalAppsAccepted: map[types.PortalAppID]bool{},
 		},
@@ -1037,23 +985,98 @@ var (
 		},
 	}
 
-	PortalAppUsers = map[types.PortalAppID]map[types.UserID]*types.AccountUserAccess{
+	PortalAppUsers = map[types.PortalAppID]map[types.UserID]types.AccountUserAccess{
 		"test_app_1": {
-			"user_1": getPtrFromMap(AccountUserAccess, 1),
-			"user_2": getPtrFromMap(AccountUserAccess, 2),
-			"user_8": getPtrFromMap(AccountUserAccess, 8),
+			"user_1": AccountUserAccess[1],
+			"user_2": AccountUserAccess[2],
+			"user_8": AccountUserAccess[8],
 		},
 		"test_app_2": {
-			"user_3": getPtrFromMap(AccountUserAccess, 3),
-			"user_4": getPtrFromMap(AccountUserAccess, 4),
-			"user_9": getPtrFromMap(AccountUserAccess, 9),
-			"user_2": getPtrFromMap(AccountUserAccess, 10),
+			"user_3": AccountUserAccess[3],
+			"user_4": AccountUserAccess[4],
+			"user_9": AccountUserAccess[9],
+			"user_2": AccountUserAccess[10],
 		},
 		"test_app_3": {
-			"user_5":  getPtrFromMap(AccountUserAccess, 5),
-			"user_6":  getPtrFromMap(AccountUserAccess, 6),
-			"user_7":  getPtrFromMap(AccountUserAccess, 7),
-			"user_10": getPtrFromMap(AccountUserAccess, 12),
+			"user_5":  AccountUserAccess[5],
+			"user_6":  AccountUserAccess[6],
+			"user_7":  AccountUserAccess[7],
+			"user_10": AccountUserAccess[12],
+		},
+	}
+
+	PortalAppUsersMap = map[types.PortalAppID]map[types.UserID]types.PortalAppUser{
+		"test_app_1": {
+			"user_1": {
+				ID:       "user_1",
+				Email:    "james.holden123@test.com",
+				RoleName: "OWNER",
+				Accepted: true,
+			},
+			"user_2": {
+				ID:       "user_2",
+				Email:    "paul.atreides456@test.com",
+				RoleName: "ADMIN",
+				Accepted: true,
+			},
+			"user_8": {
+				ID:       "user_8",
+				Email:    "rick.deckard456@test.com",
+				RoleName: "ADMIN",
+				Accepted: false,
+			},
+		},
+		"test_app_2": {
+			"user_2": {
+				ID:       "user_2",
+				Email:    "paul.atreides456@test.com",
+				RoleName: "MEMBER",
+				Accepted: true,
+			},
+			"user_3": {
+				ID:       "user_3",
+				Email:    "ellen.ripley789@test.com",
+				RoleName: "OWNER",
+				Accepted: true,
+			},
+			"user_4": {
+				ID:       "user_4",
+				Email:    "ulfric.stormcloak123@test.com",
+				RoleName: "MEMBER",
+				Accepted: true,
+			},
+			"user_9": {
+				ID:       "user_9",
+				Email:    "tyrion.lannister789@test.com",
+				RoleName: "MEMBER",
+				Accepted: false,
+			},
+		},
+		"test_app_3": {
+			"user_10": {
+				ID:       "user_10",
+				Email:    "daenerys.targaryen123@test.com",
+				RoleName: "MEMBER",
+				Accepted: false,
+			},
+			"user_5": {
+				ID:       "user_5",
+				Email:    "chrisjen.avasarala1@test.com",
+				RoleName: "OWNER",
+				Accepted: true,
+			},
+			"user_6": {
+				ID:       "user_6",
+				Email:    "amos.burton789@test.com",
+				RoleName: "ADMIN",
+				Accepted: true,
+			},
+			"user_7": {
+				ID:       "user_7",
+				Email:    "frodo.baggins123@test.com",
+				RoleName: "MEMBER",
+				Accepted: true,
+			},
 		},
 	}
 
@@ -1277,8 +1300,7 @@ var (
 	/* ----- Create Data ----- */
 
 	// TestCreatePortalApp app used to test creation of PortalApps
-	TestCreatePortalApp = &types.PortalApp{
-		ID:          "test_app_create_208r23r",
+	TestCreatePortalAppByOwner = &types.PortalApp{
 		AccountID:   "account_4",
 		Name:        "create_pokt_app_1",
 		Description: "Embark on a journey across the enchanting realm of Middle-earth.",
@@ -1309,6 +1331,52 @@ var (
 			DailyLimit:     250_000,
 			CustomLimit:    0,
 			RequestTimeout: 15_000,
+		},
+		Users: map[types.UserID]types.AccountUserAccess{
+			"user_4": {
+				UserID: "user_4",
+				Email:  "ulfric.stormcloak123@test.com",
+			},
+		},
+	}
+
+	TestCreatePortalAppByNonOwner = &types.PortalApp{
+		AccountID:   "account_1",
+		Name:        "create_pokt_app_2",
+		Description: "Travel the mystic sands of Arrakis",
+		AppEmoji:    "1F336",
+		Settings: types.Settings{
+			Environment:       types.EnvironmentProduction,
+			SecretKey:         "test_83756e546134df7933bfd748b27bde51",
+			SecretKeyRequired: true,
+		},
+		Notifications: map[types.NotificationType]types.AppNotification{
+			types.NotificationTypeEmail: types.AppNotification{
+				Type:        types.NotificationTypeEmail,
+				Active:      true,
+				Destination: "james.holden123@test.com",
+				Events: map[types.NotificationEvent]bool{
+					types.NotificationEventSignedUp:      true,
+					types.NotificationEventThreeQuarters: true,
+					types.NotificationEventFull:          true,
+				},
+			},
+		},
+		FirstDateSurpassed: MockTimestamp,
+		CreatedAt:          MockTimestamp,
+		UpdatedAt:          MockTimestamp,
+		// TODO remove legacy fields when migration to V2 schema complete
+		LegacyFields: types.LegacyFields{
+			PlanType:       types.FreetierV0,
+			DailyLimit:     250_000,
+			CustomLimit:    0,
+			RequestTimeout: 15_000,
+		},
+		Users: map[types.UserID]types.AccountUserAccess{
+			"user_2": {
+				UserID: "user_2",
+				Email:  "paul.atreides456@test.com",
+			},
 		},
 	}
 
@@ -1954,9 +2022,4 @@ func newChainAlias(a types.ChainAlias) *types.ChainAlias {
 
 func newBool(b bool) *bool {
 	return &b
-}
-
-func getPtrFromMap(m map[int]types.AccountUserAccess, key int) *types.AccountUserAccess {
-	value := m[key]
-	return &value
 }

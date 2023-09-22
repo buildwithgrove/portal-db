@@ -96,8 +96,19 @@ type (
 		// TODO - remove when v2 migration finished
 		// Fields required for compatibility with the old Portal API and Services (temporary)
 		LegacyFields LegacyFields `json:"legacyFields"`
-		// User Pointers set in the PHD cache
-		Users map[UserID]*AccountUserAccess `json:"users"`
+
+		// Users set in PHD when PortalApp read from cache
+		AppUsers map[UserID]PortalAppUser `json:"appUsers"`
+
+		// OLD FIELD - DEPRECATED
+		Users map[UserID]AccountUserAccess `json:"users"`
+	}
+
+	PortalAppUser struct {
+		ID       UserID   `json:"id"`
+		Email    Email    `json:"email"`
+		RoleName RoleName `json:"roleName"`
+		Accepted bool     `json:"accepted"`
 	}
 
 	// TODO - remove when v2 migration finished
@@ -276,7 +287,7 @@ func (a *PortalApp) MonthlyLimit() int32 {
 func (a *PortalApp) GetUsers() []AccountUserAccess {
 	users := []AccountUserAccess{}
 	for _, user := range a.Users {
-		users = append(users, *user)
+		users = append(users, user)
 	}
 	return users
 }
@@ -298,6 +309,37 @@ func (a *PortalApp) OwnerID() UserID {
 		}
 	}
 	return ""
+}
+
+// AssignUsers assigns the Account's Users to the PortalApp's Users field
+// Only assigns users that have a role for the PortalApp
+// TODO - remove DEPRECATED field when UI and PUB are updated
+func (a *PortalApp) AssignUsers(account *Account) {
+	if account.Users != nil && len(account.Users) > 0 {
+		// old field - DEPRECATED
+		users := map[UserID]AccountUserAccess{}
+		// new field
+		appUsers := map[UserID]PortalAppUser{}
+
+		for _, accountUser := range account.Users {
+			if _, ok := accountUser.PortalAppRoles[a.ID]; ok {
+				// old field - DEPRECATED
+				users[accountUser.UserID] = accountUser
+				// new field
+				appUsers[accountUser.UserID] = PortalAppUser{
+					ID:       accountUser.UserID,
+					Email:    accountUser.Email,
+					RoleName: accountUser.PortalAppRoles[a.ID],
+					Accepted: accountUser.PortalAppsAccepted[a.ID],
+				}
+			}
+		}
+
+		// old field - DEPRECATED
+		a.Users = users
+		// new field
+		a.AppUsers = appUsers
+	}
 }
 
 // AddWhitelist adds a whitelist to the PortalApp pointer's Whitelists field

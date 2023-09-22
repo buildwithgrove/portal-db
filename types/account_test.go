@@ -169,14 +169,10 @@ var testAccount = Account{
 	PlanType: PayPlanType("basic_plan"),
 	Users: map[UserID]AccountUserAccess{
 		"user_1": {
-			AccountID:        "",
-			UserID:           "user_1",
-			Email:            "james.holden123@test.com",
-			IconURL:          "https://picsum.photos/200",
-			Owner:            true,
-			UpdatesProduct:   true,
-			UpdatesMarketing: false,
-			BetaTester:       true,
+			AccountID: "",
+			UserID:    "user_1",
+			Email:     "james.holden123@test.com",
+			Owner:     true,
 			PortalAppRoles: map[PortalAppID]RoleName{
 				"test_app_1": RoleOwner,
 			},
@@ -185,13 +181,9 @@ var testAccount = Account{
 			},
 		},
 		"user_2": {
-			AccountID:        "",
-			UserID:           "user_2",
-			Email:            "paul.atreides456@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   false,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_2",
+			Email:     "paul.atreides456@test.com",
 			PortalAppRoles: map[PortalAppID]RoleName{
 				"test_app_2": RoleAdmin,
 			},
@@ -200,13 +192,9 @@ var testAccount = Account{
 			},
 		},
 		"user_8": {
-			AccountID:        "",
-			UserID:           "user_8",
-			Email:            "rick.deckard456@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   true,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_8",
+			Email:     "rick.deckard456@test.com",
 			PortalAppRoles: map[PortalAppID]RoleName{
 				"test_app_1": RoleAdmin,
 			},
@@ -215,13 +203,9 @@ var testAccount = Account{
 			},
 		},
 		"user_9": {
-			AccountID:        "",
-			UserID:           "user_9",
-			Email:            "tyrion.lannister789@test.com",
-			IconURL:          "https://picsum.photos/200",
-			UpdatesProduct:   true,
-			UpdatesMarketing: true,
-			BetaTester:       false,
+			AccountID: "",
+			UserID:    "user_9",
+			Email:     "tyrion.lannister789@test.com",
 			PortalAppRoles: map[PortalAppID]RoleName{
 				"test_app_2": RoleMember,
 			},
@@ -290,16 +274,12 @@ var testAccount = Account{
 				RequestTimeout:       5_000,
 				StripeSubscriptionID: "stripe_id_1",
 			},
-			Users: map[UserID]*AccountUserAccess{
+			Users: map[UserID]AccountUserAccess{
 				"user_1": {
-					AccountID:        "",
-					UserID:           "user_1",
-					Email:            "james.holden123@test.com",
-					IconURL:          "https://picsum.photos/200",
-					Owner:            true,
-					UpdatesProduct:   true,
-					UpdatesMarketing: false,
-					BetaTester:       true,
+					AccountID: "",
+					UserID:    "user_1",
+					Email:     "james.holden123@test.com",
+					Owner:     true,
 					PortalAppRoles: map[PortalAppID]RoleName{
 						"test_app_1": RoleOwner,
 					},
@@ -308,13 +288,9 @@ var testAccount = Account{
 					},
 				},
 				"user_8": {
-					AccountID:        "",
-					UserID:           "user_8",
-					Email:            "rick.deckard456@test.com",
-					IconURL:          "https://picsum.photos/200",
-					UpdatesProduct:   true,
-					UpdatesMarketing: true,
-					BetaTester:       false,
+					AccountID: "",
+					UserID:    "user_8",
+					Email:     "rick.deckard456@test.com",
 					PortalAppRoles: map[PortalAppID]RoleName{
 						"test_app_1": RoleAdmin,
 					},
@@ -382,16 +358,12 @@ var testAccount = Account{
 				RequestTimeout:       10_000,
 				StripeSubscriptionID: "stripe_id_2",
 			},
-			Users: map[UserID]*AccountUserAccess{
+			Users: map[UserID]AccountUserAccess{
 				"user_2": {
-					AccountID:        "",
-					UserID:           "user_3",
-					Email:            "ellen.ripley789@test.com",
-					IconURL:          "https://picsum.photos/200",
-					Owner:            true,
-					UpdatesProduct:   true,
-					UpdatesMarketing: true,
-					BetaTester:       false,
+					AccountID: "",
+					UserID:    "user_3",
+					Email:     "ellen.ripley789@test.com",
+					Owner:     true,
 					PortalAppRoles: map[PortalAppID]RoleName{
 						"test_app_2": RoleOwner,
 					},
@@ -400,13 +372,9 @@ var testAccount = Account{
 					},
 				},
 				"user_9": {
-					AccountID:        "",
-					UserID:           "user_9",
-					Email:            "tyrion.lannister789@test.com",
-					IconURL:          "https://picsum.photos/200",
-					UpdatesProduct:   true,
-					UpdatesMarketing: true,
-					BetaTester:       false,
+					AccountID: "",
+					UserID:    "user_9",
+					Email:     "tyrion.lannister789@test.com",
 					PortalAppRoles: map[PortalAppID]RoleName{
 						"test_app_2": RoleMember,
 					},
