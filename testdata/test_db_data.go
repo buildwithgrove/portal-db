@@ -163,6 +163,7 @@ var (
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 			PartnerThroughputLimit: 2_000,
 			PartnerAppLimit:        1,
+			PortalApps:             map[types.PortalAppID]*types.PortalApp{},
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
@@ -183,6 +184,7 @@ var (
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0021": {}, "0064": {}},
 			PartnerThroughputLimit: 5_000,
 			PartnerAppLimit:        3,
+			PortalApps:             map[types.PortalAppID]*types.PortalApp{},
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
@@ -203,6 +205,7 @@ var (
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}, "0064": {}, "0034": {}},
 			PartnerThroughputLimit: 1_000,
 			PartnerAppLimit:        2,
+			PortalApps:             map[types.PortalAppID]*types.PortalApp{},
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
@@ -220,6 +223,7 @@ var (
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}},
 			PartnerThroughputLimit: 1_000,
 			PartnerAppLimit:        2,
+			PortalApps:             map[types.PortalAppID]*types.PortalApp{},
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
@@ -234,6 +238,7 @@ var (
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
 			PartnerThroughputLimit: 6_000,
 			PartnerAppLimit:        1,
+			PortalApps:             map[types.PortalAppID]*types.PortalApp{},
 			CreatedAt:              MockTimestamp,
 			UpdatedAt:              MockTimestamp,
 		},
@@ -241,11 +246,12 @@ var (
 
 	// TestCreateAccount account used to test creation of Accounts
 	TestCreateAccount = &types.Account{
-		Name:      "Protogen Corp",
-		IconURL:   "https://picsum.photos/200",
-		PlanType:  types.PayPlanType("developer_plan"),
-		CreatedAt: MockTimestamp,
-		UpdatedAt: MockTimestamp,
+		Name:       "Protogen Corp",
+		IconURL:    "https://picsum.photos/200",
+		PlanType:   types.PayPlanType("developer_plan"),
+		PortalApps: map[types.PortalAppID]*types.PortalApp{},
+		CreatedAt:  MockTimestamp,
+		UpdatedAt:  MockTimestamp,
 	}
 
 	AccountUserAccess = map[int]types.AccountUserAccess{

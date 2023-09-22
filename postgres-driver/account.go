@@ -100,9 +100,11 @@ func (a *SelectAccountsRow) toAccount() (*types.Account, error) {
 			CovalentAPIKeyFree: a.CovalentAPIKeyFree.String,
 			CovalentAPIKeyPaid: a.CovalentAPIKeyPaid.String,
 		},
-		CreatedAt: a.CreatedAt.Time.UTC(),
-		UpdatedAt: a.UpdatedAt.Time.UTC(),
-		Deleted:   a.Deleted,
+		// PortalApps map set in PHD
+		PortalApps: map[types.PortalAppID]*types.PortalApp{},
+		CreatedAt:  a.CreatedAt.Time.UTC(),
+		UpdatedAt:  a.UpdatedAt.Time.UTC(),
+		Deleted:    a.Deleted,
 	}, nil
 }
 
