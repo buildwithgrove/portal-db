@@ -631,7 +631,7 @@ SELECT role_name
 FROM account_user_access
 WHERE user_id = $1
     AND account_id = $2;
--- name: CheckAccountUserAccepted :one
+-- name: CheckAccountUserAcceptedOrOwner :one
 SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
@@ -639,6 +639,11 @@ WHERE user_id = $1
         portal_application_id = $2
         OR owner = true
     );
+-- name: CheckAccountUserAccepted :one
+SELECT accepted
+FROM account_user_access
+WHERE user_id = $1
+    AND portal_application_id = $2;
 -- name: InsertAccountUserAccess :one
 WITH updated_user AS (
     UPDATE users

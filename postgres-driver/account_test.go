@@ -940,7 +940,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 			newUserEmail: "ellen.ripley789@test.com",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
 				DeclinedInvite:   true,
-				PortalAppID:      "test_app_3",
+				PortalAppID:      "test_app_1",
 				UserID:           "user_3",
 				AuthProviderType: types.AuthTypeAuth0Username,
 				ProviderUserID:   "auth0|ellen_ripley",
@@ -967,7 +967,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 		{
 			name:         "Should delete a new user's account_user_access row if they decline their invite",
 			accountID:    "account_1",
-			userID:       "user_3", // set in test case
+			userID:       "", // set in test case
 			newUser:      true,
 			newUserEmail: "red.rackham@test.com",
 			acceptAccountUser: types.UpdateAcceptAccountUser{
@@ -992,6 +992,17 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				"user_2": testdata.AccountUserAccess[2],
 				"user_8": testdata.AccountUserAccess[8],
 			},
+		},
+		{
+			name: "Should fail to decline invite if user has already accepted their invite",
+			acceptAccountUser: types.UpdateAcceptAccountUser{
+				DeclinedInvite:   true,
+				PortalAppID:      "test_app_2",
+				UserID:           "user_4",
+				AuthProviderType: types.AuthTypeAuth0Username,
+				ProviderUserID:   "auth0|ulfric_stormcloak",
+			},
+			err: fmt.Errorf(errCannotDeclineAlreadyAccepted.Error(), "user_4", "test_app_2"),
 		},
 		{
 			name: "Should fail if an invalid auth provider type provided",
@@ -1033,7 +1044,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 
 	for _, test := range tests {
 		ts.Run(test.name, func() {
-			if test.acceptAccountUser.DeclinedInvite {
+			if test.acceptAccountUser.DeclinedInvite && test.err == nil {
 				if test.newUser {
 					newUser, _, err := ts.driver.WriteUserNewSignUp(context.Background(), types.CreateUser{
 						Email:          test.newUserEmail,

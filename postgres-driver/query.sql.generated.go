@@ -48,10 +48,7 @@ const checkAccountUserAccepted = `-- name: CheckAccountUserAccepted :one
 SELECT accepted
 FROM account_user_access
 WHERE user_id = $1
-    AND (
-        portal_application_id = $2
-        OR owner = true
-    )
+    AND portal_application_id = $2
 `
 
 type CheckAccountUserAcceptedParams struct {
@@ -61,6 +58,28 @@ type CheckAccountUserAcceptedParams struct {
 
 func (q *Queries) CheckAccountUserAccepted(ctx context.Context, arg CheckAccountUserAcceptedParams) (bool, error) {
 	row := q.db.QueryRow(ctx, checkAccountUserAccepted, arg.UserID, arg.PortalApplicationID)
+	var accepted bool
+	err := row.Scan(&accepted)
+	return accepted, err
+}
+
+const checkAccountUserAcceptedOrOwner = `-- name: CheckAccountUserAcceptedOrOwner :one
+SELECT accepted
+FROM account_user_access
+WHERE user_id = $1
+    AND (
+        portal_application_id = $2
+        OR owner = true
+    )
+`
+
+type CheckAccountUserAcceptedOrOwnerParams struct {
+	UserID              types.UserID      `json:"user_id"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
+}
+
+func (q *Queries) CheckAccountUserAcceptedOrOwner(ctx context.Context, arg CheckAccountUserAcceptedOrOwnerParams) (bool, error) {
+	row := q.db.QueryRow(ctx, checkAccountUserAcceptedOrOwner, arg.UserID, arg.PortalApplicationID)
 	var accepted bool
 	err := row.Scan(&accepted)
 	return accepted, err

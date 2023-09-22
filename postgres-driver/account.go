@@ -27,19 +27,20 @@ type (
 )
 
 var (
-	errNoRoleName                = errors.New("error no role name set")
-	errInvalidRoleName           = errors.New("error invalid role name set")
-	errInvalidIconURL            = errors.New("error icon URL '%s' is not a valid URL")
-	errPayPlanDoesntExist        = errors.New("error pay plan '%s' does not exist")
-	errAccountDoesntExist        = errors.New("error account does not exist for account ID '%s'")
-	errAccountUserDoesntExist    = errors.New("error user ID '%s' does not exist for portal app ID '%s'")
-	errCannotDeleteOwner         = errors.New("error cannot delete user ID '%s' for account ID '%s' because this user is the current account owner")
-	errCreateNoAccountID         = errors.New("error must provide account ID when creating user")
-	errCreateNoPortalAppID       = errors.New("error must provide portal app ID when creating user")
-	errTransferNoAccountID       = errors.New("error must provide account ID when transferring user")
-	errTransferNoPortalAppID     = errors.New("error must provide portal app ID when transferring user")
-	errAcceptNoPortalAppID       = errors.New("error must provide portal app ID when accepting user")
-	errCannotTransferNotAccepted = errors.New("error cannot transfer ownership to user ID '%s' for account ID '%s' because the user has not accepted their invite")
+	errNoRoleName                   = errors.New("error no role name set")
+	errInvalidRoleName              = errors.New("error invalid role name set")
+	errInvalidIconURL               = errors.New("error icon URL '%s' is not a valid URL")
+	errPayPlanDoesntExist           = errors.New("error pay plan '%s' does not exist")
+	errAccountDoesntExist           = errors.New("error account does not exist for account ID '%s'")
+	errAccountUserDoesntExist       = errors.New("error user ID '%s' does not exist for portal app ID '%s'")
+	errCannotDeleteOwner            = errors.New("error cannot delete user ID '%s' for account ID '%s' because this user is the current account owner")
+	errCreateNoAccountID            = errors.New("error must provide account ID when creating user")
+	errCreateNoPortalAppID          = errors.New("error must provide portal app ID when creating user")
+	errTransferNoAccountID          = errors.New("error must provide account ID when transferring user")
+	errTransferNoPortalAppID        = errors.New("error must provide portal app ID when transferring user")
+	errAcceptNoPortalAppID          = errors.New("error must provide portal app ID when accepting user")
+	errCannotTransferNotAccepted    = errors.New("error cannot transfer ownership to user ID '%s' for account ID '%s' because the user has not accepted their invite")
+	errCannotDeclineAlreadyAccepted = errors.New("error user ID '%s' cannot decline invite for portal app ID '%s' because they have already accepted it")
 )
 
 /* ----- postgresdriver Account Read Methods ----- */
@@ -615,8 +616,8 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 	// If transferring OWNER role
 	if updateAccountUser.RoleName == types.RoleOwner {
 		// Cannot transfer OWNER to a user who has not accepted their invite
-		acceptedParams := CheckAccountUserAcceptedParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
-		userAccepted, err := pg.CheckAccountUserAccepted(ctx, acceptedParams)
+		acceptedParams := CheckAccountUserAcceptedOrOwnerParams{UserID: updateAccountUser.UserID, PortalApplicationID: updateAccountUser.PortalAppID}
+		userAccepted, err := pg.CheckAccountUserAcceptedOrOwner(ctx, acceptedParams)
 		if err != nil || !userAccepted {
 			return fmt.Errorf(errCannotTransferNotAccepted.Error(), updateAccountUser.UserID, updateAccountUser.AccountID)
 		}
@@ -658,6 +659,16 @@ func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAcc
 	// If user has declined their invite delete the `account_user_access` row for the given user and portal app IDs
 	// If the user has not yet signed up with an auth provider their `users` row will be deleted as well.
 	case true:
+		// ensure the user has not already accepted the invite
+		acceptedParams := CheckAccountUserAcceptedParams{UserID: acceptAccountUser.UserID, PortalApplicationID: acceptAccountUser.PortalAppID}
+		userAccepted, err := pg.CheckAccountUserAccepted(ctx, acceptedParams)
+		if err != nil {
+			return err
+		}
+		if userAccepted {
+			return fmt.Errorf(errCannotDeclineAlreadyAccepted.Error(), acceptAccountUser.UserID, acceptAccountUser.PortalAppID)
+		}
+
 		params := UpdateUserDeclinedInviteParams{
 			PortalApplicationID: acceptAccountUser.PortalAppID,
 			ID:                  acceptAccountUser.UserID,
