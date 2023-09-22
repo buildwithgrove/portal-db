@@ -644,38 +644,42 @@ func (pg *PostgresDriver) validateSetAccountUserRoleInput(ctx context.Context, u
 }
 
 // UpdateAcceptAccountUser creates a new portal UserAuthProvider in the DB when a user accepts their team invite.
-// Also updates User.SignedUp and AccountUserAccess.Accepted fields to true.
+// If they accept their invite it also updates `users.signed_up` and `account_user_access.accepted` fields to true.
+// If they have declined their invite it will delete their `account_user_access` row and their `users` row if they have not yet signed up with an auth provider.
 func (pg *PostgresDriver) UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error {
 	err := pg.validateUpdateAcceptAccountUserInput(ctx, acceptAccountUser)
 	if err != nil {
 		return err
 	}
 
-	tx, err := pg.DB.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = tx.Rollback(ctx) }()
+	switch acceptAccountUser.DeclinedInvite {
+	// If user has declined their invite delete the `account_user_access` row for the given user and portal app IDs
+	// If the user has not yet signed up with an auth provider their `users` row will be deleted as well.
+	case true:
+		params := UpdateUserDeclinedInviteParams{
+			PortalApplicationID: acceptAccountUser.PortalAppID,
+			ID:                  acceptAccountUser.UserID,
+		}
 
-	qtx := pg.WithTx(tx)
+		err = pg.UpdateUserDeclinedInvite(ctx, params)
+		if err != nil {
+			return err
+		}
+	// If user has accepted invite then update their `account_user_access` row to set `accepted` to true
+	default:
+		params := UpdateUserAcceptedInviteParams{
+			PortalApplicationID: acceptAccountUser.PortalAppID,
+			UserID:              acceptAccountUser.UserID,
+			ProviderUserID:      acceptAccountUser.ProviderUserID,
+			Type:                acceptAccountUser.AuthProviderType,
+			Provider:            acceptAccountUser.AuthProviderType.Provider(),
+			Federated:           acceptAccountUser.AuthProviderType.IsFederated(),
+		}
 
-	params := UpdateUserAcceptedInviteParams{
-		PortalApplicationID: acceptAccountUser.PortalAppID,
-		UserID:              acceptAccountUser.UserID,
-		ProviderUserID:      acceptAccountUser.ProviderUserID,
-		Type:                acceptAccountUser.AuthProviderType,
-		Provider:            acceptAccountUser.AuthProviderType.Provider(),
-		Federated:           acceptAccountUser.AuthProviderType.IsFederated(),
-	}
-
-	err = qtx.UpdateUserAcceptedInvite(ctx, params)
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return err
+		err = pg.UpdateUserAcceptedInvite(ctx, params)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

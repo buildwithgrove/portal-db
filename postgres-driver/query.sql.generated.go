@@ -2698,6 +2698,40 @@ func (q *Queries) UpdateUserAcceptedInvite(ctx context.Context, arg UpdateUserAc
 	return err
 }
 
+const updateUserDeclinedInvite = `-- name: UpdateUserDeclinedInvite :exec
+WITH user_check AS (
+    SELECT user_id
+    FROM user_auth_providers uap
+    WHERE uap.user_id = $1
+    UNION ALL
+    SELECT user_id
+    FROM account_user_access aua
+    WHERE aua.user_id = $1
+        AND aua.portal_application_id != $2
+),
+delete_aua AS (
+    DELETE FROM account_user_access aua
+    WHERE aua.user_id = $1
+        AND aua.portal_application_id = $2
+)
+DELETE FROM users u
+WHERE u.id = $1
+    AND NOT EXISTS (
+        SELECT user_id
+        FROM user_check
+    )
+`
+
+type UpdateUserDeclinedInviteParams struct {
+	ID                  types.UserID      `json:"id"`
+	PortalApplicationID types.PortalAppID `json:"portal_application_id"`
+}
+
+func (q *Queries) UpdateUserDeclinedInvite(ctx context.Context, arg UpdateUserDeclinedInviteParams) error {
+	_, err := q.db.Exec(ctx, updateUserDeclinedInvite, arg.ID, arg.PortalApplicationID)
+	return err
+}
+
 const updateUserFields = `-- name: UpdateUserFields :exec
 UPDATE users
 SET icon_url = COALESCE($1, icon_url),

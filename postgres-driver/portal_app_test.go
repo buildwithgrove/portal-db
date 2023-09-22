@@ -37,7 +37,7 @@ func (ts *PGDriverTestSuite) Test_ReadPortalApps() {
 	}
 }
 
-func (ts *PGDriverTestSuite) Test_SetPortalAppDeleted() {
+func (ts *PGDriverTestSuite) Test_Z_SetPortalAppDeleted() {
 	tests := []struct {
 		name                                          string
 		deleteParams                                  DeletePortalAppParams
@@ -67,7 +67,7 @@ func (ts *PGDriverTestSuite) Test_SetPortalAppDeleted() {
 			// Check all PortalApps exist before delete
 			portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{IncludeDeleted: false})
 			ts.Equal(test.err, err)
-			ts.Equal(test.portalAppsBeforeDelete, portalApps)
+			ts.Equal(test.portalAppsBeforeDelete, filterAppsCreatedInTest(portalApps))
 
 			// Delete PortalApp
 			err = ts.driver.SetPortalAppDeleted(context.Background(), test.deleteParams.ID, test.deleteParams.DeletedAt.Time)
@@ -76,7 +76,7 @@ func (ts *PGDriverTestSuite) Test_SetPortalAppDeleted() {
 			// Check PortalApp was deleted
 			portalApps, err = ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{IncludeDeleted: false})
 			ts.Equal(test.err, err)
-			ts.Equal(test.portalAppsAfterDelete, portalApps)
+			ts.Equal(test.portalAppsAfterDelete, filterAppsCreatedInTest(portalApps))
 
 			// Check PortalApp still appears if IncludeDeleted: true
 			portalApps, err = ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{IncludeDeleted: true})
@@ -84,9 +84,23 @@ func (ts *PGDriverTestSuite) Test_SetPortalAppDeleted() {
 			testDeletedApp, ok := test.portalAppsBeforeDelete[test.deleteParams.ID]
 			ts.True(ok)
 			testDeletedApp.Deleted = true
-			ts.Equal(test.portalAppsBeforeDelete, portalApps)
+			ts.Equal(test.portalAppsBeforeDelete, filterAppsCreatedInTest(portalApps))
 		})
 	}
+}
+
+// filterAppsCreatedInTest filters out PortalApps created in this test suite
+func filterAppsCreatedInTest(portalApps map[types.PortalAppID]*types.PortalApp) map[types.PortalAppID]*types.PortalApp {
+	filtered := map[types.PortalAppID]*types.PortalApp{}
+	for id, app := range portalApps {
+		if len(app.ID) != 8 {
+			app.CreatedAt = testdata.MockTimestamp
+			app.UpdatedAt = testdata.MockTimestamp
+			app.FirstDateSurpassed = testdata.MockTimestamp
+			filtered[id] = app
+		}
+	}
+	return filtered
 }
 
 func (ts *PGDriverTestSuite) Test_WritePortalApp() {
