@@ -108,12 +108,20 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		name            string
 		portalApp       types.PortalApp
 		aat             types.AAT
+		portalAppUsers  map[types.UserID]types.AccountUserAccess
 		testCreatedTime time.Time
 		err             error
 	}{
 		{
-			name:            "Should create a new PortalApp in the database",
-			portalApp:       *testdata.TestCreatePortalApp,
+			name:            "Should create a new PortalApp in the database when created by owner",
+			portalApp:       *testdata.TestCreatePortalAppByOwner,
+			aat:             testdata.TestCreatePortalAppAAT,
+			testCreatedTime: testdata.MockTimestamp,
+			err:             nil,
+		},
+		{
+			name:            "Should create a new PortalApp in the database when created by non-owner",
+			portalApp:       *testdata.TestCreatePortalAppByNonOwner,
 			aat:             testdata.TestCreatePortalAppAAT,
 			testCreatedTime: testdata.MockTimestamp,
 			err:             nil,
@@ -176,13 +184,32 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 				test.portalApp.AATs = createdPortalApp.AATs
 				ts.Equal(&test.portalApp, createdPortalApp)
 
+				// Check user was created for the account
+				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
+				ts.NoError(err)
+				account, ok := accounts[test.portalApp.AccountID]
+				ts.True(ok)
+				var createUserID types.UserID
+				for userID := range test.portalApp.Users {
+					createUserID = userID
+					break
+				}
+				ts.NotEmpty(createUserID)
+				accountUser, ok := account.Users[createUserID]
+				ts.True(ok)
+				ts.NotEmpty(accountUser.PortalAppRoles[createdPortalApp.ID])
+				ts.True(accountUser.PortalAppsAccepted[createdPortalApp.ID])
+
+				// Check portal app can be read from driver
 				portalApps, err := ts.driver.ReadPortalApps(context.Background(), types.DriverOptions{})
-				ts.Equal(test.err, err)
+				ts.NoError(err)
 				for appID, aat := range test.portalApp.AATs {
 					aat.PrivateKey = "" // PrivateKey is never read from the DB
 					test.portalApp.AATs[appID] = aat
 				}
+				test.portalApp.Users = nil
 				ts.Equal(&test.portalApp, portalApps[createdPortalApp.ID])
+
 			}
 		})
 	}

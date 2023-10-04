@@ -131,11 +131,7 @@ func (a *SelectAccountsRow) toAccountUsers() (map[types.UserID]types.AccountUser
 			users[types.UserID(user.UserID)] = types.AccountUserAccess{
 				UserID:             types.UserID(user.UserID),
 				Email:              types.Email(user.Email),
-				IconURL:            user.IconURL,
 				Owner:              user.Owner,
-				UpdatesMarketing:   user.UpdatesMarketing,
-				UpdatesProduct:     user.UpdatesProduct,
-				BetaTester:         user.BetaTester,
 				PortalAppRoles:     user.PortalAppRoles,
 				PortalAppsAccepted: user.PortalAppsAccepted,
 			}
@@ -214,10 +210,6 @@ func (pg *PostgresDriver) WriteAccount(ctx context.Context, creatorID types.User
 		types.UserID(creatorID): {
 			UserID:             types.UserID(creatorID),
 			Email:              types.Email(user.Email),
-			IconURL:            user.IconURL.String,
-			UpdatesProduct:     user.UpdatesProduct.Bool,
-			UpdatesMarketing:   user.UpdatesMarketing.Bool,
-			BetaTester:         user.BetaTester.Bool,
 			Owner:              true,
 			PortalAppRoles:     map[types.PortalAppID]types.RoleName{},
 			PortalAppsAccepted: map[types.PortalAppID]bool{},

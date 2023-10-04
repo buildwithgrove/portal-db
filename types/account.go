@@ -35,10 +35,6 @@ type (
 		Owner              bool                     `json:"owner"`
 		UserID             UserID                   `json:"userID"`
 		Email              Email                    `json:"email"`
-		IconURL            string                   `json:"iconURL"`
-		UpdatesProduct     bool                     `json:"updatesProduct"`
-		UpdatesMarketing   bool                     `json:"updatesMarketing"`
-		BetaTester         bool                     `json:"betaTester"`
 		PortalAppRoles     map[PortalAppID]RoleName `json:"portalApplicationRoles"`
 		PortalAppsAccepted map[PortalAppID]bool     `json:"portalApplicationsAccepted"`
 	}
@@ -149,4 +145,12 @@ func (a *AccountUserAccess) Table() Table {
 
 func (s *AccountIntegrations) Table() Table {
 	return TableAccountIntegrations
+}
+
+// AssignPortalAppUsers assigns all PortalApp Users to all PortalApps for the account
+// Called in the PHD cache when an account is fetched by any account endpoints
+func (a *Account) AssignPortalAppUsers() {
+	for _, portalApp := range a.PortalApps {
+		portalApp.AssignUsers(a)
+	}
 }
