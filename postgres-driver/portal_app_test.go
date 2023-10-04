@@ -182,6 +182,12 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 			if test.err == nil {
 				test.portalApp.ID = createdPortalApp.ID
 				test.portalApp.AATs = createdPortalApp.AATs
+				var createUserID types.UserID
+				for userID := range test.portalApp.AppUsers {
+					createUserID = userID
+					break
+				}
+				test.portalApp.AppUsers = nil
 				ts.Equal(&test.portalApp, createdPortalApp)
 
 				// Check user was created for the account
@@ -189,11 +195,6 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 				ts.NoError(err)
 				account, ok := accounts[test.portalApp.AccountID]
 				ts.True(ok)
-				var createUserID types.UserID
-				for userID := range test.portalApp.Users {
-					createUserID = userID
-					break
-				}
 				ts.NotEmpty(createUserID)
 				accountUser, ok := account.Users[createUserID]
 				ts.True(ok)
@@ -207,7 +208,6 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 					aat.PrivateKey = "" // PrivateKey is never read from the DB
 					test.portalApp.AATs[appID] = aat
 				}
-				test.portalApp.Users = nil
 				ts.Equal(&test.portalApp, portalApps[createdPortalApp.ID])
 
 			}

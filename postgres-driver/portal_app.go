@@ -310,33 +310,19 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		},
 	}
 
-	// assign owner to portal app
-	// if portalApp.Users == nil {
-	// 	portalApp.Users = make(map[types.UserID]types.AccountUserAccess)
-	// }
-	// owner := types.AccountUserAccess{
-	// 	UserID:             accountOwner.UserID,
-	// 	Email:              accountOwner.Email,
-	// 	Owner:              true,
-	// 	AccountID:          portalApp.AccountID,
-	// 	PortalAppRoles:     map[types.PortalAppID]types.RoleName{portalApp.ID: types.RoleOwner},
-	// 	PortalAppsAccepted: map[types.PortalAppID]bool{portalApp.ID: true},
-	// }
-	// portalApp.Users[owner.UserID] = owner
-
 	// if user who created app is not account owner then create an `account_user_access` row for them
-	var createUser types.AccountUserAccess
-	for _, user := range portalApp.Users {
+	var createUser types.PortalAppUser
+	for _, user := range portalApp.AppUsers {
 		createUser = user
 		break
 	}
 	accountUserIsOwner, err := qtx.CheckAccountUserIsOwner(ctx, CheckAccountUserIsOwnerParams{
 		AccountID: portalApp.AccountID,
-		UserID:    createUser.UserID,
+		UserID:    createUser.ID,
 	})
 	if err == nil && !accountUserIsOwner {
 		_, err := qtx.InsertAccountUserAccess(ctx, InsertAccountUserAccessParams{
-			UserID:              createUser.UserID,
+			UserID:              createUser.ID,
 			Email:               createUser.Email,
 			AccountID:           portalApp.AccountID,
 			PortalApplicationID: string(portalApp.ID),
@@ -349,16 +335,6 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		if err != nil {
 			return nil, err
 		}
-
-		// nonOwnerUser := types.AccountUserAccess{
-		// 	UserID:             createUser.UserID,
-		// 	Email:              createUser.Email,
-		// 	Owner:              false,
-		// 	AccountID:          portalApp.AccountID,
-		// 	PortalAppRoles:     map[types.PortalAppID]types.RoleName{portalApp.ID: types.RoleAdmin},
-		// 	PortalAppsAccepted: map[types.PortalAppID]bool{portalApp.ID: true},
-		// }
-		// portalApp.Users[nonOwnerUser.UserID] = nonOwnerUser
 	}
 
 	err = tx.Commit(ctx)
@@ -381,6 +357,8 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 	for _, aat := range portalApp.AATs {
 		aat.PrivateKey = ""
 	}
+
+	portalApp.AppUsers = nil
 
 	return &portalApp, nil
 }

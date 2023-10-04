@@ -1332,10 +1332,10 @@ var (
 			CustomLimit:    0,
 			RequestTimeout: 15_000,
 		},
-		Users: map[types.UserID]types.AccountUserAccess{
+		AppUsers: map[types.UserID]types.PortalAppUser{
 			"user_4": {
-				UserID: "user_4",
-				Email:  "ulfric.stormcloak123@test.com",
+				ID:    "user_4",
+				Email: "ulfric.stormcloak123@test.com",
 			},
 		},
 	}
@@ -1372,10 +1372,10 @@ var (
 			CustomLimit:    0,
 			RequestTimeout: 15_000,
 		},
-		Users: map[types.UserID]types.AccountUserAccess{
+		AppUsers: map[types.UserID]types.PortalAppUser{
 			"user_2": {
-				UserID: "user_2",
-				Email:  "paul.atreides456@test.com",
+				ID:    "user_2",
+				Email: "paul.atreides456@test.com",
 			},
 		},
 	}
