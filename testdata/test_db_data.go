@@ -985,7 +985,7 @@ var (
 		},
 	}
 
-	PortalAppUsers = map[types.PortalAppID]map[types.UserID]types.AccountUser{
+	AccountUsers = map[types.PortalAppID]map[types.UserID]types.AccountUser{
 		"test_app_1": {
 			"user_1": AccountUser[1],
 			"user_2": AccountUser[2],
@@ -1005,7 +1005,7 @@ var (
 		},
 	}
 
-	PortalAppUsersMap = map[types.PortalAppID]map[types.UserID]types.PortalAppUser{
+	PortalAppUsers = map[types.PortalAppID]map[types.UserID]types.PortalAppUser{
 		"test_app_1": {
 			"user_1": {
 				ID:       "user_1",
