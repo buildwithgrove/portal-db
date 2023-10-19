@@ -11,13 +11,13 @@ func Test_GetOwner(t *testing.T) {
 	tests := []struct {
 		name        string
 		account     Account
-		expected    AccountUserAccess
+		expected    AccountUser
 		expectedErr error
 	}{
 		{
 			name:     "Should return owner when account has an owner",
 			account:  testAccount,
-			expected: testAccount.Users["user_1"],
+			expected: testAccount.AccountUsers["user_1"],
 		},
 	}
 
@@ -136,7 +136,7 @@ func Test_HasUserAcceptedInvite(t *testing.T) {
 			expectedOk: true,
 		},
 		{
-			name:       "Should return false if user is not in Users map",
+			name:       "Should return false if user is not in AccountUsers map",
 			account:    testAccount,
 			userID:     "user_nonexistent",
 			appID:      "test_app_1",
@@ -167,7 +167,7 @@ var testAccount = Account{
 	Name:     "The Brave Voyager",
 	IconURL:  "https://picsum.photos/200",
 	PlanType: PayPlanType("basic_plan"),
-	Users: map[UserID]AccountUserAccess{
+	AccountUsers: map[UserID]AccountUser{
 		"user_1": {
 			AccountID: "",
 			UserID:    "user_1",
@@ -274,29 +274,18 @@ var testAccount = Account{
 				RequestTimeout:       5_000,
 				StripeSubscriptionID: "stripe_id_1",
 			},
-			Users: map[UserID]AccountUserAccess{
+			PortalAppUsers: map[UserID]PortalAppUser{
 				"user_1": {
-					AccountID: "",
-					UserID:    "user_1",
-					Email:     "james.holden123@test.com",
-					Owner:     true,
-					PortalAppRoles: map[PortalAppID]RoleName{
-						"test_app_1": RoleOwner,
-					},
-					PortalAppsAccepted: map[PortalAppID]bool{
-						"test_app_1": true,
-					},
+					ID:       "user_1",
+					Email:    "james.holden123@test.com",
+					RoleName: RoleOwner,
+					Accepted: true,
 				},
 				"user_8": {
-					AccountID: "",
-					UserID:    "user_8",
-					Email:     "rick.deckard456@test.com",
-					PortalAppRoles: map[PortalAppID]RoleName{
-						"test_app_1": RoleAdmin,
-					},
-					PortalAppsAccepted: map[PortalAppID]bool{
-						"test_app_1": false,
-					},
+					ID:       "user_8",
+					Email:    "rick.deckard456@test.com",
+					RoleName: RoleAdmin,
+					Accepted: false,
 				},
 			},
 		},
@@ -358,29 +347,18 @@ var testAccount = Account{
 				RequestTimeout:       10_000,
 				StripeSubscriptionID: "stripe_id_2",
 			},
-			Users: map[UserID]AccountUserAccess{
+			PortalAppUsers: map[UserID]PortalAppUser{
 				"user_2": {
-					AccountID: "",
-					UserID:    "user_3",
-					Email:     "ellen.ripley789@test.com",
-					Owner:     true,
-					PortalAppRoles: map[PortalAppID]RoleName{
-						"test_app_2": RoleOwner,
-					},
-					PortalAppsAccepted: map[PortalAppID]bool{
-						"test_app_2": true,
-					},
+					ID:       "user_3",
+					Email:    "ellen.ripley789@test.com",
+					RoleName: RoleOwner,
+					Accepted: true,
 				},
 				"user_9": {
-					AccountID: "",
-					UserID:    "user_9",
-					Email:     "tyrion.lannister789@test.com",
-					PortalAppRoles: map[PortalAppID]RoleName{
-						"test_app_2": RoleMember,
-					},
-					PortalAppsAccepted: map[PortalAppID]bool{
-						"test_app_2": false,
-					},
+					ID:       "user_9",
+					Email:    "tyrion.lannister789@test.com",
+					RoleName: RoleMember,
+					Accepted: false,
 				},
 			},
 		},

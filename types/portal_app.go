@@ -97,11 +97,8 @@ type (
 		// Fields required for compatibility with the old Portal API and Services (temporary)
 		LegacyFields LegacyFields `json:"legacyFields"`
 
-		// Users set in PHD when PortalApp read from cache
-		AppUsers map[UserID]PortalAppUser `json:"appUsers"`
-
-		// OLD FIELD - DEPRECATED
-		Users map[UserID]AccountUserAccess `json:"users"`
+		// Users assigned in PHD from PortalApp's Account when PortalApp fetched from PUB
+		PortalAppUsers map[UserID]PortalAppUser `json:"portalAppUsers"`
 	}
 
 	PortalAppUser struct {
@@ -284,9 +281,9 @@ func (a *PortalApp) MonthlyLimit() int32 {
 }
 
 // GetUsers returns all the PortalApp's Users as a slice
-func (a *PortalApp) GetUsers() []AccountUserAccess {
-	users := []AccountUserAccess{}
-	for _, user := range a.Users {
+func (a *PortalApp) GetUsers() []PortalAppUser {
+	users := []PortalAppUser{}
+	for _, user := range a.PortalAppUsers {
 		users = append(users, user)
 	}
 	return users
@@ -295,38 +292,31 @@ func (a *PortalApp) GetUsers() []AccountUserAccess {
 // GetUserIDs returns all the PortalApp's Users' IDs as a slice
 func (a *PortalApp) GetUserIDs() []UserID {
 	users := []UserID{}
-	for _, user := range a.Users {
-		users = append(users, user.UserID)
+	for _, user := range a.PortalAppUsers {
+		users = append(users, user.ID)
 	}
 	return users
 }
 
 // Owner ID returns the UserID of the PortalApp's owner
 func (a *PortalApp) OwnerID() UserID {
-	for _, user := range a.Users {
-		if user.Owner {
-			return user.UserID
+	for _, user := range a.PortalAppUsers {
+		if user.RoleName == RoleOwner {
+			return user.ID
 		}
 	}
 	return ""
 }
 
-// AssignUsers assigns the Account's Users to the PortalApp's Users field
+// AssignUsers assigns the Account's AccountUsers to the PortalApp's PortalAppUsers field
 // Only assigns users that have a role for the PortalApp
-// TODO - remove DEPRECATED field when UI and PUB are updated
 func (a *PortalApp) AssignUsers(account *Account) {
-	if account.Users != nil && len(account.Users) > 0 {
-		// old field - DEPRECATED
-		users := map[UserID]AccountUserAccess{}
-		// new field
-		appUsers := map[UserID]PortalAppUser{}
+	if account.AccountUsers != nil && len(account.AccountUsers) > 0 {
+		portalAppUsers := map[UserID]PortalAppUser{}
 
-		for _, accountUser := range account.Users {
+		for _, accountUser := range account.AccountUsers {
 			if _, ok := accountUser.PortalAppRoles[a.ID]; ok {
-				// old field - DEPRECATED
-				users[accountUser.UserID] = accountUser
-				// new field
-				appUsers[accountUser.UserID] = PortalAppUser{
+				portalAppUsers[accountUser.UserID] = PortalAppUser{
 					ID:       accountUser.UserID,
 					Email:    accountUser.Email,
 					RoleName: accountUser.PortalAppRoles[a.ID],
@@ -335,10 +325,7 @@ func (a *PortalApp) AssignUsers(account *Account) {
 			}
 		}
 
-		// old field - DEPRECATED
-		a.Users = users
-		// new field
-		a.AppUsers = appUsers
+		a.PortalAppUsers = portalAppUsers
 	}
 }
 

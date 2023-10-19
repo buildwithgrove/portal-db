@@ -424,7 +424,7 @@ type AccountIntegration struct {
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
-type AccountUserAccess struct {
+type AccountUser struct {
 	ID                  int32              `json:"id"`
 	UserID              types.UserID       `json:"user_id"`
 	AccountID           types.AccountID    `json:"account_id"`

@@ -312,7 +312,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 
 	// if user who created app is not account owner then create an `account_user_access` row for them
 	var createUser types.PortalAppUser
-	for _, user := range portalApp.AppUsers {
+	for _, user := range portalApp.PortalAppUsers {
 		createUser = user
 		break
 	}
@@ -358,7 +358,7 @@ func (pg *PostgresDriver) WritePortalApp(ctx context.Context, portalApp types.Po
 		aat.PrivateKey = ""
 	}
 
-	portalApp.AppUsers = nil
+	portalApp.PortalAppUsers = nil
 
 	return &portalApp, nil
 }

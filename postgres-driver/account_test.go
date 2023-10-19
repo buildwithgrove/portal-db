@@ -46,7 +46,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 		ownerID         types.UserID
 		account         types.Account
 		testCreatedTime time.Time
-		users           map[types.UserID]types.AccountUserAccess
+		users           map[types.UserID]types.AccountUser
 		err             error
 	}{
 		{
@@ -54,7 +54,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 			ownerID:         "user_1",
 			account:         *testdata.TestCreateAccount,
 			testCreatedTime: testdata.MockTimestamp,
-			users: map[types.UserID]types.AccountUserAccess{
+			users: map[types.UserID]types.AccountUser{
 				"user_1": {
 					UserID:             testdata.Users["user_1"].ID,
 					Email:              testdata.Users["user_1"].Email,
@@ -101,7 +101,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccount() {
 
 			if test.err == nil {
 				test.account.ID = createdAccount.ID
-				test.account.Users = test.users
+				test.account.AccountUsers = test.users
 				ts.Equal(&test.account, createdAccount)
 
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
@@ -259,20 +259,20 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 		name                                string
 		notSignedUp                         bool
 		createAccountUser                   types.CreateAccountUserAccess
-		accountUser, accountUserAfterCreate types.AccountUserAccess
+		accountUser, accountUserAfterCreate types.AccountUser
 		testCreatedTime                     time.Time
 		err                                 error
 	}{
 		{
-			name: "Should create a new AccountUserAccess row in the database for an existing User",
+			name: "Should create a new AccountUser row in the database for an existing User",
 			createAccountUser: types.CreateAccountUserAccess{
 				AccountID:   "account_1",
 				PortalAppID: "test_app_1",
 				Email:       "bernard.marx@test.com",
 				RoleName:    types.RoleMember,
 			},
-			accountUser: testdata.AccountUserAccess[13],
-			accountUserAfterCreate: types.AccountUserAccess{
+			accountUser: testdata.AccountUser[13],
+			accountUserAfterCreate: types.AccountUser{
 				UserID:             "user_11",
 				Email:              "bernard.marx@test.com",
 				PortalAppRoles:     map[types.PortalAppID]types.RoleName{"test_app_1": types.RoleMember},
@@ -282,7 +282,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 			err:             nil,
 		},
 		{
-			name:        "Should create a new AccountUserAccess row in the database for a user that hasn't signed up yet",
+			name:        "Should create a new AccountUser row in the database for a user that hasn't signed up yet",
 			notSignedUp: true,
 			createAccountUser: types.CreateAccountUserAccess{
 				AccountID:   "account_2",
@@ -290,8 +290,8 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 				Email:       "winston.smith@test.com",
 				RoleName:    types.RoleAdmin,
 			},
-			accountUser: testdata.AccountUserAccess[14],
-			accountUserAfterCreate: types.AccountUserAccess{
+			accountUser: testdata.AccountUser[14],
+			accountUserAfterCreate: types.AccountUser{
 				UserID:             "", // UserID created when user created
 				Email:              "winston.smith@test.com",
 				PortalAppRoles:     map[types.PortalAppID]types.RoleName{"test_app_2": types.RoleAdmin},
@@ -399,7 +399,7 @@ func (ts *PGDriverTestSuite) Test_WriteAccountUser() {
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
 
-				user := accounts[test.createAccountUser.AccountID].Users[userID]
+				user := accounts[test.createAccountUser.AccountID].AccountUsers[userID]
 				ts.NotEmpty(user)
 				ts.Equal(test.accountUserAfterCreate, user)
 			}
@@ -411,22 +411,22 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 	tests := []struct {
 		name                    string
 		updateAccountUser       types.UpdateAccountUserRole
-		accountUsersAfterUpdate map[types.UserID]types.AccountUserAccess
+		accountUsersAfterUpdate map[types.UserID]types.AccountUser
 		testCreatedTime         time.Time
 		err                     error
 	}{
 		{
-			name: "Should update an existing AccountUserAccess row's role to non-OWNER role",
+			name: "Should update an existing AccountUser row's role to non-OWNER role",
 			updateAccountUser: types.UpdateAccountUserRole{
 				PortalAppID: "test_app_3",
 				AccountID:   "account_3",
 				UserID:      "user_7",
 				RoleName:    types.RoleAdmin,
 			},
-			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				"user_5":  testdata.AccountUserAccess[5],
-				"user_6":  testdata.AccountUserAccess[6],
-				"user_10": testdata.AccountUserAccess[12],
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUser{
+				"user_5":  testdata.AccountUser[5],
+				"user_6":  testdata.AccountUser[6],
+				"user_10": testdata.AccountUser[12],
 				"user_7": {
 					UserID:             "user_7",
 					Email:              "frodo.baggins123@test.com",
@@ -438,17 +438,17 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 			err:             nil,
 		},
 		{
-			name: "Should update an existing AccountUserAccess row's role back to original role",
+			name: "Should update an existing AccountUser row's role back to original role",
 			updateAccountUser: types.UpdateAccountUserRole{
 				PortalAppID: "test_app_3",
 				AccountID:   "account_3",
 				UserID:      "user_7",
 				RoleName:    types.RoleMember,
 			},
-			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				"user_5":  testdata.AccountUserAccess[5],
-				"user_6":  testdata.AccountUserAccess[6],
-				"user_10": testdata.AccountUserAccess[12],
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUser{
+				"user_5":  testdata.AccountUser[5],
+				"user_6":  testdata.AccountUser[6],
+				"user_10": testdata.AccountUser[12],
 				"user_7": {
 					UserID:             "user_7",
 					Email:              "frodo.baggins123@test.com",
@@ -467,9 +467,9 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				UserID:      "user_4",
 				RoleName:    types.RoleOwner,
 			},
-			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				"user_9": testdata.AccountUserAccess[9],
-				"user_2": testdata.AccountUserAccess[10],
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUser{
+				"user_9": testdata.AccountUser[9],
+				"user_2": testdata.AccountUser[10],
 				"user_3": {
 					UserID:             "user_3",
 					Email:              "ellen.ripley789@test.com",
@@ -495,9 +495,9 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				UserID:      "user_3",
 				RoleName:    types.RoleOwner,
 			},
-			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				"user_9": testdata.AccountUserAccess[9],
-				"user_2": testdata.AccountUserAccess[10],
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUser{
+				"user_9": testdata.AccountUser[9],
+				"user_2": testdata.AccountUser[10],
 				"user_3": {
 					UserID:             "user_3",
 					Email:              "ellen.ripley789@test.com",
@@ -523,10 +523,10 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 				UserID:      "user_10",
 				RoleName:    types.RoleMember,
 			},
-			accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
-				"user_5": testdata.AccountUserAccess[5],
-				"user_6": testdata.AccountUserAccess[6],
-				"user_7": testdata.AccountUserAccess[7],
+			accountUsersAfterUpdate: map[types.UserID]types.AccountUser{
+				"user_5": testdata.AccountUser[5],
+				"user_6": testdata.AccountUser[6],
+				"user_7": testdata.AccountUser[7],
 				"user_10": {
 					UserID:             "user_10",
 					Email:              "daenerys.targaryen123@test.com",
@@ -635,7 +635,7 @@ func (ts *PGDriverTestSuite) Test_SetAccountUserRole() {
 			if test.err == nil {
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
-				ts.Equal(test.accountUsersAfterUpdate, accounts[test.updateAccountUser.AccountID].Users)
+				ts.Equal(test.accountUsersAfterUpdate, accounts[test.updateAccountUser.AccountID].AccountUsers)
 			}
 		})
 	}
@@ -647,7 +647,7 @@ func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
 	// The Z is because it must run last in the suite.
 	test := struct {
 		updateAccountUser       types.UpdateAccountUserRole
-		accountUsersAfterUpdate map[types.UserID]types.AccountUserAccess
+		accountUsersAfterUpdate map[types.UserID]types.AccountUser
 		testCreatedTime         time.Time
 		testCreatePortalApp     types.PortalApp
 		testCreateUsers         map[types.Email]types.CreateAccountUserAccess
@@ -724,7 +724,7 @@ func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
 				ProviderUserID:   "auth0|tyrion_lannister",
 			},
 		},
-		accountUsersAfterUpdate: map[types.UserID]types.AccountUserAccess{
+		accountUsersAfterUpdate: map[types.UserID]types.AccountUser{
 			"user_4": {
 				Owner:              false,
 				UserID:             "user_4",
@@ -819,7 +819,7 @@ func (ts *PGDriverTestSuite) Test_ZSetAccountUserRole_MultiplePortalApps() {
 
 	accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 	ts.NoError(err)
-	ts.Equal(test.accountUsersAfterUpdate, accounts[test.updateAccountUser.AccountID].Users)
+	ts.Equal(test.accountUsersAfterUpdate, accounts[test.updateAccountUser.AccountID].AccountUsers)
 }
 
 func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
@@ -831,7 +831,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 		user              *types.User
 		newUser           bool
 		newUserEmail      types.Email
-		accountUsers      map[types.UserID]types.AccountUserAccess
+		accountUsers      map[types.UserID]types.AccountUser
 		err               error
 	}{
 		{
@@ -861,10 +861,10 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				CreatedAt: testdata.MockTimestamp,
 				UpdatedAt: testdata.MockTimestamp,
 			},
-			accountUsers: map[types.UserID]types.AccountUserAccess{
-				"user_5": testdata.AccountUserAccess[5],
-				"user_6": testdata.AccountUserAccess[6],
-				"user_7": testdata.AccountUserAccess[7],
+			accountUsers: map[types.UserID]types.AccountUser{
+				"user_5": testdata.AccountUser[5],
+				"user_6": testdata.AccountUser[6],
+				"user_7": testdata.AccountUser[7],
 				"user_10": {
 					UserID:             "user_10",
 					Email:              "daenerys.targaryen123@test.com",
@@ -898,10 +898,10 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				CreatedAt: testdata.MockTimestamp,
 				UpdatedAt: testdata.MockTimestamp,
 			},
-			accountUsers: map[types.UserID]types.AccountUserAccess{
-				"user_1": testdata.AccountUserAccess[1],
-				"user_2": testdata.AccountUserAccess[2],
-				"user_8": testdata.AccountUserAccess[8],
+			accountUsers: map[types.UserID]types.AccountUser{
+				"user_1": testdata.AccountUser[1],
+				"user_2": testdata.AccountUser[2],
+				"user_8": testdata.AccountUser[8],
 			},
 		},
 		{
@@ -927,10 +927,10 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				CreatedAt: testdata.MockTimestamp,
 				UpdatedAt: testdata.MockTimestamp,
 			},
-			accountUsers: map[types.UserID]types.AccountUserAccess{
-				"user_1": testdata.AccountUserAccess[1],
-				"user_2": testdata.AccountUserAccess[2],
-				"user_8": testdata.AccountUserAccess[8],
+			accountUsers: map[types.UserID]types.AccountUser{
+				"user_1": testdata.AccountUser[1],
+				"user_2": testdata.AccountUser[2],
+				"user_8": testdata.AccountUser[8],
 			},
 		},
 		{
@@ -1010,10 +1010,10 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 				ts.NoError(err)
 				userAccount := accounts[test.accountID]
 				ts.NotEmpty(userAccount)
-				ts.Equal(test.acceptAccountUser.UserID, accounts[test.accountID].Users[test.acceptAccountUser.UserID].UserID)
-				ts.NotEmpty(accounts[test.accountID].Users[test.acceptAccountUser.UserID].PortalAppRoles[test.acceptAccountUser.PortalAppID])
-				ts.NotEmpty(accounts[test.accountID].Users[test.acceptAccountUser.UserID].PortalAppsAccepted)
-				ts.False(accounts[test.accountID].Users[test.acceptAccountUser.UserID].PortalAppsAccepted[test.acceptAccountUser.PortalAppID])
+				ts.Equal(test.acceptAccountUser.UserID, accounts[test.accountID].AccountUsers[test.acceptAccountUser.UserID].UserID)
+				ts.NotEmpty(accounts[test.accountID].AccountUsers[test.acceptAccountUser.UserID].PortalAppRoles[test.acceptAccountUser.PortalAppID])
+				ts.NotEmpty(accounts[test.accountID].AccountUsers[test.acceptAccountUser.UserID].PortalAppsAccepted)
+				ts.False(accounts[test.accountID].AccountUsers[test.acceptAccountUser.UserID].PortalAppsAccepted[test.acceptAccountUser.PortalAppID])
 			}
 
 			err := ts.driver.UpdateAcceptAccountUser(context.Background(), test.acceptAccountUser, testdata.MockTimestamp)
@@ -1026,7 +1026,7 @@ func (ts *PGDriverTestSuite) Test_UpdateAcceptAccountUser() {
 
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
-				ts.Equal(test.accountUsers, accounts[test.accountID].Users)
+				ts.Equal(test.accountUsers, accounts[test.accountID].AccountUsers)
 			}
 		})
 	}
@@ -1108,18 +1108,18 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 		accountID               types.AccountID
 		portalAppID             types.PortalAppID
 		numAccountsBeforeDelete int
-		accountUsersAfterDelete map[types.UserID]types.AccountUserAccess
+		accountUsersAfterDelete map[types.UserID]types.AccountUser
 		err                     error
 	}{
 		{
-			name:                    "Should delete a single AccountUserAccess row",
+			name:                    "Should delete a single AccountUser row",
 			accountID:               "account_1",
 			portalAppID:             "test_app_1",
 			numAccountsBeforeDelete: 5,
-			accountUsersAfterDelete: map[types.UserID]types.AccountUserAccess{
-				"user_1": testdata.AccountUserAccess[1],
-				"user_2": testdata.AccountUserAccess[2],
-				"user_8": testdata.AccountUserAccess[8],
+			accountUsersAfterDelete: map[types.UserID]types.AccountUser{
+				"user_1": testdata.AccountUser[1],
+				"user_2": testdata.AccountUser[2],
+				"user_8": testdata.AccountUser[8],
 			},
 		},
 		{
@@ -1174,7 +1174,7 @@ func (ts *PGDriverTestSuite) Test_RemoveAccountUser() {
 			if test.err == nil {
 				accounts, err := ts.driver.ReadAccounts(context.Background(), types.DriverOptions{})
 				ts.NoError(err)
-				ts.Equal(test.accountUsersAfterDelete, accounts[test.accountID].Users)
+				ts.Equal(test.accountUsersAfterDelete, accounts[test.accountID].AccountUsers)
 			}
 		})
 	}

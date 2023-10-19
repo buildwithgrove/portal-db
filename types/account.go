@@ -11,26 +11,26 @@ var errNoOwner error = errors.New("account does not have an owner")
 type (
 	// Account represents a single account for a single application in the Portal
 	Account struct {
-		ID                     AccountID                    `json:"id"`
-		Name                   string                       `json:"name"`
-		IconURL                string                       `json:"iconURL"`
-		PlanType               PayPlanType                  `json:"planType"`
-		Users                  map[UserID]AccountUserAccess `json:"users"`
-		PartnerChainIDs        map[RelayChainID]struct{}    `json:"partnerBlockchainIDs"`
-		PartnerThroughputLimit int32                        `json:"partnerThroughputLimit"`
-		PartnerAppLimit        int32                        `json:"partnerAppLimit"`
-		Integrations           AccountIntegrations          `json:"integrations"`
-		CreatedAt              time.Time                    `json:"createdAt"`
-		UpdatedAt              time.Time                    `json:"updatedAt"`
-		Deleted                bool                         `json:"deleted"`
+		ID                     AccountID                 `json:"id"`
+		Name                   string                    `json:"name"`
+		IconURL                string                    `json:"iconURL"`
+		PlanType               PayPlanType               `json:"planType"`
+		AccountUsers           map[UserID]AccountUser    `json:"users"`
+		PartnerChainIDs        map[RelayChainID]struct{} `json:"partnerBlockchainIDs"`
+		PartnerThroughputLimit int32                     `json:"partnerThroughputLimit"`
+		PartnerAppLimit        int32                     `json:"partnerAppLimit"`
+		Integrations           AccountIntegrations       `json:"integrations"`
+		CreatedAt              time.Time                 `json:"createdAt"`
+		UpdatedAt              time.Time                 `json:"updatedAt"`
+		Deleted                bool                      `json:"deleted"`
 
 		// PortalApps and Plan are set inside PHD
 		PortalApps map[PortalAppID]*PortalApp `json:"portalApps"`
 		Plan       *Plan                      `json:"payPlan"`
 	}
 
-	// AccountUserAccess represents a single Portal user for a single Account
-	AccountUserAccess struct {
+	// AccountUser represents a single Portal user for a single Account
+	AccountUser struct {
 		AccountID          AccountID                `json:"id,omitempty"` // used for listener
 		Owner              bool                     `json:"owner"`
 		UserID             UserID                   `json:"userID"`
@@ -39,7 +39,7 @@ type (
 		PortalAppsAccepted map[PortalAppID]bool     `json:"portalApplicationsAccepted"`
 	}
 
-	// AccountUserAccess represents fields used for integrations with other platforms
+	// AccountUser represents fields used for integrations with other platforms
 	AccountIntegrations struct {
 		AccountID          AccountID `json:"id,omitempty"` // used for listener
 		CovalentAPIKeyFree string    `json:"covalentAPIKeyFree"`
@@ -88,18 +88,18 @@ type (
 )
 
 // GetOwner returns the Account OWNER
-func (a *Account) GetOwner() (AccountUserAccess, error) {
-	for _, user := range a.Users {
+func (a *Account) GetOwner() (AccountUser, error) {
+	for _, user := range a.AccountUsers {
 		if user.Owner {
 			return user, nil
 		}
 	}
-	return AccountUserAccess{}, errNoOwner
+	return AccountUser{}, errNoOwner
 }
 
 // GetOwnerID returns the Account OWNER's ID
 func (a *Account) GetOwnerID() (UserID, error) {
-	for _, user := range a.Users {
+	for _, user := range a.AccountUsers {
 		if user.Owner {
 			return user.UserID, nil
 		}
@@ -125,7 +125,7 @@ func (a *Account) GetAcceptedPortalApps(userID UserID, accepted bool) map[Portal
 
 // HasAcceptedPortalApp returns true if the user has accepted the PortalApp
 func (a *Account) HasUserAcceptedInvite(userID UserID, portalAppID PortalAppID) (bool, bool) {
-	user, ok := a.Users[userID]
+	user, ok := a.AccountUsers[userID]
 	if !ok {
 		return false, false
 	}
@@ -139,7 +139,7 @@ func (a *Account) Table() Table {
 	return TableAccounts
 }
 
-func (a *AccountUserAccess) Table() Table {
+func (a *AccountUser) Table() Table {
 	return TableAccountUserAccess
 }
 

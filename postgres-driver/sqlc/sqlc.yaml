@@ -64,7 +64,7 @@ sql:
           - db_type: "whitelist_type"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.WhitelistType"
           - db_type: "account_user_access"
-            go_type: "github.com/pokt-foundation/portal-db/v2/types.AccountUserAccess"
+            go_type: "github.com/pokt-foundation/portal-db/v2/types.AccountUser"
           # ID type Overrides
           - column: "portal_applications.id"
             go_type: "github.com/pokt-foundation/portal-db/v2/types.PortalAppID"

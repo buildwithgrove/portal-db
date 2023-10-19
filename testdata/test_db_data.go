@@ -152,10 +152,10 @@ var (
 			Name:     "The Brave Voyager",
 			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("basic_plan"),
-			Users: map[types.UserID]types.AccountUserAccess{
-				"user_1": AccountUserAccess[1],
-				"user_2": AccountUserAccess[2],
-				"user_8": AccountUserAccess[8],
+			AccountUsers: map[types.UserID]types.AccountUser{
+				"user_1": AccountUser[1],
+				"user_2": AccountUser[2],
+				"user_8": AccountUser[8],
 			},
 			Integrations: types.AccountIntegrations{
 				CovalentAPIKeyFree: "covalent_api_key_1",
@@ -172,11 +172,11 @@ var (
 			Name:     "Dragonborn Explorer",
 			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("pro_plan"),
-			Users: map[types.UserID]types.AccountUserAccess{
-				"user_3": AccountUserAccess[3],
-				"user_4": AccountUserAccess[4],
-				"user_9": AccountUserAccess[9],
-				"user_2": AccountUserAccess[10],
+			AccountUsers: map[types.UserID]types.AccountUser{
+				"user_3": AccountUser[3],
+				"user_4": AccountUser[4],
+				"user_9": AccountUser[9],
+				"user_2": AccountUser[10],
 			},
 			Integrations: types.AccountIntegrations{
 				CovalentAPIKeyFree: "covalent_api_key_2",
@@ -193,11 +193,11 @@ var (
 			Name:     "Fellowship Startup",
 			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("startup_plan"),
-			Users: map[types.UserID]types.AccountUserAccess{
-				"user_5":  AccountUserAccess[5],
-				"user_6":  AccountUserAccess[6],
-				"user_7":  AccountUserAccess[7],
-				"user_10": AccountUserAccess[12],
+			AccountUsers: map[types.UserID]types.AccountUser{
+				"user_5":  AccountUser[5],
+				"user_6":  AccountUser[6],
+				"user_7":  AccountUser[7],
+				"user_10": AccountUser[12],
 			},
 			Integrations: types.AccountIntegrations{
 				CovalentAPIKeyFree: "covalent_api_key_3",
@@ -214,8 +214,8 @@ var (
 			Name:     "Iron Throne Enterprise",
 			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("enterprise_plan"),
-			Users: map[types.UserID]types.AccountUserAccess{
-				"user_4": AccountUserAccess[11],
+			AccountUsers: map[types.UserID]types.AccountUser{
+				"user_4": AccountUser[11],
 			},
 			Integrations: types.AccountIntegrations{
 				CovalentAPIKeyFree: "covalent_api_key_4",
@@ -232,8 +232,8 @@ var (
 			Name:     "Nomad Wanderer",
 			IconURL:  "https://picsum.photos/200",
 			PlanType: types.PayPlanType("basic_plan"),
-			Users: map[types.UserID]types.AccountUserAccess{
-				"user_4": AccountUserAccess[11],
+			AccountUsers: map[types.UserID]types.AccountUser{
+				"user_4": AccountUser[11],
 			},
 			PartnerChainIDs:        map[types.RelayChainID]struct{}{"0006": {}, "0040": {}},
 			PartnerThroughputLimit: 6_000,
@@ -254,7 +254,7 @@ var (
 		UpdatedAt:  MockTimestamp,
 	}
 
-	AccountUserAccess = map[int]types.AccountUserAccess{
+	AccountUser = map[int]types.AccountUser{
 		1: {
 			AccountID: "",
 			UserID:    "user_1",
@@ -390,14 +390,14 @@ var (
 				"test_app_3": false,
 			},
 		},
-		// Bernard is an existing user and is used to create a new AccountUserAccess row
+		// Bernard is an existing user and is used to create a new AccountUser row
 		13: {
 			UserID:             "user_11",
 			Email:              "bernard.marx@test.com",
 			PortalAppRoles:     map[types.PortalAppID]types.RoleName{},
 			PortalAppsAccepted: map[types.PortalAppID]bool{},
 		},
-		// Winston has not signed up yet and is used to create a new AccountUserAccess row
+		// Winston has not signed up yet and is used to create a new AccountUser row
 		14: {
 			Email: "winston.smith@test.com",
 		},
@@ -985,23 +985,23 @@ var (
 		},
 	}
 
-	PortalAppUsers = map[types.PortalAppID]map[types.UserID]types.AccountUserAccess{
+	PortalAppUsers = map[types.PortalAppID]map[types.UserID]types.AccountUser{
 		"test_app_1": {
-			"user_1": AccountUserAccess[1],
-			"user_2": AccountUserAccess[2],
-			"user_8": AccountUserAccess[8],
+			"user_1": AccountUser[1],
+			"user_2": AccountUser[2],
+			"user_8": AccountUser[8],
 		},
 		"test_app_2": {
-			"user_3": AccountUserAccess[3],
-			"user_4": AccountUserAccess[4],
-			"user_9": AccountUserAccess[9],
-			"user_2": AccountUserAccess[10],
+			"user_3": AccountUser[3],
+			"user_4": AccountUser[4],
+			"user_9": AccountUser[9],
+			"user_2": AccountUser[10],
 		},
 		"test_app_3": {
-			"user_5":  AccountUserAccess[5],
-			"user_6":  AccountUserAccess[6],
-			"user_7":  AccountUserAccess[7],
-			"user_10": AccountUserAccess[12],
+			"user_5":  AccountUser[5],
+			"user_6":  AccountUser[6],
+			"user_7":  AccountUser[7],
+			"user_10": AccountUser[12],
 		},
 	}
 
@@ -1332,7 +1332,7 @@ var (
 			CustomLimit:    0,
 			RequestTimeout: 15_000,
 		},
-		AppUsers: map[types.UserID]types.PortalAppUser{
+		PortalAppUsers: map[types.UserID]types.PortalAppUser{
 			"user_4": {
 				ID:    "user_4",
 				Email: "ulfric.stormcloak123@test.com",
@@ -1372,7 +1372,7 @@ var (
 			CustomLimit:    0,
 			RequestTimeout: 15_000,
 		},
-		AppUsers: map[types.UserID]types.PortalAppUser{
+		PortalAppUsers: map[types.UserID]types.PortalAppUser{
 			"user_2": {
 				ID:    "user_2",
 				Email: "paul.atreides456@test.com",
@@ -1740,10 +1740,10 @@ var (
 	V2Account = &types.Account{
 		ID:       "account_1",
 		PlanType: types.PayPlanType("basic_plan"),
-		Users: map[types.UserID]types.AccountUserAccess{
-			"user_1": AccountUserAccess[1],
-			"user_2": AccountUserAccess[2],
-			"user_8": AccountUserAccess[8],
+		AccountUsers: map[types.UserID]types.AccountUser{
+			"user_1": AccountUser[1],
+			"user_2": AccountUser[2],
+			"user_8": AccountUser[8],
 		},
 		PartnerChainIDs:        map[types.RelayChainID]struct{}{"0001": {}, "0053": {}},
 		PartnerThroughputLimit: 2_000,

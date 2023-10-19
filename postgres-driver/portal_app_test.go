@@ -108,7 +108,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 		name            string
 		portalApp       types.PortalApp
 		aat             types.AAT
-		portalAppUsers  map[types.UserID]types.AccountUserAccess
+		portalAppUsers  map[types.UserID]types.AccountUser
 		testCreatedTime time.Time
 		err             error
 	}{
@@ -183,11 +183,11 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 				test.portalApp.ID = createdPortalApp.ID
 				test.portalApp.AATs = createdPortalApp.AATs
 				var createUserID types.UserID
-				for userID := range test.portalApp.AppUsers {
+				for userID := range test.portalApp.PortalAppUsers {
 					createUserID = userID
 					break
 				}
-				test.portalApp.AppUsers = nil
+				test.portalApp.PortalAppUsers = nil
 				ts.Equal(&test.portalApp, createdPortalApp)
 
 				// Check user was created for the account
@@ -196,7 +196,7 @@ func (ts *PGDriverTestSuite) Test_WritePortalApp() {
 				account, ok := accounts[test.portalApp.AccountID]
 				ts.True(ok)
 				ts.NotEmpty(createUserID)
-				accountUser, ok := account.Users[createUserID]
+				accountUser, ok := account.AccountUsers[createUserID]
 				ts.True(ok)
 				ts.NotEmpty(accountUser.PortalAppRoles[createdPortalApp.ID])
 				ts.True(accountUser.PortalAppsAccepted[createdPortalApp.ID])

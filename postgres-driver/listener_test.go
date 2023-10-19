@@ -37,7 +37,7 @@ func Test_Listen(t *testing.T) {
 				types.TableAccountUserAccess: {
 					Table:  types.TableAccountUserAccess,
 					Action: types.ActionUpdate,
-					Data: &types.AccountUserAccess{
+					Data: &types.AccountUser{
 						AccountID:          "account_4",
 						UserID:             "user_4",
 						PortalAppRoles:     map[types.PortalAppID]types.RoleName{},

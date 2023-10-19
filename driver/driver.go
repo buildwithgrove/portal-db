@@ -67,13 +67,13 @@ type (
 		/* SetAccountDeleted sets the Account Deleted field to true. */
 		SetAccountDeleted(ctx context.Context, accountID types.AccountID, deletedAt time.Time) error
 
-		/* WriteAccountUser saves input AccountUserAccess to the database. */
+		/* WriteAccountUser saves input AccountUser to the database. */
 		WriteAccountUser(ctx context.Context, createAccountUser types.CreateAccountUserAccess, createdAt time.Time) (types.UserID, error)
-		/* SetAccountUserRole updates the role for an existing AccountUserAccess row. If transferring ownership the account owner becomes an admin. */
+		/* SetAccountUserRole updates the role for an existing AccountUser row. If transferring ownership the account owner becomes an admin. */
 		SetAccountUserRole(ctx context.Context, updateAccountUser types.UpdateAccountUserRole, updatedAt time.Time) error
-		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUserAccess row. */
+		/* UpdateAcceptAccountUser sets the User ID and the Accepted field to true for an AccountUser row. */
 		UpdateAcceptAccountUser(ctx context.Context, acceptAccountUser types.UpdateAcceptAccountUser, updatedAt time.Time) error
-		/* RemoveAccountUser deletes a AccountUserAccess row for a given user and account ID. */
+		/* RemoveAccountUser deletes a AccountUser row for a given user and account ID. */
 		RemoveAccountUser(ctx context.Context, userID types.UserID, portalAppID types.PortalAppID, accountID types.AccountID) error
 
 		/* UpdateUser updates a user's updatable fields in the database. */

@@ -154,7 +154,7 @@ func accountInputs(mainTableAction, sideTablesAction types.Action, content types
 	}
 
 	if sideTablesAction != "" {
-		for _, userAccess := range account.Users {
+		for _, userAccess := range account.AccountUsers {
 			var portalAppID types.PortalAppID
 			var roleName types.RoleName
 			for id, role := range userAccess.PortalAppRoles {
